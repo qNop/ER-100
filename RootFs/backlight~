@@ -1,0 +1,5 @@
+#!/bin/sh
+## 获取第一个位置的命令 
+echo $1 > /sys/devices/platform/pwm-backlight.0/backlight/pwm-backlight.0/brightness
+
+	

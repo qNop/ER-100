@@ -1,0 +1,24 @@
+#!/bin/sh
+
+export TSLIB_ROOT=/opt/tslib
+export TSLIB_TSDEVICE=/dev/input/event1 
+export TSLIB_CALIBFILE=/etc/pointercal   
+export TSLIB_CONFFILE=$TSLIB_ROOT/etc/ts.conf    
+export TSLIB_PLUGINDIR=$TSLIB_ROOT/lib/ts 
+export TSLIB_FBDEVICE=/dev/fb0   
+export QTDIR=/opt/Qt5
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$QTDIR/lib:$TSLIB_ROOT/lib
+export PATH=$PATH:$QTDIR/bin:$TSLIB_ROOT
+export QT_QPA_PLATFORM_PLUGIN_PATH=$QTDIR/plugins #:$TSLIB_PLUGINDIR
+export QT_QPA_PLATFORM=linuxfb:tty=/dev/fb0
+export QT_QPA_FONTDIR=$QTDIR/lib/fonts
+export QT_QPA_GENERIC_PLUGINS=tslib:$TSLIB_TSDEVICE
+
+if [ -f /etc/pointercal ];then
+	echo "eRoboWeldSys touchscreen have calibrate!"
+else
+	/opt/tslib/bin/ts_calibrate
+	sync
+fi
+
+

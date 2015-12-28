@@ -1,0 +1,40 @@
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
+
+PS1='[\u@\h \W]\$ '
+
+export PATH
+
+alias ll='ls -l'
+alias la='ll -a'
+
+export PS1='\u@\h \w$ '
+export PS2='> '
+export PS3='? '
+export PS4='[$LINENO]+'
+
+export GST_PLUGIN_PATH=/usr/lib/fsl_mm_linux/lib/gstreamer-0.10
+
+export TSLIB_ROOT=/opt/tslib
+export TSLIB_TSDEVICE=/dev/input/event1 
+export TSLIB_CALIBFILE=/etc/pointercal   
+export TSLIB_CONFFILE=$TSLIB_ROOT/etc/ts.conf    
+export TSLIB_PLUGINDIR=$TSLIB_ROOT/lib/ts 
+export TSLIB_FBDEVICE=/dev/fb0   
+export QTDIR=/opt/Qt5
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$QTDIR/lib:$TSLIB_ROOT/lib
+export PATH=$PATH:$QTDIR/bin:$TSLIB_ROOT
+export QT_QPA_PLATFORM_PLUGIN_PATH=$QTDIR/plugins/platforms
+export QT_QPA_PLATFORM=eglfs:tty=/dev/fb0
+export QT_QPA_FONTDIR=$QTDIR/lib/fonts
+export QT_QPA_GENERIC_PLUGINS=tslib:$TSLIB_TSDEVICE
+export QT_QPA_EVDEV_KEYBOARD_PARAMETERS=/dev/input/event0
+
+export QT_EGLFS_IMX6_NO_FB_MULTI_BUFFER=1
+export QT_QPA_EGLFS_PHYSICAL_WIDTH=132.48
+export QT_QPA_EGLFS_PHYSICAL_HEIGHT=99.36
+
+export LD_PRELOAD=$LD_PRELOAD:/opt/tslib/lib/libts.so
+
+
+
+

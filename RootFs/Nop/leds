@@ -1,0 +1,25 @@
+#!/bin/sh
+## 获取第一个位置的命令 包括start stop ready三个指令
+case "$1" in
+	setup)
+	echo 0 > /sys/class/leds/WeldSys_Start_Led/brightness
+	echo 0 > /sys/class/leds/WeldSys_Stop_Led/brightness
+	echo 0 > /sys/class/leds/WeldSys_Ready_Led/brightness
+;;
+	start)
+	echo 1 > /sys/class/leds/WeldSys_Start_Led/brightness
+	echo 0 > /sys/class/leds/WeldSys_Stop_Led/brightness
+	echo 0 > /sys/class/leds/WeldSys_Ready_Led/brightness
+	;;
+	stop)
+	echo 0 > /sys/class/leds/WeldSys_Start_Led/brightness
+	echo 1 > /sys/class/leds/WeldSys_Stop_Led/brightness
+	echo 0 > /sys/class/leds/WeldSys_Ready_Led/brightness
+;;
+	ready)
+	echo 0 > /sys/class/leds/WeldSys_Start_Led/brightness
+	echo 0 > /sys/class/leds/WeldSys_Stop_Led/brightness
+	echo 1 > /sys/class/leds/WeldSys_Ready_Led/brightness
+;;
+esac
+	

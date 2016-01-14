@@ -24,7 +24,7 @@ Item {
     property bool symbolModifier: false
     property int verticalSpacing: keyboard.height / 40
     property int horizontalSpacing: verticalSpacing
-    property int rowHeight: keyboard.height/5 - verticalSpacing
+    property int rowHeight: (keyboard.height - 5*verticalSpacing)/5
     property int buttonWidth:  (keyboard.width-column.anchors.margins)/10 - horizontalSpacing
     property string pinyinTxt:"";
     /**
@@ -101,16 +101,22 @@ Item {
         }
         Column {
             id:column
-            anchors.fill: parent
+            anchors.top:parent.top
+            anchors.topMargin: verticalSpacing
+            anchors.left: parent.left
+            anchors.right: parent.right
             spacing: verticalSpacing
             Row {
                 id: hanziRect
                 height: rowHeight
                 width:  parent.width
+                anchors.left:parent.left
+                anchors.right: parent.right
+                anchors.rightMargin: horizontalSpacing
+                anchors.leftMargin: horizontalSpacing
                 spacing: horizontalSpacing
                 Button{
                     id:leftButton;
-                    elevation:2
                     width: buttonWidth
                     height:parent.height
                     onClicked: { listView.decrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0F") }//SO 代表<<
@@ -123,7 +129,7 @@ Item {
                 ListView {
                     id:listView;
                     orientation: ListView.Horizontal
-                    width:parent.width-3*buttonWidth-4*horizontalSpacing
+                    width:parent.width-3*buttonWidth-3*horizontalSpacing
                     height:parent.height
                     clip:true
                     delegate:Item{
@@ -142,7 +148,6 @@ Item {
                     id:rightButton;
                     height:parent.height
                     width:buttonWidth
-                    elevation:2
                     onClicked:{listView.incrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0E") }//SO 代表<<
                     Icon{
                         anchors.centerIn:rightButton
@@ -152,7 +157,6 @@ Item {
                 }
                 Button {
                     id: hide
-                    elevation:2
                     width: buttonWidth
                     height: rowHeight
                     Icon{
@@ -229,14 +233,16 @@ Item {
             }
             Row {
                 height: rowHeight
-                width:parent.width
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.rightMargin: horizontalSpacing
                 spacing: horizontalSpacing
-                anchors.horizontalCenter:parent.horizontalCenter
+                anchors.leftMargin: horizontalSpacing
                 Button{
                     id:inputmode
                     elevation:2
                     height: rowHeight
-                    width:buttonWidth
+                    width:backspace.width
                     text: (!symbolModifier) ? "?123" : qsTr("返回")
                     onClicked: {
                         if (shiftModifier) {
@@ -249,13 +255,13 @@ Item {
                     elevation:2
                     width: buttonWidth
                     height: rowHeight
-                    text:chineseModifier? ",":"，"
+                    text:","
                     onClicked: InputEngine.sendKeyToFocusItem(text)
                 }
                 Button {
                     id: spaceKey
                     elevation:2
-                    width: parent.width-4*buttonWidth -8*parent.spacing
+                    width: parent.width-2*enterKey.width-2*buttonWidth-4*parent.spacing
                     height: rowHeight
                     text: " "
                     onClicked: InputEngine.sendKeyToFocusItem(text)
@@ -264,14 +270,14 @@ Item {
                     elevation:2
                     width: buttonWidth
                     height: rowHeight
-                    text: chineseModifier?".":"。"
+                    text: "."
                     onClicked: InputEngine.sendKeyToFocusItem(text)
                 }
 
                 Button {
                     id: enterKey
                     elevation:2
-                    width: buttonWidth
+                    width: backspace.width
                     height: rowHeight
                     text: qsTr("确认")
                     onClicked: InputEngine.sendKeyToFocusItem("\x0D")//回车码

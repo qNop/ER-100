@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.4.2, 2016-01-14T11:52:05. -->
+<!-- Written by QtCreator 3.4.2, 2016-01-14T13:17:33. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -392,7 +392,7 @@
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.ProcessStep</value>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.6">
-      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">false</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.Arguments"></value>
       <value type="QString" key="ProjectExplorer.ProcessStep.Command">qmake</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.WorkingDirectory">/home/nop/QtFreeVirtualKeyboard/VirtualKeyboard</value>
@@ -401,7 +401,7 @@
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.ProcessStep</value>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.7">
-      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">false</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.Arguments"></value>
       <value type="QString" key="ProjectExplorer.ProcessStep.Command">make</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.WorkingDirectory">/home/nop/QtFreeVirtualKeyboard/VirtualKeyboard</value>
@@ -410,7 +410,7 @@
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.ProcessStep</value>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.8">
-      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">false</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.Arguments">install</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.Command">make</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.WorkingDirectory">/home/nop/QtFreeVirtualKeyboard/VirtualKeyboard</value>
@@ -419,7 +419,7 @@
       <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.ProcessStep</value>
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.9">
-      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">false</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.Arguments">clean</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.Command">make</value>
       <value type="QString" key="ProjectExplorer.ProcessStep.WorkingDirectory">/home/nop/QtFreeVirtualKeyboard/VirtualKeyboard</value>

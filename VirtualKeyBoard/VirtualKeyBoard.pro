@@ -5,7 +5,7 @@
 #-------------------------------------------------
 TEMPLATE = lib
 
-QT       += qml quick gui-private widgets
+QT       += qml quick quick-private gui-private widgets
 
 CONFIG += plugin
 
@@ -20,22 +20,14 @@ linux-g++{
     DESTDIR =/home/nop/ER-100/RootFs/opt/Qt5/plugins/platforminputcontexts
 }
 
-SOURCES += VirtualKeyboardplatforminputcontextplugin.cpp \
-    VirtualKeyboardinputcontext.cpp \
-    VirtualKeyboardkeyeventdispatcher.cpp \
-    pinyininputmethod.cpp
+SOURCES += \
+    DeclarativeInputEngine.cpp \
+    VirtualKeyboardInputContext.cpp \
+    VirtualKeyboardInputContextPlugin.cpp
 
-HEADERS += VirtualKeyboardplatforminputcontextplugin.h\
-    VirtualKeyboardinputcontext.h \
-    VirtualKeyboardkeyeventdispatcher.h \
-    pinyininputmethod.h
+HEADERS += \
+    DeclarativeInputEngine.h \
+    VirtualKeyboardInputContext.h \
+    VirtualKeyboardInputContextPlugin.h
 
-OTHER_FILES += \
-    InputPanel.qml \
-    KeyModel.qml \
-    KeyButton.qml
-
-RESOURCES += \
-    res/res.qrc \
-    qml/qml.qrc
 

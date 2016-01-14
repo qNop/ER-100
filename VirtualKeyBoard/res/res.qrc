@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/images">
-        <file>btnbg.png</file>
-    </qresource>
-    <qresource prefix="/pinyin">
-        <file>pinyinEx.ini</file>
-    </qresource>
-</RCC>

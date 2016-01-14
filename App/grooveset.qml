@@ -8,7 +8,7 @@ import QtQuick.Controls 1.3 as QuickControls
 import QtQuick.LocalStorage 2.0
 import "qrc:/Database.js" as DB
 import "CanvasPaint.js" as Paint
-Rectangle{
+Item {
     id:grooveset
     property int currentGroove:9;
     property var teachmodemodel: ["自动","半自动","手动"];
@@ -22,8 +22,7 @@ Rectangle{
     property var teachSetList: [qsTr( "示教模式"),qsTr( "始终端检测"),qsTr( "示教第一点位置"),qsTr( "示教第一点时焊接长"),
         qsTr( "示教点数"),qsTr( "板厚"),qsTr( "余高"),qsTr( "坡口检测点左"),qsTr( "坡口检测点右"),qsTr( "板厚补正"),qsTr( "角度补正"),qsTr( "间隙补正"),]
     property int keyindex: 0;
-    property var mode: "";
-    color:Theme.backgroundColor
+    property string mode: "";
     APPConfig{id:appconfig}
     anchors.left: parent.left
 
@@ -101,8 +100,12 @@ Rectangle{
             }
         }
     }
+    Scrollbar {
+        flickableItem: fickable
+    }
     Flickable{
         id:fickable
+        objectName: "groove"
         anchors {
             left: groovelist.right
             right: parent.right
@@ -111,7 +114,6 @@ Rectangle{
         }
         clip: true
         contentHeight: Math.max(parent.implicitHeight + 40, height)
-
         Column{
             id:column
             anchors.fill: parent
@@ -393,6 +395,23 @@ Rectangle{
                 expanded: true;
                 selected: focus
                 KeyNavigation.down: teachmodeset
+            }
+            /*间隙补正(mm)*/
+            ListItem.Subtitled{
+                id:test
+                text:qsTr("间隙补正:");
+                anchors.left: parent.left
+                anchors.leftMargin: test.visible ? Units.dp(48) : Units.dp(148) ;
+                Behavior on anchors.leftMargin{
+                    NumberAnimation { duration: 200 }
+                }
+                backgroundColor: Theme.backgroundColor
+                height:teachmodeset.height
+                visible: weldset.expanded
+                secondaryItem:TextField{
+                    id: testfield
+                    anchors.verticalCenter: parent.verticalCenter
+                }
             }
         }
     }

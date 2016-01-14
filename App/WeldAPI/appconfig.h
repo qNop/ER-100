@@ -27,9 +27,12 @@ class APPConfig : public QObject
     Q_PROPERTY(int currentGroove READ  getcurrentGroove WRITE setcurrentGroove NOTIFY currentGroovechanged)
     /*系统led*/
     Q_PROPERTY(QString leds READ getleds WRITE setleds)
+
 public:
     APPConfig();
     ~APPConfig();
+
+
 
     void setleds(QString status);//leds
     QString getleds();

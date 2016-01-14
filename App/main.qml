@@ -9,6 +9,7 @@ import QtQuick.LocalStorage 2.0
 import "qrc:/Database.js" as DB
 import "CanvasPaint.js" as Paint
 
+
 /*应用程序窗口*/
 ApplicationWindow{
     id: app;title: "app";visible: true
@@ -36,12 +37,16 @@ ApplicationWindow{
         }
     }
     /*发送action*/
-    ActionButton{id:send;anchors {left: parent.left;bottom: parent.bottom;bottomMargin:  Units.dp(16);
+    ActionButton{id:send;anchors {left: parent.left;bottom: parent.bottom;bottomMargin:  input.visible ? input.height+Units.dp(16):Units.dp(16) ;
             leftMargin: visible ? Units.dp(16):Units.dp(600)}iconName:"awesome/send";
         visible: if(page.selectedTab === 0) return true; else return false ;
         Behavior on anchors.leftMargin {
             NumberAnimation { duration: 600 }
         }
+        Behavior on anchors.bottomMargin {
+            NumberAnimation { duration: 200 }
+        }
+
         onClicked: {
             /*显示进度条*/
             slider.show();
@@ -63,7 +68,7 @@ ApplicationWindow{
                 //onTriggered: demo.showError("Something went wrong", "Do you want to retry?", "Close", true)
             },
             /*背光控制插件action*/
-            Action{name: qsTr("背光"); iconName: "image/flash_off"//"device/brightness_medium";           
+            Action{name: qsTr("背光"); iconName: "image/flash_off"//"device/brightness_medium";
                 onTriggered:backlight.show();
             },
             /*系统选择颜色action*/
@@ -99,18 +104,16 @@ ApplicationWindow{
                 title: sectionTitles[index]
                 property string selectedComponent: modelData
                 iconName:tabiconname[index];
-                Item {
-                    objectName: "ls"
+                Item{
                     Flickable {
                         id: flickable
+                        objectName: sectionTitles[index]
                         anchors {
                             left: parent.left
                             right: parent.right
                             top: parent.top
                             bottom: parent.bottom
                         }
-                        property bool actionbutton:true
-                        objectName: "parent"
                         clip: true
                         contentHeight: Math.max(loader.implicitHeight + 40, height)
                         Loader {
@@ -137,12 +140,22 @@ ApplicationWindow{
         Keys.onPressed: {
             switch(event.key){
             case Qt.Key_F1:
-                 slider.show();
+                slider.show();
                 event.accepted=true;
                 break;
             }
         }
-    }/**/
+    }
+    InputPanel{
+        id:input
+        visible:Qt.inputMethod.visible
+        objectName: "InputPanel"
+        y: visible ? parent.height - input.height:parent.height
+        Behavior on y{
+            NumberAnimation { duration: 200 }
+        }
+    }
+    /**/
     Component.onCompleted: {
         /*打开数据库*/
         DB.openDatabase();

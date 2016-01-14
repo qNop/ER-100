@@ -67,7 +67,7 @@ Item {
     Label {
         id: label
         anchors.centerIn: parent
-	text: "ceshi"//action ? action.name : ""
+	text: action ? action.name : ""
         style: "subheading"
     }
 

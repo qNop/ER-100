@@ -29,7 +29,6 @@ Rectangle {
         property int rowHeight: keyboard.height/4 - verticalSpacing
         property int buttonWidth:  (keyboard.width-column.anchors.margins)/10 - horizontalSpacing
     }
-
     Component {
         id: keyButtonDelegate
         KeyButton {
@@ -89,7 +88,6 @@ Rectangle {
                 width: hanziTxt.width ? hanziTxt.width + 60 : 0
                 height: hanziRect.height
                 opacity: pinyinTxt.width > 0
-
                 Text {
                     id: hanziTxt
                     anchors.horizontalCenter:parent.horizontalCenter
@@ -107,7 +105,6 @@ Rectangle {
                             keyEventDispatcher.sendKeyToFocusItem(hanziTxt.text)
                             pinyinTxt.text = ""
                         }
-
                     }
                 }
                 Rectangle {

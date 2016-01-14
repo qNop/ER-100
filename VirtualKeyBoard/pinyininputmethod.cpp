@@ -38,7 +38,8 @@ int CPinyinInputMethod::BinarySearch(const QString &gemfield)
     int min = 0;
     int max = key.size();
     int idx = max / 2;
-
+    qDebug()<<gemfield;
+    qDebug()<<"Key size is"<<max;
     while (true)
     {
         if (key[idx].startsWith(gemfield))
@@ -50,6 +51,7 @@ int CPinyinInputMethod::BinarySearch(const QString &gemfield)
         else
             min = idx;
         idx = (max + min) / 2;
+        qDebug()<<idx;
     }
     do{
         if (--idx < 0)
@@ -64,14 +66,16 @@ void CPinyinInputMethod::Matching(const QString &gemfield )
     HanziModel.clear();
     QString str = gemfield.toLower();
     int idx = BinarySearch(str);
+     qDebug()<<"Last idx is "<<idx;
     if (idx != -1)
     {
         while(true)
         {
             if (idx >= key.size())
                 break;
-            if (key[idx].startsWith(gemfield))
+            if (key[idx].startsWith(gemfield)){
                 HanziModel.append(val[idx]);
+            }
             else
                 break;
             idx++;

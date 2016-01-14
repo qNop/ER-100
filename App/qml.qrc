@@ -7,5 +7,6 @@
         <file>weldset.qml</file>
         <file>welding.qml</file>
         <file>Popslider.qml</file>
+        <file>InputPanel.qml</file>
     </qresource>
 </RCC>

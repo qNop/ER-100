@@ -10,7 +10,7 @@ cp  ethcfg /home/nop/ltib/rootfs/etc/rc.d/init.d/
 cp  profile /home/nop/ltib/rootfs/etc/ 
 cp  inittab /home/nop/ltib/rootfs/etc/
 cp  rc.conf /home/nop/ltib/rootfs/etc/rc.d/
-#是否存在truetype文件 否 复制该字体到 该文件下
+#是否存在truetype文件 否 复制该字体到 该文件下	
 if [ -e /home/nop/ltib/rootfs/usr/share/fonts/truetype ] 
 then
    echo "cp zhonghejian.ttf to dir /home/nop/ltib/rootfs/usr/share/fonts/truetype"

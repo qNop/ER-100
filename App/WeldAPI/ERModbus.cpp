@@ -5,8 +5,6 @@
 #include "modbus-private.h"
 #include <QDebug>
 #include <errno.h>
-//#include <qextserialenumerator.h>
-//#include <qextserialport.h>
 
 ERModbus::ERModbus(){
 

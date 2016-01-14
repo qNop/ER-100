@@ -40,6 +40,7 @@ QRectF VirtualKeyboardInputContext::keyboardRect() const
 
 void VirtualKeyboardInputContext::showInputPanel()
 {
+    qDebug()<<"show Input panel";
     if (!d->view)
     {
         d->view = new QQuickView();

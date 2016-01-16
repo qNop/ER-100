@@ -66,7 +66,7 @@ DeclarativeInputEngine::DeclarativeInputEngine(QObject *parent) :
     d->str="";
     d->Model.clear();
     d->index=0;
-    QSettings setter("pinyinEx.ini", QSettings::IniFormat);
+    QSettings setter(":/pinyin/pinyinEx.ini", QSettings::IniFormat);
     d->key = setter.value("pyKey",d->key).toStringList();
     d->val = setter.value("pyVal", d->val).toStringList();
     if (d->key.size() <= 1)
@@ -87,7 +87,7 @@ DeclarativeInputEngine::~DeclarativeInputEngine()
 //==============================================================================
 void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
 {
-    qDebug() << "CDeclarativeInputEngine::sendKeyToFocusItem " << text;
+    //qDebug() << "CDeclarativeInputEngine::sendKeyToFocusItem " << text;
     QInputMethodEvent ev;
     //删除命令
     if (text == QString("\x7F"))
@@ -151,7 +151,7 @@ int DeclarativeInputEngine::inputMode() const
 //==============================================================================
 void DeclarativeInputEngine::setInputMode(int Mode)
 {
-    qDebug() << "CDeclarativeInputEngine::setInputMode " << Mode;
+   // qDebug() << "CDeclarativeInputEngine::setInputMode " << Mode;
     if (Mode != d->InputMode)
     {
         d->InputMode = Mode;

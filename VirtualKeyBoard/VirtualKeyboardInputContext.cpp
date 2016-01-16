@@ -65,7 +65,7 @@ VirtualKeyboardInputContext::VirtualKeyboardInputContext() :
     d->FlickableContentScrollAnimation->setEasingCurve(QEasingCurve(QEasingCurve::OutBack));
     qmlRegisterSingletonType<DeclarativeInputEngine>("VirtualKeyboard", 1, 0,
                                                      "InputEngine", inputEngineProvider);
-  //  connect(d->InputEngine, SIGNAL(animatingChanged()), this, SLOT(ensureFocusedObjectVisible()));
+    //  connect(d->InputEngine, SIGNAL(animatingChanged()), this, SLOT(ensureFocusedObjectVisible()));
 }
 
 
@@ -102,7 +102,7 @@ QRectF VirtualKeyboardInputContext::keyboardRect() const
 //==============================================================================
 void VirtualKeyboardInputContext::showInputPanel()
 {
-    qDebug()<<"show Input Panel";
+    qDebug()<<"showInputPanel";
     d->Visible = true;
     ensureFocusedObjectVisible();
     QPlatformInputContext::showInputPanel();
@@ -114,14 +114,19 @@ void VirtualKeyboardInputContext::showInputPanel()
 //==============================================================================
 void VirtualKeyboardInputContext::hideInputPanel()
 {
-    d->Visible = false;
-    if((d->ContentY_Add)&&(d->Flickable->contentY())){
-        d->FlickableContentScrollAnimation->setEndValue( d->Flickable->contentY()-d->ContentY_Add);
-        d->FlickableContentScrollAnimation->start();
+    if(d->Visible){
+        d->Visible = false;
+        if((d->ContentY_Add)&&(d->Flickable->contentY())){
+            d->FlickableContentScrollAnimation->setEndValue( d->Flickable->contentY()-d->ContentY_Add);
+            d->FlickableContentScrollAnimation->start();
+        }
+        d->Flickable = 0;
+        d->FocusItem = 0;
+        d->ContentY_Add = 0;
+        QPlatformInputContext::hideInputPanel();
+        //发送Qt.inputMethod.visible=false 信号
+        emitInputPanelVisibleChanged();
     }
-    QPlatformInputContext::hideInputPanel();
-    //发送Qt.inputMethod.visible=false 信号
-    emitInputPanelVisibleChanged();
 }
 
 
@@ -150,7 +155,13 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     {
         return;
     }
-
+    //上一次焦点存在 则将上一次 焦点动作执行完毕
+    if(d->FocusItem){
+            if((d->ContentY_Add)&&(d->Flickable)){
+                d->Flickable->setContentY(d->Flickable->contentY()-d->ContentY_Add);
+                d->ContentY_Add=0;
+            }
+    }
     // we only support QML at the moment - so if this is not a QML item, then
     // we leave immediatelly
     d->FocusItem = dynamic_cast<QQuickItem*>(object);
@@ -158,7 +169,6 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     {
         return;
     }
-
     // Check if an input control has focus that accepts text input - if not,
     // then we can leave immediatelly
     bool AcceptsInput = d->FocusItem->inputMethodQuery(Qt::ImEnabled).toBool();
@@ -169,8 +179,8 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     // Set input mode depending on input method hints queried from focused
     // object / item
     Qt::InputMethodHints InputMethodHints(d->FocusItem->inputMethodQuery(Qt::ImHints).toInt());
-    qDebug() << QString("InputMethodHints: %1").arg(InputMethodHints, 0, 16);
-     if (InputMethodHints & NumericInputHints) {
+    //   qDebug() << QString("InputMethodHints: %1").arg(InputMethodHints, 0, 16);
+    if (InputMethodHints & NumericInputHints) {
         d->InputEngine->setInputMode(DeclarativeInputEngine::Numeric);
     }
     // Search for the top most flickable so that we can scroll the control
@@ -198,24 +208,24 @@ void VirtualKeyboardInputContext::ensureFocusedObjectVisible()
     {
         return;
     }
-    qDebug() << "VirtualKeyboardInputContext::ensureFocusedObjectVisible";
+    // qDebug() << "VirtualKeyboardInputContext::ensureFocusedObjectVisible";
     QRectF FocusItemRect(0, 0, d->FocusItem->width(), d->FocusItem->height());
     FocusItemRect = d->Flickable->mapRectFromItem(d->FocusItem, FocusItemRect);
-    qDebug() << "FocusItemRect: " << FocusItemRect;
-    qDebug() << "Content origin: " << QPointF(d->Flickable->contentX(),d->Flickable->contentY());
-    qDebug() << d->Flickable->objectName()<<"Flickable size: " << QSize(d->Flickable->width(), d->Flickable->height());
+    //  qDebug() << "FocusItemRect: " << FocusItemRect;
+    //  qDebug() << "Content origin: " << QPointF(d->Flickable->contentX(),d->Flickable->contentY());
+     qDebug() << d->Flickable->objectName()<<"Flickable size: " << QSize(d->Flickable->width(), d->Flickable->height());
     d->FlickableContentScrollAnimation->setTargetObject(d->Flickable);
     qreal ContentY = d->Flickable->contentY();
     if (FocusItemRect.bottom() >= d->Flickable->height())
     {
-        qDebug() << "Item outside!!!  FocusItemRect.bottom() >= d->Flickable->height()";
+        //      qDebug() << "Item outside!!!  FocusItemRect.bottom() >= d->Flickable->height()";
         ContentY = d->Flickable->contentY() + (FocusItemRect.bottom() - d->Flickable->height()) + 20;
         d->FlickableContentScrollAnimation->setEndValue(ContentY);
         d->FlickableContentScrollAnimation->start();
     }
     else if (FocusItemRect.top() < 0)
     {
-        qDebug() << "Item outside!!!  d->FocusItem->position().x < 0";
+        //     qDebug() << "Item outside!!!  d->FocusItem->position().x < 0";
         ContentY = d->Flickable->contentY() + FocusItemRect.top() - 20;
         d->FlickableContentScrollAnimation->setEndValue(ContentY);
         d->FlickableContentScrollAnimation->start();

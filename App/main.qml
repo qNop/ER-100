@@ -145,11 +145,13 @@ ApplicationWindow{
                 break;
             }
         }
+        onTabsChanged: {Qt.inputMethod.visible}
     }
     InputPanel{
         id:input
         visible:Qt.inputMethod.visible
         objectName: "InputPanel"
+        backgroundColor: theme.backgroundColor
         y: visible ? parent.height - input.height:parent.height
         Behavior on y{
             NumberAnimation { duration: 200 }

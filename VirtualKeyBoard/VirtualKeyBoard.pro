@@ -11,8 +11,6 @@ CONFIG += plugin
 
 TARGET = VirtualKeyboard
 
-DEFINES += VIRTUALKEYBOARD_LIBRARY
-
 linux-g++{
     DESTDIR = $$[QT_INSTALL_PLUGINS]/platforminputcontexts
 }else{
@@ -29,5 +27,8 @@ HEADERS += \
     DeclarativeInputEngine.h \
     VirtualKeyboardInputContext.h \
     VirtualKeyboardInputContextPlugin.h
+
+RESOURCES += \
+    res/res.qrc
 
 

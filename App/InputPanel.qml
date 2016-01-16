@@ -10,23 +10,24 @@ import Material.Extras 0.1
  * Copyright 2015 Uwe Kindler
  * Licensed under MIT see LICENSE.MIT in project root
  */
-Item {
+Card {
     id:root
     objectName: "inputPanel"
     width: parent.width
     height: width / 3.25
-    // Report actual keyboard rectangle to input engine
+    elevation:4
     onHeightChanged:{
         InputEngine.setKeyboardRectangle(Qt.rect(x, y, width, height))
     }
-    property bool chineseModifier: false
+    onVisibleChanged: {
+        listView.model="";
+    }
     property bool shiftModifier: false
     property bool symbolModifier: false
-    property int verticalSpacing: keyboard.height / 40
+    property int verticalSpacing: root.height / 40
     property int horizontalSpacing: verticalSpacing
-    property int rowHeight: (keyboard.height - 5*verticalSpacing)/5
-    property int buttonWidth:  (keyboard.width-column.anchors.margins)/10 - horizontalSpacing
-    property string pinyinTxt:"";
+    property int rowHeight: column.height/5 -verticalSpacing
+    property int buttonWidth:  column.width/10 - horizontalSpacing
     /**
     *键盘显示数据
    */
@@ -82,206 +83,192 @@ Item {
             }
         }
     }
-    Connections {
-        target: InputEngine
-        onInputModeChanged: {
-
+    Connections{target: InputEngine;onChineseListChanged: listView.model=list; }
+    Column {
+        id:column
+        anchors.top:parent.top
+        anchors.topMargin: verticalSpacing
+        anchors.left: parent.left
+        anchors.leftMargin: Units.dp(16);
+        anchors.right: parent.right
+        anchors.rightMargin: Units.dp(16);
+        anchors.bottom: parent.bottom
+        spacing: verticalSpacing
+        Row {
+            height: rowHeight
+            width:  parent.width
+            anchors.left:parent.left
+            anchors.right: parent.right
+            anchors.rightMargin: horizontalSpacing
+            anchors.leftMargin: horizontalSpacing
+            spacing: horizontalSpacing
+            Button{
+                id:leftButton;
+                width: buttonWidth
+                height:parent.height
+                onClicked: { listView.decrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0F") }//SO 代表<<
+                Icon{
+                    anchors.centerIn:leftButton
+                    source: "icon://awesome/caret_left"
+                    color: listView.currentIndex ? "#1e1b18" : Palette.colors["grey"]["500"]
+                    visible: listView.model.length
+                }
+            }
+            ListView {
+                id:listView;
+                orientation: ListView.Horizontal
+                width:parent.width-3*buttonWidth-3*horizontalSpacing
+                height:parent.height
+                clip:true
+                delegate:Item{
+                    width:hanziTxt.width+20
+                    height:parent.height
+                    Label {
+                        id: hanziTxt
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: modelData
+                        style:"subheading"
+                        color: index === listView.currentIndex ? Theme.accentColor : Theme.lightDark(Theme.backgroundColor,Theme.light.textColor,Theme.dark.textColor)
+                    }
+                }
+            }
+            Button{
+                id:rightButton;
+                height:parent.height
+                width:buttonWidth
+                onClicked:{listView.incrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0E") }//SO 代表<<
+                Icon{
+                    anchors.centerIn:rightButton
+                    source: "icon://awesome/caret_right"
+                    color:  "#1e1b18"
+                    visible: listView.model.length
+                }
+            }
+            Button {
+                id: hide
+                width: buttonWidth
+                height: rowHeight
+                Icon{
+                    anchors.centerIn:hide
+                    source: "icon://hardware/keyboard_hide"
+                    color: "#1e1b18"
+                }
+                onClicked: Qt.inputMethod.hide()
+            }
         }
-    }
-    Connections{
-        target: InputEngine
-        onChineseListChanged: listView.model=list;
-    }
-    Rectangle {
-        id:keyboard
-        color: Theme.backgroundColor
-        anchors.fill: parent
-        MouseArea {
-            anchors.fill: parent
+        Row {
+            height: rowHeight
+            spacing: horizontalSpacing
+            anchors.horizontalCenter:parent.horizontalCenter
+            Repeater {
+                model: first
+                delegate: keyButtonDelegate
+            }
         }
-        Column {
-            id:column
-            anchors.top:parent.top
-            anchors.topMargin: verticalSpacing
+        Row {
+            height: rowHeight
+            spacing: horizontalSpacing
+            anchors.horizontalCenter:parent.horizontalCenter
+            Repeater {
+                model: second
+                delegate: keyButtonDelegate
+            }
+        }
+        Item {
+            height: rowHeight
+            width:parent.width
+            Button{
+                id:capsLock
+                elevation:2
+                anchors{left: parent.left;leftMargin: horizontalSpacing;right: thirdrow.left;rightMargin: horizontalSpacing}
+                height:rowHeight
+                onClicked: {
+                    if (symbolModifier) symbolModifier = false;
+                    shiftModifier = !shiftModifier;
+                    if(shiftModifier)capsLock.backgroundColor=Qt.darker(capsLock.backgroundColor, 1.25)
+                    else capsLock.backgroundColor=backspace.backgroundColor
+                }
+                Icon{
+                    anchors.centerIn:capsLock
+                    source: "icon://awesome/arrow_up"
+                    color: "#1e1b18"
+                }
+            }
+            Row {
+                id:thirdrow
+                height: rowHeight
+                spacing: horizontalSpacing
+                anchors.horizontalCenter:parent.horizontalCenter
+                Repeater {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    model: third
+                    delegate: keyButtonDelegate
+                }
+            }
+            Button{
+                id:backspace
+                elevation:2
+                anchors{right: parent.right;leftMargin: horizontalSpacing;left: thirdrow.right;rightMargin: horizontalSpacing}
+                height:rowHeight
+                onClicked: {
+                    InputEngine.sendKeyToFocusItem("\x7F");//删除码
+                }
+                Icon{
+                    anchors.centerIn:backspace
+                    source: "icon://awesome/arrow_left"
+                    color: "#1e1b18"
+                }
+            }
+        }
+        Row {
+            height: rowHeight
             anchors.left: parent.left
             anchors.right: parent.right
-            spacing: verticalSpacing
-            Row {
-                id: hanziRect
+            anchors.rightMargin: horizontalSpacing
+            spacing: horizontalSpacing
+            anchors.leftMargin: horizontalSpacing
+            Button{
+                id:inputmode
+                elevation:2
                 height: rowHeight
-                width:  parent.width
-                anchors.left:parent.left
-                anchors.right: parent.right
-                anchors.rightMargin: horizontalSpacing
-                anchors.leftMargin: horizontalSpacing
-                spacing: horizontalSpacing
-                Button{
-                    id:leftButton;
-                    width: buttonWidth
-                    height:parent.height
-                    onClicked: { listView.decrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0F") }//SO 代表<<
-                    Icon{
-                        anchors.centerIn:leftButton
-                        source: "icon://awesome/caret_left"
-                        color: listView.currentIndex  ? "#1e1b18" : Palette.colors["grey"]["500"]
+                width:backspace.width
+                text: (!symbolModifier) ? "?123" : qsTr("返回")
+                onClicked: {
+                    if (shiftModifier) {
+                        shiftModifier = false
                     }
-                }
-                ListView {
-                    id:listView;
-                    orientation: ListView.Horizontal
-                    width:parent.width-3*buttonWidth-3*horizontalSpacing
-                    height:parent.height
-                    clip:true
-                    delegate:Item{
-                        width:hanziTxt.width+20
-                        height:parent.height
-                        Label {
-                            id: hanziTxt
-                            anchors.verticalCenter: parent.verticalCenter
-                            text: modelData
-                            style:"subheading"
-                            color: index === listView.currentIndex ? Theme.accentColor : Theme.lightDark(Theme.backgroundColor,Theme.light.textColor,Theme.dark.textColor)
-                        }
-                    }
-                }
-                Button{
-                    id:rightButton;
-                    height:parent.height
-                    width:buttonWidth
-                    onClicked:{listView.incrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0E") }//SO 代表<<
-                    Icon{
-                        anchors.centerIn:rightButton
-                        source: "icon://awesome/caret_right"
-                        color:  "#1e1b18"
-                    }
-                }
-                Button {
-                    id: hide
-                    width: buttonWidth
-                    height: rowHeight
-                    Icon{
-                        anchors.centerIn:hide
-                        source: "icon://hardware/keyboard_hide"
-                        color: "#1e1b18"
-                    }
-                    onClicked: Qt.inputMethod.hide()
+                    symbolModifier = ! symbolModifier
                 }
             }
-            Row {
+            Button {
+                elevation:2
+                width: buttonWidth
                 height: rowHeight
-                spacing: horizontalSpacing
-                anchors.horizontalCenter:parent.horizontalCenter
-                Repeater {
-                    model: first
-                    delegate: keyButtonDelegate
-                }
+                text:","
+                onClicked: InputEngine.sendKeyToFocusItem(text)
             }
-            Row {
+            Button {
+                id: spaceKey
+                elevation:2
+                width: parent.width-2*enterKey.width-2*buttonWidth-4*parent.spacing
                 height: rowHeight
-                spacing: horizontalSpacing
-                anchors.horizontalCenter:parent.horizontalCenter
-                Repeater {
-                    model: second
-                    delegate: keyButtonDelegate
-                }
+                text: " "
+                onClicked: InputEngine.sendKeyToFocusItem(text)
             }
-            Item {
+            Button {
+                elevation:2
+                width: buttonWidth
                 height: rowHeight
-                width:parent.width
-                Button{
-                    id:capsLock
-                    elevation:2
-                    anchors{left: parent.left;leftMargin: horizontalSpacing;right: thirdrow.left;rightMargin: horizontalSpacing}
-                    height:rowHeight
-                    onClicked: {
-                        if (symbolModifier) symbolModifier = false;
-                        shiftModifier = !shiftModifier;
-                        if(shiftModifier)capsLock.backgroundColor=Qt.darker(capsLock.backgroundColor, 1.25)
-                        else capsLock.backgroundColor=backspace.backgroundColor
-                    }
-                    Icon{
-                        anchors.centerIn:capsLock
-                        source: "icon://awesome/arrow_up"
-                        color: "#1e1b18"
-                    }
-                }
-                Row {
-                    id:thirdrow
-                    height: rowHeight
-                    spacing: horizontalSpacing
-                    anchors.horizontalCenter:parent.horizontalCenter
-                    Repeater {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        model: third
-                        delegate: keyButtonDelegate
-                    }
-                }
-                Button{
-                    id:backspace
-                    elevation:2
-                    anchors{right: parent.right;leftMargin: horizontalSpacing;left: thirdrow.right;rightMargin: horizontalSpacing}
-                    height:rowHeight
-                    onClicked: {
-                        InputEngine.sendKeyToFocusItem("\x7F");//删除码
-                    }
-                    Icon{
-                        anchors.centerIn:backspace
-                        source: "icon://awesome/arrow_left"
-                        color: "#1e1b18"
-                    }
-                }
+                text: "."
+                onClicked: InputEngine.sendKeyToFocusItem(text)
             }
-            Row {
+            Button {
+                id: enterKey
+                elevation:2
+                width: backspace.width
                 height: rowHeight
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.rightMargin: horizontalSpacing
-                spacing: horizontalSpacing
-                anchors.leftMargin: horizontalSpacing
-                Button{
-                    id:inputmode
-                    elevation:2
-                    height: rowHeight
-                    width:backspace.width
-                    text: (!symbolModifier) ? "?123" : qsTr("返回")
-                    onClicked: {
-                        if (shiftModifier) {
-                            shiftModifier = false
-                        }
-                        symbolModifier = ! symbolModifier
-                    }
-                }
-                Button {
-                    elevation:2
-                    width: buttonWidth
-                    height: rowHeight
-                    text:","
-                    onClicked: InputEngine.sendKeyToFocusItem(text)
-                }
-                Button {
-                    id: spaceKey
-                    elevation:2
-                    width: parent.width-2*enterKey.width-2*buttonWidth-4*parent.spacing
-                    height: rowHeight
-                    text: " "
-                    onClicked: InputEngine.sendKeyToFocusItem(text)
-                }
-                Button {
-                    elevation:2
-                    width: buttonWidth
-                    height: rowHeight
-                    text: "."
-                    onClicked: InputEngine.sendKeyToFocusItem(text)
-                }
-
-                Button {
-                    id: enterKey
-                    elevation:2
-                    width: backspace.width
-                    height: rowHeight
-                    text: qsTr("确认")
-                    onClicked: InputEngine.sendKeyToFocusItem("\x0D")//回车码
-                }
+                text: qsTr("确认")
+                onClicked: InputEngine.sendKeyToFocusItem("\x0D")//回车码
             }
         }
     }

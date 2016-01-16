@@ -8,8 +8,6 @@ import QtQuick.Layouts 1.1
 import QtQuick.LocalStorage 2.0
 import "qrc:/Database.js" as DB
 import "CanvasPaint.js" as Paint
-
-
 /*应用程序窗口*/
 ApplicationWindow{
     id: app;title: "app";visible: true

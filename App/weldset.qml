@@ -13,7 +13,6 @@ Rectangle {
         NumberAnimation { duration: 200 }
     }
     property string locale: view.currentItem.locale
-
     Text {
         id: title
         text: "Select locale:"

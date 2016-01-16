@@ -29,11 +29,14 @@ INCLUDEPATH +=libmodbus \
               VirtualKeyboard\
 
 linux-g++{
- #  DESTDIR = $$[QT_INSTALL_PLUGINS]/platforminputcontexts
+   # DESTDIR = $$[QT_INSTALL_PLUGINS]/platforminputcontexts
 }else{
 #存储位置为 downloadfiles
     DESTDIR = /home/nop/ER-100/RootFs/Nop/
 }
+
+
+
 
 
 

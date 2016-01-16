@@ -2,13 +2,12 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>Database.js</file>
-	<file>awesomechart.js</file>
         <file>CanvasPaint.js</file>
         <file>grooveset.qml</file>
         <file>weldset.qml</file>
         <file>welding.qml</file>
         <file>Popslider.qml</file>
         <file>InputPanel.qml</file>
-	<file>highcharts/highcharts.js</file>
+        <file>awesomechart.js</file>
     </qresource>
 </RCC>

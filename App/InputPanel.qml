@@ -10,12 +10,11 @@ import Material.Extras 0.1
  * Copyright 2015 Uwe Kindler
  * Licensed under MIT see LICENSE.MIT in project root
  */
-Card {
+PopupBase {
     id:root
-    objectName: "inputPanel"
     width: parent.width
     height: width / 3.25
-    elevation:4
+    overlayLayer: "dialogOverlayLayer"
     onHeightChanged:{
         InputEngine.setKeyboardRectangle(Qt.rect(x, y, width, height))
     }
@@ -84,6 +83,9 @@ Card {
         }
     }
     Connections{target: InputEngine;onChineseListChanged: listView.model=list; }
+Card{
+    anchors.fill: parent
+    elevation:4
     Column {
         id:column
         anchors.top:parent.top
@@ -272,4 +274,5 @@ Card {
             }
         }
     }
+}
 }

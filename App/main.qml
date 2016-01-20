@@ -149,7 +149,7 @@ ApplicationWindow{
         id:input
         visible:Qt.inputMethod.visible
         objectName: "InputPanel"
-        backgroundColor: theme.backgroundColor
+      //  backgroundColor: theme.backgroundColor
         y: visible ? parent.height - input.height:parent.height
         Behavior on y{
             NumberAnimation { duration: 200 }

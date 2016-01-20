@@ -28,7 +28,6 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        backgroundColor: Theme.accentColor
         Canvas{
             id:canvas
             anchors.fill: parent

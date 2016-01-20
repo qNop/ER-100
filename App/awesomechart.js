@@ -42,8 +42,8 @@ Array.prototype.min = function() {
     return min;
 }
 
-function AwesomeChart(canvasElementId){
-    var canvas = (typeof canvasElementId === 'string') ? document.getElementById(canvasElementId) : canvasElementId;
+function AwesomeChart(canvas){
+   // var canvas = (typeof canvasElementId === 'string') ? document.getElementById(canvasElementId) : canvasElementId;
     this.ctx = canvas.getContext('2d');
     this.width = this.ctx.canvas.width;
     this.height = this.ctx.canvas.height;
@@ -378,8 +378,6 @@ function AwesomeChart(canvasElementId){
             x = x + barWidth + this.barHGap;
         }
     }
-
-
 
     this.animateBarChart = function() {
         var aw = this,

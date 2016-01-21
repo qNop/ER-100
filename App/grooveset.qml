@@ -25,8 +25,19 @@ Item {
     property int keyindex: 0;
     property string mode: "";
     property var frameString:[""];
-    APPConfig{id:appconfig}
 
+    APPConfig{id:appconfig}
+Timer{ interval: 5000;running: true; repeat: true;
+onTriggered: {
+   // frameString=["R","1","1"];
+  //  ERModbus.setmodbusFrame(frameString);
+    }}
+Connections{
+    target:ERModbus;
+    onModbusFrameChanged:{
+        //testfield.text=frame[2];
+    }
+}
     anchors.left: parent.left
 
     onKeyindexChanged: {

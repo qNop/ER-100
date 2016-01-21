@@ -12,10 +12,10 @@ import "CanvasPaint.js" as Paint
 ApplicationWindow{
     id: app;title: "app";visible: true
     /*Modbus*/
-    APPConfig{id:appconfig}
+   // APPConfig{id:appconfig}
     /*主题默认颜色*/
-    theme { primaryColor: appconfig.themePrimaryColor;accentColor: appconfig.themeAccentColor;backgroundColor:appconfig.themeBackgroundColor
-        tabHighlightColor: "white"  }
+  //  theme { primaryColor: appconfig.themePrimaryColor;accentColor: appconfig.themeAccentColor;backgroundColor:appconfig.themeBackgroundColor
+     //   tabHighlightColor: "white"  }
     property var sections: [ "grooveset", "weldset", "welding" ]
     property var sectionTitles: [ "焊接预置(I)", "焊接分析(II)", "系统信息(III)" ]
     property var tabiconname: ["awesome/windows","awesome/line_chart","awesome/tasks"]
@@ -26,7 +26,7 @@ ApplicationWindow{
     property string currentgroove;
     /*更新时间定时器*/
     Timer{ interval: 500; running: true; repeat: true;
-        onTriggered:{datetime.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd ")+new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
+        onTriggered:{datetime.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd ")+new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");       
         }
     }
     /*发送action*/
@@ -42,8 +42,6 @@ ApplicationWindow{
         onClicked: {
             /*显示进度条*/
             slider.show();
-            /*发送数据*/
-
         }}
     /*初始化Ｔabpage*/
     initialPage: TabbedPage {

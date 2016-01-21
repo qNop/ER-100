@@ -19,7 +19,7 @@ ERModbus::ERModbus(QObject *parent)
     /*设置modbus为232模式*/
     modbus_rtu_set_serial_mode(ER_Modbus,MODBUS_RTU_RS232);
     /*为0输出调试信息*/
-    modbus_set_debug(ER_Modbus, FALSE);
+    modbus_set_debug(ER_Modbus, TRUE);
     /*设置超时时间 100 000 us*/
     modbus_set_response_timeout(ER_Modbus,0,100000);
     /*设置从机地址*/
@@ -48,11 +48,10 @@ QStringList ERModbus::modbusFrame(){
 /*R REG NUM */
 void ERModbus::setmodbusFrame(QStringList frame){
     int res,i;
-    uint16_t data[MAX_MESSAGE_LENGTH];
     QString str;
     res=0;
-    errno = 0;
     modbusData.clear();
+    errno=0;
     if(ER_Modbus){
         modbusCmd=frame.at(0);
         modbusReg=frame.at(1);
@@ -60,16 +59,18 @@ void ERModbus::setmodbusFrame(QStringList frame){
         //R读命令
         if(modbusCmd=="R"){
             res= modbus_read_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
-            modbusData.clear();
-            for(i=0;i<modbusNum.toInt();i++){
-                str=data[i];
-                modbusData.append(str);
+            if(res!=-1){
+                for(i=0;i<modbusNum.toInt();i++){
+                    str=data[i];
+                    modbusData.append(str);
+                }
             }
         }else if(modbusCmd=="W"){
             for(i=0;i<modbusNum.toInt();i++){
                 data[i]=frame.at(3+i).toInt();
             }
             res= modbus_write_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
+            // res= modbus_write_register(ER_Modbus,modbusReg.toInt(),data[0]);
         }else{
             qDebug()<<"ERModbus::Cmd is not support .";
         }

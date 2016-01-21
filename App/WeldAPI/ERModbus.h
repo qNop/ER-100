@@ -25,21 +25,20 @@ private:
     QStringList modbusData;
     /*modbus 命令*/
     QString modbusCmd;
-//槽
+
+    uint16_t data[260];
+    //槽
 public:
-   explicit ERModbus(QObject* parent = 0);
+    explicit ERModbus(QObject* parent = 0);
     ~ERModbus();
     QStringList modbusFrame();
 public  slots:
     void setmodbusFrame(QStringList frame);
-//信号
+    //信号
 signals:
     //发送命令改变
     void modbusFrameChanged(QStringList frame);
 };
-
-
-
 
 
 #endif

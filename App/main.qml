@@ -12,11 +12,6 @@ import "CanvasPaint.js" as Paint
 ApplicationWindow{
     id: app;title: "app";visible: true
     /*Modbus*/
-    ERModbus{id:ermodbus;
-        onModbus_statusChanged: {
-            console.log(status);
-        }
-    }
     APPConfig{id:appconfig}
     /*主题默认颜色*/
     theme { primaryColor: appconfig.themePrimaryColor;accentColor: appconfig.themeAccentColor;backgroundColor:appconfig.themeBackgroundColor
@@ -44,7 +39,6 @@ ApplicationWindow{
         Behavior on anchors.bottomMargin {
             NumberAnimation { duration: 200 }
         }
-
         onClicked: {
             /*显示进度条*/
             slider.show();
@@ -168,8 +162,7 @@ ApplicationWindow{
                 changeuserFeildtext.helperText=result.rows.item(i).type;}
         }
         usrnamemodel.remove(0);
-        /*建立modbus*/
-        ermodbus.modbus_status="setup";
+
     }
     /*日历*/
     Dialog {

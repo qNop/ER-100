@@ -3,8 +3,6 @@ import Material 0.1
 import Material.Extras 0.1
 import "awesomechart.js" as Paint
 
-
-
 Rectangle {
 
     color: Theme.backgroundColor

@@ -28,8 +28,7 @@ class DeclarativeInputEngine : public QObject
     Q_OBJECT
     Q_PROPERTY(QRect keyboardRectangle READ keyboardRectangle WRITE setKeyboardRectangle NOTIFY keyboardRectangleChanged FINAL)
     Q_PROPERTY(int inputMode READ inputMode WRITE setInputMode NOTIFY inputModeChanged FINAL)
-    /*中文*/
-    //Q_PROPERTY(QString chineseStr READ getchineseStr WRITE setchineseStr NOTIFY chineseStrChanged FINAL)
+
     Q_PROPERTY(QStringList chineseList READ getchineseList WRITE setchineseList NOTIFY chineseListChanged FINAL)
     Q_ENUMS(InputMode)
 
@@ -44,7 +43,6 @@ public:
      * The InputMode enum provides a list of valid input modes
      */
     enum InputMode {Latin, Numeric, Chinese};
-
     /**
      * Creates a dclarative input engine with the given parent
      */

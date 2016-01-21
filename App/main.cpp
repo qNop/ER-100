@@ -5,6 +5,15 @@
 #include "ERModbus.h"
 #include <QDebug>
 #include "gloabldefine.h"
+//==============================================================================
+QObject* inputEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+     ERModbus *p=new ERModbus();
+     return p;
+}
+
 int main(int argc, char *argv[])
 {
     //必须声明在APP之前否则虚拟按键不管用。
@@ -13,10 +22,10 @@ int main(int argc, char *argv[])
     //qputenv("QT_DEBUG_PLUGINS", QByteArray("1"));
     QApplication app(argc, argv);
     qmlRegisterType<APPConfig>("WeldSys.APPConfig",1,0,"APPConfig");
-    qmlRegisterType<ERModbus>("WeldSys.ERModbus",1,0,"ERModbus");
+    qmlRegisterSingletonType<ERModbus>("WeldSys.ERModbus",1,0,"ERModbus",inputEngineProvider);
     QQmlApplicationEngine engine;
     engine.setOfflineStoragePath(".");
-    qDebug()<<engine.offlineStoragePath();
+    qDebug()<<"Engine::SetOfflineStoragePath "<<engine.offlineStoragePath();
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     return app.exec();
 }

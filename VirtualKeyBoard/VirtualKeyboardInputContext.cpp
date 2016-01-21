@@ -135,6 +135,7 @@ void VirtualKeyboardInputContext::hideInputPanel()
 //==============================================================================
 bool VirtualKeyboardInputContext::isInputPanelVisible() const
 {
+    qDebug()<<"Is InputPanel Visible ";
     return d->Visible;
 }
 
@@ -169,6 +170,7 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     bool AcceptsInput = d->FocusItem->inputMethodQuery(Qt::ImEnabled).toBool();
     if (!AcceptsInput)
     {
+        d->FocusItem=0;
         qDebug()<<"object is not text input ";
         return;
     }
@@ -178,6 +180,8 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     //   qDebug() << QString("InputMethodHints: %1").arg(InputMethodHints, 0, 16);
     if (InputMethodHints & NumericInputHints) {
         d->InputEngine->setInputMode(DeclarativeInputEngine::Numeric);
+    }else{
+        d->InputEngine->setInputMode(DeclarativeInputEngine::Chinese);
     }
     // Search for the top most flickable so that we can scroll the control
     // into the visible area, if the keyboard hides the control

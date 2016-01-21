@@ -8,6 +8,7 @@ import QtQuick.Controls 1.3 as QuickControls
 import QtQuick.LocalStorage 2.0
 import "qrc:/Database.js" as DB
 import "CanvasPaint.js" as Paint
+
 Item {
     id:grooveset
     property int currentGroove:9;
@@ -23,7 +24,9 @@ Item {
         qsTr( "示教点数"),qsTr( "板厚"),qsTr( "余高"),qsTr( "坡口检测点左"),qsTr( "坡口检测点右"),qsTr( "板厚补正"),qsTr( "角度补正"),qsTr( "间隙补正"),]
     property int keyindex: 0;
     property string mode: "";
+    property var frameString:[""];
     APPConfig{id:appconfig}
+
     anchors.left: parent.left
 
     onKeyindexChanged: {
@@ -146,7 +149,8 @@ Item {
                 secondaryItem:Row{
                     QuickControls.ExclusiveGroup { id: teachmodegroup;onCurrentChanged:{
                             DB.setValueFromFuncOfTable(grooveset.currentGroove,"示教模式",teachmodegroup.current.text);
-                            teachmode.focus=true;
+                            frameString=["W","1","1","1"];
+                            ERModbus.setmodbusFrame(frameString);
                             grooveset.mode=teachmodegroup.current.text;
                         }}
                     Repeater{
@@ -411,6 +415,7 @@ Item {
                 secondaryItem:TextField{
                     id: testfield
                     anchors.verticalCenter: parent.verticalCenter
+                    inputMethodHints:Qt.ImhPreferLatin
                 }
             }
         }

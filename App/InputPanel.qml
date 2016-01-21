@@ -82,7 +82,13 @@ PopupBase {
             }
         }
     }
-    Connections{target: InputEngine;onChineseListChanged: listView.model=list; }
+    Connections{target: InputEngine;onChineseListChanged: listView.model = list; }
+    Connections{target: InputEngine;onInputModeChanged:{
+            if(InputEngine.inputmode === InputEngine.Numeric){
+                shiftModifier=0;
+                symbolModifier=1;
+            } else
+            {symbolModifier=0};console.log(symbolModifier)} }
 Card{
     anchors.fill: parent
     elevation:4
@@ -113,7 +119,7 @@ Card{
                     anchors.centerIn:leftButton
                     source: "icon://awesome/caret_left"
                     color: listView.currentIndex ? "#1e1b18" : Palette.colors["grey"]["500"]
-                    visible: listView.model.length
+                    visible: listView.model.length>1
                 }
             }
             ListView {
@@ -143,7 +149,7 @@ Card{
                     anchors.centerIn:rightButton
                     source: "icon://awesome/caret_right"
                     color:  "#1e1b18"
-                    visible: listView.model.length
+                    visible: listView.model.length>1
                 }
             }
             Button {

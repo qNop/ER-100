@@ -1,7 +1,7 @@
 import QtQuick 2.2
 import Material 0.1
 import Material.Extras 0.1
-import WeldSys.APPConfig 1.0
+import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
@@ -11,11 +11,9 @@ import "CanvasPaint.js" as Paint
 /*应用程序窗口*/
 ApplicationWindow{
     id: app;title: "app";visible: true
-    /*Modbus*/
-   // APPConfig{id:appconfig}
     /*主题默认颜色*/
-  //  theme { primaryColor: appconfig.themePrimaryColor;accentColor: appconfig.themeAccentColor;backgroundColor:appconfig.themeBackgroundColor
-     //   tabHighlightColor: "white"  }
+    theme { primaryColor: AppConfig.themePrimaryColor;accentColor: AppConfig.themeAccentColor;backgroundColor:AppConfig.themeBackgroundColor
+       tabHighlightColor: "white"  }
     property var sections: [ "grooveset", "weldset", "welding" ]
     property var sectionTitles: [ "焊接预置(I)", "焊接分析(II)", "系统信息(III)" ]
     property var tabiconname: ["awesome/windows","awesome/line_chart","awesome/tasks"]
@@ -77,7 +75,7 @@ ApplicationWindow{
             },
             /*账户*/
             Action {id:accountname;iconName: "action/account_circle";
-                onTriggered:changeuser.show();text:appconfig.currentUserName;
+                onTriggered:changeuser.show();text:AppConfig.currentUserName;
             },
             /*语言*/
             Action {iconName: "action/language";name: qsTr("语言");
@@ -151,7 +149,9 @@ ApplicationWindow{
     Component.onCompleted: {
         /*打开数据库*/
         DB.openDatabase();
+        console.log("getusrnane")
         var result = DB.getusrname();
+        if(result===-1){console.log("error")}
         for(var i=0;i<result.rows.length;i++){
             var name = result.rows.item(i).name;
             usrnamemodel.append( {"text":name});
@@ -160,7 +160,6 @@ ApplicationWindow{
                 changeuserFeildtext.helperText=result.rows.item(i).type;}
         }
         usrnamemodel.remove(0);
-
     }
     /*日历*/
     Dialog {
@@ -176,23 +175,23 @@ ApplicationWindow{
         title: qsTr("背光调节");negativeButtonText:qsTr("取消");positiveButtonText: qsTr("完成");
         Slider {
             id:backlightslider;height:Units.dp(64);width:Units.dp(240);Layout.alignment: Qt.AlignCenter;
-            value:appconfig.backLight;stepSize: 5;focus: true;numericValueLabel: true;
+            value:AppConfig.backLight;stepSize: 5;focus: true;numericValueLabel: true;
             minimumValue: 0;maximumValue: 220; activeFocusOnPress: true;
         }
         Rectangle{
             width:Units.dp(240);
             height:Units.dp(10);
         }
-        onAccepted: {appconfig.backLight=backlightslider.value}
-        onRejected: {backlightslider.value=appconfig.backLight}
+        onAccepted: {AppConfig.backLight=backlightslider.value}
+        onRejected: {backlightslider.value=AppConfig.backLight}
     }
     /*颜色选择对话框*/
     Dialog {
         id: colorPicker;title: qsTr("主题");negativeButtonText:qsTr("取消");positiveButtonText: qsTr("完成");
         /*接受则存储系统颜色*/
-        onAccepted:{appconfig.themePrimaryColor=theme.primaryColor;appconfig.themeAccentColor=theme.accentColor;appconfig.themeBackgroundColor=theme.backgroundColor; }
+        onAccepted:{AppConfig.themePrimaryColor=theme.primaryColor;AppConfig.themeAccentColor=theme.accentColor;AppConfig.themeBackgroundColor=theme.backgroundColor; }
         /*不接受则释放系统颜色*/
-        onRejected: {theme.primaryColor=appconfig.themePrimaryColor;theme.accentColor=appconfig.themeAccentColor;theme.backgroundColor=appconfig.themeBackgroundColor; }
+        onRejected: {theme.primaryColor=AppConfig.themePrimaryColor;theme.accentColor=AppConfig.themeAccentColor;theme.backgroundColor=AppConfig.themeBackgroundColor; }
         /*下拉菜单*/
         MenuField { id: selection; model: ["基本色彩", "前景色彩", "背景色彩"]; width: Units.dp(160)}
         Grid {
@@ -239,10 +238,10 @@ ApplicationWindow{
         title:qsTr("更换用户");negativeButtonText:qsTr("取消");positiveButtonText:qsTr("确定");
         positiveButtonEnabled:false;
         onAccepted: {
-            appconfig.currentUserName = changeuserFeildtext.selectedText;
-            appconfig.currentUserType = changeuserFeildtext.helperText; }
+            AppConfig.currentUserName = changeuserFeildtext.selectedText;
+            AppConfig.currentUserType = changeuserFeildtext.helperText; }
         onRejected: {
-            changeuserFeildtext.helperText = appconfig.currentUserType;
+            changeuserFeildtext.helperText = AppConfig.currentUserType;
             for(var i=0;i<100;i++){
                 if(accountname.text === usrnamemodel.get(i).text ){
                     changeuserFeildtext.selectedIndex = i;
@@ -259,7 +258,7 @@ ApplicationWindow{
                 password.enabled=true;
                 var data=usrnamemodel.get(index);
                 var result =  DB.getuserpassword(data.text);
-                appconfig.currentUserPassword = result.rows.item(0).password;
+                AppConfig.currentUserPassword = result.rows.item(0).password;
                 changeuserFeildtext.helperText = result.rows.item(0).type;
                 password.text="";}}
         TextField{id:password;
@@ -267,7 +266,7 @@ ApplicationWindow{
             placeholderText:qsTr("密码:");
             characterLimit: 8;
             onTextChanged:{
-                if(password.text=== appconfig.currentUserPassword){
+                if(password.text=== AppConfig.currentUserPassword){
                     changeuser.positiveButtonEnabled=true;
                     password.helperText.color="green";
                     password.helperText=qsTr("密码正确");}

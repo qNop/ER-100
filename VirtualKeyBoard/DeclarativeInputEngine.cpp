@@ -71,7 +71,7 @@ DeclarativeInputEngine::DeclarativeInputEngine(QObject *parent) :
     d->val = setter.value("pyVal", d->val).toStringList();
     if (d->key.size() <= 1)
     {
-        qDebug()<<"install chinese false";
+        qDebug()<<"DeclarativeInputEngine::Install Chinese Fail .";
         return;
     }
 }

@@ -102,8 +102,8 @@ QRectF VirtualKeyboardInputContext::keyboardRect() const
 //==============================================================================
 void VirtualKeyboardInputContext::showInputPanel()
 {
-    qDebug()<<"showInputPanel";
-    if((!d->Visible)&&(d->Flickable)){
+    qDebug()<<"VirtualKeyboardInputContext::Show InputPanel .";
+    if((d->FocusItem)){
         d->Visible = true;
         ensureFocusedObjectVisible();
         QPlatformInputContext::showInputPanel();
@@ -116,14 +116,13 @@ void VirtualKeyboardInputContext::showInputPanel()
 //==============================================================================
 void VirtualKeyboardInputContext::hideInputPanel()
 {
-    qDebug()<<"hideInputPanel";
+    qDebug()<<"VirtualKeyboardInputContext::Hide InputPanel .";
     if(d->Visible){
         d->Visible = false;
         if((d->ContentY_Add)&&(d->Flickable->contentY())){
-            d->FlickableContentScrollAnimation->setEndValue( d->Flickable->contentY()-d->ContentY_Add);
+            d->FlickableContentScrollAnimation->setEndValue(d->Flickable->contentY()-d->ContentY_Add);
             d->FlickableContentScrollAnimation->start();
         }
-        d->Flickable = 0;
         d->ContentY_Add = 0;
         QPlatformInputContext::hideInputPanel();
         //发送Qt.inputMethod.visible=false 信号
@@ -135,7 +134,7 @@ void VirtualKeyboardInputContext::hideInputPanel()
 //==============================================================================
 bool VirtualKeyboardInputContext::isInputPanelVisible() const
 {
-    qDebug()<<"Is InputPanel Visible ";
+    qDebug()<<"VirtualKeyboardInputContext::InputPanel Visible"<<d->Visible;
     return d->Visible;
 }
 
@@ -152,15 +151,15 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
 {
     static const int NumericInputHints = Qt::ImhPreferNumbers | Qt::ImhDate
             | Qt::ImhTime | Qt::ImhDigitsOnly | Qt::ImhFormattedNumbersOnly;
-
-    qDebug() << "VirtualKeyboardInputContext::setFocusObject";
+//    QQuickItem* FocusItem;
+    qDebug() << "VirtualKeyboardInputContext::Set focus object .";
     if (!object)
     {
         return;
     }
     // we only support QML at the moment - so if this is not a QML item, then
     // we leave immediatelly
-    d->FocusItem = dynamic_cast<QQuickItem*>(object);
+   d->FocusItem = dynamic_cast<QQuickItem*>(object);
     if (!d->FocusItem)
     {
         return;
@@ -171,9 +170,10 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     if (!AcceptsInput)
     {
         d->FocusItem=0;
-        qDebug()<<"object is not text input ";
+        qDebug()<<"VirtualKeyboardInputContext::Object is not text input .";
         return;
     }
+
     // Set input mode depending on input method hints queried from focused
     // object / item
     Qt::InputMethodHints InputMethodHints(d->FocusItem->inputMethodQuery(Qt::ImHints).toInt());
@@ -186,17 +186,28 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     // Search for the top most flickable so that we can scroll the control
     // into the visible area, if the keyboard hides the control
     QQuickItem* i = d->FocusItem;
-    d->Flickable = 0;
+   // d->Flickable = 0;
+    QQuickFlickable* Flickable;
     while (i)
     {
-        QQuickFlickable* Flickable = dynamic_cast<QQuickFlickable*>(i);
-        if (Flickable)
+         Flickable = dynamic_cast<QQuickFlickable*>(i);
+    /*    if (Flickable)
         {
             d->Flickable = Flickable;
-        }
+        }*/
         i = i->parentItem();
     }
+    //如果两次获得焦点的item不是同一个则将上一个 Flickable的 状态恢复。
+    if((d->Flickable != Flickable)&&(d->Flickable)){
+        d->Flickable->setContentY(d->Flickable->contentY()-d->ContentY_Add);
+        d->ContentY_Add = 0;
+    }
+    d->Flickable=Flickable;
+    d->Visible = true;
     ensureFocusedObjectVisible();
+    QPlatformInputContext::showInputPanel();
+    //发送Qt.inputMethod.visible=true 信号
+    emitInputPanelVisibleChanged();
 }
 
 //==============================================================================
@@ -213,7 +224,7 @@ void VirtualKeyboardInputContext::ensureFocusedObjectVisible()
     FocusItemRect = d->Flickable->mapRectFromItem(d->FocusItem, FocusItemRect);
     //  qDebug() << "FocusItemRect: " << FocusItemRect;
     //  qDebug() << "Content origin: " << QPointF(d->Flickable->contentX(),d->Flickable->contentY());
-    qDebug() << d->Flickable->objectName()<<"Flickable size: " << QSize(d->Flickable->width(), d->Flickable->height());
+    qDebug() <<"VirtualKeyboardInputContext::"<< d->Flickable->objectName()<<"Flickable size: " << QSize(d->Flickable->width(), d->Flickable->height());
     d->FlickableContentScrollAnimation->setTargetObject(d->Flickable);
     qreal ContentY = d->Flickable->contentY();
     if (FocusItemRect.bottom() >= d->Flickable->height())

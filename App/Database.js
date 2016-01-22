@@ -22,11 +22,11 @@
  *                                                                【WHERE】
 */
 .import QtQuick.LocalStorage 2.0 as Data
-
+var db;
 function getPageFunctionAndValueFromTable(index,mode){
     var result,str;
-    var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
-    if(!db) return;
+    //var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+    if(!db) { console.log("DB::db ");return -1;}
     switch(index){
     case 0:str="select * from flatweldsinglebevelgroovet where ";break;
     case 1:str="select * from flatweldsinglebevelgroove where ";break;
@@ -47,17 +47,18 @@ function getPageFunctionAndValueFromTable(index,mode){
         json+="\""+result.rows.item(i).function+"\""+",";
     }
         if(json.substr(json.length-1) === ","){
-            json = json.substr(0,json.length -1);}
+            json = json.substr(0,json.length -1);
+        }
         json+="]"
         console.log(json);
         return json;
- }
+    }
 
     /*写入数据库相关词条的数值*/
     function setValueFromFuncOfTable(index,name,value){
         var result,str;
-        var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
-        if(!db) return;
+        // var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+        if(!db) { console.log("DB::db ");return -1;}
         switch(index){
         case 0:str="update flatweldsinglebevelgroovet set setvalue = ";break;
         case 1:str="update flatweldsinglebevelgroove set setvalue = ";break;
@@ -70,14 +71,14 @@ function getPageFunctionAndValueFromTable(index,mode){
         case 8:str="update verticalweldvgroove set setvalue = ";break;
         }
         str+="\'"+value+"\'"+" where function = "+"\'"+name+"\'";
-     //   console.log(str);
+        //   console.log(str);
         db.transaction( function(tx) {result = tx.executeSql(str); });
     }
     /*从数据库中获取相关词条的数值*/
     function getValueFromFuncOfTable(index,func,name){
         var result,str;
-        var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
-        if(!db) return;
+        //  var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+        if(!db) { console.log("DB::db ");return -1;}
         switch(index){
         case 0:str="select * from flatweldsinglebevelgroovet where ";break;
         case 1:str="select * from flatweldsinglebevelgroove where ";break;
@@ -90,17 +91,18 @@ function getPageFunctionAndValueFromTable(index,mode){
         case 8:str="select * from verticalweldvgroove where ";break;
         }
         str+=func+" ="+"\'"+name+"\'";
-    //    console.log(str);
+        //    console.log(str);
         db.transaction( function(tx) {result = tx.executeSql(str); });
-//        console.log(result.rows.item(0).setvalue);
+        //        console.log(result.rows.item(0).setvalue);
         return result.rows.item(0).setvalue;
     }
     /*获取用户密码*/
     function getuserpassword(name){
         var result;
-        var  db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+        //     var  db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
         if (!db){
-            return;
+            console.log("DB::db ");
+            return -1;
         }
         db.transaction ( function(tx) {
             result = tx.executeSql("select * from AccountTable where name = " + "\'"+name+"\'");
@@ -111,11 +113,11 @@ function getPageFunctionAndValueFromTable(index,mode){
     }
     /*获取用户名*/
     function getusrname(){
-        var db;
         var result;
-        db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+        //   var  db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
         if (!db){
-            return;
+            console.log("DB::db ");
+            return -1;
         }
         db.transaction ( function(tx) {
             result = tx.executeSql("select * from AccountTable");
@@ -130,15 +132,15 @@ function getPageFunctionAndValueFromTable(index,mode){
   */
     function openDatabase() {
         var table;
-        var error;
+        var error=-1;
         //创建链接
-        var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
-        if(!db)  {
-            console.log("create db is bad~");
-            return ;
+        db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+        if(db)  {
+            console.log("DB::Open DB Success .");
+            return db ;
         }
         else{
-            console.log("create db is ok~");
+            console.log("DB::Open DB Fail .");
         }
         db.transaction( function(tx) {
             tx.executeSql('CREATE TABLE IF NOT EXISTS FlatWeldSingleBevelGrooveT(mode TEXT,function TEXT,\

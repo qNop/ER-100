@@ -88,7 +88,7 @@ PopupBase {
                 shiftModifier=0;
                 symbolModifier=1;
             } else
-            {symbolModifier=0};console.log(symbolModifier)} }
+            {symbolModifier=0};} }
 Card{
     anchors.fill: parent
     elevation:4

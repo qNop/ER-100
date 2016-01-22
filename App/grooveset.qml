@@ -1,7 +1,7 @@
 import QtQuick 2.2
 import Material 0.1
 import Material.Extras 0.1 as JS
-import WeldSys.APPConfig 1.0
+import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as QuickControls
@@ -25,8 +25,6 @@ Item {
     property int keyindex: 0;
     property string mode: "";
     property var frameString:[""];
-
-    APPConfig{id:appconfig}
 Timer{ interval: 5000;running: true; repeat: true;
 onTriggered: {
    // frameString=["R","1","1"];
@@ -55,7 +53,7 @@ Connections{
     }
     /*当前坡口改变即处理数据*/
     onCurrentGrooveChanged: {
-        appconfig.currentGroove=grooveset.currentGroove;
+        AppConfig.currentGroove=grooveset.currentGroove;
         switch(DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","示教模式")){
         case "自动":teachmodegroup.current=teachmoderepeater.itemAt(0);break;
         case "半自动":teachmodegroup.current=teachmoderepeater.itemAt(1);break;
@@ -72,7 +70,7 @@ Connections{
     }
     Component.onCompleted: {
         teachmodeset.forceActiveFocus();
-        grooveset.currentGroove=appconfig.currentGroove;
+        grooveset.currentGroove=AppConfig.currentGroove;
     }
     function changeindex() {
         repeat.itemAt(grooveset.currentGroove).selected=false;

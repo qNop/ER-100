@@ -149,6 +149,7 @@ static uint16_t crc16(uint8_t *buffer, uint16_t buffer_length)
 
 static int _modbus_rtu_prepare_response_tid(const uint8_t *req, int *req_length)
 {
+    req=req;
     (*req_length) -= _MODBUS_RTU_CHECKSUM_LENGTH;
     /* No TID */
     return 0;
@@ -342,6 +343,7 @@ static int _modbus_rtu_pre_check_confirmation(modbus_t *ctx, const uint8_t *req,
 {
     /* Check responding slave is the slave we requested (except for broacast
      * request) */
+    rsp_length=rsp_length;
     if (req[0] != rsp[0] && req[0] != MODBUS_BROADCAST_ADDRESS) {
         if (ctx->debug) {
             fprintf(stderr,
@@ -676,7 +678,7 @@ static int _modbus_rtu_connect(modbus_t *ctx)
         break;
 #endif
 #ifdef B1152000
-   case 1152000:
+    case 1152000:
         speed = B1152000;
         break;
 #endif
@@ -716,7 +718,7 @@ static int _modbus_rtu_connect(modbus_t *ctx)
 
     /* Set the baud rate */
     if ((cfsetispeed(&tios, speed) < 0) ||
-        (cfsetospeed(&tios, speed) < 0)) {
+            (cfsetospeed(&tios, speed) < 0)) {
         close(ctx->s);
         ctx->s = -1;
         return -1;
@@ -996,6 +998,7 @@ int modbus_rtu_get_rts(modbus_t *ctx)
 
 int modbus_rtu_set_rts(modbus_t *ctx, int mode)
 {
+    mode = mode;
     if (ctx == NULL) {
         errno = EINVAL;
         return -1;
@@ -1006,7 +1009,7 @@ int modbus_rtu_set_rts(modbus_t *ctx, int mode)
         modbus_rtu_t *ctx_rtu = ctx->backend_data;
 
         if (mode == MODBUS_RTU_RTS_NONE || mode == MODBUS_RTU_RTS_UP ||
-            mode == MODBUS_RTU_RTS_DOWN) {
+                mode == MODBUS_RTU_RTS_DOWN) {
             ctx_rtu->rts = mode;
 
             /* Set the RTS bit in order to not reserve the RS485 bus */
@@ -1032,6 +1035,7 @@ int modbus_rtu_set_rts(modbus_t *ctx, int mode)
 
 int modbus_rtu_set_custom_rts(modbus_t *ctx, void (*set_rts) (modbus_t *ctx, int on))
 {
+    set_rts = set_rts;
     if (ctx == NULL) {
         errno = EINVAL;
         return -1;
@@ -1138,6 +1142,7 @@ static int _modbus_rtu_flush(modbus_t *ctx)
     ctx_rtu->w_ser.n_bytes = 0;
     return (PurgeComm(ctx_rtu->w_ser.fd, PURGE_RXCLEAR) == FALSE);
 #else
+    // 清除所有正在发生的I/O数据。
     return tcflush(ctx->s, TCIOFLUSH);
 #endif
 }
@@ -1158,6 +1163,7 @@ static int _modbus_rtu_select(modbus_t *ctx, fd_set *rset,
         return -1;
     }
 #else
+    length_to_read=length_to_read;
     while ((s_rc = select(ctx->s+1, rset, NULL, NULL, tv)) == -1) {
         if (errno == EINTR) {
             if (ctx->debug) {

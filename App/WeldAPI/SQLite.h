@@ -7,7 +7,7 @@
 #include <QSqlDriver>
 #include <QSql>
 
-class SQLite
+class SQLite: public QObject
 {
 public:
     SQLite();

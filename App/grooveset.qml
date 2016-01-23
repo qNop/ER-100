@@ -25,10 +25,11 @@ Item {
     property int keyindex: 0;
     property string mode: "";
     property var frameString:[""];
-Timer{ interval: 5000;running: true; repeat: true;
+    property int num;
+Timer{ interval: 100;running: true; repeat: true;
 onTriggered: {
-   // frameString=["R","1","1"];
-  //  ERModbus.setmodbusFrame(frameString);
+   frameString=["R","1","9"];
+    ERModbus.setmodbusFrame(frameString);
     }}
 Connections{
     target:ERModbus;

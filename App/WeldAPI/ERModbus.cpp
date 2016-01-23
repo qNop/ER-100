@@ -15,17 +15,20 @@ ERModbus::ERModbus(QObject *parent)
     /*清除错误*/
     errno = 0;
     /*获取RTU结构体*/
-    ER_Modbus =  modbus_new_rtu("/dev/ttymxc1",115200,'N',8,1);
+    ER_Modbus =  modbus_new_rtu("/dev/ttymxc1",38400,'N',8,1);
     /*设置modbus为232模式*/
     modbus_rtu_set_serial_mode(ER_Modbus,MODBUS_RTU_RS232);
     /*为0输出调试信息*/
     modbus_set_debug(ER_Modbus, TRUE);
     /*设置超时时间 100 000 us*/
     modbus_set_response_timeout(ER_Modbus,0,100000);
+    /*设置byte超时时间 1000 us*/
+    modbus_set_byte_timeout(ER_Modbus,0,100000);
     /*设置从机地址*/
-    modbus_set_slave(ER_Modbus,0x0000);
+    modbus_set_slave(ER_Modbus,0x0001);
     /*连接串口*/
-    modbus_connect(ER_Modbus);
+    if(modbus_connect(ER_Modbus)==-1)
+            modbus_free(ER_Modbus);;
 
     qDebug()<<"ERModbus::INSTALL->"<<modbus_strerror(errno);
 

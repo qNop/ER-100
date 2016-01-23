@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonType<ERModbus>("WeldSys.ERModbus",1,0,"ERModbus",ERModbusEngineProvider);
     QQmlApplicationEngine engine;
     engine.setOfflineStoragePath(".");
-    qDebug()<<"Engine::SetOfflineStoragePath "<<engine.offlineStoragePath();
+    qDebug()<<"Engine::SetOfflineStoragePath"<<engine.offlineStoragePath();
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     return app.exec();
 }

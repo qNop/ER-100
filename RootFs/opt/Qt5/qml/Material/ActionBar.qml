@@ -289,12 +289,10 @@ Item {
         }
 	LabelButton {
             id: time
-	    action: __internal.visibleActions[maxActionCount-2]
-            //iconName: "device/brightness_medium"
+	    action: __internal.visibleActions[maxActionCount-2]         
             objectName: "action/datetime"
-            //size: Units.dp(27)
-            //color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
-            //                                                  Theme.dark.iconColor)
+            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
+                                                              Theme.dark.iconColor)
             visible: true
             anchors.verticalCenter: parent.verticalCenter
         }

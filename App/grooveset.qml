@@ -6,12 +6,13 @@ import WeldSys.ERModbus 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as QuickControls
 import QtQuick.LocalStorage 2.0
-import "qrc:/Database.js" as DB
-import "CanvasPaint.js" as Paint
+//import "qrc:/Database.js" as DB
+//import "CanvasPaint.js" as Paint
 
 Item {
     id:grooveset
-    property int currentGroove:9;
+    anchors.left: parent.left
+    property int currentGroove:AppConfig.currentGroove;
     property var teachmodemodel: ["自动","半自动","手动"];
     property var startendcheckmodel:["自动","手动"]
     property var teachfisrtpointmodel: ["右方","左方"];
@@ -26,19 +27,17 @@ Item {
     property string mode: "";
     property var frameString:[""];
     property int num;
-Timer{ interval: 100;running: true; repeat: true;
+Timer{ interval: 1000;running: true; repeat: true;
 onTriggered: {
    frameString=["R","1","9"];
-    ERModbus.setmodbusFrame(frameString);
+    //ERModbus.setmodbusFrame(frameString);
     }}
 Connections{
     target:ERModbus;
     onModbusFrameChanged:{
-        //testfield.text=frame[2];
+        teachfirstpointtimelengthglabel.text = frame[1];
     }
 }
-    anchors.left: parent.left
-
     onKeyindexChanged: {
         console.log("keyindexchanged")
     }
@@ -54,24 +53,19 @@ Connections{
     }
     /*当前坡口改变即处理数据*/
     onCurrentGrooveChanged: {
-        AppConfig.currentGroove=grooveset.currentGroove;
-        switch(DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","示教模式")){
+        switch(UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","示教模式")){
         case "自动":teachmodegroup.current=teachmoderepeater.itemAt(0);break;
         case "半自动":teachmodegroup.current=teachmoderepeater.itemAt(1);break;
         case "手动":teachmodegroup.current=teachmoderepeater.itemAt(2);break;
         };
-        switch(DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","示教第1点位置")){
+        switch(UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","示教第1点位置")){
         case "右方":teachfisrtpointgroup.current=teachfirstpointrepeater.itemAt(0);break;
         case "左方":teachfisrtpointgroup.current=teachfirstpointrepeater.itemAt(1);break;
         }
-        switch(DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","始终端检测")){
+        switch(UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","始终端检测")){
         case "自动":startendcheckgroup.current=startendcheckrepeater.itemAt(0);break;
         case "手动":startendcheckgroup.current=startendcheckrepeater.itemAt(1);break;
         }
-    }
-    Component.onCompleted: {
-        teachmodeset.forceActiveFocus();
-        grooveset.currentGroove=AppConfig.currentGroove;
     }
     function changeindex() {
         repeat.itemAt(grooveset.currentGroove).selected=false;
@@ -106,7 +100,7 @@ Connections{
                             if(i===index) groove.selected=true;
                             else repeat.itemAt(i).selected=false
                         }
-                        grooveset.currentGroove=index;
+                        AppConfig.currentGroove=index;
                     }
 
                 }
@@ -158,9 +152,9 @@ Connections{
                 Behavior on anchors.leftMargin{ NumberAnimation { duration: 200 } }
                 secondaryItem:Row{
                     QuickControls.ExclusiveGroup { id: teachmodegroup;onCurrentChanged:{
-                            DB.setValueFromFuncOfTable(grooveset.currentGroove,"示教模式",teachmodegroup.current.text);
+                            UserData.setValueFromFuncOfTable(grooveset.currentGroove,"示教模式",teachmodegroup.current.text);
                             frameString=["W","1","1","1"];
-                            ERModbus.setmodbusFrame(frameString);
+                         //   ERModbus.setmodbusFrame(frameString);
                             grooveset.mode=teachmodegroup.current.text;
                         }}
                     Repeater{
@@ -189,7 +183,7 @@ Connections{
                 secondaryItem:Row{
                     anchors.verticalCenter: parent.verticalCenter
                     QuickControls.ExclusiveGroup { id: startendcheckgroup;onCurrentChanged:
-                            DB.setValueFromFuncOfTable(grooveset.currentGroove,"始终端检测",startendcheckgroup.current.text)}
+                            UserData.setValueFromFuncOfTable(grooveset.currentGroove,"始终端检测",startendcheckgroup.current.text)}
                     Repeater{
                         id:startendcheckrepeater
                         model:startendcheckmodel
@@ -216,7 +210,7 @@ Connections{
                 secondaryItem:Row{
                     anchors.verticalCenter: parent.verticalCenter
                     QuickControls.ExclusiveGroup { id: teachfisrtpointgroup;onCurrentChanged:
-                            DB.setValueFromFuncOfTable(grooveset.currentGroove,"示教第1点位置",teachfisrtpointgroup.current.text)}
+                            UserData.setValueFromFuncOfTable(grooveset.currentGroove,"示教第1点位置",teachfisrtpointgroup.current.text)}
                     Repeater{
                         id:teachfirstpointrepeater
                         model:teachfisrtpointmodel
@@ -243,7 +237,7 @@ Connections{
                 secondaryItem:Label{
                     id: teachfirstpointtimelengthglabel
                     anchors.verticalCenter: parent.verticalCenter
-                    text:DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","示教1点时焊接长(mm)")+"(mm)"
+                    text:UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","示教1点时焊接长(mm)")+"(mm)"
                     style:"subheading"
                 }
             }
@@ -262,7 +256,7 @@ Connections{
                 secondaryItem:Label{
                     id: teachpointnumlabel
                     anchors.verticalCenter: parent.verticalCenter
-                    text:DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","示教点数")+"点"
+                    text:UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","示教点数")+"点"
                     style:"subheading"
                 }
             }
@@ -281,7 +275,7 @@ Connections{
                 secondaryItem:Label{
                     id: thicklabel
                     anchors.verticalCenter: parent.verticalCenter
-                    text:DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","板厚(mm)") === "测定" ?"测定":DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","板厚(mm)")+"(mm)"
+                    text:UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","板厚(mm)") === "测定" ?"测定":UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","板厚(mm)")+"(mm)"
                     style:"subheading"
                 }
             }
@@ -300,7 +294,7 @@ Connections{
                 secondaryItem:Label{
                     id: restheightabel
                     anchors.verticalCenter: parent.verticalCenter
-                    text:DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","余高(mm)")+"(mm)"
+                    text:UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","余高(mm)")+"(mm)"
                     style:"subheading"
                 }
             }
@@ -319,7 +313,7 @@ Connections{
                 secondaryItem:Label{
                     id: groovecheckleftlabel
                     anchors.verticalCenter: parent.verticalCenter
-                    text:DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","坡口检测点左(mm)")+"(mm)"
+                    text:UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","坡口检测点左(mm)")+"(mm)"
                     style:"subheading"
                 }
             }
@@ -338,7 +332,7 @@ Connections{
                 secondaryItem:Label{
                     id: groovecheckrightabel
                     anchors.verticalCenter: parent.verticalCenter
-                    text:DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","坡口检测点右(mm)")+"(mm)"
+                    text:UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","坡口检测点右(mm)")+"(mm)"
                     style:"subheading"
                 }
             }
@@ -357,7 +351,7 @@ Connections{
                 secondaryItem:Label{
                     id: thickfixlabel
                     anchors.verticalCenter: parent.verticalCenter
-                    text:DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","板厚补正(mm)")+"(mm)"
+                    text:UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","板厚补正(mm)")+"(mm)"
                     style:"subheading"
                 }
             }
@@ -376,7 +370,7 @@ Connections{
                 secondaryItem:Label{
                     id: anglefixlabel
                     anchors.verticalCenter: parent.verticalCenter
-                    text:DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","角度补正(度)")+"(度)"
+                    text:UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","角度补正(度)")+"(度)"
                     style:"subheading"
                 }
             }
@@ -395,7 +389,7 @@ Connections{
                 secondaryItem:Label{
                     id: gapfixlabel
                     anchors.verticalCenter: parent.verticalCenter
-                    text:DB.getValueFromFuncOfTable(grooveset.currentGroove,"function","间隙补正(mm)")+"(mm)"
+                    text:UserData.getValueFromFuncOfTable(grooveset.currentGroove,"function","间隙补正(mm)")+"(mm)"
                     style:"subheading"
                 }
             }

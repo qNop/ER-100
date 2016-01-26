@@ -149,7 +149,7 @@ Item {
                 spacing: Units.dp(10)
 
                 Icon {
-                   anchors.bottom:label.bottom //anchors.verticalCenter: parent.verticalCenter
+                   anchors.verticalCenter: parent.verticalCenter
 
                     source: tabItem.tab.hasOwnProperty("iconSource") 
                             ? tabItem.tab.iconSource : tabItem.tab.hasOwnProperty("iconName") 

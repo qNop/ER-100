@@ -65,6 +65,8 @@ PopupBase {
         ListElement { letter: "n"; firstSymbol: "-"}
         ListElement { letter: "m"; firstSymbol: "+"}
     }
+
+
     /**
      * The delegate that paints the key buttons
      */
@@ -79,6 +81,12 @@ PopupBase {
             context: "dialog"
             onClicked:{
                 InputEngine.sendKeyToFocusItem(text);
+            }
+            Timer{id:repeater
+                interval: 500;running: button.pressed; repeat: true;
+                onTriggered: {
+                    InputEngine.sendKeyToFocusItem(text);
+                    }
             }
         }
     }
@@ -121,6 +129,9 @@ Card{
                     color: listView.currentIndex ? "#1e1b18" : Palette.colors["grey"]["500"]
                     visible: listView.model.length>1
                 }
+                Timer{interval: 500;running: leftButton.pressed; repeat: true;
+                    onTriggered: { listView.decrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0F");}
+                }
             }
             ListView {
                 id:listView;
@@ -150,6 +161,9 @@ Card{
                     source: "icon://awesome/caret_right"
                     color:  "#1e1b18"
                     visible: listView.model.length>1
+                }
+                Timer{interval: 500;running: rightButton.pressed; repeat: true;
+                    onTriggered:{ listView.incrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0E");}
                 }
             }
             Button {
@@ -225,6 +239,9 @@ Card{
                     anchors.centerIn:backspace
                     source: "icon://awesome/arrow_left"
                     color: "#1e1b18"
+                }
+                Timer{interval: 500;running: backspace.pressed; repeat: true;
+                    onTriggered: InputEngine.sendKeyToFocusItem("\x7F");
                 }
             }
         }

@@ -80,6 +80,7 @@ DeclarativeInputEngine::DeclarativeInputEngine(QObject *parent) :
 //==============================================================================
 DeclarativeInputEngine::~DeclarativeInputEngine()
 {
+   qDebug()<<"DeclarativeInputEngine::REMOVE";
     delete d;
 }
 
@@ -89,6 +90,7 @@ void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
 {
     //qDebug() << "CDeclarativeInputEngine::sendKeyToFocusItem " << text;
     QInputMethodEvent ev;
+    qDebug()<<"DeclarativeInputEngine::d->index"<<d->index;
     //删除命令
     if (text == QString("\x7F"))
     {
@@ -98,11 +100,13 @@ void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
         }
         if (d->str.length()){
             d->str.truncate(d->str.length()-1);
-            d->index--;
+            d->index=0; //每次匹配时都清零
             macthing(d->str);//匹配 汉字
         }
-        else
+        else{
+            d->index=0;
             d->str = "";
+        }
     }else if (text == QString("\n"))
     {
         QCoreApplication::sendEvent(QGuiApplication::focusObject(), new QKeyEvent(QEvent::KeyPress, Qt::Key_Enter, Qt::NoModifier));
@@ -114,9 +118,13 @@ void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
         macthing(d->str);
     }else if(text == QString("\x0E")){//>>
         d->index++;
+        if(d->index>d->Model.length()){
+            d->index=d->Model.length();
+        }
     }else if(text == QString("\x0F")){ // <<
        if(d->index>0)
             d->index--;
+       else d->index=0;
     }
     //正常命令
     else
@@ -165,6 +173,7 @@ void DeclarativeInputEngine::macthing(QString str){
     int idx = max / 2;
     d->Model.clear();
     d->Model.append(str);
+    d->index=0;
     str = str.toLower();
     if(str != ""){
         while (true)
@@ -201,6 +210,7 @@ void DeclarativeInputEngine::macthing(QString str){
             }
         }
     }
+    qDebug()<<"DeclarativeInputEngine::d->Model length"<<d->Model.length();
     setchineseList(d->Model);
 }
 QStringList DeclarativeInputEngine::getchineseList(){

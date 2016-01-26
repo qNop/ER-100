@@ -22,10 +22,12 @@
  *                                                                【WHERE】
 */
 .import QtQuick.LocalStorage 2.0 as Data
-var db;
+
+
+//var db;
 function getPageFunctionAndValueFromTable(index,mode){
     var result,str;
-    //var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+    var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
     if(!db) { console.log("DB::db ");return -1;}
     switch(index){
     case 0:str="select * from flatweldsinglebevelgroovet where ";break;
@@ -38,6 +40,7 @@ function getPageFunctionAndValueFromTable(index,mode){
     case 7:str="select * from verticalweldsinglebevelgroove where ";break;
     case 8:str="select * from verticalweldvgroove where ";break;
     }
+
     str+=" mode  ="+"\'"+mode+"\'";
     console.log(str);
     db.transaction( function(tx) {result = tx.executeSql(str); });
@@ -57,7 +60,7 @@ function getPageFunctionAndValueFromTable(index,mode){
     /*写入数据库相关词条的数值*/
     function setValueFromFuncOfTable(index,name,value){
         var result,str;
-        // var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+         var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
         if(!db) { console.log("DB::db ");return -1;}
         switch(index){
         case 0:str="update flatweldsinglebevelgroovet set setvalue = ";break;
@@ -77,7 +80,7 @@ function getPageFunctionAndValueFromTable(index,mode){
     /*从数据库中获取相关词条的数值*/
     function getValueFromFuncOfTable(index,func,name){
         var result,str;
-        //  var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+          var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
         if(!db) { console.log("DB::db ");return -1;}
         switch(index){
         case 0:str="select * from flatweldsinglebevelgroovet where ";break;
@@ -99,7 +102,7 @@ function getPageFunctionAndValueFromTable(index,mode){
     /*获取用户密码*/
     function getuserpassword(name){
         var result;
-        //     var  db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+            var  db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
         if (!db){
             console.log("DB::db ");
             return -1;
@@ -114,7 +117,7 @@ function getPageFunctionAndValueFromTable(index,mode){
     /*获取用户名*/
     function getusrname(){
         var result;
-        //   var  db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+           var  db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
         if (!db){
             console.log("DB::db ");
             return -1;
@@ -134,7 +137,7 @@ function getPageFunctionAndValueFromTable(index,mode){
         var table;
         var error=-1;
         //创建链接
-        db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
+        var db = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
         if(db)  {
             console.log("DB::Open DB Success .");
             return db ;

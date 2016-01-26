@@ -32,7 +32,7 @@ Item {
     //property string iconName
     //property string iconSource: action ? action.iconSource : "icon://" + iconName
    // property bool hoverAnimation: action ? action.hoverAnimation : false
-    //property alias color: label.color
+    property alias color: label.color
     //property alias size: label.size
 
     signal clicked
@@ -43,7 +43,7 @@ Item {
     opacity: enabled ? 1 : 0.6
 
     onClicked: {
-        if (action) action.triggered(icon)
+        if (action) action.triggered(label)
     }
 
     Ink {
@@ -68,6 +68,7 @@ Item {
         id: label
         anchors.centerIn: parent
 	text: action ? action.name : ""
+	color: label.color
         style: "subheading"
     }
 

@@ -74,6 +74,7 @@ AppConfig::AppConfig(){
     poc = new QProcess;
 }
 AppConfig::~AppConfig(){
+    qDebug()<<"AppConfig::REMOVE";
     delete File;
     delete poc;
 }
@@ -171,8 +172,8 @@ QString AppConfig::themePrimaryColor(){
     return primarycolor;
 }
 void AppConfig::setthemePrimaryColor(QString color){
-    File->setValue("AppConfig::Theme_PrimaryColor",color);
-    qDebug() <<"Primary Color Changed";
+    File->setValue("Theme_PrimaryColor",color);
+    qDebug() <<"AppConfig::Primary Color Changed";
     emit themePrimaryColorChanged(color);
 }
 /*

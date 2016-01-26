@@ -72,6 +72,8 @@ VirtualKeyboardInputContext::VirtualKeyboardInputContext() :
 //==============================================================================
 VirtualKeyboardInputContext::~VirtualKeyboardInputContext()
 {
+    qDebug()<<"VirtualKeyboardInputContext::REMOVE";
+     delete d;
 
 }
 

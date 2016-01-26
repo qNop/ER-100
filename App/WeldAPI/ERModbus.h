@@ -5,18 +5,21 @@
 #include <QString>
 #include <QtQml/QQmlListProperty>
 #include "modbus.h"
+#include "modbus-rtu.h"
+#include "modbus-rtu-private.h"
+#include "modbus-private.h"
+#include <QDebug>
+#include <QThread>
+#include <errno.h>
+#include <stdint.h>
 
-/*
- *  实现modbus与qml的联合调用
-*/
-class ERModbus : public QObject
-{
+
+class ModbusThread:public QThread{
     Q_OBJECT
-    /*modbus_cmd*/
-    Q_PROPERTY(QStringList modbusFrame READ modbusFrame WRITE setmodbusFrame NOTIFY modbusFrameChanged)
-private:
+    /*重写该函数*/
+    void run()Q_DECL_OVERRIDE;
+
     modbus_t *ER_Modbus;
-    QString status;
     /*modbus 寄存器*/
     QString modbusReg;
     /*modbus 寄存器地址*/
@@ -25,8 +28,26 @@ private:
     QStringList modbusData;
     /*modbus 命令*/
     QString modbusCmd;
-
+    /*缓存数组*/
     uint16_t data[260];
+
+public:
+    ModbusThread();
+    ~ModbusThread();
+     QStringList frame;
+signals:
+    void ModbusThreadSignal(QStringList Frame);
+};
+
+class ERModbus : public QObject
+{
+    Q_OBJECT
+
+    Q_PROPERTY(QStringList modbusFrame READ modbusFrame WRITE setmodbusFrame NOTIFY modbusFrameChanged)
+private:
+    QString status;
+    ModbusThread* pModbusThread;
+    QStringList Frame;
     //槽
 public:
     explicit ERModbus(QObject* parent = 0);
@@ -39,6 +60,5 @@ signals:
     //发送命令改变
     void modbusFrameChanged(QStringList frame);
 };
-
 
 #endif

@@ -6,8 +6,8 @@ import WeldSys.ERModbus 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
 import QtQuick.LocalStorage 2.0
-import "qrc:/Database.js" as DB
-import "CanvasPaint.js" as Paint
+//import "qrc:/Database.js" as DB
+//import "CanvasPaint.js" as Paint
 /*应用程序窗口*/
 ApplicationWindow{
     id: app;title: "app";visible: true
@@ -27,20 +27,20 @@ ApplicationWindow{
         onTriggered:{datetime.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd ")+new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");       
         }
     }
-    /*发送action*/
-    ActionButton{id:send;anchors {left: parent.left;bottom: parent.bottom;bottomMargin:  input.visible ? input.height+Units.dp(16):Units.dp(16) ;
-            leftMargin: visible ? Units.dp(16):Units.dp(600)}iconName:"awesome/send";
-        visible: if(page.selectedTab === 0) return true; else return false ;
-        Behavior on anchors.leftMargin {
-            NumberAnimation { duration: 600 }
-        }
-        Behavior on anchors.bottomMargin {
-            NumberAnimation { duration: 200 }
-        }
-        onClicked: {
-            /*显示进度条*/
-            slider.show();
-        }}
+//    /*发送action*/
+//    ActionButton{id:send;anchors {left: parent.left;bottom: parent.bottom;bottomMargin:  input.visible ? input.height+Units.dp(16):Units.dp(16) ;
+//            leftMargin: visible ? Units.dp(16):Units.dp(600)}iconName:"awesome/send";
+//        visible: if(page.selectedTab === 0) return true; else return false ;
+//        Behavior on anchors.leftMargin {
+//            NumberAnimation { duration: 600 }
+//        }
+//        Behavior on anchors.bottomMargin {
+//            NumberAnimation { duration: 200 }
+//        }
+//        onClicked: {
+//            /*显示进度条*/
+//            slider.show();
+//        }}
     /*初始化Ｔabpage*/
     initialPage: TabbedPage {
         id: page
@@ -148,18 +148,19 @@ ApplicationWindow{
     /**/
     Component.onCompleted: {
         /*打开数据库*/
-        DB.openDatabase();
-        console.log("getusrnane")
-        var result = DB.getusrname();
-        if(result===-1){console.log("error")}
-        for(var i=0;i<result.rows.length;i++){
-            var name = result.rows.item(i).name;
-            usrnamemodel.append( {"text":name});
-            if(name === accountname.text){
-                changeuserFeildtext.selectedIndex = i+1;
-                changeuserFeildtext.helperText=result.rows.item(i).type;}
-        }
-        usrnamemodel.remove(0);
+        UserData.openDatabase();
+//        DB.openDatabase();
+//        console.log("getusrnane")
+//        var result = DB.getusrname();
+//        if(result===-1){console.log("error")}
+//        for(var i=0;i<result.rows.length;i++){
+//            var name = result.rows.item(i).name;
+//            usrnamemodel.append( {"text":name});
+//            if(name === accountname.text){
+//                changeuserFeildtext.selectedIndex = i+1;
+//                changeuserFeildtext.helperText=result.rows.item(i).type;}
+//        }
+//        usrnamemodel.remove(0);
     }
     /*日历*/
     Dialog {
@@ -182,6 +183,7 @@ ApplicationWindow{
             width:Units.dp(240);
             height:Units.dp(10);
         }
+
         onAccepted: {AppConfig.backLight=backlightslider.value}
         onRejected: {backlightslider.value=AppConfig.backLight}
     }
@@ -297,7 +299,7 @@ ApplicationWindow{
             width: parent.width
             spacing: 0
             Repeater{
-                model: [qsTr("汉语"),qsTr("英语")];
+                model: ["汉语","英语"]//[qsTr("汉语"),qsTr("英语")];
                 ListItem.Standard{
                     text:modelData;
                     showDivider: true;
@@ -306,7 +308,7 @@ ApplicationWindow{
         }
     }
     /*send*/
-    Popslider{
-        id:slider
-    }
+//    Popslider{
+//        id:slider
+//    }
 }

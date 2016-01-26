@@ -1,15 +1,6 @@
 #include "ERModbus.h"
-#include "modbus.h"
-#include "modbus-rtu.h"
-#include "modbus-rtu-private.h"
-#include "modbus-private.h"
-#include <QDebug>
-#include <errno.h>
-#define MAX_MESSAGE_LENGTH 130
 
-ERModbus::ERModbus(QObject *parent)
-    : QObject(parent)
-{
+ModbusThread::ModbusThread(){
     /*清除指针*/
     ER_Modbus = NULL;
     /*清除错误*/
@@ -28,13 +19,12 @@ ERModbus::ERModbus(QObject *parent)
     modbus_set_slave(ER_Modbus,0x0001);
     /*连接串口*/
     if(modbus_connect(ER_Modbus)==-1)
-            modbus_free(ER_Modbus);;
+        modbus_free(ER_Modbus);;
 
-    qDebug()<<"ERModbus::INSTALL->"<<modbus_strerror(errno);
-
+    qDebug()<<"ModbusThread::INSTALL->"<<modbus_strerror(errno);
 }
-ERModbus::~ERModbus(){
-    qDebug()<<"ERModbus::REMOVE";
+ModbusThread::~ModbusThread(){
+
     if(ER_Modbus){
         /*关闭modbus*/
         modbus_close(ER_Modbus);
@@ -43,44 +33,67 @@ ERModbus::~ERModbus(){
         /*清楚modbus指针*/
         ER_Modbus = NULL;
     }
+    qDebug()<<"ModbusThread::REMOVE";
 }
 
-QStringList ERModbus::modbusFrame(){
-    return modbusData;
-}
-/*R REG NUM */
-void ERModbus::setmodbusFrame(QStringList frame){
+void ModbusThread::run()Q_DECL_OVERRIDE{
     int res,i;
     QString str;
     res=0;
-    modbusData.clear();
     errno=0;
     if(ER_Modbus){
-        modbusCmd=frame.at(0);
-        modbusReg=frame.at(1);
-        modbusNum=frame.at(2);
-        //R读命令
-        if(modbusCmd=="R"){
-            res= modbus_read_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
-            if(res!=-1){
-                for(i=0;i<modbusNum.toInt();i++){
-                    str=data[i];
-                    modbusData.append(str);
-                }
-            }
-        }else if(modbusCmd=="W"){
+    //R读命令
+    modbusCmd=frame.at(0);
+    modbusReg=frame.at(1);
+    modbusNum=frame.at(2);
+    modbusData.clear();
+    if(modbusCmd=="R"){
+        res= modbus_read_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
+        if(res!=-1){
             for(i=0;i<modbusNum.toInt();i++){
-                data[i]=frame.at(3+i).toInt();
+                str=data[i];
+                modbusData.append(str);
             }
-            res= modbus_write_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
-            // res= modbus_write_register(ER_Modbus,modbusReg.toInt(),data[0]);
-        }else{
-            qDebug()<<"ERModbus::Cmd is not support .";
         }
-        modbusData.insert(0,modbus_strerror(errno));
-        str=res;
-        modbusData.insert(0,str);
-        modbusFrameChanged(modbusData);
-        qDebug()<<"ERModbus::ANSWER "<<modbusData;
+    }else if(modbusCmd=="W"){
+        for(i=0;i<modbusNum.toInt();i++){
+            data[i]=frame.at(3+i).toInt();
+        }
+        if(modbusNum.toInt()!=1)
+            res= modbus_write_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
+        else
+            res= modbus_write_register(ER_Modbus,modbusReg.toInt(),data[0]);
+    }else{
+        qDebug()<<"ModbusThread::Cmd is not support .";
     }
+    modbusData.insert(0,modbus_strerror(errno));
+    str=res;
+    modbusData.insert(0,str);
+    emit ModbusThreadSignal(modbusData);
+    qDebug()<<"ModbusThread::ANSWER "<<modbusData;
+     }
+}
+
+ERModbus::ERModbus(QObject *parent)
+    : QObject(parent)
+{
+    /*创建任务线程*/
+    pModbusThread = new ModbusThread();
+    /*连接 线程*/
+    connect(pModbusThread,&ModbusThread::ModbusThreadSignal,this,&ERModbus::modbusFrameChanged);
+   // connect(pModbusThread,&ModbusThread::finished,pModbusThread,&ModbusThread::stop);
+}
+ERModbus::~ERModbus(){
+    delete pModbusThread;
+}
+
+QStringList ERModbus::modbusFrame(){
+    return Frame;
+}
+/*R REG NUM */
+void ERModbus::setmodbusFrame(QStringList frame){
+
+    qDebug()<<"ERModbus::frame length "<<frame.length();
+    pModbusThread->frame = frame;
+    pModbusThread->start();
 }

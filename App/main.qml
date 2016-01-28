@@ -176,7 +176,7 @@ ApplicationWindow{
         title: qsTr("背光调节");negativeButtonText:qsTr("取消");positiveButtonText: qsTr("完成");
         Slider {
             id:backlightslider;height:Units.dp(64);width:Units.dp(240);Layout.alignment: Qt.AlignCenter;
-            value:AppConfig.backLight;stepSize: 5;focus: true;numericValueLabel: true;
+            value:AppConfig.backLight;stepSize: 5;numericValueLabel: true;
             minimumValue: 0;maximumValue: 220; activeFocusOnPress: true;
         }
         Rectangle{

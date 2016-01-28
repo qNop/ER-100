@@ -30,7 +30,7 @@ Item {
 Timer{ interval: 1000;running: true; repeat: true;
 onTriggered: {
    frameString=["R","1","9"];
-    //ERModbus.setmodbusFrame(frameString);
+ //  ERModbus.setmodbusFrame(frameString);
     }}
 Connections{
     target:ERModbus;

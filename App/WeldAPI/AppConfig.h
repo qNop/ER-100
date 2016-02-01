@@ -7,6 +7,7 @@
 #include <QSettings>
 #include <QProcess>
 
+
 class AppConfig : public QObject
 {
     Q_OBJECT

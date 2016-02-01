@@ -110,6 +110,7 @@ Connections{
     Scrollbar {
         flickableItem: fickable
     }
+
     Flickable{
         id:fickable
         objectName: "groove"

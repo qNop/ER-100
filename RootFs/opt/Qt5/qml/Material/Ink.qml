@@ -49,16 +49,49 @@ MouseArea {
     property bool showFocus: true
 
     onPressed: {
+	console.log("Pressed")
+	if(mouse.x>630)
+		console.log("mouse.x>630")
+	else if(mouse.x<0)
+		console.log("mouse.x<0")
+	else if(mouse.x===NaN)
+		console.log("mouse.x===NaN")
+	else
+		console.log("mouse.x:"+mouse.x+" parent.x:"+parent.x)
+	if(mouse.y>470)
+		console.log("mouse.y>470")
+	else if(mouse.y<0)
+		console.log("mouse.y<0")
+	else if(mouse.y===NaN)
+		console.log("mouse.y===NaN")
+	else
+		console.log("mouse.y:"+mouse.y+" parent.y:"+parent.y)
+	if((mouse.x>640)&&(mouse.y>480)){
+		 accepted=false;
+		console.log("mouse accepted false")
+	}else{
         createTapCircle(mouse.x, mouse.y)
+	console.log("mouse accepted ok")
+
+}
     }
 
     onCanceled: {
         lastCircle.removeCircle();
+	console.log("Canceled")
     }
 
     onReleased: {
         lastCircle.removeCircle();
+	console.log("Released")
+console.log("mouse.x:"+mouse.x)
+	console.log("mouse.y:"+mouse.y)
     }
+	onClicked:{
+console.log("Clicked")
+console.log("mouse.x:"+mouse.x)
+	console.log("mouse.y:"+mouse.y)
+	}
 
     function createTapCircle(x, y) {
         endRadius = centered ? width/2 : radius(x, y)

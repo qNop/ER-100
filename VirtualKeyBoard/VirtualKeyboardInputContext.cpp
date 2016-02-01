@@ -189,7 +189,7 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     // into the visible area, if the keyboard hides the control
     QQuickItem* i = d->FocusItem;
    // d->Flickable = 0;
-    QQuickFlickable* Flickable;
+    QQuickFlickable* Flickable = 0;
     while (i)
     {
          Flickable = dynamic_cast<QQuickFlickable*>(i);

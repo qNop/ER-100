@@ -64,56 +64,22 @@ case  "$cmd" in
 	Send)
 	case "$filename" in
 		RootFs)
-		if [-e /usr/var/lib/dbus/machine-id ]
-		then 
-			echo "dbus machine-id is existed"
-		else
-			echo "dbus create machine-id"
-			dbus-uuidgen >/usr/var/lib/dbus/machine-id	
-		fi	
-
-		if [ -e /mnt/RootFs/etc/profile ]
-		then
-			echo "Send profile"
-			cp /mnt/RootFs/etc/profile /etc
-			echo "ok"
-	
-		else
-			echo "profile Send fail . because files is not exist ."
-		fi
-
-		if [ -e /mnt/RootFs/etc/inittab ]
-		then
-			echo "Send inittab"
-			cp /mnt/RootFs/etc/inittab /etc
-			echo "ok ."
-		else
-			echo "inittab Send fail . because inittab is not exist ."
-		fi
-		if [ -e /mnt/RootFs/etc/rc.d/rc.conf ]
-		then
-			echo "Send rc.conf"
-			cp /mnt/RootFs/etc/rc.d/rc.conf /etc/rc.d
-			echo "ok ."
-		else
-			echo "rc.conf Send fail . because rc.conf is not exist ."
-		fi
-		if [ -e /mnt/RootFs/etc/rc.d/init.d/ethcfg ]
-		then
-			echo "Send ethcfg"
-			cp /mnt/RootFs/etc/rc.d/init.d/ethcfg /etc/rc.d
-			echo "ok ."
-		else
-			echo "ethcfg Send fail . because ethcfg is not exist ."
-		fi
-		if [ -e /mnt/RootFs/etc/rc.d/init.d/qtexport ]
-		then
-			echo "Send qtexport"
-			cp /mnt/RootFs/etc/rc.d/init.d/qtexport /etc/rc.d
-			echo "ok ."
-		else
-			echo "qtexport Send fail . because qtexport is not exist ."
-		fi
+		echo "dbus create machine-id"
+		dbus-uuidgen >/usr/var/lib/dbus/machine-id
+		echo "Send wqy-microhei.ttc"
+		cp /mnt/RootFs/usr/share/fonts/turetype /usr/share/fonts	
+		echo "Send profile"
+		cp /mnt/RootFs/etc/profile /etc
+		echo "Send inittab"
+		cp /mnt/RootFs/etc/inittab /etc
+		echo "Send rc.conf"
+		cp /mnt/RootFs/etc/rc.d/rc.conf /etc/rc.d
+		echo "Send ethcfg"
+		cp /mnt/RootFs/etc/rc.d/init.d/ethcfg /etc/rc.d
+		echo "Send qtexport"
+		cp /mnt/RootFs/etc/rc.d/init.d/qtexport /etc/rc.d
+		echo "Send Qt5"
+		cp -R /mnt/RootFs/opt/Qt5 /opt
 		;;
 		Material)
 		if [ -e /mnt/RootFs/opt/Qt5/qml/Material ]

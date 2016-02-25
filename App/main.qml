@@ -1,4 +1,4 @@
-import QtQuick 2.2
+    import QtQuick 2.2
 import Material 0.1
 import Material.Extras 0.1
 import WeldSys.AppConfig 1.0
@@ -113,6 +113,8 @@ ApplicationWindow{
                         }
                         ProgressCircle {
                             anchors.centerIn: parent
+                           width: Units.dp(64)
+                           height: Units.dp(64)
                             visible: loader.status == Loader.Loading
                         }
                     }

@@ -66,7 +66,7 @@ Rectangle {
         anchors.fill: parent
         enabled: overlayLayer.currentOverlay != null && 
                 overlayLayer.currentOverlay.globalMouseAreaEnabled
-        //hoverEnabled: enabled
+         hoverEnabled: false
 
         //onWheel: wheel.accepted = true
 

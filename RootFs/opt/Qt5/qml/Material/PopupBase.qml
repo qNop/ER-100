@@ -58,7 +58,7 @@ FocusScope {
         showing = true
         forceActiveFocus()
         parent.currentOverlay = popup
-
+	
         opened()
     }
 

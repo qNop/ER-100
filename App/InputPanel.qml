@@ -13,7 +13,7 @@ import Material.Extras 0.1
 PopupBase {
     id:root
     width: parent.width
-    height: width / 3.25
+    height: width / 3
     overlayLayer: "dialogOverlayLayer"
     onHeightChanged:{
         InputEngine.setKeyboardRectangle(Qt.rect(x, y, width, height))
@@ -65,8 +65,6 @@ PopupBase {
         ListElement { letter: "n"; firstSymbol: "-"}
         ListElement { letter: "m"; firstSymbol: "+"}
     }
-
-
     /**
      * The delegate that paints the key buttons
      */
@@ -82,22 +80,17 @@ PopupBase {
             onClicked:{
                 InputEngine.sendKeyToFocusItem(text);
             }
-            Timer{id:repeater
-                interval: 500;running: button.pressed; repeat: true;
-                onTriggered: {
-                    InputEngine.sendKeyToFocusItem(text);
-                    }
-            }
         }
     }
-    Connections{target: InputEngine;onChineseListChanged: listView.model = list; }
+    Connections{target: InputEngine;onChineseListChanged:{listView.model = list; }}
     Connections{target: InputEngine;onInputModeChanged:{
-            if(InputEngine.inputmode === InputEngine.Numeric){
+            if(Mode === InputEngine.Numeric){
                 shiftModifier=0;
                 symbolModifier=1;
             } else
-            {symbolModifier=0};} }
+            {symbolModifier=0};}}
 Card{
+    id:card
     anchors.fill: parent
     elevation:4
     Column {
@@ -109,14 +102,13 @@ Card{
         anchors.right: parent.right
         anchors.rightMargin: Units.dp(16);
         anchors.bottom: parent.bottom
+        anchors.bottomMargin: Units.dp(12);
         spacing: verticalSpacing
         Row {
             height: rowHeight
             width:  parent.width
             anchors.left:parent.left
             anchors.right: parent.right
-            anchors.rightMargin: horizontalSpacing
-            anchors.leftMargin: horizontalSpacing
             spacing: horizontalSpacing
             Button{
                 id:leftButton;
@@ -129,7 +121,7 @@ Card{
                     color: listView.currentIndex ? "#1e1b18" : Palette.colors["grey"]["500"]
                     visible: listView.model.length>1
                 }
-                Timer{interval: 500;running: leftButton.pressed; repeat: true;
+                Timer{interval: 800;running: leftButton.pressed; repeat: true;
                     onTriggered: { listView.decrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0F");}
                 }
             }
@@ -147,7 +139,7 @@ Card{
                         anchors.verticalCenter: parent.verticalCenter
                         text: modelData
                         style:"subheading"
-                        color: index === listView.currentIndex ? Theme.accentColor : Theme.lightDark(Theme.backgroundColor,Theme.light.textColor,Theme.dark.textColor)
+                        color:  index === listView.currentIndex ? Theme.accentColor : Theme.lightDark(card.backgroundColor,Theme.light.textColor,Theme.dark.textColor)
                     }
                 }
             }
@@ -162,7 +154,7 @@ Card{
                     color:  "#1e1b18"
                     visible: listView.model.length>1
                 }
-                Timer{interval: 500;running: rightButton.pressed; repeat: true;
+                Timer{interval: 800;running: rightButton.pressed; repeat: true;
                     onTriggered:{ listView.incrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0E");}
                 }
             }
@@ -240,7 +232,7 @@ Card{
                     source: "icon://awesome/arrow_left"
                     color: "#1e1b18"
                 }
-                Timer{interval: 500;running: backspace.pressed; repeat: true;
+                Timer{interval: 800;running: backspace.pressed; repeat: true;
                     onTriggered: InputEngine.sendKeyToFocusItem("\x7F");
                 }
             }

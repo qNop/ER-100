@@ -94,7 +94,7 @@ signals:
     /**
      * Notify signal of inputModep property
      */
-   void inputModeChanged();
+   void inputModeChanged(int Mode);
 
    void chineseListChanged(QStringList list);
 }; // class CDeclarativeInputEngine

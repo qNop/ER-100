@@ -75,7 +75,15 @@ MouseArea {
 
 }
     }
-
+    onPositionChanged:{
+	console.log("mouse position Changed")
+	console.log("mouse.x:"+mouse.x)
+	console.log("mouse.y:"+mouse.y)
+	console.log("view.x:"+view.x)
+	console.log("view.y:"+view.y)
+	console.log("view.width:"+view.width)
+	console.log("view.height:"+view.height)
+}
     onCanceled: {
         lastCircle.removeCircle();
 	console.log("Canceled")
@@ -84,12 +92,12 @@ MouseArea {
     onReleased: {
         lastCircle.removeCircle();
 	console.log("Released")
-console.log("mouse.x:"+mouse.x)
+	console.log("mouse.x:"+mouse.x)
 	console.log("mouse.y:"+mouse.y)
     }
 	onClicked:{
-console.log("Clicked")
-console.log("mouse.x:"+mouse.x)
+	console.log("Clicked")
+	console.log("mouse.x:"+mouse.x)
 	console.log("mouse.y:"+mouse.y)
 	}
 

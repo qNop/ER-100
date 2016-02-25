@@ -80,7 +80,7 @@ DeclarativeInputEngine::DeclarativeInputEngine(QObject *parent) :
 //==============================================================================
 DeclarativeInputEngine::~DeclarativeInputEngine()
 {
-   qDebug()<<"DeclarativeInputEngine::REMOVE";
+    qDebug()<<"DeclarativeInputEngine::REMOVE";
     delete d;
 }
 
@@ -95,8 +95,8 @@ void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
     if (text == QString("\x7F"))
     {
         if(d->str == ""){
-             ev.setCommitString("",-1,1);
-             QCoreApplication::sendEvent(QGuiApplication::focusObject(),&ev);
+            ev.setCommitString("",-1,1);
+            QCoreApplication::sendEvent(QGuiApplication::focusObject(),&ev);
         }
         if (d->str.length()){
             d->str.truncate(d->str.length()-1);
@@ -122,9 +122,9 @@ void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
             d->index=d->Model.length();
         }
     }else if(text == QString("\x0F")){ // <<
-       if(d->index>0)
+        if(d->index>0)
             d->index--;
-       else d->index=0;
+        else d->index=0;
     }
     //正常命令
     else
@@ -152,6 +152,7 @@ void DeclarativeInputEngine::setKeyboardRectangle(const QRect& Rect)
 //==============================================================================
 int DeclarativeInputEngine::inputMode() const
 {
+   // qDebug() << "CDeclarativeInputEngine::setInputMode " <<  d->InputMode;
     return d->InputMode;
 }
 
@@ -160,11 +161,8 @@ int DeclarativeInputEngine::inputMode() const
 void DeclarativeInputEngine::setInputMode(int Mode)
 {
    // qDebug() << "CDeclarativeInputEngine::setInputMode " << Mode;
-    if (Mode != d->InputMode)
-    {
-        d->InputMode = Mode;
-        emit inputModeChanged();
-    }
+    d->InputMode = Mode;
+    emit inputModeChanged(Mode);
 }
 //
 void DeclarativeInputEngine::macthing(QString str){

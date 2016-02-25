@@ -13,7 +13,7 @@ SOURCES += main.cpp \
 RESOURCES += \
     qml.qrc\
 
-CONFIG += console qml_debug
+
 
 HEADERS += \
     WeldAPI/gloabldefine.h \
@@ -30,10 +30,12 @@ INCLUDEPATH +=libmodbus \
 
 linux-g++{
    # DESTDIR = $$[QT_INSTALL_PLUGINS]/platforminputcontexts
+    CONFIG += console qml_debug
 }else{
 #存储位置为 downloadfiles
     DESTDIR = /home/nop/ER-100/RootFs/Nop/
 }
+
 
 
 

@@ -6,5 +6,6 @@
         <file>weldset.qml</file>
         <file>welding.qml</file>
         <file>InputPanel.qml</file>
+        <file>MyTableViewStyle.qml</file>
     </qresource>
 </RCC>

@@ -65,7 +65,6 @@ VirtualKeyboardInputContext::VirtualKeyboardInputContext() :
     d->FlickableContentScrollAnimation->setEasingCurve(QEasingCurve(QEasingCurve::OutBack));
     qmlRegisterSingletonType<DeclarativeInputEngine>("VirtualKeyboard", 1, 0,
                                                      "InputEngine", inputEngineProvider);
-    //  connect(d->InputEngine, SIGNAL(animatingChanged()), this, SLOT(ensureFocusedObjectVisible()));
 }
 
 
@@ -73,7 +72,7 @@ VirtualKeyboardInputContext::VirtualKeyboardInputContext() :
 VirtualKeyboardInputContext::~VirtualKeyboardInputContext()
 {
     qDebug()<<"VirtualKeyboardInputContext::REMOVE";
-     delete d;
+    delete d;
 
 }
 
@@ -105,7 +104,7 @@ QRectF VirtualKeyboardInputContext::keyboardRect() const
 void VirtualKeyboardInputContext::showInputPanel()
 {
     qDebug()<<"VirtualKeyboardInputContext::Show InputPanel .";
-    if((d->FocusItem)){
+    if((!d->Visible)){
         d->Visible = true;
         ensureFocusedObjectVisible();
         QPlatformInputContext::showInputPanel();
@@ -129,6 +128,7 @@ void VirtualKeyboardInputContext::hideInputPanel()
         QPlatformInputContext::hideInputPanel();
         //发送Qt.inputMethod.visible=false 信号
         emitInputPanelVisibleChanged();
+        d->FocusItem->setFocus(false);
     }
 }
 
@@ -136,7 +136,7 @@ void VirtualKeyboardInputContext::hideInputPanel()
 //==============================================================================
 bool VirtualKeyboardInputContext::isInputPanelVisible() const
 {
-    qDebug()<<"VirtualKeyboardInputContext::InputPanel Visible"<<d->Visible;
+    //qDebug()<<"VirtualKeyboardInputContext::InputPanel Visible"<<d->Visible;
     return d->Visible;
 }
 
@@ -153,7 +153,7 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
 {
     static const int NumericInputHints = Qt::ImhPreferNumbers | Qt::ImhDate
             | Qt::ImhTime | Qt::ImhDigitsOnly | Qt::ImhFormattedNumbersOnly;
-//    QQuickItem* FocusItem;
+    //    QQuickItem* FocusItem;
     qDebug() << "VirtualKeyboardInputContext::Set focus object .";
     if (!object)
     {
@@ -161,7 +161,7 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     }
     // we only support QML at the moment - so if this is not a QML item, then
     // we leave immediatelly
-   d->FocusItem = dynamic_cast<QQuickItem*>(object);
+    d->FocusItem = dynamic_cast<QQuickItem*>(object);
     if (!d->FocusItem)
     {
         return;
@@ -171,45 +171,39 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     bool AcceptsInput = d->FocusItem->inputMethodQuery(Qt::ImEnabled).toBool();
     if (!AcceptsInput)
     {
-        d->FocusItem=0;
         qDebug()<<"VirtualKeyboardInputContext::Object is not text input .";
+        d->FocusItem=0;
+        hideInputPanel();
         return;
     }
 
     // Set input mode depending on input method hints queried from focused
     // object / item
     Qt::InputMethodHints InputMethodHints(d->FocusItem->inputMethodQuery(Qt::ImHints).toInt());
-    //   qDebug() << QString("InputMethodHints: %1").arg(InputMethodHints, 0, 16);
+    // qDebug() << QString("InputMethodHints: %1").arg(InputMethodHints, 0, 16);
     if (InputMethodHints & NumericInputHints) {
+        //qDebug()<<"InputMethodHints: Numeric";
         d->InputEngine->setInputMode(DeclarativeInputEngine::Numeric);
+
     }else{
+        // qDebug()<<"InputMethodHints: Chinese";
         d->InputEngine->setInputMode(DeclarativeInputEngine::Chinese);
     }
     // Search for the top most flickable so that we can scroll the control
     // into the visible area, if the keyboard hides the control
     QQuickItem* i = d->FocusItem;
-   // d->Flickable = 0;
-    QQuickFlickable* Flickable = 0;
+    d->Flickable = 0;
     while (i)
     {
-         Flickable = dynamic_cast<QQuickFlickable*>(i);
-    /*    if (Flickable)
+        QQuickFlickable*  Flickable = dynamic_cast<QQuickFlickable*>(i);
+        if (Flickable)
         {
             d->Flickable = Flickable;
-        }*/
+        }
         i = i->parentItem();
     }
-    //如果两次获得焦点的item不是同一个则将上一个 Flickable的 状态恢复。
-    if((d->Flickable != Flickable)&&(d->Flickable)){
-        d->Flickable->setContentY(d->Flickable->contentY()-d->ContentY_Add);
-        d->ContentY_Add = 0;
-    }
-    d->Flickable=Flickable;
-    d->Visible = true;
+
     ensureFocusedObjectVisible();
-    QPlatformInputContext::showInputPanel();
-    //发送Qt.inputMethod.visible=true 信号
-    emitInputPanelVisibleChanged();
 }
 
 //==============================================================================
@@ -217,28 +211,28 @@ void VirtualKeyboardInputContext::ensureFocusedObjectVisible()
 {
     // If the keyboard is hidden, no scrollable element exists or the keyboard
     // is just animating, then we leave here
-    if (!d->Visible || !d->Flickable )
+    if (!d->Visible || !d->Flickable || !d->FocusItem)
     {
         return;
     }
+    // if(d->Flickable->objectName() != "Dialog"){
     // qDebug() << "VirtualKeyboardInputContext::ensureFocusedObjectVisible";
     QRectF FocusItemRect(0, 0, d->FocusItem->width(), d->FocusItem->height());
     FocusItemRect = d->Flickable->mapRectFromItem(d->FocusItem, FocusItemRect);
     //  qDebug() << "FocusItemRect: " << FocusItemRect;
-    //  qDebug() << "Content origin: " << QPointF(d->Flickable->contentX(),d->Flickable->contentY());
     qDebug() <<"VirtualKeyboardInputContext::"<< d->Flickable->objectName()<<"Flickable size: " << QSize(d->Flickable->width(), d->Flickable->height());
     d->FlickableContentScrollAnimation->setTargetObject(d->Flickable);
     qreal ContentY = d->Flickable->contentY();
     if (FocusItemRect.bottom() >= d->Flickable->height())
     {
-        //      qDebug() << "Item outside!!!  FocusItemRect.bottom() >= d->Flickable->height()";
+        qDebug() << "Item outside!!!  FocusItemRect.bottom() >= d->Flickable->height()";
         ContentY = d->Flickable->contentY() + (FocusItemRect.bottom() - d->Flickable->height()) + 20;
         d->FlickableContentScrollAnimation->setEndValue(ContentY);
         d->FlickableContentScrollAnimation->start();
     }
     else if (FocusItemRect.top() < 0)
     {
-        //     qDebug() << "Item outside!!!  d->FocusItem->position().x < 0";
+        qDebug() << "Item outside!!!  d->FocusItem->position().x < 0";
         ContentY = d->Flickable->contentY() + FocusItemRect.top() - 20;
         d->FlickableContentScrollAnimation->setEndValue(ContentY);
         d->FlickableContentScrollAnimation->start();
@@ -247,12 +241,40 @@ void VirtualKeyboardInputContext::ensureFocusedObjectVisible()
             (d->Flickable->contentHeight()+ContentY)){
         qreal y =d->InputEngine->keyboardRectangle().height()+FocusItemRect.bottom()
                 - d->Flickable->contentHeight() + 20;
+        qDebug() << "d->InputEngine->keyboardRectangle().height()" <<d->InputEngine->keyboardRectangle().height();
+        qDebug() << "FocusItemRect.bottom()" << FocusItemRect.bottom() ;
+        qDebug() << "d->Flickable->contentHeight()" << d->Flickable->contentHeight() ;
         d->ContentY_Add = y - ContentY;
+        qDebug() << "d->ContentY_Add" << d->ContentY_Add ;
         d->FlickableContentScrollAnimation->setEndValue(y);
         d->FlickableContentScrollAnimation->start();
     }
     d->Flickable->setInteractive(false);
 }
+//   else{
+//          QQuickItem* parent = d->Flickable->parentItem();
+//          while(parent){
+//              qDebug()<<parent->objectName() ;
+//              if(parent->objectName() == "dialogOverlayLayer"){
+//                  break;
+//              }
+//              parent = parent->parentItem();
+//          }
+//          QRectF FocusItemRect(0, 0, d->FocusItem->width(), d->FocusItem->height());
+//          FocusItemRect =parent->mapRectFromItem(d->FocusItem, FocusItemRect);
+//          qDebug()<<FocusItemRect;
+//          QQuickItem* z = d->Flickable->parentItem();
+//           qDebug()<<z->objectName() ;
+//           d->FlickableContentScrollAnimation->setTargetObject(z);
+//           qreal y =d->InputEngine->keyboardRectangle().height()+FocusItemRect.bottom();
+//           y = y-z->height()+20;
+//            qDebug()<<y ;
+//           d->FlickableContentScrollAnimation->setPropertyName("y");
+//           d->FlickableContentScrollAnimation->setEndValue(y);
+//           d->FlickableContentScrollAnimation->start();
+
+//   }
+//}
 
 
 //==============================================================================

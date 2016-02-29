@@ -51,23 +51,19 @@ TableViewStyle{
     headerDelegate:Rectangle{
         height:Material.Units.dp(56);
         Material.Label{
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.leftMargin: 24
+            anchors.centerIn: parent
             text:styleData.value
             style:"menu"
             color:Material.Theme.light.shade(0.54)
         }
-        Material.ThinDivider{anchors.bottom: parent.bottom ;color:Material.Palette.colors["grey"]["500"];height:1.5}
+        Material.ThinDivider{anchors.bottom: parent.bottom ;color:Material.Palette.colors["grey"]["500"]}
     }
     itemDelegate: Item{
         anchors.fill: parent
         Material.Label{
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.centerIn: parent
             text:styleData.value
             style:"body1"
-            anchors.left:parent.left
-            anchors.leftMargin: !isNaN(Number(styleData.value)) ? parent.width-width-24 : 24
             color: Material.Theme.light.shade(0.87)
         }
     }

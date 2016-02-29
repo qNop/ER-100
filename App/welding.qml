@@ -5,7 +5,7 @@ import Material.Extras 0.1
 import "awesomechart.js" as Paint
 
 Rectangle {
-    color: Theme.backgroundColor
+    /*color: Theme.backgroundColor
     anchors.fill: parent
     Canvas{
         id:canvas
@@ -19,5 +19,5 @@ Rectangle {
             mychart.labels = ["美国", "唐山", "河北", "迁安", "中国"];
             mychart.draw();
         }
-    }
+    }*/
 }

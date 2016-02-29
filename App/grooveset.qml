@@ -423,24 +423,6 @@ Connections{
                     inputMethodHints:Qt.ImhPreferLatin
                 }
             }
-            /*间隙补正(mm)*/
-            ListItem.Subtitled{
-                id:test2
-                text:testfield2.width//qsTr("间隙补正:");
-                anchors.left: parent.left
-                anchors.leftMargin: test2.visible ? Units.dp(48) : Units.dp(148) ;
-                Behavior on anchors.leftMargin{
-                    NumberAnimation { duration: 200 }
-                }
-                backgroundColor: Theme.backgroundColor
-                height:teachmodeset.height
-                visible: weldset.expanded
-                secondaryItem:TextField{
-                    id: testfield2
-                    anchors.bottom: parent.bottom
-                    inputMethodHints:Qt.ImhDigitsOnly
-                }
-            }
         }
     }
 }

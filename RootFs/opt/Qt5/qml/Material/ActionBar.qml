@@ -219,7 +219,7 @@ Item {
 
         color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
                                                             Theme.dark.iconColor)
-        size: Units.dp(24)
+        size: Units.dp(27)
         action: backAction
 
         opacity: show ? enabled ? 1 : 0.6 : 0
@@ -237,9 +237,9 @@ Item {
 
         anchors {
             verticalCenter: actionsRow.verticalCenter
-            left: parent.left
+            left:leftItem.show ? leftItem.right : parent.left
             right: actionsRow.left
-            leftMargin: leftItem.show ? Units.dp(72) : Units.dp(16)
+            leftMargin:   Units.dp(16)
             rightMargin: Units.dp(16)
 
             Behavior on leftMargin {
@@ -289,11 +289,11 @@ Item {
         }
 	LabelButton {
             id: time
-	    action: __internal.visibleActions[maxActionCount-2]         
+            action: maxActionCount>2? __internal.visibleActions[maxActionCount-2]:null
             objectName: "action/datetime"
             color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
                                                               Theme.dark.iconColor)
-            visible: true
+            visible: maxActionCount>2 ? true:false
             anchors.verticalCenter: parent.verticalCenter
         }
 	IconButton {

@@ -36,6 +36,9 @@ linux-g++{
     DESTDIR = /home/nop/ER-100/RootFs/Nop/
 }
 
+#DISTFILES += \
+# TeachEnv.qml
+
 
 
 

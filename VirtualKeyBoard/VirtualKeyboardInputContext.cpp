@@ -117,8 +117,8 @@ void VirtualKeyboardInputContext::showInputPanel()
 //==============================================================================
 void VirtualKeyboardInputContext::hideInputPanel()
 {
-    qDebug()<<"VirtualKeyboardInputContext::Hide InputPanel .";
     if(d->Visible){
+         qDebug()<<"VirtualKeyboardInputContext::Hide InputPanel .";
         d->Visible = false;
         if((d->ContentY_Add)&&(d->Flickable->contentY())){
             d->FlickableContentScrollAnimation->setEndValue(d->Flickable->contentY()-d->ContentY_Add);
@@ -153,7 +153,6 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
 {
     static const int NumericInputHints = Qt::ImhPreferNumbers | Qt::ImhDate
             | Qt::ImhTime | Qt::ImhDigitsOnly | Qt::ImhFormattedNumbersOnly;
-    //    QQuickItem* FocusItem;
     qDebug() << "VirtualKeyboardInputContext::Set focus object .";
     if (!object)
     {
@@ -161,22 +160,23 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
     }
     // we only support QML at the moment - so if this is not a QML item, then
     // we leave immediatelly
-    d->FocusItem = dynamic_cast<QQuickItem*>(object);
-    if (!d->FocusItem)
+   // d->FocusItem = dynamic_cast<QQuickItem*>(object);
+    QQuickItem* FocusItem = dynamic_cast<QQuickItem*>(object);
+    if (!FocusItem)
     {
         return;
     }
     // Check if an input control has focus that accepts text input - if not,
     // then we can leave immediatelly
-    bool AcceptsInput = d->FocusItem->inputMethodQuery(Qt::ImEnabled).toBool();
+    bool AcceptsInput = FocusItem->inputMethodQuery(Qt::ImEnabled).toBool();
     if (!AcceptsInput)
     {
         qDebug()<<"VirtualKeyboardInputContext::Object is not text input .";
-        d->FocusItem=0;
         hideInputPanel();
+         d->FocusItem=0;
         return;
     }
-
+    d->FocusItem=FocusItem;
     // Set input mode depending on input method hints queried from focused
     // object / item
     Qt::InputMethodHints InputMethodHints(d->FocusItem->inputMethodQuery(Qt::ImHints).toInt());
@@ -202,7 +202,6 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
         }
         i = i->parentItem();
     }
-
     ensureFocusedObjectVisible();
 }
 

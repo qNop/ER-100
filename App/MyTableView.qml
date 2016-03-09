@@ -4,13 +4,9 @@ import Material.Extras 0.1
 import QtQuick.Controls 1.2
 import QtQuick.Controls.Private 1.0
 import QtQuick.Controls.Styles 1.1
-import Material.ListItems 0.1
-import "awesomechart.js" as Paint
 
 Material.Card{
-    anchors.top:parent.top//tableview.bottom
-    // anchors.bottom: parent.bottom
-    // anchors.bottomMargin: 5
+    anchors.top:parent.top
     anchors.right:parent.right
     anchors.topMargin: 5
     anchors.left: parent.left
@@ -18,6 +14,9 @@ Material.Card{
     anchors.rightMargin: 20
     elevation: 2;
     radius: 2;
+
+    property string titleName;
+    property alias table: tableview
 
     Material.Card{
         id:title
@@ -30,7 +29,7 @@ Material.Card{
             anchors.left: parent.left
             anchors.leftMargin: Material.Units.dp(24)
             anchors.verticalCenter: parent.verticalCenter
-            text:"平焊V型坡口焊接规范表"
+            text:titleName
             style:"title"
             color: Material.Theme.light.shade(0.87)
         }
@@ -55,10 +54,10 @@ Material.Card{
     }
     TableView{
         id:tableview
+        objectName: "tableview"
         anchors.top:title.bottom
-        // anchors.bottom: chart.top
-        //height:Material.Units.dp(350);
-        // anchors.bottomMargin: Material.Units.dp(5);
+        //anchors.bottom: parent.bottom
+       // anchors.bottomMargin: Material.Units.dp(5);
         anchors.right:parent.right
         anchors.left: parent.left
         anchors.leftMargin: Material.Units.dp(5);
@@ -89,9 +88,6 @@ Material.Card{
                     anchors.verticalCenter: parent.verticalCenter
                     checked: styleData.selected
                     exclusiveGroup:checkboxgroup
-                    onCheckedStateChanged: {
-                        console.log("styleData.row"+styleData.row+" checkbox.checkedState"+checkbox.checkedState)
-                    }
                 }
                 Material.Label{
                     anchors.left: checkbox.right
@@ -153,6 +149,7 @@ Material.Card{
             resizable:false
         }
         model: ListModel{
+            id:listModel
             ListElement{
                 iD:"1"
                 c1:"1/1"
@@ -204,33 +201,32 @@ Material.Card{
                 c7:"停止"
             }
         }
-        //连接mouseArea区域mosue点移动
-        Connections{
-            target:tableview.__mouseArea
-            onPositionChanged:{
-                console.log("tableview.__mouseArea mouse x: "+tableview.__mouseArea.mouseX)
-                console.log("tableview.__mouseArea mouse y: "+tableview.__mouseArea.mouseY)
-                console.log("tableview.__listview : "+tableview.__columns.length)
-            }
-        }
         Keys.onPressed: {
-            var diff = event.key ===Qt.Key_Right ? 50 :
-                                           event.key ===Qt.Key_Left ? -50:  0
+            var diff = event.key ===Qt.Key_Right ? 50 : event.key === Qt.Key_Left ? -50 :  0
             if(diff !==0){
                 tableview.__horizontalScrollBar.value +=diff;
+                event.accept=true;
             }
         }
-    }
-    Material.Button{
-        anchors.top:tableview.bottom
-        anchors.left: parent.left
-        onClicked: {
-            if(parent.scale===0.5){
-                parent.scale=1;
-            }else{
-                parent.scale=0.5;
+        Material.Dropdown{
+            id:dropdown
+            overlayLayer: "dialogOverlayLayer"
+            height:200
+            width:200
+            Material.TextField{
+                id:textField
+                inputMethodHints:Qt.ImhDigitsOnly
             }
+        }
+        onDoubleClicked: {
+             var  columnItem=tableview.getColumn(tableview.__mouseArea.pressedColumn)
+             var mod=listModel.get(tableview.__mouseArea.pressedRow)
+             textField.text=mod[columnItem.role];
+             dropdown.open(tableview.__listView.currentItem,Material.Units.dp(4),Material.Units.dp(-4));
         }
     }
 }
+
+
+
 

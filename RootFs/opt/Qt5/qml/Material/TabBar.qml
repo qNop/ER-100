@@ -139,7 +139,7 @@ Item {
             Ink {
                 anchors.fill: parent
                 enabled: tab.enabled
-                onClicked: tabBar.selectedIndex = index
+                onPressed: tabBar.selectedIndex = index
             }
 
             Row {

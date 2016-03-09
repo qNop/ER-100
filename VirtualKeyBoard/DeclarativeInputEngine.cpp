@@ -112,10 +112,12 @@ void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
         QCoreApplication::sendEvent(QGuiApplication::focusObject(), new QKeyEvent(QEvent::KeyPress, Qt::Key_Enter, Qt::NoModifier));
         QCoreApplication::sendEvent(QGuiApplication::focusObject(), new QKeyEvent(QEvent::KeyRelease, Qt::Key_Enter, Qt::NoModifier));
     }else if(text == QString("\x0D")){//enter
-        ev.setCommitString(d->Model.at(d->index));
-        QCoreApplication::sendEvent(QGuiApplication::focusObject(),&ev);
-        d->str="";
-        macthing(d->str);
+        if(d->Model.length()){
+            ev.setCommitString(d->Model.at(d->index));
+            QCoreApplication::sendEvent(QGuiApplication::focusObject(),&ev);
+            d->str="";
+            macthing(d->str);
+        }
     }else if(text == QString("\x0E")){//>>
         d->index++;
         if(d->index>d->Model.length()){
@@ -152,7 +154,7 @@ void DeclarativeInputEngine::setKeyboardRectangle(const QRect& Rect)
 //==============================================================================
 int DeclarativeInputEngine::inputMode() const
 {
-   // qDebug() << "CDeclarativeInputEngine::setInputMode " <<  d->InputMode;
+    // qDebug() << "CDeclarativeInputEngine::setInputMode " <<  d->InputMode;
     return d->InputMode;
 }
 
@@ -160,7 +162,7 @@ int DeclarativeInputEngine::inputMode() const
 //==============================================================================
 void DeclarativeInputEngine::setInputMode(int Mode)
 {
-   // qDebug() << "CDeclarativeInputEngine::setInputMode " << Mode;
+    // qDebug() << "CDeclarativeInputEngine::setInputMode " << Mode;
     d->InputMode = Mode;
     emit inputModeChanged(Mode);
 }

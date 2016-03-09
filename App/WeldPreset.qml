@@ -1,4 +1,4 @@
-import QtQuick 2.2
+import QtQuick 2.4
 import Material 0.1
 import Material.Extras 0.1 as JS
 import WeldSys.AppConfig 1.0
@@ -11,7 +11,6 @@ import QtQuick.LocalStorage 2.0
 
 Item {
     id:grooveset
-    anchors.left: parent.left
     property int currentGroove:AppConfig.currentGroove;
     property var teachmodemodel: ["自动","半自动","手动"];
     property var startendcheckmodel:["自动","手动"]
@@ -27,25 +26,15 @@ Item {
     property string mode: "";
     property var frameString:[""];
     property int num;
-Timer{ interval: 1000;running: true; repeat: true;
-onTriggered: {
-   frameString=["R","1","9"];
- //  ERModbus.setmodbusFrame(frameString);
-    }}
-Connections{
-    target:ERModbus;
-    onModbusFrameChanged:{
-        teachfirstpointtimelengthglabel.text = frame[1];
-    }
-}
-    onKeyindexChanged: {
-        console.log("keyindexchanged")
-    }
+    property bool showsidebar: false
     Keys.onPressed: {
         switch(event.key){
         case Qt.Key_1:
             if(grooveset.visible){
-                changeindex();
+                if(showsidebar)
+                     changeindex();
+                else
+                   showsidebar=!showsidebar;
                 event.accepted = true;
             }
             break;
@@ -72,6 +61,7 @@ Connections{
         grooveset.currentGroove++;
         if(grooveset.currentGroove>8){
             grooveset.currentGroove=0;
+            showsidebar=false
         }
         repeat.itemAt(grooveset.currentGroove).selected=true;
     }
@@ -82,8 +72,10 @@ Connections{
             top:parent.top
             bottom: parent.bottom
         }
-        style: "dark"
-        width:Units.dp(255);
+        width:showsidebar?Units.dp(255):Units.dp(0);
+        Behavior on width {
+            NumberAnimation{ duration: 200 }
+        }
         Column{
             id:stand
             width:parent.width
@@ -98,19 +90,18 @@ Connections{
                     onClicked: {
                         for(var i=0;i<9;i++){
                             if(i===index) groove.selected=true;
-                            else repeat.itemAt(i).selected=false
+                            else repeat.itemAt(i).selected=false;
                         }
                         AppConfig.currentGroove=index;
-                    }
-
+                    }                    
                 }
             }
         }
+
     }
     Scrollbar {
         flickableItem: fickable
     }
-
     Flickable{
         id:fickable
         objectName: "groove"

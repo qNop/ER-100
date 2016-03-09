@@ -2,10 +2,26 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>awesomechart.js</file>
-        <file>grooveset.qml</file>
-        <file>weldset.qml</file>
-        <file>welding.qml</file>
+        <file>WeldPreset.qml</file>
+        <file>WeldAnalyse.qml</file>
+        <file>SystemInfor.qml</file>
         <file>InputPanel.qml</file>
         <file>MyTableViewStyle.qml</file>
+        <file>MyTableView.qml</file>
+        <file>../Pic/横焊单边V型坡口T接头.png</file>
+        <file>../Pic/横焊单边V型坡口平对接.png</file>
+        <file>../Pic/立焊V型坡口平对接（刚衬垫）.png</file>
+        <file>../Pic/立焊V型坡口平对接（陶瓷衬垫）.png</file>
+        <file>../Pic/立焊单边V型坡口T接头.png</file>
+        <file>../Pic/立焊单边V型坡口平对接.png</file>
+        <file>../Pic/平焊V型坡口平对接（刚衬垫）.png</file>
+        <file>../Pic/平焊V型坡口平对接（陶瓷衬垫）.png</file>
+        <file>../Pic/平焊单边V型坡口T接头.png</file>
+        <file>../Pic/平焊单边V型坡口平对接.png</file>
+        <file>../Pic/坡口参数图.png</file>
+        <file>../Pic/水平角焊.png</file>
+        <file>TeachPreset.qml</file>
+        <file>GroovePreset.qml</file>
+        <file>CheckTest.qml</file>
     </qresource>
 </RCC>

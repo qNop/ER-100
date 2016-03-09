@@ -10,9 +10,16 @@ export QTDIR=/opt/Qt5
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$QTDIR/lib:$TSLIB_ROOT/lib
 export PATH=$PATH:$QTDIR/bin:$TSLIB_ROOT
 export QT_QPA_PLATFORM_PLUGIN_PATH=$QTDIR/plugins #:$TSLIB_PLUGINDIR
-export QT_QPA_PLATFORM=linuxfb:tty=/dev/fb0
+export QT_QPA_PLATFORM=eglfs:tty=/dev/fb0
 export QT_QPA_FONTDIR=$QTDIR/lib/fonts
 export QT_QPA_GENERIC_PLUGINS=tslib:$TSLIB_TSDEVICE
+export QT_QPA_EVDEV_KEYBOARD_PARAMETERS=/dev/input/event0
+
+export QT_EGLFS_IMX6_NO_FB_MULTI_BUFFER=1
+export QT_QPA_EGLFS_PHYSICAL_WIDTH=132.48
+export QT_QPA_EGLFS_PHYSICAL_HEIGHT=99.36
+
+export LD_PRELOAD=$LD_PRELOAD:/opt/tslib/lib/libts.so
 
 if [ -f /etc/pointercal ];then
 	echo "eRoboWeldSys touchscreen have calibrate!"

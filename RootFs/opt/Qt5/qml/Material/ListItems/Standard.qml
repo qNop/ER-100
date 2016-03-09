@@ -97,7 +97,6 @@ BaseListItem {
                 }
 
                 visible: valid
-                color: listItem.selected ? Theme.primaryColor : Theme.light.iconColor
                 size: Units.dp(27)
             }
         }
@@ -123,8 +122,6 @@ BaseListItem {
 
                 elide: Text.ElideRight
                 style: "subheading"
-
-                color: listItem.selected ? Theme.primaryColor : Theme.light.textColor
 
                 visible: !contentItem.visible
             }

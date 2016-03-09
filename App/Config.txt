@@ -1,6 +1,6 @@
 [General]
 BackLight=55
-Current_Groove=4
+Current_Groove=0
 Current_User_Name=Admin
 Current_User_PassWord=Admin
 Current_User_Type=SuperUser
@@ -12,5 +12,5 @@ SoftWare_Company=\x5510\x5c71\x5f00\x5143\x7279\x79cd\x710a\x63a5\x8bbe\x5907\x6
 SoftWare_Description=\x4fbf\x643a\x5f0fMAG\x710a\x63a5\x673a\x5668\x4eba\x7cfb\x7edf
 SoftWare_Version=0.1
 Theme_AccentColor=#3f51b5
-Theme_BackgroundColor=#009688
+Theme_BackgroundColor=#ffffff
 Theme_PrimaryColor=#ffeb3b

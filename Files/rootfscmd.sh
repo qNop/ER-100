@@ -67,7 +67,7 @@ case  "$cmd" in
 		echo "dbus create machine-id"
 		dbus-uuidgen >/usr/var/lib/dbus/machine-id
 		echo "Send wqy-microhei.ttc"
-		cp /mnt/RootFs/usr/share/fonts/turetype /usr/share/fonts	
+		cp /mnt/Files/wqy-microhei.ttc /usr/share/fonts/truetype	
 		echo "Send profile"
 		cp /mnt/RootFs/etc/profile /etc
 		echo "Send inittab"

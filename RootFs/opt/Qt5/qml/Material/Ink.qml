@@ -49,66 +49,24 @@ MouseArea {
     property bool showFocus: true
 
     onPressed: {
-	console.log("Pressed")
-	if(mouse.x>630)
-		console.log("mouse.x>630")
-	else if(mouse.x<0)
-		console.log("mouse.x<0")
-	else if(mouse.x===NaN)
-		console.log("mouse.x===NaN")
-	else
-		console.log("mouse.x:"+mouse.x+" parent.x:"+parent.x)
-	if(mouse.y>470)
-		console.log("mouse.y>470")
-	else if(mouse.y<0)
-		console.log("mouse.y<0")
-	else if(mouse.y===NaN)
-		console.log("mouse.y===NaN")
-	else
-		console.log("mouse.y:"+mouse.y+" parent.y:"+parent.y)
-	if((mouse.x>640)&&(mouse.y>480)){
-		 accepted=false;
-		console.log("mouse accepted false")
-	}else{
         createTapCircle(mouse.x, mouse.y)
-	console.log("mouse accepted ok")
-
-}
     }
-    onPositionChanged:{
-	console.log("mouse position Changed")
-	console.log("mouse.x:"+mouse.x)
-	console.log("mouse.y:"+mouse.y)
-	console.log("view.x:"+view.x)
-	console.log("view.y:"+view.y)
-	console.log("view.width:"+view.width)
-	console.log("view.height:"+view.height)
-}
     onCanceled: {
         lastCircle.removeCircle();
-	console.log("Canceled")
     }
 
     onReleased: {
         lastCircle.removeCircle();
-	console.log("Released")
-	console.log("mouse.x:"+mouse.x)
-	console.log("mouse.y:"+mouse.y)
     }
-	onClicked:{
-	console.log("Clicked")
-	console.log("mouse.x:"+mouse.x)
-	console.log("mouse.y:"+mouse.y)
-	}
 
     function createTapCircle(x, y) {
         endRadius = centered ? width/2 : radius(x, y)
         showFocus = false
 
         lastCircle = tapCircle.createObject(view, {
-                                                       "circleX": centered ? width/2 : x,
-                                                       "circleY": centered ? height/2 : y
-                                                   });
+                                                "circleX": centered ? width/2 : x,
+                                                                      "circleY": centered ? height/2 : y
+                                            });
     }
 
     function radius(x, y) {
@@ -136,8 +94,8 @@ MouseArea {
 
         anchors.fill: parent
 
-        color: Theme.isDarkColor(focusColor) && focusColor.a > 0    
-                ? Qt.rgba(0,0,0,0.2) : Qt.rgba(0,0,0,0.1)
+        color: Theme.isDarkColor(focusColor) && focusColor.a > 0
+               ? Qt.rgba(0,0,0,0.2) : Qt.rgba(0,0,0,0.1)
 
         opacity: showFocus && focused ? 1 : 0
 
@@ -152,9 +110,9 @@ MouseArea {
         anchors.centerIn: parent
 
         width: focused
-                ? focusedState ? focusWidth
-                               : Math.min(parent.width - Units.dp(8), focusWidth + Units.dp(12))
-                : parent.width/5
+               ? focusedState ? focusWidth
+                              : Math.min(parent.width - Units.dp(8), focusWidth + Units.dp(12))
+        : parent.width/5
         height: width
 
         radius: width/2
@@ -177,7 +135,7 @@ MouseArea {
             id: focusTimer
             running: focused
             repeat: true
-            interval: 800
+            interval: 500
 
             onTriggered: focusCircle.focusedState = !focusCircle.focusedState
         }
@@ -199,12 +157,10 @@ MouseArea {
                 if (fillSizeAnimation.running) {
                     fillOpacityAnimation.stop()
                     closeAnimation.start()
-
                     circleItem.destroy(500);
                 } else {
                     showFocus = true
                     fadeAnimation.start();
-
                     circleItem.destroy(300);
                 }
             }

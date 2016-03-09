@@ -38,7 +38,6 @@ ModbusThread::~ModbusThread(){
 
 void ModbusThread::run()Q_DECL_OVERRIDE{
     int res,i;
-    QString str;
     res=0;
     errno=0;
     if(ER_Modbus){
@@ -51,8 +50,7 @@ void ModbusThread::run()Q_DECL_OVERRIDE{
         res= modbus_read_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
         if(res!=-1){
             for(i=0;i<modbusNum.toInt();i++){
-                str=data[i];
-                modbusData.append(str);
+                modbusData.append(QString::number(data[i]));
             }
         }
     }else if(modbusCmd=="W"){
@@ -66,9 +64,7 @@ void ModbusThread::run()Q_DECL_OVERRIDE{
     }else{
         qDebug()<<"ModbusThread::Cmd is not support .";
     }
-    modbusData.insert(0,modbus_strerror(errno));
-    str=res;
-    modbusData.insert(0,str);
+
     emit ModbusThreadSignal(modbusData);
     qDebug()<<"ModbusThread::ANSWER "<<modbusData;
      }

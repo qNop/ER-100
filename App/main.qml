@@ -7,8 +7,7 @@ import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
 import QtQuick.LocalStorage 2.0
 import QtQuick.Controls 1.4
-//import "qrc:/Database.js" as DB
-//import "CanvasPaint.js" as Paint
+
 /*应用程序窗口*/
 Material.ApplicationWindow{
     id: app;title: "app";visible: true
@@ -31,7 +30,7 @@ Material.ApplicationWindow{
     property var sectionsName:[presetName,analyseName,inforName,testName]
     property var sectionsIcon:[presetIcon,analyseIcon,inforIcon,testIcon]
     property var sectionTitles: ["焊接预置", "焊接分析", "系统信息","系统测试" ]
-    property var tabiconname: ["awesome/windows","awesome/line_chart","awesome/tasks","action/settings_input_composite"]
+    property var tabiconname: ["awesome/windows","awesome/line_chart","action/dashboard","action/settings_input_composite"]
     property int selectedIndex:0
     /*当前本地化语言*/
     property string local: "zh_CN"
@@ -43,7 +42,7 @@ Material.ApplicationWindow{
     Timer{ interval: 500; running: true; repeat: true;
         onTriggered:{datetime.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd ")+new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
             if(modbusExist){
-                //      ERModbus.setmodbusFrame(["R","1","6"]);
+                // ERModbus.setmodbusFrame(["R","1","6"]);
             }
         }
     }
@@ -53,7 +52,7 @@ Material.ApplicationWindow{
         /*标题*/
         title:qsTr("便携式MAG焊接机器人系统")
         /*最大action显示数量*/
-        actionBar.maxActionCount: 6
+        actionBar.maxActionCount: 5
         /*actions列表*/
         actions: [
             /*危险报警action*/
@@ -71,10 +70,10 @@ Material.ApplicationWindow{
                 onTriggered: colorPicker.show();
             },
             /*系统设置action*/
-            Material.Action {iconName:"user/MAG";
-                name: qsTr("设置");
-                //onTriggered
-            },
+            //     Material.Action {iconName:"user/MAG";
+            //      name: qsTr("设置");
+            //onTriggered
+            //},
             /*时间action*/
             Material.Action{name: qsTr("时间"); id:datetime;
                 onTriggered:datePickerDialog.show();
@@ -94,7 +93,7 @@ Material.ApplicationWindow{
         ]
         backAction: navigationDrawer.action
         actionBar.tabBar.leftKeyline: 0;
-        actionBar.tabBar.isLargeDevice: true
+        actionBar.tabBar.isLargeDevice: false
         actionBar.tabBar.fullWidth:false
         Material.NavigationDrawer{
             id:navigationDrawer
@@ -106,14 +105,21 @@ Material.ApplicationWindow{
                 anchors.left: parent.left
                 width: parent.width
                 height:Material.Units.dp(64);
-                Material.Label{
-                    id:navlabel
+                Row{
                     anchors.left: parent.left
                     anchors.leftMargin: Material.Units.dp(24)
                     anchors.verticalCenter: parent.verticalCenter
-                    text:sectionTitles[page.selectedTab]
-                    style:"title"
-                    color: Material.Theme.light.shade(0.87)
+                    spacing: Material.Units.dp(16)
+                    Material.Icon{
+                        size:Material.Units.dp(27)
+                        name: tabiconname[page.selectedTab]
+                    }
+                    Material.Label{
+                        id:navlabel
+                        text:sectionTitles[page.selectedTab]
+                        style:"title"
+                        color: Material.Theme.light.shade(0.87)
+                    }
                 }
             }
             Column{
@@ -171,7 +177,6 @@ Material.ApplicationWindow{
                     break;
                 }
             }
-
         }
         onSelectedTabChanged: {
             app.selectedIndex=0;
@@ -189,6 +194,7 @@ Material.ApplicationWindow{
                         objectName: modelData
                         anchors.fill: parent
                         clip: true
+                        contentHeight: height;
                         Repeater{
                             model: sections[sectionsindex]
                             delegate:Item {
@@ -202,10 +208,12 @@ Material.ApplicationWindow{
                                     property QtObject comment: QtObject{
                                         property bool modbusCheck:modbusExist;
                                     }
+
                                 }
                                 Material.ProgressCircle {
-                                    anchors.centerIn: parent
-                                    visible: loader.status == Loader.Loading
+                                    x:320-width/2
+                                    y:150
+                                    visible: loader.status === Loader.Loading
                                     width:Material.Units.dp(64)
                                     height:width
                                 }
@@ -228,7 +236,8 @@ Material.ApplicationWindow{
                 navigationDrawer.toggle()
                 event.accepted=true;
                 break;
-            case Qt.Key_F2:
+            case Qt.Key_F6:
+                sidebar.visible=!sidebar.visible
                 event.accepted=true;
                 break;
             }
@@ -237,10 +246,15 @@ Material.ApplicationWindow{
     Connections{
         target: ERModbus
         onModbusFrameChanged:{
-            debugTextArea.append(new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm") +":"+frame)
-            if(debugTextArea.length>1000){
-                debugTextArea.remove(0,debugTextArea.length-1000)
-            }
+            listModel.append({"time":(new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm")),"status":frame.join(",")})
+            debug.incrementCurrentIndex();
+        }
+    }
+    ListModel{
+        id:listModel
+        ListElement{
+            time:"00:00"//new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm")
+            status:"System Start"
         }
     }
     Material.Sidebar{
@@ -249,16 +263,29 @@ Material.ApplicationWindow{
         mode:"right"
         visible: false
         width:Material.Units.dp(300)
-        contents:TextArea{
-            id:debugTextArea
-            readOnly: true
+        autoFlick:false
+        contents:ListView{
+            id:debug
+            anchors.fill: parent
+            model:listModel
+            delegate: Material.Label{
+                anchors.left: parent.left
+                anchors.leftMargin: Material.Units.dp(16)
+                text:time +":"+status
+                style: "body1"
+            }
+            onCurrentIndexChanged: {
+                if(currentIndex>1000){
+                    model.romve(0,1);
+                }
+            }
         }
     }
     InputPanel{
         id:input
-        visible:Qt.inputMethod.visible
         objectName: "InputPanel"
-        y: visible ? parent.height - input.height:parent.height
+       visible: Qt.inputMethod.visible
+        y: Qt.inputMethod.visible ? parent.height - input.height:parent.height
         Behavior on y{
             NumberAnimation { duration: 200 }
         }
@@ -291,7 +318,6 @@ Material.ApplicationWindow{
             width:Material.Units.dp(240);
             height:Material.Units.dp(10);
         }
-
         onAccepted: {AppConfig.backLight=backlightslider.value}
         onRejected: {backlightslider.value=AppConfig.backLight}
     }

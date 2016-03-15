@@ -14,13 +14,10 @@ FocusScope {
     id:root
     width: parent.width
     height: width / 3
-    //overlayLayer: "dialogOverlayLayer"
-    objectName: "InputPanel"
-    onHeightChanged:{
-        InputEngine.setKeyboardRectangle(Qt.rect(x, y, width, height))
-    }
-    onVisibleChanged: {
-        listView.model="";
+    onHeightChanged:    InputEngine.setKeyboardRectangle(Qt.rect(x, y, width, height));
+    Component.onCompleted: {
+        listView.model=[""];
+        InputEngine.setInputPanel(root);
     }
     property bool shiftModifier: false
     property bool symbolModifier: false
@@ -156,7 +153,8 @@ FocusScope {
                     id:rightButton;
                     height:parent.height
                     width:buttonWidth
-                    onClicked:{listView.incrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0E") }//SO 代表<<
+                    onPressedChanged:{if(pressed)
+                        listView.incrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0E") }//SO 代表<<
                     Icon{
                         anchors.centerIn:rightButton
                         source: "icon://awesome/caret_right"
@@ -178,7 +176,7 @@ FocusScope {
                         color: "#1e1b18"
                         size:Units.dp(32)
                     }
-                    onClicked: Qt.inputMethod.hide()
+                   onPressedChanged:{if(pressed)Qt.inputMethod.hide()}
                 }
             }
             Row {

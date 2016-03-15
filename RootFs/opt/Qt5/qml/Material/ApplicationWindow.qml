@@ -119,6 +119,7 @@ Controls.ApplicationWindow {
 
     OverlayLayer {
         id: overlayLayer
+	objectName: "overlayLayer"
     }
 
     width: Units.dp(800)

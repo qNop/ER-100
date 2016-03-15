@@ -28,7 +28,7 @@ class DeclarativeInputEngine : public QObject
     Q_OBJECT
     Q_PROPERTY(QRect keyboardRectangle READ keyboardRectangle WRITE setKeyboardRectangle NOTIFY keyboardRectangleChanged FINAL)
     Q_PROPERTY(int inputMode READ inputMode WRITE setInputMode NOTIFY inputModeChanged FINAL)
-
+    Q_PROPERTY(QObject* inputPanel READ inputPanel WRITE setInputPanel NOTIFY inputPanelChanged)
     Q_PROPERTY(QStringList chineseList READ getchineseList WRITE setchineseList NOTIFY chineseListChanged FINAL)
     Q_ENUMS(InputMode)
 
@@ -62,18 +62,20 @@ public:
      * Returns the current input mode
      * \see InputMode for a list of valid input modes
      */
-   int inputMode() const;
+    int inputMode() const;
+
+    QObject* inputPanel();
 
 public slots:
-   /**
+    /**
      *
      */
     void macthing(QString str);
-   /**
+    /**
     * Use this function to set the current input mode
     * \see InputMode for a list of valid input modes
     */
-  void setInputMode(int Mode);
+    void setInputMode(int Mode);
     /**
      * This function sends the given text to the focused QML item
      * \note This function will get replaced by virtualKeyClick function later
@@ -85,6 +87,8 @@ public slots:
      */
     void setKeyboardRectangle(const QRect& Rect);
 
+    void setInputPanel(QObject* Object);
+
 signals:
 
     /**
@@ -94,9 +98,11 @@ signals:
     /**
      * Notify signal of inputModep property
      */
-   void inputModeChanged(int Mode);
+    void inputModeChanged(int Mode);
 
-   void chineseListChanged(QStringList list);
+    void chineseListChanged(QStringList list);
+
+    void inputPanelChanged(QObject* Object);
 }; // class CDeclarativeInputEngine
 
 

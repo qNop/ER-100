@@ -61,7 +61,7 @@ TableViewStyle{
             anchors.centerIn: parent
             text:styleData.value
             style:"body1"
-            color: Material.Theme.light.shade(0.87)
+            color: styleData.pressed?Material.Theme.light.shade(0.1):Material.Theme.light.shade(0.87)
         }
     }
     rowDelegate: Rectangle{

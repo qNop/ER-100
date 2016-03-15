@@ -23,5 +23,6 @@
         <file>TeachPreset.qml</file>
         <file>GroovePreset.qml</file>
         <file>CheckTest.qml</file>
+        <file>../Pic/时序图.png</file>
     </qresource>
 </RCC>

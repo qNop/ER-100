@@ -42,6 +42,8 @@ BaseListItem {
     property alias secondaryItem: secondaryItem.children
     property alias content: contentItem.children
 
+    property int leftMargin:0
+
     interactive: !contentItem.showing
 
     dividerInset: actionItem.visible ? listItem.height : 0
@@ -49,9 +51,10 @@ BaseListItem {
     property int maximumLineCount: 2
 
     GridLayout {
+        id:gridlayout
         anchors.fill: parent
 
-        anchors.leftMargin: listItem.margins
+        anchors.leftMargin: leftMargin ? leftMargin : listItem.margins
         anchors.rightMargin: listItem.margins
 
         columns: 4

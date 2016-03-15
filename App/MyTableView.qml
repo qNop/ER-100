@@ -6,6 +6,7 @@ import QtQuick.Controls.Private 1.0
 import QtQuick.Controls.Styles 1.1
 
 Material.Card{
+    id:table
     anchors.top:parent.top
     anchors.right:parent.right
     anchors.topMargin: 5
@@ -62,6 +63,7 @@ Material.Card{
         anchors.left: parent.left
         anchors.leftMargin: Material.Units.dp(5);
         anchors.rightMargin:Material.Units.dp(5);
+        height: Material.Units.dp(200)
         //不是隔行插入色彩
         alternatingRowColors:false
         //显示表头
@@ -81,6 +83,7 @@ Material.Card{
             resizable:false
             delegate: Item{
                 anchors.fill: parent
+
                 Material.CheckBox{
                     id:checkbox
                     anchors.left: parent.left
@@ -208,22 +211,26 @@ Material.Card{
                 event.accept=true;
             }
         }
-        Material.Dropdown{
+        Material.Card{
             id:dropdown
-            overlayLayer: "dialogOverlayLayer"
-            height:200
-            width:200
+            height:40
+            visible: false
             Material.TextField{
                 id:textField
                 inputMethodHints:Qt.ImhDigitsOnly
             }
         }
-        onDoubleClicked: {
-             var  columnItem=tableview.getColumn(tableview.__mouseArea.pressedColumn)
-             var mod=listModel.get(tableview.__mouseArea.pressedRow)
-             textField.text=mod[columnItem.role];
-             dropdown.open(tableview.__listView.currentItem,Material.Units.dp(4),Material.Units.dp(-4));
-        }
+//        onDoubleClicked: {
+//             var  columnItem=tableview.getColumn(tableview.__mouseArea.pressedColumn)
+//             var mod=listModel.get(tableview.__mouseArea.pressedRow)
+//             textField.text=mod[columnItem.role];
+//           //  dropdown.open(tableview.__listView.currentItem,Material.Units.dp(4),Material.Units.dp(-4));
+//           dropdown.width=tableview.__listView.currentItem.width
+//            var rect=tableview.__listView.currentItem.mapToItem(tableview,0,0);
+//            console.log(rect);
+
+//            dropdown.visible=true
+//        }
     }
 }
 

@@ -16,6 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import QtQuick 2.4
+import QtQuick.Window 2.2
 import Material 0.1
 import Material.Extras 0.1
 
@@ -24,6 +25,7 @@ import Material.Extras 0.1
    \inqmlmodule Material 0.1
 
    \brief A view that pops out of the content to display as an overlay.
+   \20160315 add
  */
 PopupBase {
 	id: overlay
@@ -67,7 +69,7 @@ PopupBase {
 
 	function open(sourceView) {
 		overlay.sourceView = sourceView;
-		
+		__lastFocusedItem = Window.activeFocusItem
 		parent = Utils.findRootChild(overlay, overlayLayer)
         showing = true
         forceActiveFocus()
@@ -79,6 +81,9 @@ PopupBase {
     function close() {
         showing = false
         parent.currentOverlay = null
+	if (__lastFocusedItem !== null) {
+            __lastFocusedItem.forceActiveFocus()
+        }
         sourceView = null
     }
 

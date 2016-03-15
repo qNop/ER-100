@@ -20,14 +20,30 @@ import QtQuick.LocalStorage 2.0 as Data
 pragma Singleton
 
 /*!
-   \qmltype Theme
-   \inqmlmodule Material 0.1
+/*
+ * 作者：陈世豪
+ * 部门：开发科
+ * 项目名称：便携式MAG焊接机器人系统
+ * 时间：2015年7月31日
+ * 描述：该文件能够实现QML对SQL数据库操作：
+ *                                	1:创建初始化
+ *                                	2:读取
+ *                                	3:写入
+ * 注意事项：存储路径~/.local/share/localstorage/QML/OfflineStorage/Databases/
+ * 命令： CREATE TABLE IF NOT EXISTS 创建如过不存在
+ *        INSERT INTO  tartget // 想追加记录的表或视图的名称
+ *                            【IN externaldatabase】 //外部数据库名称
+ *                                                   VALUES
+ *        SELECT 【DISTINCT】 //指定要选择的列或者行及其限定 *代表通配符
+ *                            FROM table_source //FORM语句 指定表或者视图
+ *                                               【WHERE search_condition】WHERE语句//指定查询条件
+ *        DELETE  FROM table_names //删除条目
+ *                【WHERE】
+ *        UPDATE  table_names //更新表中记录
+ *                            SET Fild = expression ..  //设定 fild需要更新的字段 expression要更新的新值表达式
+ *                                                                【WHERE】
+*/
 
-   \brief Provides access to standard colors that follow the Material Design specification.
-
-   See \l {http://www.google.com/design/spec/style/color.html#color-ui-color-application} for
-   details about choosing a color scheme for your application.
- */
 Object {
     id: root
 
@@ -35,8 +51,7 @@ Object {
 
     function getPageFunctionAndValueFromTable(index,mode){
         var result,str;
-        // var dataBase = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
-        // if(!dataBase) { console.log("dataBase::dataBase ");return -1;}
+        if(!dataBase) { console.log("dataBase::dataBase ");return -1;}
         switch(index){
         case 0:str="select * from flatweldsinglebevelgroovet where ";break;
         case 1:str="select * from flatweldsinglebevelgroove where ";break;
@@ -48,7 +63,7 @@ Object {
         case 7:str="select * from verticalweldsinglebevelgroove where ";break;
         case 8:str="select * from verticalweldvgroove where ";break;
         }
-        str+=" mode  ="+"\'"+mode+"\'";
+        str+= " mode  ="+"\'"+mode+"\'";
         root.dataBase.transaction( function(tx) {result = tx.executeSql(str); });
         /*遍寻所有数据转换成json格式*/
         var json="[";
@@ -63,45 +78,23 @@ Object {
             return json;
         }
         /*写入数据库相关词条的数值*/
-        function setValueFromFuncOfTable(index,name,value){
+        function setValueFromFuncOfTable(tablename,func,value){
             var result,str;
-            //  var dataBase = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
             if(!dataBase) { console.log("UserData::dataBase ");return -1;}
-            switch(index){
-            case 0:str="update flatweldsinglebevelgroovet set setvalue = ";break;
-            case 1:str="update flatweldsinglebevelgroove set setvalue = ";break;
-            case 2:str="update flatweldvgroove set setvalue = ";break;
-            case 3:str="update flatfillet set setvalue = ";break;
-            case 4:str="update horizontalweldsinglebevelgroovet set setvalue = ";break;
-            case 5:str="update horizontalweldsinglebevelgroove set setvalue = ";break;
-            case 6:str="update verticalweldsinglebevelgroovet set setvalue = ";break;
-            case 7:str="update verticalweldsinglebevelgroove set setvalue = ";break;
-            case 8:str="update verticalweldvgroove set setvalue = ";break;
-            }
-            str+="\'"+value+"\'"+" where function = "+"\'"+name+"\'";
-            //   console.log(str);
+            str="UPDATE "+tablename+" SET setvalue = "+"\'"+value+"\'"+" where function = "+"\'"+func+"\'";
+            console.log(str);
             dataBase.transaction( function(tx) {result = tx.executeSql(str); });
         }
-        /*从数据库中获取相关词条的数值*/
-        function getValueFromFuncOfTable(index,func,name){
+        /*从数据库中获取相关词条的数值
+          * name 数据表格名字，func 定义的名字 setvalue设定数值
+         */
+        function getValueFromFuncOfTable(tablename,func,name){
             var result,str;
-            //    var dataBase = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
             if(!dataBase) { console.log("dataBase::dataBase ");return -1;}
-            switch(index){
-            case 0:str="select * from flatweldsinglebevelgroovet where ";break;
-            case 1:str="select * from flatweldsinglebevelgroove where ";break;
-            case 2:str="select * from flatweldvgroove where ";break;
-            case 3:str="select * from flatfillet where ";break;
-            case 4:str="select * from horizontalweldsinglebevelgroovet where ";break;
-            case 5:str="select * from horizontalweldsinglebevelgroove where ";break;
-            case 6:str="select * from verticalweldsinglebevelgroovet where ";break;
-            case 7:str="select * from verticalweldsinglebevelgroove where ";break;
-            case 8:str="select * from verticalweldvgroove where ";break;
-            }
-            str+=func+" ="+"\'"+name+"\'";
-            //    console.log(str);
+            str="SELECT * FROM "+tablename+" WHERE "+func+" ="+"\'"+name+"\'";
+            console.log(str);
             dataBase.transaction( function(tx) {result = tx.executeSql(str); });
-            //        console.log(result.rows.item(0).setvalue);
+            console.log(result.rows.item(0).setvalue);
             return result.rows.item(0).setvalue;
         }
         /*
@@ -110,11 +103,25 @@ Object {
         function openDatabase() {
             //创建链接
             root.dataBase = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
-            if(root.dataBase)  {
-                console.log("dataBase::Open dataBase Success .");
-            }
-            else{
-                console.log("dataBase::Open dataBase Fail .");
-            }
+            if(root.dataBase)  {console.log("dataBase::Open dataBase Success .");return 1 }
+            else{ console.log("dataBase::Open dataBase Fail .");return -1;}
+        }
+        /*
+          *根据输入参数 创建数据库 参数库不存在 则返回-1 成功返回1
+          */
+        function createTable(tablename){
+            if(!root.dataBase){ console.log("dataBase::dataBase ");return -1;}
+            var str="CREATE TABLE IF NOT EXISTS "+tablename+"(function TEXT,\
+                                                                setvalue TEXT,max TEXT,min TEXT,step TEXT,init TEXT,description TEXT)"
+            dataBase.transaction( function(tx) {tx.executeSql(str); });
+        }
+        /*
+          *插入指定参数到数据库 数据库不存在则返回-1
+          */
+        function insertTable(tablename,fuc,set,max,min,step,init,description){
+            if(!root.dataBase){ console.log("dataBase::dataBase ");return -1;}
+            var str="INSERT INTO "+tablename+" VALUES(?,?,?,?,?,?,?)"
+            dataBase.transaction( function(tx) {tx.executeSql(str,[fuc,set,max,min,step,init,description]);});
         }
     }
+

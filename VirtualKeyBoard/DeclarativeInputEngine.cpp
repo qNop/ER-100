@@ -40,6 +40,7 @@ struct DeclarativeInputEnginePrivate
     QStringList Model;
     QString str;
     long index;
+    QObject* InputPanel;
     /**
      * Private data constructor
      */
@@ -53,7 +54,8 @@ DeclarativeInputEnginePrivate::DeclarativeInputEnginePrivate(DeclarativeInputEng
       InputMode(DeclarativeInputEngine::Latin),
       key(0),
       val(0),
-      Model(0)
+      Model(0),
+      InputPanel(0)
 {
 
 }
@@ -90,7 +92,7 @@ void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
 {
     //qDebug() << "CDeclarativeInputEngine::sendKeyToFocusItem " << text;
     QInputMethodEvent ev;
-    qDebug()<<"DeclarativeInputEngine::d->index"<<d->index;
+  //  qDebug()<<"DeclarativeInputEngine::d->index"<<d->index;
     //删除命令
     if (text == QString("\x7F"))
     {
@@ -151,10 +153,19 @@ void DeclarativeInputEngine::setKeyboardRectangle(const QRect& Rect)
     emit keyboardRectangleChanged();
 }
 
+QObject * DeclarativeInputEngine::inputPanel() {
+    return d->InputPanel;
+}
+
+void DeclarativeInputEngine::setInputPanel(QObject *Object){
+  //  qDebug()<<"DeclarativeInputEngine::setInputPanel ObjectName is "<<Object->objectName();
+    d->InputPanel=Object;
+    emit inputPanelChanged(Object);
+}
+
 //==============================================================================
 int DeclarativeInputEngine::inputMode() const
 {
-    // qDebug() << "CDeclarativeInputEngine::setInputMode " <<  d->InputMode;
     return d->InputMode;
 }
 
@@ -210,13 +221,16 @@ void DeclarativeInputEngine::macthing(QString str){
             }
         }
     }
-    qDebug()<<"DeclarativeInputEngine::d->Model length"<<d->Model.length();
+   // qDebug()<<"DeclarativeInputEngine::d->Model length"<<d->Model.length();
     setchineseList(d->Model);
 }
 QStringList DeclarativeInputEngine::getchineseList(){
     return d->Model;
 }
 void DeclarativeInputEngine::setchineseList(QStringList list){
+    d->Model=list;
+    d->str=list[0];
+    //qDebug()<<d->str;
     emit chineseListChanged(list);
 }
 //------------------------------------------------------------------------------

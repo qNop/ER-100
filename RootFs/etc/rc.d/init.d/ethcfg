@@ -21,8 +21,17 @@ then
     echo "Setting up networking on loopback device: "
     ifconfig lo 127.0.0.1
     route add -net 127.0.0.0 netmask 255.0.0.0 lo
-
     ifconfig eth0 $IPADDR
-  
+fi
+
+if [ "$1" = "mount" ]
+then
+    echo "mount ER-100"
     mount -n -o nolock 192.168.1.101:/home/nop/ER-100 /mnt/
+fi
+
+if [ "$1" = "umount" ]
+then
+    echo "umount ER-100"
+    umount /mnt/
 fi

@@ -18,9 +18,10 @@ ModbusThread::ModbusThread(){
     /*设置从机地址*/
     modbus_set_slave(ER_Modbus,0x0001);
     /*连接串口*/
-    if(modbus_connect(ER_Modbus)==-1)
+    if(modbus_connect(ER_Modbus)==-1){
         modbus_free(ER_Modbus);;
-
+        ER_Modbus=NULL;
+    }
     qDebug()<<"ModbusThread::INSTALL->"<<modbus_strerror(errno);
 }
 ModbusThread::~ModbusThread(){
@@ -64,7 +65,7 @@ void ModbusThread::run()Q_DECL_OVERRIDE{
     }else{
         qDebug()<<"ModbusThread::Cmd is not support .";
     }
-
+    modbusData.insert(0,modbus_strerror(errno));
     emit ModbusThreadSignal(modbusData);
     qDebug()<<"ModbusThread::ANSWER "<<modbusData;
      }

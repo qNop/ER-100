@@ -1,4 +1,4 @@
-import QtQuick 2.4
+import QtQuick 2.5
 import Material 0.1 as Material
 import Material.Extras 0.1
 import QtQuick.Controls 1.2
@@ -15,9 +15,12 @@ Material.Card{
     anchors.rightMargin: 20
     elevation: 2;
     radius: 2;
-
+    /*tableview的model接口*/
+    property alias tableViewModel: tableview.model
     property string titleName;
-    property alias table: tableview
+    property var roleArray: ["C1","C2","C3","C4","C5","C6","C7"]
+    property var titleArray: ["  焊接\n层道数","电流\n   A","电压\n   V","摆幅\n mm","  摆频\n次/min","焊接速度\n cm/min","停止预约"]
+    property var widthArray: [Material.Units.dp(100),Material.Units.dp(90),Material.Units.dp(90),Material.Units.dp(90),Material.Units.dp(100),Material.Units.dp(100),Material.Units.dp(100)]
 
     Material.Card{
         id:title
@@ -57,8 +60,6 @@ Material.Card{
         id:tableview
         objectName: "tableview"
         anchors.top:title.bottom
-        //anchors.bottom: parent.bottom
-       // anchors.bottomMargin: Material.Units.dp(5);
         anchors.right:parent.right
         anchors.left: parent.left
         anchors.leftMargin: Material.Units.dp(5);
@@ -83,7 +84,6 @@ Material.Card{
             resizable:false
             delegate: Item{
                 anchors.fill: parent
-
                 Material.CheckBox{
                     id:checkbox
                     anchors.left: parent.left
@@ -102,6 +102,7 @@ Material.Card{
                 }
             }
         }
+
         TableViewColumn{
             role: "c1"
             title: "  焊接\n层道数"
@@ -220,17 +221,17 @@ Material.Card{
                 inputMethodHints:Qt.ImhDigitsOnly
             }
         }
-//        onDoubleClicked: {
-//             var  columnItem=tableview.getColumn(tableview.__mouseArea.pressedColumn)
-//             var mod=listModel.get(tableview.__mouseArea.pressedRow)
-//             textField.text=mod[columnItem.role];
-//           //  dropdown.open(tableview.__listView.currentItem,Material.Units.dp(4),Material.Units.dp(-4));
-//           dropdown.width=tableview.__listView.currentItem.width
-//            var rect=tableview.__listView.currentItem.mapToItem(tableview,0,0);
-//            console.log(rect);
+        //        onDoubleClicked: {
+        //             var  columnItem=tableview.getColumn(tableview.__mouseArea.pressedColumn)
+        //             var mod=listModel.get(tableview.__mouseArea.pressedRow)
+        //             textField.text=mod[columnItem.role];
+        //           //  dropdown.open(tableview.__listView.currentItem,Material.Units.dp(4),Material.Units.dp(-4));
+        //           dropdown.width=tableview.__listView.currentItem.width
+        //            var rect=tableview.__listView.currentItem.mapToItem(tableview,0,0);
+        //            console.log(rect);
 
-//            dropdown.visible=true
-//        }
+        //            dropdown.visible=true
+        //        }
     }
 }
 

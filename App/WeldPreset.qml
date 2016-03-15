@@ -12,7 +12,6 @@ Item{
         sourceSize.height:Material.Units.dp(150)
         Material.Ink{
             anchors.fill: parent
-            onClicked:  overlayView.open(grooveImage)
         }
     }
 

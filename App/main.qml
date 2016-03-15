@@ -31,7 +31,10 @@ Material.ApplicationWindow{
     property var sectionsIcon:[presetIcon,analyseIcon,inforIcon,testIcon]
     property var sectionTitles: ["焊接预置", "焊接分析", "系统信息","系统测试" ]
     property var tabiconname: ["awesome/windows","awesome/line_chart","action/dashboard","action/settings_input_composite"]
-    property int selectedIndex:0
+    property int  page0SelectedIndex:0
+    property int  page1SelectedIndex:0
+    property int  page2SelectedIndex:0
+    property int  page3SelectedIndex:0
     /*当前本地化语言*/
     property string local: "zh_CN"
     /*当前坡口形状*/
@@ -126,7 +129,6 @@ Material.ApplicationWindow{
                 id:navDrawerContent
                 anchors.top: header.bottom
                 anchors.left: parent.left
-                anchors.leftMargin: Material.Units.dp(24)
                 anchors.bottom: parent.bottom
                 width: parent.width
                 Repeater{
@@ -134,18 +136,24 @@ Material.ApplicationWindow{
                     model:sectionsName[page.selectedTab]
                     delegate:ListItem.Standard{
                         text:modelData
+                        leftMargin: Material.Units.dp(24)
                         iconName: sectionsIcon[page.selectedTab][index]
-                        selected:app.selectedIndex===index
+                        selected:  page.selectedTab===0 ? page0SelectedIndex === index ? true:false
+                        :page.selectedTab===1?page1SelectedIndex ===index ?true:false
+                        :page.selectedTab===2?page2SelectedIndex===index?true:false
+                        :page3SelectedIndex===index?true:false;
                         onClicked: {
-                            app.selectedIndex=index
+                            switch(page.selectedTab)
+                            {case 0:page0SelectedIndex=index;break;
+                             case 1:page1SelectedIndex=index;break;
+                             case 2:page2SelectedIndex=index;break;
+                             case 3:page3SelectedIndex=index;break;}
                             navigationDrawer.close();
                         }
                     }
                 }
             }
-            Material.ThinDivider{
-                anchors.bottom: navUser.top
-            }
+            Material.ThinDivider{anchors.bottom: navUser.top }
             ListItem.Standard{
                 id:navUser
                 height:Material.Units.dp(40);
@@ -165,12 +173,22 @@ Material.ApplicationWindow{
                 iconName: "awesome/group"
                 text:"用户组 : "+AppConfig.currentUserType
             }
-            Keys.onDownPressed: {if(app.selectedIndex !==navrep.count -1 ) app.selectedIndex++;else app.selectedIndex=navrep.count-1;event.accpet=true;}
-            Keys.onUpPressed: {if(app.selectedIndex) app.selectedIndex-- ; else app.selectedIndex=0 ;event.accpet=true;}
-            Keys.onSelectPressed: {navigationDrawer.toggle()
-                event.accepted=true;}
-            Keys.onPressed: {
-                switch(event.key){
+            Keys.onDownPressed: {
+                switch(page.selectedTab){
+                case 0: if(page0SelectedIndex!==navrep.count -1 )page0SelectedIndex++;else page0SelectedIndex=navrep.count-1;break;
+                case 1: if(page1SelectedIndex!==navrep.count -1 )page1SelectedIndex++;else page1SelectedIndex=navrep.count-1;break;
+                case 2: if(page2SelectedIndex!==navrep.count -1 )page2SelectedIndex++;else page2SelectedIndex=navrep.count-1;break;
+                case 3: if(page3SelectedIndex!==navrep.count -1 )page3SelectedIndex++;else page3SelectedIndex=navrep.count-1;break;}
+                event.accpet=true;}
+            Keys.onUpPressed: {
+                switch(page.selectedTab){
+                case 0: if(page0SelectedIndex) {page0SelectedIndex--; }else{page0SelectedIndex=0 ;}break;
+                case 1: if(page1SelectedIndex) {page1SelectedIndex--; }else{page1SelectedIndex=0 ;}break;
+                case 2: if(page2SelectedIndex) {page2SelectedIndex--; }else{page2SelectedIndex=0 ;}break;
+                case 3: if(page3SelectedIndex) {page3SelectedIndex--; }else{page3SelectedIndex=0 ;}break;}
+                event.accpet=true;}
+            Keys.onSelectPressed: {navigationDrawer.toggle();event.accepted=true;}
+            Keys.onPressed: { switch(event.key){
                 case Qt.Key_F1:
                     navigationDrawer.toggle()
                     event.accepted=true;
@@ -179,7 +197,6 @@ Material.ApplicationWindow{
             }
         }
         onSelectedTabChanged: {
-            app.selectedIndex=0;
             Qt.inputMethod.hide()
         }
         Repeater {
@@ -203,7 +220,10 @@ Material.ApplicationWindow{
                                     id:loader
                                     anchors.fill: parent
                                     asynchronous: true
-                                    visible: app.selectedIndex === index && loader.status ===Loader.Ready
+                                    visible:(sectionsindex===0 ? page0SelectedIndex === index?true:false
+                                             :sectionsindex===1 ? page1SelectedIndex === index?true:false
+                                             :sectionsindex===2 ? page2SelectedIndex === index?true:false
+                                             :page3SelectedIndex === index?true:false) && loader.status ===Loader.Ready
                                     source: { return Qt.resolvedUrl("%.qml").arg(modelData)}
                                     property QtObject comment: QtObject{
                                         property bool modbusCheck:modbusExist;
@@ -233,6 +253,7 @@ Material.ApplicationWindow{
         Keys.onPressed: {
             switch(event.key){
             case Qt.Key_F1:
+                console.log(app.selectedIndex)
                 navigationDrawer.toggle()
                 event.accepted=true;
                 break;
@@ -284,7 +305,7 @@ Material.ApplicationWindow{
     InputPanel{
         id:input
         objectName: "InputPanel"
-       visible: Qt.inputMethod.visible
+        visible: Qt.inputMethod.visible
         y: Qt.inputMethod.visible ? parent.height - input.height:parent.height
         Behavior on y{
             NumberAnimation { duration: 200 }

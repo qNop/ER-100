@@ -41,6 +41,8 @@ BaseListItem {
     property alias secondaryItem: secondaryItem.children
     property alias content: contentItem.children
 
+    property int leftMargin: 0
+
     property alias itemLabel: label
 
     property alias textColor: label.color
@@ -74,7 +76,7 @@ BaseListItem {
         id: row
         anchors.fill: parent
 
-        anchors.leftMargin: listItem.margins
+        anchors.leftMargin: leftMargin?leftMargin:listItem.margins
         anchors.rightMargin: listItem.margins
 
         spacing: Units.dp(16)
@@ -119,10 +121,8 @@ BaseListItem {
 
                 Layout.alignment: Qt.AlignVCenter
                 Layout.fillWidth: true
-
                 elide: Text.ElideRight
                 style: "subheading"
-
                 visible: !contentItem.visible
             }
         }
@@ -150,3 +150,4 @@ BaseListItem {
         }
     }
 }
+

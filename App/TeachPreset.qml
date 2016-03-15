@@ -6,12 +6,21 @@ import WeldSys.ERModbus 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as QuickControls
 import QtQuick.LocalStorage 2.0
+import QtQuick.Window 2.2
 
 FocusScope {
     id:teachset
     property var teachmodemodel: ["自动","半自动","手动"];
     property var startendcheckmodel:["自动","手动"]
     property var teachfisrtpointmodel: ["右方","左方"];
+    property Item __lastFocusedItem: null
+    onVisibleChanged: {
+        if(visible){
+            __lastFocusedItem.forceActiveFocus()
+        }else{
+             __lastFocusedItem=Window.activeFocusItem;
+        }
+    }
     Material.Card{
         anchors{
             left:parent.left
@@ -20,6 +29,7 @@ FocusScope {
             bottom: descriptionCard.top
             margins:Material.Units.dp(16)
         }
+        elevation: 2
         Material.Label{
             id:title
             anchors.left: parent.left
@@ -117,7 +127,7 @@ FocusScope {
                     KeyNavigation.up: teachmode
                     KeyNavigation.down: teachfirstpoint
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text=text :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定终端的检测是自动或是手动" :null;
                     visible: (teachset.mode!== "手动")
                     selected: focus;
                     Keys.onPressed: {
@@ -186,7 +196,7 @@ FocusScope {
                         }
                     }
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text=text :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定第一点从左右哪边开始" :null;
                     backgroundColor: Material.Theme.backgroundColor
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
@@ -221,7 +231,7 @@ FocusScope {
                     height: Material.Units.dp(48)
                     KeyNavigation.up: teachfirstpoint
                     KeyNavigation.down: teachpointnum
-                    onSelectedChanged: selected? descriptionlabel.text=text :null;
+                    onSelectedChanged: selected? descriptionlabel.text="示教点数为1点时,设定至第二点的焊接距离" :null;
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
@@ -324,6 +334,7 @@ FocusScope {
             bottom: parent.bottom
             margins: Material.Units.dp(16)
         }
+        elevation: 2
         height:Material.Units.dp(140);
         Column{
             anchors.fill: parent

@@ -10,17 +10,10 @@ import QtQuick.Window 2.2
 
 FocusScope {
     id:teachset
+    objectName: "TeachPreset"
     property var teachmodemodel: ["自动","半自动","手动"];
     property var startendcheckmodel:["自动","手动"]
     property var teachfisrtpointmodel: ["右方","左方"];
-    property Item __lastFocusedItem: null
-    onVisibleChanged: {
-        if(visible){
-            __lastFocusedItem.forceActiveFocus()
-        }else{
-             __lastFocusedItem=Window.activeFocusItem;
-        }
-    }
     Material.Card{
         anchors{
             left:parent.left
@@ -50,7 +43,6 @@ FocusScope {
             anchors.right: parent.right
             anchors.bottom: parent.bottom
             clip: true
-            //  Material.ThinDivider{anchors.top:parent.top}
             Column{
                 id:column
                 anchors.fill: parent
@@ -58,8 +50,8 @@ FocusScope {
                 ListItem.Subtitled{
                     id:teachmode
                     text:qsTr("示教模式:");
-                    x:  teachmode.visible ? Material.Units.dp(48): Material.Units.dp(148) ;
-                    leftMargin: Material.Units.dp(48);
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(48)
                     selected: focus;
                     KeyNavigation.down:startendcheck
@@ -87,7 +79,6 @@ FocusScope {
                     }
                     onClicked:forceActiveFocus();
                     onSelectedChanged: selected? descriptionlabel.text=text :null;
-                    Behavior on x{ NumberAnimation { duration: 200 } }
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
                         QuickControls.ExclusiveGroup { id: teachmodegroup;onCurrentChanged:{
@@ -119,10 +110,9 @@ FocusScope {
                 ListItem.Subtitled{
                     id:startendcheck
                     text:qsTr("始终端检测:");
-                    x: visible ? Material.Units.dp(48) : Material.Units.dp(148) ;
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(48)
-                    leftMargin: Material.Units.dp(48);
-                    Behavior on x{NumberAnimation { duration: 200 } }
                     backgroundColor: Material.Theme.backgroundColor
                     KeyNavigation.up: teachmode
                     KeyNavigation.down: teachfirstpoint
@@ -172,13 +162,12 @@ FocusScope {
                 ListItem.Subtitled{
                     id:teachfirstpoint
                     text:qsTr("示教第一点位置:");
-                    x: visible ? Material.Units.dp(48) : Material.Units.dp(148) ;
-                    leftMargin: Material.Units.dp(48);
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(48)
-                    Behavior on x{NumberAnimation { duration: 200 }}
                     selected: focus;
                     KeyNavigation.up: startendcheck
-                    KeyNavigation.down: teachfirstpointtimelength
+                    KeyNavigation.down: teachpointnum
                     Keys.onPressed: {
                         switch(event.key){
                         case Qt.Key_Right:
@@ -222,66 +211,15 @@ FocusScope {
                         }
                     }
                 }
-                /*示教1点时焊接长(mm)*/
-                ListItem.Subtitled{
-                    id:teachfirstpointtimelength
-                    text:qsTr("示教一点时焊接长:");
-                    x: teachfirstpointtimelength.visible ? Material.Units.dp(48) : Material.Units.dp(148) ;
-                    leftMargin: Material.Units.dp(48);
-                    height: Material.Units.dp(48)
-                    KeyNavigation.up: teachfirstpoint
-                    KeyNavigation.down: teachpointnum
-                    onSelectedChanged: selected? descriptionlabel.text="示教点数为1点时,设定至第二点的焊接距离" :null;
-                    onClicked:forceActiveFocus();
-                    Keys.onPressed: {
-                        var res;
-                        switch(event.key){
-                        case Qt.Key_Plus:
-                            res=Number(teachfirstpointtimelengthglabel.text)+2;
-                            if(res>10000) res=10000;
-                            teachfirstpointtimelengthglabel.text=res.toString();
-                            event.accepted = true;
-                            break;
-                        case Qt.Key_Minus:
-                            if(res<10) res=10;
-                            res=Number(teachfirstpointtimelengthglabel.text)-2;
-                            teachfirstpointtimelengthglabel.text=res.toString();
-                            event.accepted = true;
-                            break;
-                        }
-                    }
-                    Behavior on x{NumberAnimation { duration: 200 }}
-                    backgroundColor: Material.Theme.backgroundColor
-                    selected: focus || teachfirstpointtimelengthglabel.focus;
-                    secondaryItem:Row{
-                        spacing: Material.Units.dp(8)
-                        anchors.verticalCenter: parent.verticalCenter
-                        Material.TextField{
-                            id: teachfirstpointtimelengthglabel
-                            showBorder:false
-                            inputMethodHints: Qt.ImhDigitsOnly
-                            width: 4*Material.Units.dp(12)
-                            hasError: Number(text)>10000 || Number(text) <10;
-                            onTextChanged:{
-                                Material.UserData.setValueFromFuncOfTable("teachpreset","示教1点时焊接长(mm)",text);
-                                var frame=["W","116","1"," "];
-                                frame[3]=text;
-                                ERModbus.setmodbusFrame(frame);
-                            }
-                            Component.onCompleted: text=Material.UserData.getValueFromFuncOfTable("teachpreset","function","示教1点时焊接长(mm)");
-                        }
-                        Material.Label{text:"(mm)";style: "subheading";}
-                    }
-                }
                 /*示教点数*/
                 ListItem.Subtitled{
                     id:teachpointnum
                     text:qsTr("示教点数:");
-                    x: teachpointnum.visible ? Material.Units.dp(48) : Material.Units.dp(148) ;
-                    leftMargin: Material.Units.dp(48);
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(48)
-                    KeyNavigation.up: teachfirstpointtimelength
-                    Behavior on x{  NumberAnimation { duration: 200 } }
+                    KeyNavigation.up: teachfirstpoint
+                    KeyNavigation.down: teachfirstpointtimelength.visible?teachfirstpointtimelength:null
                     selected: focus ||teachpointnumlabel.focus;
                     onSelectedChanged:selected? descriptionlabel.text=text :null;
                     backgroundColor: Material.Theme.backgroundColor
@@ -296,8 +234,8 @@ FocusScope {
                             event.accepted = true;
                             break;
                         case Qt.Key_Minus:
-                            if(res<1) res=1;
                             res= Number(teachpointnumlabel.text)-1
+                            if(res<1) res=1;
                             teachpointnumlabel.text=res.toString();
                             event.accepted = true;
                             break;
@@ -323,6 +261,56 @@ FocusScope {
                         Material.Label{text:"点";style: "subheading";}
                     }
                 }
+                /*示教1点时焊接长(mm)*/
+                ListItem.Subtitled{
+                    id:teachfirstpointtimelength
+                    text:qsTr("示教一点时焊接长:");
+                    visible: teachpointnumlabel.text == 1;
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
+                    height: Material.Units.dp(48)
+                    KeyNavigation.up: teachpointnum
+                    onSelectedChanged: selected? descriptionlabel.text="示教点数为1点时,设定至第二点的焊接距离" :null;
+                    onClicked:forceActiveFocus();
+                    Keys.onPressed: {
+                        var res;
+                        switch(event.key){
+                        case Qt.Key_Plus:
+                            res=Number(teachfirstpointtimelengthglabel.text)+2;
+                            if(res>10000) res=10000;
+                            teachfirstpointtimelengthglabel.text=res.toString();
+                            event.accepted = true;
+                            break;
+                        case Qt.Key_Minus:
+                            if(res<10) res=10;
+                            res=Number(teachfirstpointtimelengthglabel.text)-2;
+                            teachfirstpointtimelengthglabel.text=res.toString();
+                            event.accepted = true;
+                            break;
+                        }
+                    }
+                    backgroundColor: Material.Theme.backgroundColor
+                    selected: focus || teachfirstpointtimelengthglabel.focus;
+                    secondaryItem:Row{
+                        spacing: Material.Units.dp(8)
+                        anchors.verticalCenter: parent.verticalCenter
+                        Material.TextField{
+                            id: teachfirstpointtimelengthglabel
+                            showBorder:false
+                            inputMethodHints: Qt.ImhDigitsOnly
+                            width: 4*Material.Units.dp(12)
+                            hasError: Number(text)>10000 || Number(text) <10;
+                            onTextChanged:{
+                                Material.UserData.setValueFromFuncOfTable("teachpreset","示教1点时焊接长(mm)",text);
+                                var frame=["W","116","1"," "];
+                                frame[3]=text;
+                                ERModbus.setmodbusFrame(frame);
+                            }
+                            Component.onCompleted: text=Material.UserData.getValueFromFuncOfTable("teachpreset","function","示教1点时焊接长(mm)");
+                        }
+                        Material.Label{text:"(mm)";style: "subheading";}
+                    }
+                }
             }
         }
     }
@@ -335,10 +323,9 @@ FocusScope {
             margins: Material.Units.dp(16)
         }
         elevation: 2
-        height:Material.Units.dp(140);
+        height:Material.Units.dp(110);
         Column{
             anchors.fill: parent
-            spacing: Material.Units.dp(16)
             Material.Label{
                 id:descriptiontitle
                 anchors.left: parent.left

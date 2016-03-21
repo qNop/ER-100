@@ -3,17 +3,11 @@ import Material 0.1 as Material
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.2 as Controls
 import QtQuick.Window 2.2
-//
+
 FocusScope{
     anchors.fill: parent
-    property Item __lastFocusedItem: null
-    onVisibleChanged: {
-        if(visible){
-            __lastFocusedItem.forceActiveFocus()
-        }else{
-            __lastFocusedItem=Window.activeFocusItem;
-        }
-    }
+    /*名称必须要有方便 nav打开后寻找焦点*/
+    objectName: "GroovePreset"
     /*坡口列表*/
     property var groovestyles: [
         qsTr( "平焊单边V型坡口T接头"), qsTr( "平焊单边V型坡口平对接"),  qsTr("平焊V型坡口平对接"),  qsTr("水平角焊"),
@@ -28,7 +22,7 @@ FocusScope{
             top:parent.top
             margins: Material.Units.dp(16)
         }
-        height:200
+        height:250
         Material.Label{
             id:title
             anchors.left: parent.left
@@ -49,7 +43,6 @@ FocusScope{
             width: grooveImage.width+2*Material.Units.dp(24)
             height:grooveImage.height+2*Material.Units.dp(24)
             flat: true
-            radius: Material.Units.dp(5)
             Image{
                 id:grooveImage
                 anchors.centerIn: parent

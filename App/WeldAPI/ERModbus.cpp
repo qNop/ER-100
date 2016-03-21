@@ -12,9 +12,9 @@ ModbusThread::ModbusThread(){
     /*为0输出调试信息*/
     modbus_set_debug(ER_Modbus, TRUE);
     /*设置超时时间 100 000 us*/
-    modbus_set_response_timeout(ER_Modbus,0,100000);
+    modbus_set_response_timeout(ER_Modbus,0,50000);
     /*设置byte超时时间 1000 us*/
-    modbus_set_byte_timeout(ER_Modbus,0,100000);
+    modbus_set_byte_timeout(ER_Modbus,0,1000);
     /*设置从机地址*/
     modbus_set_slave(ER_Modbus,0x0001);
     /*连接串口*/
@@ -89,8 +89,7 @@ QStringList ERModbus::modbusFrame(){
 }
 /*R REG NUM */
 void ERModbus::setmodbusFrame(QStringList frame){
-
-    qDebug()<<"ERModbus::frame length "<<frame.length();
     pModbusThread->frame = frame;
+    while(pModbusThread->isRunning());
     pModbusThread->start();
 }

@@ -7,6 +7,7 @@ import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
 import QtQuick.LocalStorage 2.0
 import QtQuick.Controls 1.4
+import WeldSys.SysInfor 1.0
 
 /*应用程序窗口*/
 Material.ApplicationWindow{
@@ -41,12 +42,16 @@ Material.ApplicationWindow{
     property string currentgroove;
     /*Modbus重载*/
     property bool modbusExist:true;
+    /**/
+    property bool sysInforCount: false
     /*更新时间定时器*/
     Timer{ interval: 500; running: true; repeat: true;
         onTriggered:{datetime.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd ")+new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
             if(modbusExist){
                 // ERModbus.setmodbusFrame(["R","1","6"]);
             }
+            if(sysInforCount)  SysInfor.cpuInfor; else SysInfor.memoryInfor;
+             sysInforCount=!sysInforCount;
         }
     }
     /*初始化Ｔabpage*/
@@ -188,20 +193,34 @@ Material.ApplicationWindow{
                 case 3: if(page3SelectedIndex) {page3SelectedIndex--; }else{page3SelectedIndex=0 ;}break;}
                 event.accpet=true;}
             Keys.onSelectPressed: {navigationDrawer.toggle();event.accepted=true;}
-            Keys.onPressed: { switch(event.key){
+            Keys.onPressed: {
+                switch(event.key){
                 case Qt.Key_F1:
                     navigationDrawer.toggle()
                     event.accepted=true;
                     break;
                 }
             }
+            /*Nav关闭时 将焦点转移到选择的Item上 方便按键的对焦*/
+            function close() {
+                showing = false
+                if (parent.hasOwnProperty("currentOverlay")) {
+                    parent.currentOverlay = null
+                }
+                /*找出本次选择的焦点*/
+                 __lastFocusedItem=Utils.findChild(repeater.itemAt(page.selectedTab),sections[page.selectedTab][page.selectedTab===0 ? page0SelectedIndex  : page.selectedTab===1? page1SelectedIndex : page.selectedTab===2?page2SelectedIndex:page3SelectedIndex])
+                if (__lastFocusedItem !== null) {
+                     __lastFocusedItem.forceActiveFocus()
+                 }
+                closed()
+            }
         }
-        onSelectedTabChanged: {
-            Qt.inputMethod.hide()
-        }
+        onSelectedTabChanged: { Qt.inputMethod.hide()}
         Repeater {
+            id:repeater
             model: sectionTitles
             delegate: Material.Tab {
+                objectName: title
                 title: modelData+ (index===0 ?"(I)":index===1?"(II)":index===2?"(III)":"(IV)")
                 iconName:tabiconname[index];
                 property int sectionsindex: index
@@ -228,7 +247,6 @@ Material.ApplicationWindow{
                                     property QtObject comment: QtObject{
                                         property bool modbusCheck:modbusExist;
                                     }
-
                                 }
                                 Material.ProgressCircle {
                                     x:320-width/2
@@ -253,12 +271,15 @@ Material.ApplicationWindow{
         Keys.onPressed: {
             switch(event.key){
             case Qt.Key_F1:
-                console.log(app.selectedIndex)
                 navigationDrawer.toggle()
                 event.accepted=true;
                 break;
             case Qt.Key_F6:
                 sidebar.visible=!sidebar.visible
+                event.accepted=true;
+                break;
+            case Qt.Key_Select:
+                navigationDrawer.toggle()
                 event.accepted=true;
                 break;
             }
@@ -274,7 +295,7 @@ Material.ApplicationWindow{
     ListModel{
         id:listModel
         ListElement{
-            time:"00:00"//new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm")
+            time:"00:00"
             status:"System Start"
         }
     }

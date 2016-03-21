@@ -1,13 +1,14 @@
 TEMPLATE = app
 
-QT += qml quick core widgets sql serialport
+QT += qml quick core widgets sql serialport charts
 
 SOURCES += main.cpp \
     libmodbus/src/modbus.c \
    libmodbus/src/modbus-data.c \
     libmodbus/src/modbus-rtu.c \
     WeldAPI/ERModbus.cpp \
-    WeldAPI/AppConfig.cpp
+    WeldAPI/AppConfig.cpp \
+    WeldAPI/SysInfor.cpp
 
 
 RESOURCES += \
@@ -21,7 +22,8 @@ HEADERS += \
     libmodbus/src/modbus-rtu.h \
     libmodbus/src/modbus-rtu-private.h \
     WeldAPI/ERModbus.h \
-    WeldAPI/AppConfig.h
+    WeldAPI/AppConfig.h \
+    WeldAPI/SysInfor.h
 
 INCLUDEPATH +=libmodbus \
               libmodbus/src \

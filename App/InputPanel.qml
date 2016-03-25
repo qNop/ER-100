@@ -176,7 +176,7 @@ FocusScope {
                         color: "#1e1b18"
                         size:Units.dp(32)
                     }
-                   onPressedChanged:{if(pressed)Qt.inputMethod.hide()}
+                   onClicked:{if(pressed)Qt.inputMethod.hide()}
                 }
             }
             Row {

@@ -101,10 +101,10 @@ BaseListItem {
                     id: label
 
                     Layout.alignment: Qt.AlignVCenter
-                    Layout.fillWidth: true
+                    //Layout.fillWidth: true
 
                     elide: Text.ElideRight
-                    style: "subheading"
+                    style: "button"//"subheading"
                 }
 
                 Label {

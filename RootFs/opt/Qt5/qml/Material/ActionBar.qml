@@ -266,7 +266,7 @@ Item {
         }
         height: parent.implicitHeight
 
-        spacing: Units.dp(12)
+        spacing: Units.dp(16)
 
         Repeater {
             model: __internal.visibleActions.length > maxActionCount

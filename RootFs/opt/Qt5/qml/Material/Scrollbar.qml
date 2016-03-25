@@ -26,6 +26,9 @@ import QtQuick 2.4
 Item {
     id: root
 
+    property alias show: showAnimation
+    property alias hide: hideAnimation
+
     property Flickable flickableItem
     property int orientation: Qt.Vertical
     property int thickness: 5

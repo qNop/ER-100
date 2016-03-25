@@ -66,6 +66,6 @@ View {
     }
 
     tintColor: selected
-               ? Qt.rgba(0,0,0,0.1)
-               : ink.containsMouse ? Qt.rgba(0,0,0,0.08) : Qt.rgba(0,0,0,0)
+               ? Qt.rgba(0,0,0,0.1) : Qt.rgba(0,0,0,0)
+             //  : ink.containsMouse ? Qt.rgba(0,0,0,0.08) : Qt.rgba(0,0,0,0)
 }

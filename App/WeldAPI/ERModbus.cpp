@@ -12,7 +12,7 @@ ModbusThread::ModbusThread(){
     /*为0输出调试信息*/
     modbus_set_debug(ER_Modbus, TRUE);
     /*设置超时时间 100 000 us*/
-    modbus_set_response_timeout(ER_Modbus,0,50000);
+    modbus_set_response_timeout(ER_Modbus,0,80000);
     /*设置byte超时时间 1000 us*/
     modbus_set_byte_timeout(ER_Modbus,0,1000);
     /*设置从机地址*/

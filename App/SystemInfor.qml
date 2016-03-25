@@ -5,6 +5,7 @@ import Material 0.1 as Material
 
 Item {
     anchors.fill: parent
+     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "SystemInfor"
     property int count: 0
     Connections{

@@ -97,6 +97,19 @@ Object {
             console.log(result.rows.item(0).setvalue);
             return result.rows.item(0).setvalue;
         }
+        /*从数据库中获取相关词条的数值
+          * name 数据表格名字，func 定义的名字 setvalue设定数值
+         */
+        function getResultFromFuncOfTable(tablename,func,name){
+            var result,str;
+            if(!dataBase) { console.log("dataBase::dataBase ");return -1;}
+            str="SELECT * FROM "+tablename;
+            if(func!=="")
+            str+= " WHERE "+func+" ="+"\'"+name+"\'";
+            console.log(str);
+            dataBase.transaction( function(tx) {result = tx.executeSql(str); });
+            return result;
+        }
         /*
       *打开数据库 输入参数 数据名称 版本 描述 类型
       */

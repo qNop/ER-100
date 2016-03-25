@@ -15,23 +15,28 @@ Material.ApplicationWindow{
     /*主题默认颜色*/
     theme { primaryColor: AppConfig.themePrimaryColor;accentColor: AppConfig.themeAccentColor;backgroundColor:AppConfig.themeBackgroundColor
         tabHighlightColor: "white"  }
-    property var preset:["TeachPreset","GroovePreset","WeldPreset"]
-    property var presetName: ["示教预置","坡口预置","焊接预置"]
-    property var presetIcon: ["action/android","awesome/road","user/MAG"]
-    property var analyse: ["WeldAnalyse"]
-    property var analyseName:["焊接分析"]
-    property var analyseIcon: ["awesome/line_chart"]
+    property var grooveStyleName: [
+        qsTr( "平焊单边V型坡口T接头"), qsTr( "平焊单边V型坡口平对接"),  qsTr("平焊V型坡口平对接"),
+        qsTr("横焊单边V型坡口T接头"), qsTr( "横焊单边V型坡口平对接"),
+        qsTr("立焊单边V型坡口T接头"),  qsTr("立焊单边V型坡口平对接"), qsTr("立焊V型坡口平对接"),
+        qsTr("水平角焊")  ]
+    property var preset:["GroovePreset","TeachPreset","WeldPreset","GrooveCheck"]
+    property var presetName: ["坡口条件","示教条件","焊接条件","坡口参数"]
+    property var presetIcon: ["awesome/road","action/android","user/MAG","awesome/road"]
+    property var analyse: ["WeldAnalyse","WeldLine"]
+    property var analyseName:["焊接参数","焊接曲线"]
+    property var analyseIcon: ["awesome/line_chart","awesome/line_chart"]
     property var infor: ["SystemInfor"]
     property var inforName:["系统信息"]
     property var inforIcon: ["awesome/tasks"]
     property var test: ["CheckTest"]
     property var testName:["系统测试"]
     property var testIcon: ["awesome/tasks"]
-    property var sections: [preset,analyse, infor,test]
-    property var sectionsName:[presetName,analyseName,inforName,testName]
-    property var sectionsIcon:[presetIcon,analyseIcon,inforIcon,testIcon]
-    property var sectionTitles: ["焊接预置", "焊接分析", "系统信息","系统测试" ]
-    property var tabiconname: ["awesome/windows","awesome/line_chart","action/dashboard","action/settings_input_composite"]
+    property var sections: [test,preset,analyse, infor]
+    property var sectionsName:[testName,presetName,analyseName,inforName]
+    property var sectionsIcon:[testIcon,presetIcon,analyseIcon,inforIcon]
+    property var sectionTitles: ["系统测试","预置条件", "焊接分析", "系统信息"]
+    property var tabiconname: ["awesome/windows","action/settings_input_composite","awesome/line_chart","action/dashboard"]
     property int  page0SelectedIndex:0
     property int  page1SelectedIndex:0
     property int  page2SelectedIndex:0
@@ -44,6 +49,8 @@ Material.ApplicationWindow{
     property bool modbusExist:true;
     /**/
     property bool sysInforCount: false
+    /*上一次froceitem*/
+    property Item lastFocusedItem:null
     /*更新时间定时器*/
     Timer{ interval: 500; running: true; repeat: true;
         onTriggered:{datetime.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd ")+new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
@@ -51,10 +58,10 @@ Material.ApplicationWindow{
                 // ERModbus.setmodbusFrame(["R","1","6"]);
             }
             if(sysInforCount)  SysInfor.cpuInfor; else SysInfor.memoryInfor;
-             sysInforCount=!sysInforCount;
+            sysInforCount=!sysInforCount;
         }
     }
-    /*初始化Ｔabpage*/
+    /*初始化Tabpage*/
     initialPage: Material.TabbedPage {
         id: page
         /*标题*/
@@ -116,17 +123,20 @@ Material.ApplicationWindow{
                 Row{
                     anchors.left: parent.left
                     anchors.leftMargin: Material.Units.dp(24)
-                    anchors.verticalCenter: parent.verticalCenter
+                    height: parent.height
                     spacing: Material.Units.dp(16)
                     Material.Icon{
                         size:Material.Units.dp(27)
+                        anchors.verticalCenter: parent.verticalCenter
                         name: tabiconname[page.selectedTab]
+                        color: Material.Theme.light.shade(0.87)
                     }
                     Material.Label{
                         id:navlabel
                         text:sectionTitles[page.selectedTab]
                         style:"title"
                         color: Material.Theme.light.shade(0.87)
+                        anchors.verticalCenter: parent.verticalCenter
                     }
                 }
             }
@@ -171,36 +181,37 @@ Material.ApplicationWindow{
             ListItem.Standard{
                 id:navUserType
                 height:Material.Units.dp(40);
-                anchors.bottom: parent.bottom
+                anchors.bottom: navGrooveStyle.top
                 anchors.bottomMargin: Material.Units.dp(8)
                 anchors.left: parent.left
                 anchors.leftMargin: Material.Units.dp(16);
                 iconName: "awesome/group"
                 text:"用户组 : "+AppConfig.currentUserType
             }
-            Keys.onDownPressed: {
-                switch(page.selectedTab){
+            ListItem.Standard{
+                id:navGrooveStyle
+                height:Material.Units.dp(40);
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: Material.Units.dp(8)
+                anchors.left: parent.left
+                anchors.leftMargin: Material.Units.dp(16);
+                iconName: "awesome/road"
+                text:"坡口形式 : "+grooveStyleName[AppConfig.currentGroove]
+            }
+            Keys.onDownPressed: {  switch(page.selectedTab){
                 case 0: if(page0SelectedIndex!==navrep.count -1 )page0SelectedIndex++;else page0SelectedIndex=navrep.count-1;break;
                 case 1: if(page1SelectedIndex!==navrep.count -1 )page1SelectedIndex++;else page1SelectedIndex=navrep.count-1;break;
                 case 2: if(page2SelectedIndex!==navrep.count -1 )page2SelectedIndex++;else page2SelectedIndex=navrep.count-1;break;
-                case 3: if(page3SelectedIndex!==navrep.count -1 )page3SelectedIndex++;else page3SelectedIndex=navrep.count-1;break;}
-                event.accpet=true;}
-            Keys.onUpPressed: {
-                switch(page.selectedTab){
+                case 3: if(page3SelectedIndex!==navrep.count -1 )page3SelectedIndex++;else page3SelectedIndex=navrep.count-1;break;} }
+            Keys.onUpPressed: {switch(page.selectedTab){
                 case 0: if(page0SelectedIndex) {page0SelectedIndex--; }else{page0SelectedIndex=0 ;}break;
                 case 1: if(page1SelectedIndex) {page1SelectedIndex--; }else{page1SelectedIndex=0 ;}break;
                 case 2: if(page2SelectedIndex) {page2SelectedIndex--; }else{page2SelectedIndex=0 ;}break;
-                case 3: if(page3SelectedIndex) {page3SelectedIndex--; }else{page3SelectedIndex=0 ;}break;}
-                event.accpet=true;}
-            Keys.onSelectPressed: {navigationDrawer.toggle();event.accepted=true;}
-            Keys.onPressed: {
-                switch(event.key){
-                case Qt.Key_F1:
-                    navigationDrawer.toggle()
-                    event.accepted=true;
-                    break;
-                }
-            }
+                case 3: if(page3SelectedIndex) {page3SelectedIndex--; }else{page3SelectedIndex=0 ;}break;} }
+            Keys.onDigit1Pressed:page.selectedTab===0?navigationDrawer.toggle():null
+            Keys.onDigit2Pressed:page.selectedTab===1?navigationDrawer.toggle():null
+            Keys.onDigit3Pressed:page.selectedTab===2?navigationDrawer.toggle():null
+            Keys.onDigit4Pressed:page.selectedTab===3?navigationDrawer.toggle():null
             /*Nav关闭时 将焦点转移到选择的Item上 方便按键的对焦*/
             function close() {
                 showing = false
@@ -208,14 +219,23 @@ Material.ApplicationWindow{
                     parent.currentOverlay = null
                 }
                 /*找出本次选择的焦点*/
-                 __lastFocusedItem=Utils.findChild(repeater.itemAt(page.selectedTab),sections[page.selectedTab][page.selectedTab===0 ? page0SelectedIndex  : page.selectedTab===1? page1SelectedIndex : page.selectedTab===2?page2SelectedIndex:page3SelectedIndex])
+                __lastFocusedItem=Utils.findChild(repeater.itemAt(page.selectedTab),sections[page.selectedTab][page.selectedTab===0 ? page0SelectedIndex  : page.selectedTab===1? page1SelectedIndex : page.selectedTab===2?page2SelectedIndex:page3SelectedIndex])
                 if (__lastFocusedItem !== null) {
-                     __lastFocusedItem.forceActiveFocus()
-                 }
+                    __lastFocusedItem.forceActiveFocus()
+                    lastFocusedItem=__lastFocusedItem;
+                }
                 closed()
             }
         }
-        onSelectedTabChanged: { Qt.inputMethod.hide()}
+        onSelectedTabChanged: {
+            Qt.inputMethod.hide();
+            /*找出本次选择的焦点*/
+            lastFocusedItem=Utils.findChild(repeater.itemAt(page.selectedTab),sections[page.selectedTab][page.selectedTab===0 ? page0SelectedIndex  : page.selectedTab===1? page1SelectedIndex : page.selectedTab===2?page2SelectedIndex:page3SelectedIndex])
+            if (lastFocusedItem !== null) {
+                lastFocusedItem.forceActiveFocus()
+
+            }
+        }
         Repeater {
             id:repeater
             model: sectionTitles
@@ -264,22 +284,14 @@ Material.ApplicationWindow{
                 }
             }
         }
-        Keys.onDigit1Pressed: page.selectedTab=0;
-        Keys.onDigit2Pressed: page.selectedTab=1;
-        Keys.onDigit3Pressed: page.selectedTab=2;
-        Keys.onDigit4Pressed: page.selectedTab=3;
+        Keys.onDigit1Pressed: {if(page.selectedTab!=0)page.selectedTab=0;else navigationDrawer.toggle();}
+        Keys.onDigit2Pressed: {if(page.selectedTab!=1)page.selectedTab=1;else navigationDrawer.toggle();}
+        Keys.onDigit3Pressed: {if(page.selectedTab!=2)page.selectedTab=2;else navigationDrawer.toggle();}
+        Keys.onDigit4Pressed: {if(page.selectedTab!=3)page.selectedTab=3;else navigationDrawer.toggle();}
         Keys.onPressed: {
             switch(event.key){
-            case Qt.Key_F1:
-                navigationDrawer.toggle()
-                event.accepted=true;
-                break;
             case Qt.Key_F6:
                 sidebar.visible=!sidebar.visible
-                event.accepted=true;
-                break;
-            case Qt.Key_Select:
-                navigationDrawer.toggle()
                 event.accepted=true;
                 break;
             }
@@ -290,6 +302,9 @@ Material.ApplicationWindow{
         onModbusFrameChanged:{
             listModel.append({"time":(new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm")),"status":frame.join(",")})
             debug.incrementCurrentIndex();
+            if(frame[0]!=="Success"){
+                app.showError("Modbus 通讯异常！",frame[0],"关闭","");
+            }
         }
     }
     ListModel{
@@ -327,6 +342,14 @@ Material.ApplicationWindow{
         id:input
         objectName: "InputPanel"
         visible: Qt.inputMethod.visible
+        onVisibleChanged: {
+            if(!visible){
+                /*找出本次选择的焦点*/
+                if (lastFocusedItem !== null) {
+                    lastFocusedItem.forceActiveFocus()
+                }
+            }
+        }
         y: Qt.inputMethod.visible ? parent.height - input.height:parent.height
         Behavior on y{
             NumberAnimation { duration: 200 }
@@ -336,6 +359,15 @@ Material.ApplicationWindow{
     Component.onCompleted: {
         /*打开数据库*/
         Material.UserData.openDatabase();
+        var result=Material.UserData.getResultFromFuncOfTable("AccountTable","","");
+        for(var i=0;i<result.rows.length;i++){
+            var name = result.rows.item(i).name;
+            usrnamemodel.append( {"text":name});
+            if(name === accountname.text){
+                changeuserFeildtext.selectedIndex = i+1;
+                changeuserFeildtext.helperText=result.rows.item(i).type;}
+        }
+        usrnamemodel.remove(0);
         /*写入系统背光值*/
         AppConfig.backLight=AppConfig.backLight;
     }
@@ -354,7 +386,7 @@ Material.ApplicationWindow{
         Material.Slider {
             id:backlightslider;height:Material.Units.dp(64);width:Material.Units.dp(240);Layout.alignment: Qt.AlignCenter;
             value:AppConfig.backLight;stepSize: 5;numericValueLabel: true;
-            minimumValue: 0;maximumValue: 220; activeFocusOnPress: true;
+            minimumValue: 10;maximumValue: 220; activeFocusOnPress: true;
         }
         Rectangle{
             width:Material.Units.dp(240);
@@ -435,9 +467,9 @@ Material.ApplicationWindow{
             onItemSelected:  {
                 password.enabled=true;
                 var data=usrnamemodel.get(index);
-                var result =  DB.getuserpassword(data.text);
+                var result =  Material.UserData.getResultFromFuncOfTable("AccountTable","name",data.text);
                 AppConfig.currentUserPassword = result.rows.item(0).password;
-                changeuserFeildtext.helperText = result.rows.item(0).type;
+                AppConfig.currentUserType=changeuserFeildtext.helperText = result.rows.item(0).type;
                 password.text="";}}
         Material.TextField{id:password;
             floatingLabel:true;
@@ -452,20 +484,7 @@ Material.ApplicationWindow{
                     password.helperText=qsTr("请输入密码...");}}
             onHasErrorChanged: {
                 if(password.hasError === true){
-                    console.log("length changed");
                     password.helperText =qsTr( "密码超过最大限制");}}
-            Keys.onPressed: {
-                switch(event.key){
-                case Qt.Key_F1:
-                    password.insert(password.length,"1");
-                    event.accepted=true;
-                    break;
-                case Qt.Key_F2:
-                    password.insert(password.length,"2");
-                    event.accepted=true;
-                    break;
-                }
-            }
         }
     }
     /*语言对话框*/
@@ -478,7 +497,7 @@ Material.ApplicationWindow{
                 model: ["汉语","英语"]//[qsTr("汉语"),qsTr("英语")];
                 ListItem.Standard{
                     text:modelData;
-                    showDivider: true;
+                    showDivider:true;
                 }
             }
         }

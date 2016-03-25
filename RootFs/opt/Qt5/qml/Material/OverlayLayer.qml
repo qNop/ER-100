@@ -23,56 +23,62 @@ import QtQuick 2.4
 
    \brief Provides a layer to display popups and other overlay components.
  */
-Rectangle {
-    id: overlayLayer
-    objectName: "overlayLayer"
-
+Flickable{
+    id:flickable
+    objectName: "overlayerFlickable"
     anchors.fill: parent
-
-    property Item currentOverlay
-    color: "transparent"
-
-    onEnabledChanged: {
-        if (!enabled && overlayLayer.currentOverlay != null)
-            overlayLayer.currentOverlay.close()
+    visible: currentOverlay !==null
+    contentHeight: height+40
+    property Item currentOverlay;
+    property real lastcontenty;
+    onContentYChanged: {
+        currentOverlay.anchors.verticalCenterOffset=-contentY;
     }
+    Rectangle {
+        id: overlayLayer
+        anchors.fill: parent
+        color: "transparent"
 
-    onWidthChanged: closeIfNecessary()
-    onHeightChanged: closeIfNecessary()
+        onEnabledChanged: {
+            if (!enabled && flickable.currentOverlay !== null)
+                flickable.currentOverlay.close()
+        }
 
-    states: State {
-        name: "ShowState"
-        when: overlayLayer.currentOverlay != null
+        onWidthChanged: closeIfNecessary()
+        onHeightChanged: closeIfNecessary()
 
-        PropertyChanges {
-            target: overlayLayer
-            color: currentOverlay.overlayColor
+        states: State {
+            name: "ShowState"
+            when: flickable.currentOverlay !== null
+
+            PropertyChanges {
+                target: overlayLayer
+                color: currentOverlay.overlayColor
+            }
+        }
+
+        transitions: Transition {
+            ColorAnimation {
+                duration: 300
+                easing.type: Easing.InOutQuad
+            }
         }
     }
-
-    transitions: Transition {
-        ColorAnimation {
-            duration: 300
-            easing.type: Easing.InOutQuad
-        }
-    }
-
     function closeIfNecessary() {
-        if (overlayLayer.currentOverlay != null && overlayLayer.currentOverlay.closeOnResize)
-            overlayLayer.currentOverlay.close()
+        if (flickable.currentOverlay !== null && flickable.currentOverlay.closeOnResize)
+            flickable.currentOverlay.close()
     }
 
     MouseArea {
+        id:mouse
         anchors.fill: parent
-        enabled: overlayLayer.currentOverlay != null && 
-                overlayLayer.currentOverlay.globalMouseAreaEnabled
-         hoverEnabled: false
-
-        //onWheel: wheel.accepted = true
-
+        enabled: flickable.currentOverlay !== null &&
+                 flickable.currentOverlay.globalMouseAreaEnabled
+        hoverEnabled: false
         onClicked: {
-            if (overlayLayer.currentOverlay.dismissOnTap)
-                overlayLayer.currentOverlay.close()
-        }        
+            if (flickable.currentOverlay.dismissOnTap)
+                flickable.currentOverlay.close()
+        }
     }
+
 }

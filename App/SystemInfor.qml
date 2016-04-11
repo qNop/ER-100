@@ -7,25 +7,37 @@ Item {
     anchors.fill: parent
      /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "SystemInfor"
-    property int count: 0
-    Connections{
+    property var currentdate:new Date();
+    property int count:  0
+        Connections{
         target:SysInfor
-        onCpuInforChanged:{ cpu.append(new Date(),Number(infor[1]))}
+        onCpuInforChanged:{ currentdate=new Date(); cpu.append(currentdate,Number(infor[1]))
+        }
     }
     Connections{
-        target:SysInfor
-        onMemoryInforChanged:{ memory.append(new Date(),Number(infor[1]))
-            count++;
+        target: SysInfor
+        onCpuTempChanged:{cputemp.append(currentdate,temp);
             var datetime;
-            if(count>60){
+            if(count>119){
                 datetime= dateTimex.min;
                 datetime.setSeconds(datetime.getSeconds()+1);
                 dateTimex.min=datetime;
                 datetime= dateTimex.max;
                 datetime.setSeconds(datetime.getSeconds()+1);
                 dateTimex.max=datetime;
-                count=60;
+                count=118;
+                cpu.remove(0);
+                memory.remove(0);
+                cputemp.remove(0)
             }
+            count++;
+            console.log(cputemp.count);
+
+        }
+    }
+    Connections{
+        target:SysInfor
+        onMemoryInforChanged:{ memory.append(currentdate,Number(infor[1]))
         }
     }
     ChartView{
@@ -50,11 +62,24 @@ Item {
             min:0
             titleText: "使用率%"
         }
+        ValueAxis{
+            id:tempAxisy
+            max:100
+            min:0
+            titleText: "温度"
+        }
         LineSeries{
             id:cpu
             name:"cpu"
             axisX:dateTimex
-            axisY:valueAxisy
+            axisYRight:tempAxisy
+            useOpenGL:chartView.openGl
+        }
+        LineSeries{
+            id:cputemp
+            name:"temp"
+            axisX:dateTimex
+            axisY:tempAxisy
             useOpenGL:chartView.openGl
         }
         LineSeries{

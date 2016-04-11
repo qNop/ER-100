@@ -9,10 +9,12 @@ import QtQuick.LocalStorage 2.0
 import QtQuick.Window 2.2
 
 FocusScope {
-    id:teachset
+    id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
-    objectName: "GroovePreset"
-    property int currentGroove:AppConfig.currentGroove
+    objectName: "GrooveCondition"
+    anchors.fill: parent
+    property int currentGroove;
+    property int bottomStyleValue;
     property var teachmodemodel: ["自动","半自动","手动"];
     property var startendcheckmodel:["自动","手动"]
     property var teachfisrtpointmodel: ["右方","左方"];
@@ -24,14 +26,33 @@ FocusScope {
     property var bottomStyleList: ["无衬垫","陶瓷衬垫","钢衬垫"]
     property var grooveNameCh: ["平焊单边V形坡口T接头","平焊单边V形坡口平对接","平焊V形坡口平对接","横焊单边V形坡口T接头","横焊单边V形坡口平对接","立焊单边V形坡口T接头","立焊单边V形坡口平对接","立焊V形坡口平对接","水平角焊"]
 
+    property list<ListModel> limitedModel:[
+        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~70";c3:"4~10" }
+            ListElement{iD:"2";c1:"45~60";c2:"9~45";c3:"0~2"}},
+        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~80";c3:"4~10" }
+            ListElement{iD:"2";c1:"45~60";c2:"9~45";c3:"0~2"}},
+        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~80";c3:"4~10" }},
+
+        ListModel{ListElement{iD:"1";c1:"30~40";c2:"12~55";c3:"4~10" }
+            ListElement{iD:"2";c1:"45~60";c2:"12~45";c3:"0~2"}},
+        ListModel{ListElement{iD:"1";c1:"30~40";c2:"12~80";c3:"4~10" }
+            ListElement{iD:"2";c1:"45~60";c2:"12~45";c3:"0~2"}},
+
+        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~50";c3:"4~10" }},
+        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~80";c3:"4~10" }},
+        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~80";c3:"4~10" }},
+        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~80";c3:"4~10" }},
+
+        ListModel{ListElement{iD:"1";c1:"30~40";c2:"16~80";c3:"4~10" }}
+
+    ]
     onCurrentGrooveChanged: {
-        if(currentGroove!==AppConfig.currentGroove){
-            AppConfig.currentGroove=currentGroove;
-
-        }
-        console.log("currentgroove"+currentGroove)
+        AppConfig.currentGroove=currentGroove;
+        ERModbus.setmodbusFrame(["W","90","1",currentGroove.toString()])
     }
-
+    Component.onCompleted: {currentGroove=AppConfig.currentGroove
+        bottomStyleValue=AppConfig.bottomStyle
+    }
     Material.Card{
         anchors{ left:parent.left;right:parent.right;top:parent.top;bottom: descriptionCard.top;margins:Material.Units.dp(12)}
         elevation: 2
@@ -328,14 +349,16 @@ FocusScope {
                     case Qt.Key_Right:
                         if(bottomStylegroup.current){
                             switch(bottomStylegroup.current.text){
-                            case "无衬垫": bottomStylegroup.current = bottomStylerepeater.itemAt(1);break;
+                            case "无衬垫": bottomStylegroup.current = bottomStylerepeater.itemAt(1).enabled?bottomStylerepeater.itemAt(1):bottomStylerepeater.itemAt(2)
+                                break;
                             case "陶瓷衬垫": bottomStylegroup.current = bottomStylerepeater.itemAt(2);break; }}
                         event.accepted = true;
                         break;
                     case Qt.Key_Left:
                         if(bottomStylegroup.current){
                             switch(bottomStylegroup.current.text){
-                            case "钢衬垫": bottomStylegroup.current = bottomStylerepeater.itemAt(1);break;
+                            case "钢衬垫": bottomStylegroup.current = bottomStylerepeater.itemAt(1).enabled?bottomStylerepeater.itemAt(1):bottomStylerepeater.itemAt(0);
+                                break;
                             case "陶瓷衬垫": bottomStylegroup.current = bottomStylerepeater.itemAt(0);break; }}
                         event.accepted = true;
                         break;}}
@@ -344,11 +367,11 @@ FocusScope {
                     anchors.verticalCenter: parent.verticalCenter
                     Controls.ExclusiveGroup { id: bottomStylegroup;
                         onCurrentChanged:{
-                            if(bottomStylegroup.current){
-                                var frame=["W","105","1"," "];
-                                frame[3]=bottomStylegroup.current.text==="无衬垫"?"0":bottomStylegroup.current.text==="陶瓷衬垫"?"1":"2";
-                                ERModbus.setmodbusFrame(frame);
-                                Material.UserData.setValueFromFuncOfTable(grooveNameList[currentGroove],"背部有无衬垫",frame[3]); }} }
+                            var frame=["W","91","1"," "];
+                            frame[3]=bottomStylegroup.current.text==="无衬垫"?"0":bottomStylegroup.current.text==="陶瓷衬垫"?"1":"2";
+                            ERModbus.setmodbusFrame(frame);
+                            AppConfig.bottomStyle=Number(frame[3]);
+                        }}
                     Repeater{
                         id:bottomStylerepeater
                         model:bottomStyleList
@@ -366,7 +389,7 @@ FocusScope {
                                 }else
                                     return true;
                             }
-                            checked:Material.UserData.getValueFromFuncOfTable(grooveNameList[currentGroove],"function","背部有无衬垫")==index;
+                            checked: bottomStyleValue===index
                         }
                     }
                 }
@@ -488,21 +511,7 @@ FocusScope {
                     movable:false
                     resizable:false
                 }
-                model: ListModel{
-                    id:listModel
-                    ListElement{
-                        iD:"1"
-                        c1:"30~40"
-                        c2:"9~70"
-                        c3:"4~10"
-                    }
-                    ListElement{
-                        iD:"2"
-                        c1:"45~60"
-                        c2:"9~45"
-                        c3:"0~2"
-                    }
-                }
+                model:limitedModel[currentGroove]
             }
         }
     }

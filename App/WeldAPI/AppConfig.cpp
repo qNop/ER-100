@@ -27,6 +27,7 @@ bool File_Is_Exist(QString Qfilename){
     QFile tempfile(Qfilename);
     return tempfile.exists();
 }
+
 /*
  ************************************************************************************App配置文件
  */
@@ -73,6 +74,17 @@ AppConfig::AppConfig(){
     /*获取ini信息*/
     File=PfromQfile();
     poc = new QProcess;
+    Screen_Width = File->value("Screen_Width").toInt();
+    Screen_Height = File->value("Screen_Height").toInt();
+    Name = File->value("Current_User_Name").toString();
+    Password = File->value("Current_User_PassWord").toString();
+    Type = File->value("Current_User_Type").toString();
+    Primarycolor = File->value("Theme_PrimaryColor").toString();
+    Accentcolor = File->value("Theme_AccentColor").toString();
+    Backgroundcolor = File->value("Theme_BackgroundColor").toString();
+    BacklightValue = File->value("BackLight").toInt();
+    CurrentGrooveValue = File->value("Current_Groove").toInt();
+    BottomStyleValue=File->value("Bottom_Style").toInt();
 }
 AppConfig::~AppConfig(){
     qDebug()<<"AppConfig::REMOVE";
@@ -83,13 +95,11 @@ AppConfig::~AppConfig(){
  ************************************************************************************屏幕宽度读写
  */
 int AppConfig::screenWidth(){
-    int ScreenWidth;
-    ScreenWidth = File->value("Screen_Width").toInt();
-    qDebug()<<"AppConfig::Screen Width Read"<<ScreenWidth;
-    return ScreenWidth;
+    return Screen_Width;
 }
 void AppConfig::setScreenWidth(int width){
     File->setValue("Screen_Width",width);
+    Screen_Width=width;
     qDebug() <<"AppConfig::Screen Width Changed";
     emit screenWidthChanged(width);
 }
@@ -97,13 +107,11 @@ void AppConfig::setScreenWidth(int width){
  ************************************************************************************屏幕高度读写
  */
 int AppConfig::screenHeight(){
-    int Screen_Height;
-    Screen_Height = File->value("Screen_Height").toInt();
-    qDebug()<<"AppConfig::Screen Height Read"<<Screen_Height;
     return Screen_Height;
 }
 void AppConfig::setScreenHeight(int height){
     File->setValue("Screen_Height",height);
+    Screen_Height=height;
     qDebug() <<"AppConfig::Screen Height Changed";
     emit screenHeightChanged(height);
 }
@@ -111,13 +119,11 @@ void AppConfig::setScreenHeight(int height){
  ************************************************************************************当前用户称
  */
 QString AppConfig::currentUserName(){
-    QString name;
-    name = File->value("Current_User_Name").toString();
-    qDebug()<<"AppConfig::Current User Name Read"<<name;
-    return name;
+    return Name;
 }
 void AppConfig::setcurrentUserName(QString username){
     File->setValue("Current_User_Name",username);
+    Name=username;
     qDebug() <<"AppConfig::Current User Name Changed";
     emit currentUserNameChanged(username);
 }
@@ -125,13 +131,11 @@ void AppConfig::setcurrentUserName(QString username){
  ************************************************************************************当前密码
  */
 QString AppConfig::currentUserPassword(){
-    QString password;
-    password = File->value("Current_User_PassWord").toString();
-    qDebug()<<"AppConfig::Current Password Read"<<password;
-    return password;
+    return Password;
 }
 void AppConfig::setcurrentUserPassword(QString userpassword){
     File->setValue("Current_User_PassWord",userpassword);
+    Password=userpassword;
     qDebug() <<"AppConfig::Current Password Changed";
     emit currentUserPasswordChanged(userpassword);
 }
@@ -139,13 +143,11 @@ void AppConfig::setcurrentUserPassword(QString userpassword){
  ************************************************************************************当前用户类型
  */
 QString AppConfig::currentUserType(){
-    QString type;
-    type = File->value("Current_User_Type").toString();
-    qDebug()<<"AppConfig::Current Type Read"<<type;
-    return type;
+    return Type;
 }
 void AppConfig::setcurrentUserType(QString usertype){
     File->setValue("Current_User_Type",usertype);
+    Type=usertype;
     qDebug() <<"AppConfig::Current Type Changed";
     emit currentUserTypeChanged(usertype);
 }
@@ -166,14 +168,12 @@ void AppConfig::setlastUser(QString username){
 /*
  ************************************************************************************基本色
  */
-QString AppConfig::themePrimaryColor(){
-    QString primarycolor;
-    primarycolor = File->value("Theme_PrimaryColor").toString();
-    qDebug()<<"AppConfig::Primary Color Read"<<primarycolor;
-    return primarycolor;
+QString AppConfig::themePrimaryColor(){  
+    return Primarycolor;
 }
 void AppConfig::setthemePrimaryColor(QString color){
     File->setValue("Theme_PrimaryColor",color);
+    Primarycolor=color;
     qDebug() <<"AppConfig::Primary Color Changed";
     emit themePrimaryColorChanged(color);
 }
@@ -181,13 +181,11 @@ void AppConfig::setthemePrimaryColor(QString color){
  ************************************************************************************前景色
  */
 QString AppConfig::themeAccentColor(){
-    QString accentcolor;
-    accentcolor = File->value("Theme_AccentColor").toString();
-    qDebug()<<"AppConfig::Accent Color Read"<<accentcolor;
-    return accentcolor;
+    return Accentcolor;
 }
 void AppConfig::setthemeAccentColor(QString color){
     File->setValue("Theme_AccentColor",color);
+    Accentcolor=color;
     qDebug() <<"AppConfig::Accent Color Changed";
     emit themeAccentColorChanged(color);
 }
@@ -195,13 +193,11 @@ void AppConfig::setthemeAccentColor(QString color){
  ************************************************************************************背景色
  */
 QString AppConfig::themeBackgroundColor(){
-    QString backgroundcolor;
-    backgroundcolor = File->value("Theme_BackgroundColor").toString();
-    qDebug()<<"AppConfig::Background Color Read"<<backgroundcolor;
-    return backgroundcolor;
+    return Backgroundcolor;
 }
 void AppConfig::setthemeBackgroundColor(QString color){
     File->setValue("Theme_BackgroundColor",color);
+    Backgroundcolor=color;
     qDebug() <<"AppConfig::Background Color Changed";
     emit themeBackgroundColorChanged(color);
 }
@@ -209,17 +205,14 @@ void AppConfig::setthemeBackgroundColor(QString color){
  ************************************************************************************系统背光
  */
 int AppConfig::backLight(){
-    int value;
-    value = File->value("BackLight").toInt();
-    qDebug()<<"AppConfig::Backlight Value Read"<<value;
-    return value;
+    return BacklightValue;
 }
 void AppConfig::setbackLight(int value){
-
-    File->setValue("BackLight",value);
     QString s;
+    File->setValue("BackLight",value);
+    BacklightValue=value;
     s="/Nop/backlight ";
-    s+=QString::number(value);
+    s+=QString::number(value*2);;
     poc->start(s);
     emit backLightChanged(value);
     qDebug() <<"AppConfig::Backlight Value Changed";
@@ -228,18 +221,28 @@ void AppConfig::setbackLight(int value){
  ************************************************************************************当前坡口形状
  */
 int AppConfig::currentGroove(){
-    int value;
-    value = File->value("Current_Groove").toInt();
-    qDebug()<<"AppConfig::Current Groove Read"<<value;
-    return value;
+    return CurrentGrooveValue;
 }
 void AppConfig::setcurrentGroove(int value){
     if(value>8)
         value=0;
     File->setValue("Current_Groove",value);
+    CurrentGrooveValue=value;
     emit currentGrooveChanged(value);
     qDebug() <<"AppConfig::Current Groove Changed";
 }
+int AppConfig::bottomStyle(){
+    return BottomStyleValue;
+}
+void AppConfig::setbottomStyle(int value){
+    if(value>2)
+        value=0;
+    File->setValue("Bottom_Style",value);
+    BottomStyleValue=value;
+    emit bottomStyleChanged(value);
+    qDebug() <<"AppConfig::Bottom Style Changed";
+}
+
 /*
  * set led status
  */

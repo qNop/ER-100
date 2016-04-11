@@ -155,7 +155,7 @@ Item {
         text: field.placeholderText
         visible: floatingLabel
 
-        font.pixelSize: Units.dp(14)
+        font.pixelSize: 14//Units.dp(14)
 
         anchors.bottom: spinBox.top
         anchors.bottomMargin: Units.dp(8)
@@ -197,7 +197,7 @@ Item {
         }
 
         visible: hasHelperText
-        font.pixelSize: Units.dp(12)
+        font.pixelSize: 12 //Units.dp(12)
         color: field.hasError ? field.errorColor : Qt.darker(Theme.light.hintColor)
 
         Behavior on color {
@@ -205,3 +205,4 @@ Item {
         }
     }
 }
+

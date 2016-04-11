@@ -24,6 +24,7 @@
 #include <QtQml>
 #include <QString>
 
+#include <QQuickItem>
 #include <string.h>
 
 
@@ -41,6 +42,7 @@ struct DeclarativeInputEnginePrivate
     QString str;
     long index;
     QObject* InputPanel;
+
     /**
      * Private data constructor
      */
@@ -160,6 +162,7 @@ QObject * DeclarativeInputEngine::inputPanel() {
 void DeclarativeInputEngine::setInputPanel(QObject *Object){
   //  qDebug()<<"DeclarativeInputEngine::setInputPanel ObjectName is "<<Object->objectName();
     d->InputPanel=Object;
+    InputPanelItem=dynamic_cast<QQuickItem*>(Object);
     emit inputPanelChanged(Object);
 }
 

@@ -33,7 +33,7 @@ TextFieldStyle {
 
     font {
         family: echoMode == TextInput.Password ? "Default" : "Roboto"
-        pixelSize:16 //Units.dp(16)
+        pixelSize: 14//Units.dp(16)
     }
 
     renderType: Text.QtRendering
@@ -85,7 +85,7 @@ TextFieldStyle {
 
             anchors.verticalCenter: parent.verticalCenter
             text: control.placeholderText
-            font.pixelSize: 16//Units.dp(16)
+            font.pixelSize:14 //Units.dp(16)
             anchors.margins: -Units.dp(12)
             color: background.hasError ? background.errorColor
                                   : control.activeFocus && control.text !== ""
@@ -102,7 +102,7 @@ TextFieldStyle {
                     }
                     PropertyChanges {
                         target: fieldPlaceholder
-                        font.pixelSize: 14//Units.dp(14)
+                        font.pixelSize: 12//Units.dp(14)
                     }
                 },
                 State {
@@ -144,7 +144,7 @@ TextFieldStyle {
                 id: helperTextLabel
                 visible: background.helperText && background.showBorder
                 text: background.helperText
-                font.pixelSize:14 //Units.dp(14)
+                font.pixelSize: 12///Units.dp(14)
                 color: background.hasError ? background.errorColor
                                            : Qt.darker(Theme.light.hintColor)
 
@@ -161,7 +161,7 @@ TextFieldStyle {
                 Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
                 visible: background.characterLimit && background.showBorder
                 text: control.length + " / " + background.characterLimit
-                font.pixelSize:14// Units.dp(14)
+                font.pixelSize:12 //Units.dp(14)
                 color: background.hasError ? background.errorColor : Theme.light.hintColor
                 horizontalAlignment: Text.AlignLeft
 
@@ -172,3 +172,4 @@ TextFieldStyle {
         }
     }
 }
+

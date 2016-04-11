@@ -7,31 +7,40 @@ import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as QuickControls
 import QtQuick.LocalStorage 2.0
 import QtQuick.Window 2.2
-
+/*
+  * 寄存器地址 100~120
+  */
 FocusScope {
-    id:teachset
+    id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
-    objectName: "TeachPreset"
-    property int currentGroove: AppConfig.currentGroove
-
+    objectName: "TeachCondition"
+anchors.fill: parent
+    property var repeaterModel:[0,0,0,300,2,-10,-10]
+    property var listName: [qsTr("示教模式:"),
+        qsTr("始终端检测:"),
+        qsTr("示教第一点位置:"),
+        qsTr("示教点数:"),
+        qsTr("焊接长度:"),
+        qsTr("坡口检测点左:"),
+        qsTr("坡口检测点右:")]
     property var teachmodemodel: ["自动","半自动","手动"];
     property var startendcheckmodel:["自动","手动"]
     property var teachfisrtpointmodel: ["右方","左方"];
+
+    QuickControls.ExclusiveGroup { id: teachmodegroup; onCurrentChanged:
+            ERModbus.setmodbusFrame(["W","100","1",current.text ==="自动"?"0":current.text ==="半自动"?"1":"2"]) }
+    QuickControls.ExclusiveGroup { id: startendcheckgroup;onCurrentChanged:
+            ERModbus.setmodbusFrame(["W","101","1",current.text ==="自动"?"0":"1"]) }
+    QuickControls.ExclusiveGroup { id: teachfisrtpointgroup;onCurrentChanged:
+            ERModbus.setmodbusFrame(["W","102","1",current.text ==="右方"?"0":"1"]) }
+
     //坡口数据库英文名称
-    property var grooveNameList: ["flatweldsinglebevelgroovet","flatweldsinglebevelgroove","flatweldvgroove","horizontalweldsinglebevelgroovet","horizontalweldsinglebevelgroove","verticalweldsinglebevelgroovet","verticalweldsinglebevelgroove","verticalweldvgroove","flatfillet"]
-
-//    onCurrentGrooveChanged: {
-//        console.log("teachset.currentGroove"+teachset.currentGroove);
-//        var tablename= teachset.grooveNameList[teachset.currentGroove];
-//        teachmodegroup.current=teachmoderepeater.itemAt(Number(Material.UserData.getValueFromFuncOfTable(tablename,"function","示教模式")));
-//        if(startendcheck.visible) startendcheckgroup.current=startendcheckrepeater.itemAt(Number(Material.UserData.getValueFromFuncOfTable(tablename,"function","始终端检测")));
-//        teachfisrtpointgroup.current=teachfirstpointrepeater.itemAt(Number(Material.UserData.getValueFromFuncOfTable(tablename,"function","示教第一点位置")));
-//        teachpointnumlabel.text=Material.UserData.getValueFromFuncOfTable(tablename,"function","示教点数");
-//        if(teachfirstpointtimelength.visible) teachfirstpointtimelengthglabel.text=Material.UserData.getValueFromFuncOfTable(tablename,"function","焊接长度");
-//        groovecheckpointleftlengthlabel.text=Material.UserData.getValueFromFuncOfTable(tablename,"function","坡口检测点左");
-//        groovecheckpointrightlengthlabel.text=Material.UserData.getValueFromFuncOfTable(tablename,"function","坡口检测点右");
-//    }
-
+    Component.onCompleted: {
+        //读取数据库数据
+        root.repeaterModel=Material.UserData.getValueFromFuncOfTable(root.objectName,"","");
+        // ERModbus.setmodbusFrame(["W","100","7"].concat(repeaterModel))
+    }
+    //页面不可见的时候保存数据
     Material.Card{
         anchors{ left:parent.left;right:parent.right;top:parent.top;bottom: descriptionCard.top;margins:Material.Units.dp(12)}
         elevation: 2
@@ -53,7 +62,7 @@ FocusScope {
             Column{
                 id:column
                 anchors{ left:parent.left;right:parent.right;top:parent.top}
-                /*示教模式设置*/
+                //示教模式设置
                 ListItem.Subtitled{
                     id:teachmode
                     text:qsTr("示教模式:");
@@ -67,44 +76,45 @@ FocusScope {
                         case Qt.Key_Right:
                             if(teachmodegroup.current){
                                 switch(teachmodegroup.current.text){
-                                case "自动": teachmodegroup.current = teachmoderepeater.itemAt(1);break;
-                                case "半自动": teachmodegroup.current = teachmoderepeater.itemAt(2);break; }}
+                                case "自动": teachmodegroup.current = teachmoderepeater.itemAt(1);
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,1);break;
+                                case "半自动": teachmodegroup.current = teachmoderepeater.itemAt(2);
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,2);break; }}
                             event.accepted = true;
                             break;
                         case Qt.Key_Left:
                             if(teachmodegroup.current){
                                 switch(teachmodegroup.current.text){
-                                case "手动": teachmodegroup.current = teachmoderepeater.itemAt(1);break;
-                                case "半自动": teachmodegroup.current = teachmoderepeater.itemAt(0);break; }}
+                                case "手动": teachmodegroup.current = teachmoderepeater.itemAt(1);
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,1)
+                                    break;
+                                case "半自动": teachmodegroup.current = teachmoderepeater.itemAt(0);
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,0)
+                                    break; }}
                             event.accepted = true;
                             break;}}
                     onClicked:forceActiveFocus();
                     onSelectedChanged: {
-                        if(selected){descriptionlabel.text=text; if(teachmode.y<flickable.contentY) flickable.contentY=0;}}
+                        if(selected){descriptionlabel.text=text; }}
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
-                        QuickControls.ExclusiveGroup { id: teachmodegroup;
-                            onCurrentChanged:{
-                                if(teachmodegroup.current){
-                                    var frame=["W","100","1"," "];
-                                    frame[3]=teachmodegroup.current.text==="自动"?"0":teachmodegroup.current.text==="半自动"?"1":"2";
-                                    if(teachmodegroup.current.text==="手动") startendcheck.visible=false;
-                                    else startendcheck.visible=true;
-                                    ERModbus.setmodbusFrame(frame);
-                                    Material.UserData.setValueFromFuncOfTable(grooveNameList[currentGroove],"示教模式",frame[3]); }} }
                         Repeater{
                             id:teachmoderepeater
                             model:teachmodemodel
                             delegate:Material.RadioButton{
                                 text:modelData
                                 exclusiveGroup: teachmodegroup
-                                onClicked: teachmode.forceActiveFocus()
+                                checked: root.repeaterModel[0] ===index
+                                onClicked: {
+                                    teachmode.forceActiveFocus();
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,index)
+                                }
                             }
                         }
                     }
                     Component.onCompleted: {forceActiveFocus();}
                 }
-                /*始终端检测*/
+                //始终端检测
                 ListItem.Subtitled{
                     id:startendcheck
                     text:qsTr("始终端检测:");
@@ -120,33 +130,37 @@ FocusScope {
                         switch(event.key){
                         case Qt.Key_Right:
                             if(startendcheckgroup.current){
-                                if(startendcheckgroup.current.text==="自动" ) startendcheckgroup.current = startendcheckrepeater.itemAt(1);}
+                                if(startendcheckgroup.current.text==="自动" ){
+                                    startendcheckgroup.current = startendcheckrepeater.itemAt(1);
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,1,1);
+                                }
+                            }
                             event.accepted = true;
                             break;
                         case Qt.Key_Left:
                             if(startendcheckgroup.current){
-                                if(startendcheckgroup.current.text==="手动" ) startendcheckgroup.current = startendcheckrepeater.itemAt(0);}
+                                if(startendcheckgroup.current.text==="手动" ){
+                                    startendcheckgroup.current = startendcheckrepeater.itemAt(0);
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,1,0);
+                                }
+                            }
                             event.accepted = true;
-                            break;} }
+                            break;}}
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
-                        QuickControls.ExclusiveGroup { id: startendcheckgroup;
-                            onCurrentChanged:{
-                                if(startendcheckgroup.current){
-                                    var frame=["W","117","1"," "];
-                                    frame[3]=startendcheckgroup.current.text==="自动"?"0":"1";
-                                    Material.UserData.setValueFromFuncOfTable(grooveNameList[currentGroove],"始终端检测",frame[3])
-                                    ERModbus.setmodbusFrame(frame);}}}
                         Repeater{
                             id:startendcheckrepeater
                             model:startendcheckmodel
                             delegate:Material.RadioButton{
                                 text:modelData
+                                checked: root.repeaterModel[1] ===index
                                 exclusiveGroup: startendcheckgroup
-                                onClicked: startendcheck.forceActiveFocus()
-                                Component.onCompleted: checked=Material.UserData.getValueFromFuncOfTable(grooveNameList[currentGroove],"function","始终端检测")==index; }}}
+                                onClicked: {startendcheck.forceActiveFocus()
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,1,index);
+                                }
+                            }}}
                 }
-                /*示教第一点位置*/
+                //示教第一点位置
                 ListItem.Subtitled{
                     id:teachfirstpoint
                     text:qsTr("示教第一点位置:");
@@ -160,44 +174,43 @@ FocusScope {
                         switch(event.key){
                         case Qt.Key_Right:
                             if(teachfisrtpointgroup.current){
-                                if(teachfisrtpointgroup.current.text==="右方" ) teachfisrtpointgroup.current = teachfirstpointrepeater.itemAt(1);
+                                if(teachfisrtpointgroup.current.text==="右方" ){
+                                    teachfisrtpointgroup.current = teachfirstpointrepeater.itemAt(1);
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,2,1);
+                                }
                             }
                             event.accepted = true;
                             break;
                         case Qt.Key_Left:
                             if(teachfisrtpointgroup.current){
-                                if(teachfisrtpointgroup.current.text==="左方" ) teachfisrtpointgroup.current = teachfirstpointrepeater.itemAt(0);
+                                if(teachfisrtpointgroup.current.text==="左方" ){
+                                    teachfisrtpointgroup.current = teachfirstpointrepeater.itemAt(0);
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,2,0);
+                                }
                             }
                             event.accepted = true;
                             break;
                         }
                     }
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text="设定第一点从左右哪边开始" :null;                    
+                    onSelectedChanged: selected? descriptionlabel.text="设定第一点从左右哪边开始" :null;
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
-                        QuickControls.ExclusiveGroup { id: teachfisrtpointgroup;
-                            onCurrentChanged:{
-                                if(teachfisrtpointgroup.current){
-                                    var frame=["W","118","1"," "];
-                                    frame[3]=teachfisrtpointgroup.current.text==="左方"?"0":"1";
-                                    Material.UserData.setValueFromFuncOfTable(grooveNameList[currentGroove],"示教第1点位置",frame[3])
-                                    ERModbus.setmodbusFrame(frame);
-                                }
-                            }
-                        }
                         Repeater{
                             id:teachfirstpointrepeater
                             model:teachfisrtpointmodel
                             delegate:Material.RadioButton{
                                 text:modelData
-                                onClicked: teachfirstpoint.forceActiveFocus()
+                                checked:  root.repeaterModel[2] ===index
                                 exclusiveGroup: teachfisrtpointgroup
+                                onClicked:{
+                                    teachfirstpoint.forceActiveFocus();
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,2,index);}
                             }
                         }
                     }
                 }
-                /*示教点数*/
+                //示教点数
                 ListItem.Subtitled{
                     id:teachpointnum
                     text:qsTr("示教点数:");
@@ -207,7 +220,7 @@ FocusScope {
                     KeyNavigation.up: teachfirstpoint
                     KeyNavigation.down: teachfirstpointtimelength.visible?teachfirstpointtimelength:null
                     selected: focus
-                    onSelectedChanged:selected? descriptionlabel.text=text :null;                  
+                    onSelectedChanged:selected? descriptionlabel.text=text :null;
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
@@ -216,12 +229,14 @@ FocusScope {
                             res= Number(teachpointnumlabel.text)+1
                             if(res>30) res=30;
                             teachpointnumlabel.text=res.toString();
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,3,res);
                             event.accepted = true;
                             break;
                         case Qt.Key_Minus:
                             res= Number(teachpointnumlabel.text)-1
                             if(res<1) res=1;
                             teachpointnumlabel.text=res.toString();
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,3,res);
                             event.accepted = true;
                             break;
                         }
@@ -231,17 +246,13 @@ FocusScope {
                         anchors.verticalCenter: parent.verticalCenter
                         Material.Label{
                             id: teachpointnumlabel
-                            onTextChanged:{
-                                var frame=["W","115","1",text];
-                                Material.UserData.setValueFromFuncOfTable(grooveNameList[currentGroove],"示教点数",text);
-                                ERModbus.setmodbusFrame(frame);
-                            }
-                            Component.onCompleted: text=Material.UserData.getValueFromFuncOfTable(grooveNameList[currentGroove],"function","示教点数");
+                            text:root.repeaterModel[3]
+                            onTextChanged: ERModbus.setmodbusFrame(["W","103","1",text.toString()])
                         }
                         Material.Label{text:"点";}
                     }
                 }
-                /*示教1点时焊接长(mm)*/
+                //示教1点时焊接长(mm)
                 ListItem.Subtitled{
                     id:teachfirstpointtimelength
                     text:qsTr("焊接长度:");
@@ -250,7 +261,7 @@ FocusScope {
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: teachpointnum
-                    KeyNavigation.down: groovecheckpointleftlength.visible?groovecheckpointleftlength:null
+                    KeyNavigation.down: groovecheckpointleftlength.visible?groovecheckpointleftlength:groovecheckpointleftlength
                     onSelectedChanged: selected? descriptionlabel.text="示教点数为1点时,设定至第二点的焊接距离" :null;
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
@@ -259,34 +270,32 @@ FocusScope {
                         case Qt.Key_Plus:
                             res=Number(teachfirstpointtimelengthglabel.text)+2;
                             if(res>10000) res=10000;
-                            teachfirstpointtimelengthglabel.text=res.toString();
+                            teachfirstpointtimelengthglabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,4,res);
                             event.accepted = true;
                             break;
                         case Qt.Key_Minus:
                             if(res<10) res=10;
                             res=Number(teachfirstpointtimelengthglabel.text)-2;
-                            teachfirstpointtimelengthglabel.text=res.toString();
+                            teachfirstpointtimelengthglabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,4,res);
                             event.accepted = true;
                             break;
                         }
-                    }                    
+                    }
                     selected: focus
                     secondaryItem:Row{
                         spacing: Material.Units.dp(8)
                         anchors.verticalCenter: parent.verticalCenter
                         Material.Label{
                             id: teachfirstpointtimelengthglabel
-                            onTextChanged:{
-                                Material.UserData.setValueFromFuncOfTable(grooveNameList[currentGroove],"焊接长度(mm)",text);
-                                var frame=["W","116","1",text];
-                                ERModbus.setmodbusFrame(frame);
-                            }
-                            Component.onCompleted: text=Material.UserData.getValueFromFuncOfTable(grooveNameList[currentGroove],"function","焊接长度(mm)");
+                            text:root.repeaterModel[4]
+                            onTextChanged: ERModbus.setmodbusFrame(["W","104","1",text.toString()])
                         }
                         Material.Label{text:"(mm)";}
                     }
                 }
-                /*坡口检测点左(mm)*/
+                //坡口检测点左(mm)
                 ListItem.Subtitled{
                     id:groovecheckpointleftlength
                     text:qsTr("坡口检测点左:");
@@ -304,37 +313,32 @@ FocusScope {
                         case Qt.Key_Plus:
                             res=Number(groovecheckpointleftlengthlabel.text)+1;
                             if(res>1000) res=1000;
-                            groovecheckpointleftlengthlabel.text=res.toString();
+                            groovecheckpointleftlengthlabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,5,res);
                             event.accepted = true;
                             break;
                         case Qt.Key_Minus:
                             if(res<-1000) res=-1000;
                             res=Number(groovecheckpointleftlengthlabel.text)-1;
-                            groovecheckpointleftlengthlabel.text=res.toString();
+                            groovecheckpointleftlengthlabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,5,res);
                             event.accepted = true;
                             break;
                         }
-                    }                
+                    }
                     selected: focus
                     secondaryItem:Row{
                         spacing: Material.Units.dp(8)
                         anchors.verticalCenter: parent.verticalCenter
                         Material.Label{
                             id: groovecheckpointleftlengthlabel
-                            onTextChanged:{
-                                if(text>1000) text=1000
-                                else if(text<-1000) text=-1000
-                                Material.UserData.setValueFromFuncOfTable(grooveNameList[currentGroove],"坡口检测点左(mm)",text);
-                                var frame=["W","119","1"," "];
-                                frame[3]=text+1000;
-                                ERModbus.setmodbusFrame(frame);
-                            }
-                            Component.onCompleted: text=Material.UserData.getValueFromFuncOfTable(grooveNameList[currentGroove],"function","坡口检测点左(mm)");
+                            text:root.repeaterModel[5]
+                            onTextChanged: ERModbus.setmodbusFrame(["W","105","1",text.toString()])
                         }
                         Material.Label{text:"(mm)";}
                     }
                 }
-                /*坡口检测点右(mm)*/
+                //坡口检测点右(mm)
                 ListItem.Subtitled{
                     id:groovecheckpointrightlength
                     text:qsTr("坡口检测点右:");
@@ -350,13 +354,15 @@ FocusScope {
                         case Qt.Key_Plus:
                             res=Number(groovecheckpointrightlengthlabel.text)+1;
                             if(res>1000) res=1000;
-                            groovecheckpointrightlengthlabel.text=res.toString();
+                            groovecheckpointrightlengthlabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,6,res);
                             event.accepted = true;
                             break;
                         case Qt.Key_Minus:
                             if(res<-1000) res=-1000;
                             res=Number(groovecheckpointrightlengthlabel.text)-1;
-                            groovecheckpointrightlengthlabel.text=res.toString();
+                            groovecheckpointrightlengthlabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,6,res);
                             event.accepted = true;
                             break;
                         }
@@ -364,9 +370,6 @@ FocusScope {
                     selected: focus
                     onSelectedChanged: { if(selected){
                             descriptionlabel.text=text;
-                            if(groovecheckpointrightlength.y+height>flickable.height+flickable.contentY){
-                                flickable.contentY+=groovecheckpointrightlength.y+height-flickable.height
-                            }
                         }
                     }
                     secondaryItem:Row{
@@ -374,15 +377,8 @@ FocusScope {
                         anchors.verticalCenter: parent.verticalCenter
                         Material.Label{
                             id: groovecheckpointrightlengthlabel
-                            onTextChanged:{
-                                if(text>1000) text=1000
-                                else if(text<-1000) text=-1000
-                                var frame=["W","120","1"," "];
-                                frame[3]=text+1000;
-                                ERModbus.setmodbusFrame(frame);
-                                Material.UserData.setValueFromFuncOfTable(grooveNameList[currentGroove],"坡口检测点右(mm)",text);
-                            }
-                            Component.onCompleted: text=Material.UserData.getValueFromFuncOfTable(grooveNameList[currentGroove],"function","坡口检测点右(mm)");
+                            text:root.repeaterModel[6]
+                            onTextChanged: ERModbus.setmodbusFrame(["W","106","1",text.toString()])
                         }
                         Material.Label{text:"(mm)";}
                     }

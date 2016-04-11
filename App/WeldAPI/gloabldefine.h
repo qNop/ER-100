@@ -21,7 +21,6 @@
 #define EROBOWELDSYS_THEMEACCENTCOLOR               "yellow"
 #define EROBOWELDSYS_BACKLIGHT                                 50
 
-
 /************************************************************************/
 
 #define EROBOWELDSYS_MODE                                           "Auto"

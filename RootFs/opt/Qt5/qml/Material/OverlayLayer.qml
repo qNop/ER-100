@@ -32,7 +32,8 @@ Flickable{
     property Item currentOverlay;
     property real lastcontenty;
     onContentYChanged: {
-        currentOverlay.anchors.verticalCenterOffset=-contentY;
+        if((currentOverlay!==null)&&(!flickable.moving))
+            currentOverlay.anchors.verticalCenterOffset=-contentY;
     }
     Rectangle {
         id: overlayLayer
@@ -82,3 +83,4 @@ Flickable{
     }
 
 }
+

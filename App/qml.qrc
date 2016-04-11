@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
-        <file>WeldPreset.qml</file>
+        <file>WeldCondition.qml</file>
         <file>WeldAnalyse.qml</file>
         <file>SystemInfor.qml</file>
         <file>InputPanel.qml</file>
@@ -19,8 +19,8 @@
         <file>../Pic/平焊单边V形坡口平对接.png</file>
         <file>../Pic/坡口参数图.png</file>
         <file>../Pic/水平角焊.png</file>
-        <file>TeachPreset.qml</file>
-        <file>GroovePreset.qml</file>
+        <file>TeachCondition.qml</file>
+        <file>GrooveCondition.qml</file>
         <file>CheckTest.qml</file>
         <file>GrooveCheck.qml</file>
     </qresource>

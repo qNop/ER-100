@@ -10,7 +10,7 @@ ModbusThread::ModbusThread(){
     /*设置modbus为232模式*/
     modbus_rtu_set_serial_mode(ER_Modbus,MODBUS_RTU_RS232);
     /*为0输出调试信息*/
-    modbus_set_debug(ER_Modbus, TRUE);
+    modbus_set_debug(ER_Modbus, FALSE);
     /*设置超时时间 100 000 us*/
     modbus_set_response_timeout(ER_Modbus,0,80000);
     /*设置byte超时时间 1000 us*/
@@ -25,7 +25,6 @@ ModbusThread::ModbusThread(){
     qDebug()<<"ModbusThread::INSTALL->"<<modbus_strerror(errno);
 }
 ModbusThread::~ModbusThread(){
-
     if(ER_Modbus){
         /*关闭modbus*/
         modbus_close(ER_Modbus);
@@ -50,6 +49,7 @@ void ModbusThread::run()Q_DECL_OVERRIDE{
     if(modbusCmd=="R"){
         res= modbus_read_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
         if(res!=-1){
+            modbusData.append(modbusReg);
             for(i=0;i<modbusNum.toInt();i++){
                 modbusData.append(QString::number(data[i]));
             }
@@ -67,7 +67,7 @@ void ModbusThread::run()Q_DECL_OVERRIDE{
     }
     modbusData.insert(0,modbus_strerror(errno));
     emit ModbusThreadSignal(modbusData);
-    qDebug()<<"ModbusThread::ANSWER "<<modbusData;
+   // qDebug()<<"ModbusThread::ANSWER "<<modbusData;
      }
 }
 

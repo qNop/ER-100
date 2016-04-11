@@ -1,5 +1,6 @@
 [General]
 BackLight=55
+Bottom_Style=0
 Current_Groove=2
 Current_User_Name=Admin
 Current_User_PassWord=Admin

@@ -1,11 +1,14 @@
 #include "SysInfor.h"
 #define MB (1024 * 1024)
 #define KB (1024)
+
 SysInfor::SysInfor()
 {
     totalNew = idleNew = totalOld = idleOld = 0;
     cpuPercent = 0;
     process = new QProcess(this);
+    timer=new QTimer(this);
+    connect(timer,SIGNAL(timeout()),this,SLOT(TimerTrigger()));
     connect(process,SIGNAL(readyRead()),this,SLOT(ReadData()));
 }
 
@@ -17,11 +20,15 @@ QStringList SysInfor::cpuInfor()
     }
     QString s="cat /proc/stat";
     QStringList cpud=s.split(" ");
+    status="cpu";
+     timer->start(100);
     return cpud;
 }
 SysInfor::~SysInfor(){
-    while(process->state() ==QProcess::Running);
-    process= 0;
+    while(process->state()==QProcess::Running);
+    delete process;
+    timer->stop();
+    delete timer;
     qDebug()<<"SysInfor::REMOVE";
 }
 
@@ -32,6 +39,8 @@ QStringList SysInfor::memoryInfor()
     }
     QString s="cat /proc/meminfo";
     QStringList cpud=s.split(" ");
+    status="meminfo";
+
     return cpud;
 }
 
@@ -42,12 +51,31 @@ QStringList SysInfor::deviceSizeInfor()
     }
     QString s="df -h";
     QStringList cpud=s.split(" ");
+     status="device";
     return cpud;
 }
 
-void SysInfor::setCpuInfor(QStringList infor){}
-void SysInfor::setMemoryInfor(QStringList infor){}
-void SysInfor::setDeviceSizeInfor(QStringList infor){}
+int SysInfor::cpuTemp(){
+    if( (process->state() == QProcess::NotRunning)&&(process)){
+        process->start("cat /sys/devices/virtual/thermal/thermal_zone0/temp");
+    }
+    status="temp";
+    return 1;
+}
+
+void SysInfor::setCpuInfor(QStringList infor){Q_UNUSED(infor)}
+void SysInfor::setMemoryInfor(QStringList infor){Q_UNUSED(infor)}
+void SysInfor::setDeviceSizeInfor(QStringList infor){Q_UNUSED(infor)}
+void SysInfor::setCpuTemp(int temp){Q_UNUSED(temp)}
+
+void SysInfor::TimerTrigger(){
+    if(status== "cpu"){
+        memoryInfor();
+        timer->start(100);
+    }else if(status== "meminfo"){
+        cpuTemp();
+    }
+}
 
 void SysInfor::ReadData()
 {
@@ -67,7 +95,7 @@ void SysInfor::ReadData()
             idleOld = idleNew;
             s=QString("Cpu:%1").arg(cpuPercent);
             list=s.split(":");
-            emit cpuInforChanged(list);
+            emit cpuInforChanged(list);        
             break;
         } else if (s.startsWith("MemTotal")) {
             s = s.replace(" ", "");
@@ -92,14 +120,14 @@ void SysInfor::ReadData()
             emit memoryInforChanged(list);
             break;
         }
-#ifdef ARM
         else if (s.startsWith("/dev/root")) {
             list=s.split(" " ,QString::SkipEmptyParts);
             qDebug()<<list;
         }
-#else
-        if (s.startsWith("/dev/sda")) {
-        }
-#endif
+       if(status=="temp"){
+         emit cpuTempChanged(s.toInt());
+           break;
+         }
+
     }
 }

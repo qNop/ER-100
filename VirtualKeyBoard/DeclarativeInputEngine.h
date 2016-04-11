@@ -15,6 +15,7 @@
 //============================================================================
 #include <QObject>
 #include <QRect>
+#include <QQuickItem>
 
 struct DeclarativeInputEnginePrivate;
 
@@ -34,10 +35,11 @@ class DeclarativeInputEngine : public QObject
 
 private:
     DeclarativeInputEnginePrivate* d;
+
     friend class DeclarativeInputEnginePrivate;
 public:
     QStringList getchineseList();
-
+    QQuickItem* InputPanelItem;//输入焦点所在Item
     void setchineseList(QStringList list);
     /**
      * The InputMode enum provides a list of valid input modes

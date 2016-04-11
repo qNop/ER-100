@@ -31,7 +31,7 @@ import Material.Extras 0.1
  */
 PopupBase {
     id: dialog
-
+    objectName: "popupbase"
     overlayLayer: "dialogOverlayLayer"
    // overlayColor: Qt.rgba(0, 0, 0, 0.3)
 
@@ -145,9 +145,8 @@ PopupBase {
 
         Flickable {
             id: content
-
             contentWidth: column.implicitWidth
-            contentHeight: column.height// + (column.height > 0 ? contentMargins : 0)
+            contentHeight: column.height + (column.height > 0 ? contentMargins : 0)
             clip: true
 
             anchors {
@@ -174,6 +173,8 @@ PopupBase {
                 anchors {
                     left: parent.left
                     leftMargin: contentMargins
+                    top:parent.top
+                    topMargin: contentMargins
                 }
 
                 width: content.width - 2 * contentMargins
@@ -335,3 +336,4 @@ PopupBase {
         }
     }
 }
+

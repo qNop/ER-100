@@ -14,13 +14,13 @@ Material.ApplicationWindow{
     id: app;title: "app";visible: true
     /*主题默认颜色*/
     theme { primaryColor: AppConfig.themePrimaryColor;accentColor: AppConfig.themeAccentColor;backgroundColor:AppConfig.themeBackgroundColor
-        tabHighlightColor: "white"  }
+        tabHighlightColor: "#FFFFFF"  }
     property var grooveStyleName: [
         qsTr( "平焊单边V型坡口T接头"), qsTr( "平焊单边V型坡口平对接"),  qsTr("平焊V型坡口平对接"),
         qsTr("横焊单边V型坡口T接头"), qsTr( "横焊单边V型坡口平对接"),
         qsTr("立焊单边V型坡口T接头"),  qsTr("立焊单边V型坡口平对接"), qsTr("立焊V型坡口平对接"),
         qsTr("水平角焊")  ]
-    property var preset:["GroovePreset","TeachPreset","WeldPreset","GrooveCheck"]
+    property var preset:["GrooveCondition","TeachCondition","WeldCondition","GrooveCheck"]
     property var presetName: ["坡口条件","示教条件","焊接条件","坡口参数"]
     property var presetIcon: ["awesome/road","action/android","user/MAG","awesome/road"]
     property var analyse: ["WeldAnalyse","WeldLine"]
@@ -44,23 +44,38 @@ Material.ApplicationWindow{
     /*当前本地化语言*/
     property string local: "zh_CN"
     /*当前坡口形状*/
-    property string currentgroove;
+    property int groove:AppConfig.currentGroove
     /*Modbus重载*/
     property bool modbusExist:true;
-    /**/
-    property bool sysInforCount: false
+    /*系统信息采集标志*/
+    property bool sysInforFlag: true;
+    /*系统状态*/
+    property string sysStatus:"0"
     /*上一次froceitem*/
     property Item lastFocusedItem:null
+    /*坡口检测参数list*/
+    ListModel{id:grooveStyleList
+    ListElement{
+        ID:"1"
+        C1:"1"
+        C2:"2"
+        C3:"3"
+        C4:"4"
+        C5:"5"
+        C6:"6"
+    }
+    }
     /*更新时间定时器*/
-    Timer{ interval: 500; running: true; repeat: true;
-        onTriggered:{datetime.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd ")+new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
-            if(modbusExist){
-                // ERModbus.setmodbusFrame(["R","1","6"]);
-            }
-            if(sysInforCount)  SysInfor.cpuInfor; else SysInfor.memoryInfor;
-            sysInforCount=!sysInforCount;
+    Timer{ interval: 500; running: sysInforFlag; repeat: true;
+        onTriggered:{
+            datetime.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd ")+new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
+            SysInfor.cpuInfor;
         }
     }
+//    /*握手协议 第一个为系统状态 第二个为要读取地址 第三个为读取个数*/
+//    Timer{id:modbusTimer;interval: 200; running: modbusExist; repeat: true;
+//        onTriggered: {}//ERModbus.setmodbusFrame(["R","0","3"]);}
+//    }
     /*初始化Tabpage*/
     initialPage: Material.TabbedPage {
         id: page
@@ -103,7 +118,7 @@ Material.ApplicationWindow{
             },
             /*系统电源*/
             Material.Action {iconName: "awesome/power_off";name: qsTr("关机")
-                onTriggered: Qt.quit();
+                onTriggered: {app.modbusExist=false;app.sysInforFlag=false;Qt.quit();}
             }
         ]
         backAction: navigationDrawer.action
@@ -219,7 +234,8 @@ Material.ApplicationWindow{
                     parent.currentOverlay = null
                 }
                 /*找出本次选择的焦点*/
-                __lastFocusedItem=Utils.findChild(repeater.itemAt(page.selectedTab),sections[page.selectedTab][page.selectedTab===0 ? page0SelectedIndex  : page.selectedTab===1? page1SelectedIndex : page.selectedTab===2?page2SelectedIndex:page3SelectedIndex])
+                __lastFocusedItem=Utils.findChild(page.selectedTab===0 ?systemTestTab:page.selectedTab===1?
+                                                                             preConditionTab:page.selectedTab===2?  weldAnalyseTab: systemInforTab,sections[page.selectedTab][page.selectedTab===0 ? page0SelectedIndex  : page.selectedTab===1? page1SelectedIndex : page.selectedTab===2?page2SelectedIndex:page3SelectedIndex])
                 if (__lastFocusedItem !== null) {
                     __lastFocusedItem.forceActiveFocus()
                     lastFocusedItem=__lastFocusedItem;
@@ -230,58 +246,73 @@ Material.ApplicationWindow{
         onSelectedTabChanged: {
             Qt.inputMethod.hide();
             /*找出本次选择的焦点*/
-            lastFocusedItem=Utils.findChild(repeater.itemAt(page.selectedTab),sections[page.selectedTab][page.selectedTab===0 ? page0SelectedIndex  : page.selectedTab===1? page1SelectedIndex : page.selectedTab===2?page2SelectedIndex:page3SelectedIndex])
+            lastFocusedItem=Utils.findChild(page.selectedTab===0 ?systemTestTab:page.selectedTab===1?
+                                                                       preConditionTab:page.selectedTab===2?  weldAnalyseTab: systemInforTab
+                                            ,sections[page.selectedTab][page.selectedTab===0 ?
+                                                                            page0SelectedIndex  : page.selectedTab===1?
+                                                                                page1SelectedIndex : page.selectedTab===2?
+                                                                                    page2SelectedIndex:page3SelectedIndex])
             if (lastFocusedItem !== null) {
                 lastFocusedItem.forceActiveFocus()
 
             }
         }
-        Repeater {
-            id:repeater
-            model: sectionTitles
-            delegate: Material.Tab {
-                objectName: title
-                title: modelData+ (index===0 ?"(I)":index===1?"(II)":index===2?"(III)":"(IV)")
-                iconName:tabiconname[index];
-                property int sectionsindex: index
-                Item{
-                    Flickable {
-                        id: flickable
-                        objectName: modelData
-                        anchors.fill: parent
-                        clip: true
-                        contentHeight: height;
-                        Repeater{
-                            model: sections[sectionsindex]
-                            delegate:Item {
-                                anchors.fill: parent
-                                Loader {
-                                    id:loader
-                                    anchors.fill: parent
-                                    asynchronous: true
-                                    visible:(sectionsindex===0 ? page0SelectedIndex === index?true:false
-                                             :sectionsindex===1 ? page1SelectedIndex === index?true:false
-                                             :sectionsindex===2 ? page2SelectedIndex === index?true:false
-                                             :page3SelectedIndex === index?true:false) && loader.status ===Loader.Ready
-                                    source: { return Qt.resolvedUrl("%.qml").arg(modelData)}
-                                    property QtObject comment: QtObject{
-                                        property bool modbusCheck:modbusExist;
-                                    }
-                                }
-                                Material.ProgressCircle {
-                                    x:320-width/2
-                                    y:150
-                                    visible: loader.status === Loader.Loading
-                                    width:Material.Units.dp(64)
-                                    height:width
-                                }
-                            }
-                        }
-                    }
-                    Material.Scrollbar {
-                        flickableItem: flickable
-                    }
-                }
+        Material.Tab{
+            id:systemTestTab
+            title: qsTr("系统测试(I)")
+            iconName: "awesome/windows"
+            enabled: false
+            Flickable{
+                id:systemTestFlickable
+                anchors.fill: parent
+                clip: true;
+                contentHeight: height;
+                CheckTest{visible:page0SelectedIndex===0}
+            }
+        }
+        Material.Tab{
+            id:preConditionTab
+            title: qsTr("预置条件(II)")
+            iconName: "action/settings_input_composite"
+            Flickable{
+                id:preConditionFlickable
+                anchors.fill: parent
+                clip: true;
+                contentHeight: height;
+                GrooveCondition{visible: page1SelectedIndex===0}
+                TeachCondition{visible: page1SelectedIndex===1}
+                WeldCondition{visible: page1SelectedIndex===2}
+                GrooveCheck{
+                   id:grooveCheck
+                   visible: page1SelectedIndex===3
+                   grooveStyleModel: grooveStyleList
+                   status: app.sysStatus
+               }
+            }
+        }
+        Material.Tab{
+            id:weldAnalyseTab
+            title: qsTr("焊接分析(III)")
+            iconName:"awesome/line_chart"
+            Flickable{
+                id:weldAnalyseFlickable
+                anchors.fill: parent
+                clip: true;
+                contentHeight: height;
+                WeldAnalyse{visible: page2SelectedIndex===0}
+                WeldLine{visible: page2SelectedIndex===1}
+            }
+        }
+        Material.Tab{
+            id:systemInforTab
+            title: qsTr("系统信息(IV)")
+            iconName:"action/dashboard"
+            Flickable{
+                id:systemInforFlickable
+                anchors.fill: parent
+                clip: true;
+                contentHeight: height;
+                SystemInfor{visible: page3SelectedIndex===0}
             }
         }
         Keys.onDigit1Pressed: {if(page.selectedTab!=0)page.selectedTab=0;else navigationDrawer.toggle();}
@@ -291,7 +322,7 @@ Material.ApplicationWindow{
         Keys.onPressed: {
             switch(event.key){
             case Qt.Key_F6:
-                sidebar.visible=!sidebar.visible
+                sidebar.expanded=!sidebar.expanded
                 event.accepted=true;
                 break;
             }
@@ -300,10 +331,61 @@ Material.ApplicationWindow{
     Connections{
         target: ERModbus
         onModbusFrameChanged:{
-            listModel.append({"time":(new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm")),"status":frame.join(",")})
-            debug.incrementCurrentIndex();
             if(frame[0]!=="Success"){
-                app.showError("Modbus 通讯异常！",frame[0],"关闭","");
+                //listModel.append({"time":(new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm")),"status":frame.join(",")})
+                debug.incrementCurrentIndex();
+                //app.showError("Modbus 通讯异常！",frame[0],"关闭","");
+            }else{
+                switch(frame[1]){
+                    //读取系统状态寄存器
+                case "0":
+                    //判断当前系统状态处于哪一种状态
+                    if(app.sysStatus!==frame[2]){
+                        if(Number(frame[2])<6)
+                            app.sysStatus=frame[2];
+                    }else{
+                        switch(app.sysStatus){
+                            //空闲态
+                        case "0":
+                            break;
+                            //坡口检测态
+                        case "1":
+                            //读取坡口参数
+                            if(frame[3]==="150"){
+                                app.modbusExist=false;
+                                ERModbus.setmodbusFrame(["R","150",frame[4]])
+                            }
+                            break;
+                            //坡口检测结束态
+                        case "2":
+                            //读取焊接距离
+                            if(frame[3]==="160"){
+                                app.modbusExist=false;
+                                ERModbus.setmodbusFrame(["R","160",frame[4]])
+                            }
+                            break;
+                            //焊接态
+                        case "3":
+                            break;
+                            //暂停焊接态
+                        case "4":
+                            break;
+                            //焊接停止态
+                        case "5":
+                            break;
+                        }
+                    }
+                    break;
+                    //读取坡口参数寄存器成功
+                case "150":
+                    console.log(grooveStyleList.count);
+                    if(app.sysStatus==="1"){
+                        grooveStyleList.append({"ID":(grooveStyleList.count+1).toString(),"C1":frame[2],"C2":frame[3],"C3":frame[4],"C4":frame[5],"C5":frame[6],"C6":frame[7]})
+                    }
+                    modbusTimer.restart();
+                    app.modbusExist=true;
+                    break;
+                }
             }
         }
     }
@@ -316,9 +398,9 @@ Material.ApplicationWindow{
     }
     Material.Sidebar{
         id:sidebar
-        header:qsTr("调试信息")
+        header:qsTr("系统状态")
         mode:"right"
-        visible: false
+        expanded: false
         width:Material.Units.dp(300)
         autoFlick:false
         contents:ListView{
@@ -333,7 +415,7 @@ Material.ApplicationWindow{
             }
             onCurrentIndexChanged: {
                 if(currentIndex>1000){
-                    model.romve(0,1);
+                    listModel.romve(0);
                 }
             }
         }
@@ -360,14 +442,21 @@ Material.ApplicationWindow{
         /*打开数据库*/
         Material.UserData.openDatabase();
         var result=Material.UserData.getResultFromFuncOfTable("AccountTable","","");
+        var name,type,password;
         for(var i=0;i<result.rows.length;i++){
-            var name = result.rows.item(i).name;
-            usrnamemodel.append( {"text":name});
+            name = result.rows.item(i).id;
+            type=result.rows.item(i).type;
+            password=result.rows.item(i).password;
+            namemodel.append({"text":name})
+            accountmodel.append( {"name":name,"type":type,"password":password});
             if(name === accountname.text){
                 changeuserFeildtext.selectedIndex = i+1;
-                changeuserFeildtext.helperText=result.rows.item(i).type;}
+                changeuserFeildtext.helperText=type;
+                AppConfig.currentUserPassword =password;
+            }
         }
-        usrnamemodel.remove(0);
+        namemodel.remove(0)
+        accountmodel.remove(0);
         /*写入系统背光值*/
         AppConfig.backLight=AppConfig.backLight;
     }
@@ -383,15 +472,14 @@ Material.ApplicationWindow{
     Material.Dialog{
         id:backlight
         title: qsTr("背光调节");negativeButtonText:qsTr("取消");positiveButtonText: qsTr("完成");
-        Material.Slider {
-            id:backlightslider;height:Material.Units.dp(64);width:Material.Units.dp(240);Layout.alignment: Qt.AlignCenter;
-            value:AppConfig.backLight;stepSize: 5;numericValueLabel: true;
-            minimumValue: 10;maximumValue: 220; activeFocusOnPress: true;
-        }
-        Rectangle{
+        dialogContent: Item{
+            height:Material.Units.dp(100);
             width:Material.Units.dp(240);
-            height:Material.Units.dp(10);
-        }
+            Material.Slider {
+                id:backlightslider;width:Material.Units.dp(240);anchors.top: parent.top;anchors.topMargin: Material.Units.dp(24)
+                value:AppConfig.backLight;stepSize: 5;numericValueLabel: true;
+                minimumValue: 5;maximumValue: 100; activeFocusOnPress: true;
+                onVisibleChanged: {if(visible){forceActiveFocus()}}}}
         onAccepted: {AppConfig.backLight=backlightslider.value}
         onRejected: {backlightslider.value=AppConfig.backLight}
     }
@@ -445,6 +533,7 @@ Material.ApplicationWindow{
     /*更换用户对话框*/
     Material.Dialog{
         id:changeuser;
+        width:Material.Units.dp(300)
         title:qsTr("更换用户");negativeButtonText:qsTr("取消");positiveButtonText:qsTr("确定");
         positiveButtonEnabled:false;
         onAccepted: {
@@ -453,39 +542,41 @@ Material.ApplicationWindow{
         onRejected: {
             changeuserFeildtext.helperText = AppConfig.currentUserType;
             for(var i=0;i<100;i++){
-                if(accountname.text === usrnamemodel.get(i).text ){
+                if(accountname.text === accountmodel.get(i).name ){
                     changeuserFeildtext.selectedIndex = i;
                     break; }
             }
         }
-        ListModel{id:usrnamemodel;ListElement{text:"user";}}
-        Material.MenuField{id:changeuserFeildtext;
-            floatingLabel:true;
-            placeholderText:qsTr("用户名:");
-            model:usrnamemodel;
-            width:password.width
-            onItemSelected:  {
-                password.enabled=true;
-                var data=usrnamemodel.get(index);
-                var result =  Material.UserData.getResultFromFuncOfTable("AccountTable","name",data.text);
-                AppConfig.currentUserPassword = result.rows.item(0).password;
-                AppConfig.currentUserType=changeuserFeildtext.helperText = result.rows.item(0).type;
-                password.text="";}}
-        Material.TextField{id:password;
-            floatingLabel:true;
-            placeholderText:qsTr("密码:");
-            characterLimit: 8;
-            onTextChanged:{
-                if(password.text=== AppConfig.currentUserPassword){
-                    changeuser.positiveButtonEnabled=true;
-                    password.helperText.color="green";
-                    password.helperText=qsTr("密码正确");}
-                else{changeuser.positiveButtonEnabled=false;
-                    password.helperText=qsTr("请输入密码...");}}
-            onHasErrorChanged: {
-                if(password.hasError === true){
-                    password.helperText =qsTr( "密码超过最大限制");}}
-        }
+        ListModel{id:accountmodel;ListElement{name:"user";type:"user";password:"user"}}
+        ListModel{id:namemodel;ListElement{text:"user"}}
+        dialogContent: [
+            Material.MenuField{id:changeuserFeildtext;
+                floatingLabel:true;
+                model:namemodel
+                placeholderText:qsTr("用户名:");
+                width:parent.width
+                onItemSelected:  {
+                    password.enabled=true;
+                    var data=accountmodel.get(index);
+                    AppConfig.currentUserPassword = data.password;
+                    AppConfig.currentUserType=changeuserFeildtext.helperText = data.type;
+                    password.text="";}},
+            Material.TextField{id:password;
+                floatingLabel:true;
+                placeholderText:qsTr("密码:");
+                characterLimit: 8;
+                width:parent.width
+                onTextChanged:{
+                    if(password.text=== AppConfig.currentUserPassword){
+                        changeuser.positiveButtonEnabled=true;
+                        password.helperText.color="green";
+                        password.helperText=qsTr("密码正确");}
+                    else{changeuser.positiveButtonEnabled=false;
+                        password.helperText=qsTr("请输入密码...");}}
+                onHasErrorChanged: {
+                    if(password.hasError === true){
+                        password.helperText =qsTr( "密码超过最大限制");}}
+            } ]
     }
     /*语言对话框*/
     Material.Dialog{  id:languagePicker;
@@ -494,7 +585,7 @@ Material.ApplicationWindow{
             width: parent.width
             spacing: 0
             Repeater{
-                model: ["汉语","英语"]//[qsTr("汉语"),qsTr("英语")];
+                model: [qsTr("汉语"),qsTr("英语")];
                 ListItem.Standard{
                     text:modelData;
                     showDivider:true;

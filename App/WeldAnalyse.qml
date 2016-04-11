@@ -13,9 +13,9 @@ FocusScope{
         right:parent.right
         top:parent.top
         bottom: parent.bottom
-        leftMargin:visible?0:Units.dp(250)
+        leftMargin:visible?0:Units.dp(150)
     }
-   Behavior on anchors.leftMargin{NumberAnimation { duration: 200 }}
+   Behavior on anchors.leftMargin{NumberAnimation { duration: 200 ;easing.type:Easing.InQuad }}
    property var groovestyles: [
        qsTr( "平焊单边V型坡口T接头"), qsTr( "平焊单边V型坡口平对接"),  qsTr("平焊V型坡口平对接"),
        qsTr("横焊单边V型坡口T接头"), qsTr( "横焊单边V型坡口平对接"),

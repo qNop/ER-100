@@ -10,15 +10,14 @@ FocusScope{
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "GrooveCheck"
-    anchors.fill: parent
-    //    anchors{
-    //        left:parent.left
-    //        right:parent.right
-    //        top:parent.top
-    //        bottom: parent.bottom
-    //        leftMargin:visible?0:Units.dp(250)
-    //    }
-    //    Behavior on anchors.leftMargin{NumberAnimation { duration: 200 }}
+    anchors{
+        left:parent.left
+        right:parent.right
+        top:parent.top
+        bottom: parent.bottom
+        leftMargin:visible?0:Units.dp(250)
+    }
+    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
     /*坡口列表*/
     property var groovestyles: [
         qsTr( "平焊单边V型坡口T接头"), qsTr( "平焊单边V型坡口平对接"),  qsTr("平焊V型坡口平对接"),
@@ -30,6 +29,7 @@ FocusScope{
 
     property alias grooveStyleModel: grooveTableview.model
     property string status:"0"
+    property string grooveLength:"0"
     property list<Action> actions:[
         Action{iconName:"awesome/folder_open_o";onTriggered: open.show()},
         Action{iconName:"awesome/save";onTriggered: save.show()},
@@ -174,10 +174,10 @@ FocusScope{
             }
             Controls.TableViewColumn{  role:"C1"; title: "板厚 δ\n (mm)";width:Units.dp(100);movable:false;resizable:false}
             Controls.TableViewColumn{  role:"C2"; title: "板厚差 e\n   (mm)";width:Units.dp(100);movable:false;resizable:false}
-            Controls.TableViewColumn{  role:"C3"; title: "余高 h\n (mm)";width:Units.dp(100);movable:false;resizable:false}
+            Controls.TableViewColumn{  role:"C3"; title: "间隙 b\n (mm)";width:Units.dp(100);movable:false;resizable:false}
             Controls.TableViewColumn{  role:"C4"; title: "角度 β1\n  (deg)";width:Units.dp(100);movable:false;resizable:false}
             Controls.TableViewColumn{  role:"C5"; title: "角度 β2\n  (deg)";width:Units.dp(100);movable:false;resizable:false}
-            Controls.TableViewColumn{  role:"C6"; title: "间隙 b\n (mm)";width:Units.dp(100);movable:false;resizable:false}
+            Controls.TableViewColumn{  role:"C6"; title: "余高 h\n (mm)";width:Units.dp(100);movable:false;resizable:false}
             Keys.onPressed: {
                 var diff = event.key ===Qt.Key_Right ? 50 : event.key === Qt.Key_Left ? -50 :  0
                 if(diff !==0){
@@ -208,7 +208,7 @@ FocusScope{
                 }
                 Label{
                     id:status
-                    text:root.status==="1"?"坡口参数检测中":root.status>"2"?"坡口参数检测完成":"坡口检测空闲"
+                    text:root.status==="1"?"坡口参数检测中":root.status>"2"?"坡口参数检测完成,坡口长度为"+grooveLength:"坡口检测空闲"
                     verticalAlignment: Text.AlignVCenter
                 }
             }

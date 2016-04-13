@@ -13,9 +13,10 @@ FocusScope{
         right:parent.right
         top:parent.top
         bottom: parent.bottom
-        leftMargin:visible?0:Units.dp(150)
+        leftMargin:visible?0:Units.dp(250)
     }
-   Behavior on anchors.leftMargin{NumberAnimation { duration: 200 ;easing.type:Easing.InQuad }}
+   Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InQuad }}
+    property alias weldDataModel: tableview.model
    property var groovestyles: [
        qsTr( "平焊单边V型坡口T接头"), qsTr( "平焊单边V型坡口平对接"),  qsTr("平焊V型坡口平对接"),
        qsTr("横焊单边V型坡口T接头"), qsTr( "横焊单边V型坡口平对接"),
@@ -93,7 +94,7 @@ FocusScope{
             Controls.ExclusiveGroup{  id:checkboxgroup }
             ThinDivider{anchors.bottom:tableview.bottom;color:Palette.colors["grey"]["500"]}
             Controls.TableViewColumn{
-                role:"iD"
+                role:"ID"
                 title: "No."
                 width: Units.dp(120);
                 //不可移动
@@ -122,116 +123,68 @@ FocusScope{
                 }
             }
             Controls.TableViewColumn{
-                role: "c1"
+                role: "C1"
                 title: "  焊接\n层道数"
-                width:Units.dp(100);
+                width:Units.dp(70);
                 movable:false
                 resizable:false
             }
             Controls.TableViewColumn{
-                role: "c2"
+                role: "C2"
                 title: "电流\n   A"
-                width:Units.dp(90);
+                width:Units.dp(70);
                 movable:false
                 resizable:false
             }
             Controls.TableViewColumn{
-                role: "c3"
+                role: "C3"
                 title: "电压\n   V"
-                width:Units.dp(90);
+                width:Units.dp(70);
                 movable:false
                 resizable:false
             }
             Controls.TableViewColumn{
-                role: "c4"
+                role: "C4"
                 title: "摆幅\n mm"
+                width:Units.dp(70);
+                movable:false
+                resizable:false
+            }
+            Controls.TableViewColumn{
+                role: "C5"
+                title: "  摆频\n次/min"
+                width:Units.dp(70);
+                movable:false
+                resizable:false
+            }
+            Controls.TableViewColumn{
+                role: "C6"
+                title: "焊接速度\n cm/min"
+                width:Units.dp(80);
+                movable:false
+                resizable:false
+            }
+            Controls.TableViewColumn{
+                role: "C7"
+                title: "  焊接线\n  X  mm"
+                width:Units.dp(80);
+                movable:false
+                resizable:false
+            }
+            Controls.TableViewColumn{
+                role: "C8"
+                title: "  焊接线\n  Y  mm"
                 width:Units.dp(90);
                 movable:false
                 resizable:false
             }
+
             Controls.TableViewColumn{
-                role: "c5"
-                title: "  摆频\n次/min"
-                width:Units.dp(100);
+                role: "C9"
+                title: "预约\n停止"
+                width:Units.dp(70);
                 movable:false
                 resizable:false
-            }
-            Controls.TableViewColumn{
-                role: "c6"
-                title: "焊接速度\n cm/min"
-                width:Units.dp(100);
-                movable:false
-                resizable:false
-            }
-            Controls.TableViewColumn{
-                role: "c7"
-                title: "停止预约"
-                width:Units.dp(100);
-                movable:false
-                resizable:false
-            }
-            model: ListModel{
-                id:listModel
-                ListElement{
-                    iD:"1"
-                    c1:"1/1"
-                    c2:"300"
-                    c3:"30.8"
-                    c4:"3"
-                    c5:"160"
-                    c6:"43"
-                    c7:"连续"
-                }
-                ListElement{
-                    iD:"2"
-                    c1:"2/1"
-                    c2:"310"
-                    c3:"31.8"
-                    c4:"5"
-                    c5:"100"
-                    c6:"29"
-                    c7:"停止"
-                }
-                ListElement{
-                    iD:"3"
-                    c1:"3/1"
-                    c2:"310"
-                    c3:"31.8"
-                    c4:"10"
-                    c5:"50"
-                    c6:"20"
-                    c7:"连续"
-                }
-                ListElement{
-                    iD:"4"
-                    c1:"4/1"
-                    c2:"220"
-                    c3:"22.2"
-                    c4:"6"
-                    c5:"80"
-                    c6:"20"
-                    c7:"连续"
-                }
-                ListElement{
-                    iD:"5"
-                    c1:"4/2"
-                    c2:"220"
-                    c3:"22.2"
-                    c4:"6"
-                    c5:"80"
-                    c6:"20"
-                    c7:"停止"
-                }
-                ListElement{
-                    iD:""
-                    c1:""
-                    c2:""
-                    c3:""
-                    c4:""
-                    c5:""
-                    c6:""
-                    c7:""
-                }
             }
             Keys.onPressed: {
                 var diff = event.key ===Qt.Key_Right ? 50 : event.key === Qt.Key_Left ? -50 :  0
@@ -269,9 +222,9 @@ FocusScope{
                     onRowCountChanged:{
                         var i;
                         for( i=tableview.rowCount-1;i>0;i--){
-                            if(listModel.get(i).iD!==""){
+                            if(weldDataModel.get(i).ID!==""){
                                 var str,row,num
-                                str=listModel.get(i).c1
+                                str=weldDataModel.get(i).C1
                                 i+=1;
                                 footerLabel.text="当前焊接："+" 层"+" 道      "+"总计："+str.slice(0,1) +" 层 "+i+" 道"
                                 break;

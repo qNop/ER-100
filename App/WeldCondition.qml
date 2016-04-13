@@ -17,10 +17,11 @@ FocusScope {
     property var swingWayModel: ["无","左方","右方","左右"];
     property var robotLayoutModel:["坡口侧","非坡口侧"]
     property var returnWayModel: ["单程","往返"];
-    property var weldWireModel: ["实芯","药芯"]
+    property var weldWireModel: ["实芯碳钢","药芯碳钢"]
     property var weldWireDiameterModel: ["1.2mm","1.6mm"]
     property var weldWireLengthModel: ["10mm","15mm","20mm","25mm"]
     property var weldGasModel: ["CO2","混合气"]
+    property alias weldsolubility:solubilityglabel.text
 
     property var condition: [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
@@ -30,19 +31,22 @@ FocusScope {
     }
 
     QuickControls.ExclusiveGroup { id: weldWireLengthGroup; onCurrentChanged:
-            ERModbus.setmodbusFrame(["W","120","1",current.text ==="10mm"?"0":current.text==="15mm"?"1":current.text==="20mm"?"2":"3"]) }
+            //10mm 1 12mm 2 15mm 3 20mm 4 25mm 6
+            ERModbus.setmodbusFrame(["W","120","1",current.text ==="10mm"?"1":current.text==="15mm"?"3":current.text==="20mm"?"4":"6"]) }
     QuickControls.ExclusiveGroup { id: swingWayGroup; onCurrentChanged:
             ERModbus.setmodbusFrame(["W","121","1",current.text ==="无"?"0":current.text==="左方"?"1":current.text==="右方"?"2":"3"]) }
     QuickControls.ExclusiveGroup { id: robotLayoutGroup; onCurrentChanged:
             ERModbus.setmodbusFrame(["W","122","1",current.text ==="坡口侧"?"0":"1"]) }
     QuickControls.ExclusiveGroup { id: weldWireDiameterGroup; onCurrentChanged:
-            ERModbus.setmodbusFrame(["W","123","1",current.text ==="1.2mm"?"0":"1"]) }
+            //1.2mm 4 1.6mm 6
+            ERModbus.setmodbusFrame(["W","123","1",current.text ==="1.2mm"?"4":"6"]) }
     QuickControls.ExclusiveGroup { id: weldGasGroup;onCurrentChanged:
             ERModbus.setmodbusFrame(["W","124","1",current.text ==="CO2"?"0":"1"]) }
     QuickControls.ExclusiveGroup { id: returnWayGroup; onCurrentChanged:
             ERModbus.setmodbusFrame(["W","125","1",current.text ==="单程"?"0":"1"]) }
     QuickControls.ExclusiveGroup { id: weldWireGroup; onCurrentChanged:
-            ERModbus.setmodbusFrame(["W","126","1",current.text ==="实芯"?"0":"1"]) }
+            //0 实芯碳钢 4药芯碳钢
+            ERModbus.setmodbusFrame(["W","126","1",current.text ==="实芯碳钢"?"0":"1"]) }
 
     Material.Card{
         anchors{ left:parent.left;right:parent.right;top:parent.top;bottom: descriptionCard.top;margins:Material.Units.dp(12)}
@@ -81,13 +85,13 @@ FocusScope {
                         case Qt.Key_Right:
                             switch(weldWireLengthGroup.current.text){
                             case "10mm": weldWireLengthGroup.current = weldWireLengthRepeater.itemAt(1);
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,1);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,3);
                                 break;
                             case "15mm":weldWireLengthGroup.current = weldWireLengthRepeater.itemAt(2);
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,2);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,4);
                                 break;
                             case "20mm":weldWireLengthGroup.current = weldWireLengthRepeater.itemAt(3);
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,3);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,6);
                                 break;
                             }
                             event.accepted = true;
@@ -95,13 +99,13 @@ FocusScope {
                         case Qt.Key_Left:
                             switch(weldWireLengthGroup.current.text){
                             case "25mm": weldWireLengthGroup.current = weldWireLengthRepeater.itemAt(2);
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,2);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,4);
                                 break;
                             case "20mm":weldWireLengthGroup.current = weldWireLengthRepeater.itemAt(1);
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,1);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,3);
                                 break;
                             case "15mm":weldWireLengthGroup.current = weldWireLengthRepeater.itemAt(0);
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,0);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,0,1);
                                 break;
                             }
                             event.accepted = true;
@@ -118,7 +122,7 @@ FocusScope {
                             delegate:Material.RadioButton{
                                 text:modelData
                                 onClicked:{
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,index);
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,index===0?1:index===1?3:index===2?4:6);
                                     weldWireLength.forceActiveFocus()}
                                 checked: root.condition[0]==index;
                                 exclusiveGroup: weldWireLengthGroup
@@ -193,7 +197,7 @@ FocusScope {
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: swingWay
-                    KeyNavigation.down: weldWireDiameter
+                    KeyNavigation.down: weldWire
                     onClicked:forceActiveFocus();
                     onSelectedChanged: selected? descriptionlabel.text=text :null;
                     selected: focus;
@@ -225,6 +229,53 @@ FocusScope {
                                     robotLayout.forceActiveFocus()
                                 }}}}
                 }
+                /*焊丝种类*/
+                ListItem.Subtitled{
+                    id:weldWire
+                    text:qsTr("焊丝种类:");
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
+                    height: Material.Units.dp(44)
+                    selected: focus;
+                    KeyNavigation.up: robotLayout
+                    KeyNavigation.down: weldWireDiameter
+                    Keys.onPressed: {
+                        switch(event.key){
+                        case Qt.Key_Right:
+                            if(weldWireGroup.current.text==="实碳钢芯" ){
+
+                                weldWireGroup.current = weldWireRepeater.itemAt(1);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,6,4);
+                            }
+                            event.accepted = true;
+                            break;
+                        case Qt.Key_Left:
+                            if(weldWireGroup.current.text==="药芯碳钢" ){
+                                weldWireGroup.current = weldWireRepeater.itemAt(0);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,6,0);
+                            }
+                            event.accepted = true;
+                            break;
+                        }
+                    }
+                    onClicked:forceActiveFocus();
+                    onSelectedChanged: selected?( descriptionlabel.text=text ):null;
+                    secondaryItem:Row{
+                        anchors.verticalCenter: parent.verticalCenter
+                        Repeater{
+                            id:weldWireRepeater
+                            model:weldWireModel
+                            delegate:Material.RadioButton{
+                                text:modelData
+                                onClicked:{
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,6,index===1?4:0);
+                                    weldWire.forceActiveFocus()}
+                                exclusiveGroup: weldWireGroup
+                                checked: root.condition[6]==index;
+                            }
+                        }
+                    }
+                }
                 /*焊丝直径*/
                 ListItem.Subtitled{
                     id:weldWireDiameter
@@ -233,21 +284,21 @@ FocusScope {
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     selected: focus;
-                    KeyNavigation.up: robotLayout
+                    KeyNavigation.up: weldWire
                     KeyNavigation.down: weldGas
                     Keys.onPressed: {
                         switch(event.key){
                         case Qt.Key_Right:
                             if(weldWireDiameterGroup.current.text==="1.2mm" ){
                                 weldWireDiameterGroup.current = weldWireDiameterRepeater.itemAt(1);
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,3,1);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,3,6);
                             }
                             event.accepted = true;
                             break;
                         case Qt.Key_Left:
                             if(weldWireDiameterGroup.current.text==="1.6mm" ){
                                 weldWireDiameterGroup.current = weldWireDiameterRepeater.itemAt(0);
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,3,0);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,3,4);
                             }
                             event.accepted = true;
                             break;
@@ -265,7 +316,7 @@ FocusScope {
                                 exclusiveGroup: weldWireDiameterGroup
                                 checked: root.condition[3]==index;
                                 onClicked: {
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,3,index);
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,3,index===0?4:6);
                                     weldWireDiameter.forceActiveFocus()}
                             }
                         }
@@ -326,7 +377,7 @@ FocusScope {
                     height: Material.Units.dp(44)
                     selected: focus;
                     KeyNavigation.up: weldGas
-                    KeyNavigation.down: weldWire
+                    KeyNavigation.down: arcTracking
                     Keys.onPressed: {
                         switch(event.key){
                         case Qt.Key_Right:
@@ -346,7 +397,10 @@ FocusScope {
                         }
                     }
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text=text :null;
+                    onSelectedChanged: {if(selected){
+                                           descriptionlabel.text=text ;
+                                           flickable.contentY=0;
+                                       }}
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
                         Repeater{
@@ -363,52 +417,6 @@ FocusScope {
                         }
                     }
                 }
-                /*焊丝种类*/
-                ListItem.Subtitled{
-                    id:weldWire
-                    text:qsTr("焊丝种类:");
-                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
-                    height: Material.Units.dp(44)
-                    selected: focus;
-                    KeyNavigation.up: returnWay
-                    KeyNavigation.down: arcTracking
-                    Keys.onPressed: {
-                        switch(event.key){
-                        case Qt.Key_Right:
-                            if(weldWireGroup.current.text==="实芯" ){
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,6,1);
-                                weldWireGroup.current = weldWireRepeater.itemAt(1);
-                            }
-                            event.accepted = true;
-                            break;
-                        case Qt.Key_Left:
-                            if(weldWireGroup.current.text==="药芯" ){
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,6,0);
-                                weldWireGroup.current = weldWireRepeater.itemAt(0);
-                            }
-                            event.accepted = true;
-                            break;
-                        }
-                    }
-                    onClicked:forceActiveFocus();
-                    onSelectedChanged: selected?( descriptionlabel.text=text,flickable.contentY=0 ):null;
-                    secondaryItem:Row{
-                        anchors.verticalCenter: parent.verticalCenter
-                        Repeater{
-                            id:weldWireRepeater
-                            model:weldWireModel
-                            delegate:Material.RadioButton{
-                                text:modelData
-                                onClicked:{
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,6,index);
-                                    weldWire.forceActiveFocus()}
-                                exclusiveGroup: weldWireGroup
-                                checked: root.condition[6]==index;
-                            }
-                        }
-                    }
-                }
                 /*电弧传感*/
                 ListItem.Subtitled{
                     id:arcTracking
@@ -416,7 +424,7 @@ FocusScope {
                     leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
-                    KeyNavigation.up: weldWire
+                    KeyNavigation.up: returnWay
                     KeyNavigation.down: grooveCheck
                     selected: focus;
                     onSelectedChanged:{if(selected){
@@ -534,7 +542,7 @@ FocusScope {
                         Material.Label{
                             id: solubilityglabel
                             text: root.condition[9];
-                            onTextChanged:  ERModbus.setmodbusFrame(["W","127","1",text.toString()])
+                            onTextChanged:{}  ///ERModbus.setmodbusFrame(["W","129","1",text.toString()])
                         }
                         Material.Label{text:"%";}
                     }
@@ -548,7 +556,7 @@ FocusScope {
                     height: Material.Units.dp(44)
                     KeyNavigation.up: solubility
                     KeyNavigation.down: voltageOffset
-                    onSelectedChanged: selected? descriptionlabel.text="坡口检测点左" :null;
+                    onSelectedChanged: selected? descriptionlabel.text=currentOffset.text:null;
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
@@ -576,7 +584,7 @@ FocusScope {
                         Material.Label{
                             id: currentOffsetlabel
                             text:root.condition[10]
-                            onTextChanged:  ERModbus.setmodbusFrame(["W","128","1",text.toString()])
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","130","1",text.toString()])
                         }
                         Material.Label{text:"A";}
                     }
@@ -621,7 +629,7 @@ FocusScope {
                         Material.Label{
                             id: voltageOffsetlabel
                             text: root.condition[11]
-                            onTextChanged:  ERModbus.setmodbusFrame(["W","129","1",text.toString()])
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","131","1",text.toString()])
                         }
                         Material.Label{text:"V";}
                     }
@@ -666,7 +674,7 @@ FocusScope {
                         Material.Label{
                             id: weldLeftlabel
                             text:root.condition[12]
-                            onTextChanged:  ERModbus.setmodbusFrame(["W","130","1",text.toString()])
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","132","1",text.toString()])
                         }
                         Material.Label{text:"mm";}
                     }
@@ -710,7 +718,7 @@ FocusScope {
                         Material.Label{
                             id: weldRightlabel
                             text:root.condition[13]
-                            onTextChanged:  ERModbus.setmodbusFrame(["W","131","1",text.toString()])
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","133","1",text.toString()])
                         }
                         Material.Label{text:"mm";}
                     }

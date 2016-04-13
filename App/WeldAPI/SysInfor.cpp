@@ -7,9 +7,29 @@ SysInfor::SysInfor()
     totalNew = idleNew = totalOld = idleOld = 0;
     cpuPercent = 0;
     process = new QProcess(this);
-    timer=new QTimer(this);
-    connect(timer,SIGNAL(timeout()),this,SLOT(TimerTrigger()));
+    cpuTimer=new QTimer(this);
+    memoryTimer=new QTimer(this);
+    tempTimer=new QTimer(this);
+    cpuTimer->setSingleShot(true);
+    memoryTimer->setSingleShot(true);
+    tempTimer->setSingleShot(true);
+
+    connect(cpuTimer,SIGNAL(timeout()),this,SLOT(cpuInfor()));
+    connect(memoryTimer,SIGNAL(timeout()),this,SLOT(memoryInfor()));
+    connect(tempTimer,SIGNAL(timeout()),this,SLOT(cpuTemp()));
     connect(process,SIGNAL(readyRead()),this,SLOT(ReadData()));
+}
+
+SysInfor::~SysInfor(){
+    while(process->state()==QProcess::Running);
+    delete process;
+    cpuTimer->stop();
+    memoryTimer->stop();
+    tempTimer->stop();
+    delete cpuTimer;
+    delete memoryTimer;
+    delete tempTimer;
+    qDebug()<<"SysInfor::REMOVE";
 }
 
 QStringList SysInfor::cpuInfor()
@@ -21,15 +41,7 @@ QStringList SysInfor::cpuInfor()
     QString s="cat /proc/stat";
     QStringList cpud=s.split(" ");
     status="cpu";
-     timer->start(100);
     return cpud;
-}
-SysInfor::~SysInfor(){
-    while(process->state()==QProcess::Running);
-    delete process;
-    timer->stop();
-    delete timer;
-    qDebug()<<"SysInfor::REMOVE";
 }
 
 QStringList SysInfor::memoryInfor()
@@ -39,8 +51,7 @@ QStringList SysInfor::memoryInfor()
     }
     QString s="cat /proc/meminfo";
     QStringList cpud=s.split(" ");
-    status="meminfo";
-
+    status="memory";
     return cpud;
 }
 
@@ -51,7 +62,7 @@ QStringList SysInfor::deviceSizeInfor()
     }
     QString s="df -h";
     QStringList cpud=s.split(" ");
-     status="device";
+    status="device";
     return cpud;
 }
 
@@ -63,19 +74,20 @@ int SysInfor::cpuTemp(){
     return 1;
 }
 
-void SysInfor::setCpuInfor(QStringList infor){Q_UNUSED(infor)}
-void SysInfor::setMemoryInfor(QStringList infor){Q_UNUSED(infor)}
-void SysInfor::setDeviceSizeInfor(QStringList infor){Q_UNUSED(infor)}
-void SysInfor::setCpuTemp(int temp){Q_UNUSED(temp)}
-
-void SysInfor::TimerTrigger(){
-    if(status== "cpu"){
-        memoryInfor();
-        timer->start(100);
-    }else if(status== "meminfo"){
-        cpuTemp();
-    }
+QStringList SysInfor::systemInformation()
+{
+    status="cpu";
+    cpuInfor();
+    QStringList s;
+    return s;
 }
+
+//void SysInfor::setCpuInfor(QStringList infor){Q_UNUSED(infor)}
+//void SysInfor::setMemoryInfor(QStringList infor){Q_UNUSED(infor)}
+void SysInfor::setDeviceSizeInfor(QStringList infor){Q_UNUSED(infor)}
+//void SysInfor::setCpuTemp(int temp){Q_UNUSED(temp)}
+void SysInfor::setSystemInformation(QStringList infor){Q_UNUSED(infor)}
+
 
 void SysInfor::ReadData()
 {
@@ -93,9 +105,12 @@ void SysInfor::ReadData()
             cpuPercent = 100 * (total - idle) / total;
             totalOld = totalNew;
             idleOld = idleNew;
-            s=QString("Cpu:%1").arg(cpuPercent);
-            list=s.split(":");
-            emit cpuInforChanged(list);        
+            //   s=QString("Cpu:%1").arg(cpuPercent);
+            //list=s.split(":");
+            system.clear();
+            system.append(QString("%1").arg(cpuPercent));
+            memoryTimer->start(100);
+            // emit cpuInforChanged(list);
             break;
         } else if (s.startsWith("MemTotal")) {
             s = s.replace(" ", "");
@@ -115,19 +130,23 @@ void SysInfor::ReadData()
             memoryFree += s.left(s.length() - 3).toInt() / KB;
             memoryUse = memoryAll - memoryFree;
             memoryPercent = 100 * memoryUse / memoryAll;
-            s=QString("memory:%1:%2:%3").arg(memoryPercent).arg(memoryUse).arg(memoryAll);
-            list=s.split(":");
-            emit memoryInforChanged(list);
+            //   s=QString("memory:%1:%2:%3").arg(memoryPercent).arg(memoryUse).arg(memoryAll);
+            // list=s.split(":");
+            system.append(QString("%1").arg(memoryPercent));
+            tempTimer->start(100);
+            // emit memoryInforChanged(list);
             break;
         }
         else if (s.startsWith("/dev/root")) {
             list=s.split(" " ,QString::SkipEmptyParts);
             qDebug()<<list;
         }
-       if(status=="temp"){
-         emit cpuTempChanged(s.toInt());
-           break;
-         }
+        if(status=="temp"){
+            system.append(s.replace("\n",""));
+            cpuTimer->start(100);
+            emit systemInformationChanged(system);
+            break;
+        }
 
     }
 }

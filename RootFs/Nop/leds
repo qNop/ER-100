@@ -21,5 +21,10 @@ case "$1" in
 	echo 0 > /sys/class/leds/WeldSys_Stop_Led/brightness
 	echo 1 > /sys/class/leds/WeldSys_Ready_Led/brightness
 ;;
+	all)
+	echo 1 > /sys/class/leds/WeldSys_Start_Led/brightness
+	echo 1 > /sys/class/leds/WeldSys_Stop_Led/brightness
+	echo 1 > /sys/class/leds/WeldSys_Ready_Led/brightness
+;;
 esac
 	

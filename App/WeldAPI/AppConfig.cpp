@@ -73,7 +73,7 @@ QSettings *PfromQfile(){
 AppConfig::AppConfig(){
     /*获取ini信息*/
     File=PfromQfile();
-    poc = new QProcess;
+    poc = new QProcess(this);
     Screen_Width = File->value("Screen_Width").toInt();
     Screen_Height = File->value("Screen_Height").toInt();
     Name = File->value("Current_User_Name").toString();

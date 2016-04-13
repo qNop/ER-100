@@ -53,29 +53,103 @@ Material.ApplicationWindow{
     property string sysStatus:"0"
     /*上一次froceitem*/
     property Item lastFocusedItem:null
-    /*坡口检测参数list*/
-    ListModel{id:grooveStyleList
-    ListElement{
-        ID:"1"
-        C1:"1"
-        C2:"2"
-        C3:"3"
-        C4:"4"
-        C5:"5"
-        C6:"6"
-    }
-    }
-    /*更新时间定时器*/
-    Timer{ interval: 500; running: sysInforFlag; repeat: true;
-        onTriggered:{
-            datetime.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd ")+new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
-            SysInfor.cpuInfor;
+    /*错误*/
+    property var promise
+    /*排道参数list*/
+    ListModel{
+        id:weldDataList
+        ListElement{
+            ID:"1"
+            C1:"1/1"
+            C2:"300"
+            C3:"30.8"
+            C4:"3"
+            C5:"160"
+            C6:"43"
+            C7:"0"
+            C8:"3"
+            C9:"连续"
+        }
+        ListElement{
+            ID:"2"
+            C1:"2/1"
+            C2:"310"
+            C3:"31.8"
+            C4:"5"
+            C5:"100"
+            C6:"29"
+            C7:"0"
+            C8:"3"
+            C9:"停止"
+        }
+        ListElement{
+            ID:"3"
+            C1:"3/1"
+            C2:"310"
+            C3:"31.8"
+            C4:"10"
+            C5:"50"
+            C6:"20"
+            C7:"0"
+            C8:"3"
+            C9:"连续"
+        }
+        ListElement{
+            ID:"4"
+            C1:"4/1"
+            C2:"220"
+            C3:"22.2"
+            C4:"6"
+            C5:"80"
+            C6:"20"
+            C7:"0"
+            C8:"3"
+            C9:"连续"
+        }
+        ListElement{
+            ID:"5"
+            C1:"4/2"
+            C2:"220"
+            C3:"22.2"
+            C4:"6"
+            C5:"80"
+            C6:"20"
+            C7:"0"
+            C8:"3"
+            C9:"停止"
+        }
+        ListElement{
+            ID:""
+            C1:""
+            C2:""
+            C3:""
+            C4:""
+            C5:""
+            C6:""
+            C7:""
+            C8:""
+            C9:""
         }
     }
-//    /*握手协议 第一个为系统状态 第二个为要读取地址 第三个为读取个数*/
-//    Timer{id:modbusTimer;interval: 200; running: modbusExist; repeat: true;
-//        onTriggered: {}//ERModbus.setmodbusFrame(["R","0","3"]);}
+
+    /*坡口检测参数list*/
+    ListModel{id:grooveStyleList
+    ListElement{ID:"1";C1:"1"; C2:"2";C3:"3";C4:"4";C5:"5";C6:"6";}}
+    /*更新时间定时器*/
+    Timer{ interval: 500; running: true; repeat: true;
+        onTriggered:{
+            datetime.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd ")+new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
+        }
+    }
+//    Timer{
+//        interval: 4000;running: true;repeat: true;
+//        onTriggered: sysStatus==="0"?sysStatus="1":sysStatus==="1"?sysStatus="2":sysStatus==="2"?sysStatus="3":sysStatus==="3"?sysStatus="4":sysStatus==="4"?sysStatus="5":sysStatus==="5"?sysStatus="6":sysStatus="0";
 //    }
+
+    /*握手协议 第一个为系统状态 第二个为要读取地址 第三个为读取个数*/
+    Timer{id:modbusTimer;interval: 200; running: modbusExist; repeat: true;
+        onTriggered: {ERModbus.setmodbusFrame(["R","0","3"]);}
+    }
     /*初始化Tabpage*/
     initialPage: Material.TabbedPage {
         id: page
@@ -99,11 +173,6 @@ Material.ApplicationWindow{
                 name: qsTr("色彩") ;
                 onTriggered: colorPicker.show();
             },
-            /*系统设置action*/
-            //     Material.Action {iconName:"user/MAG";
-            //      name: qsTr("设置");
-            //onTriggered
-            //},
             /*时间action*/
             Material.Action{name: qsTr("时间"); id:datetime;
                 onTriggered:datePickerDialog.show();
@@ -299,7 +368,9 @@ Material.ApplicationWindow{
                 anchors.fill: parent
                 clip: true;
                 contentHeight: height;
-                WeldAnalyse{visible: page2SelectedIndex===0}
+                WeldAnalyse{visible: page2SelectedIndex===0;
+                weldDataModel: weldDataList
+                }
                 WeldLine{visible: page2SelectedIndex===1}
             }
         }
@@ -315,10 +386,10 @@ Material.ApplicationWindow{
                 SystemInfor{visible: page3SelectedIndex===0}
             }
         }
-        Keys.onDigit1Pressed: {if(page.selectedTab!=0)page.selectedTab=0;else navigationDrawer.toggle();}
-        Keys.onDigit2Pressed: {if(page.selectedTab!=1)page.selectedTab=1;else navigationDrawer.toggle();}
-        Keys.onDigit3Pressed: {if(page.selectedTab!=2)page.selectedTab=2;else navigationDrawer.toggle();}
-        Keys.onDigit4Pressed: {if(page.selectedTab!=3)page.selectedTab=3;else navigationDrawer.toggle();}
+        Keys.onDigit1Pressed: {if((page.selectedTab!=0)&&(systemTestTab.enabled))page.selectedTab=0;else navigationDrawer.toggle();}
+        Keys.onDigit2Pressed: {if((page.selectedTab!=1)&&preConditionTab.enabled)page.selectedTab=1;else navigationDrawer.toggle();}
+        Keys.onDigit3Pressed: {if((page.selectedTab!=2)&&weldAnalyseTab.enabled)page.selectedTab=2;else navigationDrawer.toggle();}
+        Keys.onDigit4Pressed: {if((page.selectedTab!=3)&&(systemInforTab.enabled))page.selectedTab=3;else navigationDrawer.toggle();}
         Keys.onPressed: {
             switch(event.key){
             case Qt.Key_F6:
@@ -328,21 +399,58 @@ Material.ApplicationWindow{
             }
         }
     }
+    onSysStatusChanged: {
+        if(sysStatus=="0"){
+            //高压接触传感
+            snackBar.open("焊接系统空闲！")
+            //空闲态
+            AppConfig.setleds("ready");
+        }else if(sysStatus=="1"){
+            //高压接触传感
+            snackBar.open("坡口检测中，高压输出，请注意安全！")
+            AppConfig.setleds("start");
+        }else if(sysStatus=="2"){
+            //检测完成
+            snackBar.open("坡口检测完成！正在计算相关焊接规范。")
+            AppConfig.setleds("ready");
+            //调用坡口计算函数 生成 坡口参数
+        }else if(sysStatus=="3"){
+            //启动焊接
+            AppConfig.setleds("start");
+            //系统焊接中
+            snackBar.open("焊接系统焊接中。")
+        }else if(sysStatus=="4"){
+            //焊接暂停
+            AppConfig.setleds("ready");
+            //系统焊接中
+            snackBar.open("焊接系统焊接暂停。")
+        }else if(sysStatus=="5"){
+            //系统停止
+            AppConfig.setleds("stop");
+            //焊接系统停止
+              snackBar.open("焊接系统停止。")
+        }
+    }
     Connections{
         target: ERModbus
         onModbusFrameChanged:{
             if(frame[0]!=="Success"){
-                //listModel.append({"time":(new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm")),"status":frame.join(",")})
+                listModel.append({"time":(new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm")),"status":frame.join(",")})
                 debug.incrementCurrentIndex();
-                //app.showError("Modbus 通讯异常！",frame[0],"关闭","");
+                //app.promise= app.showError("Modbus 通讯异常！",frame[0],"关闭","");
             }else{
+                app.closeError();
+                //frame[0] 代表状态 1代读取的寄存器地址 2代表返回的 第一个数据 3代表返回的第二个数据 依次递推
                 switch(frame[1]){
-                    //读取系统状态寄存器
+                    //读取系统状态寄存器地址
                 case "0":
                     //判断当前系统状态处于哪一种状态
                     if(app.sysStatus!==frame[2]){
                         if(Number(frame[2])<6)
                             app.sysStatus=frame[2];
+                        else{
+                            //报错
+                        }
                     }else{
                         switch(app.sysStatus){
                             //空闲态
@@ -359,13 +467,14 @@ Material.ApplicationWindow{
                             //坡口检测结束态
                         case "2":
                             //读取焊接距离
-                            if(frame[3]==="160"){
+                            if(frame[3]==="104"){
                                 app.modbusExist=false;
-                                ERModbus.setmodbusFrame(["R","160",frame[4]])
+                                ERModbus.setmodbusFrame(["R","104",frame[4]])
                             }
                             break;
                             //焊接态
                         case "3":
+
                             break;
                             //暂停焊接态
                         case "4":
@@ -380,7 +489,15 @@ Material.ApplicationWindow{
                 case "150":
                     console.log(grooveStyleList.count);
                     if(app.sysStatus==="1"){
-                        grooveStyleList.append({"ID":(grooveStyleList.count+1).toString(),"C1":frame[2],"C2":frame[3],"C3":frame[4],"C4":frame[5],"C5":frame[6],"C6":frame[7]})
+                        grooveStyleList.append({"ID":frame[2],"C1":frame[3],"C2":frame[4],"C3":frame[5],"C4":frame[6],"C5":frame[7]})
+                    }
+                    modbusTimer.restart();
+                    app.modbusExist=true;
+                    break;
+                    //读取坡口长度
+                case "104":
+                    if(app.sysStatus==="2"){
+
                     }
                     modbusTimer.restart();
                     app.modbusExist=true;
@@ -395,6 +512,11 @@ Material.ApplicationWindow{
             time:"00:00"
             status:"System Start"
         }
+    }
+    Material.Snackbar{
+            id:snackBar
+            fullWidth:false
+            duration:3000;
     }
     Material.Sidebar{
         id:sidebar
@@ -415,7 +537,7 @@ Material.ApplicationWindow{
             }
             onCurrentIndexChanged: {
                 if(currentIndex>1000){
-                    listModel.romve(0);
+                    listModel.remove(0);
                 }
             }
         }

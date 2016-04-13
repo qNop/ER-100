@@ -8,36 +8,28 @@ Item {
      /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "SystemInfor"
     property var currentdate:new Date();
-    property int count:  0
-        Connections{
-        target:SysInfor
-        onCpuInforChanged:{ currentdate=new Date(); cpu.append(currentdate,Number(infor[1]))
-        }
-    }
+    Component.onCompleted: SysInfor.systemInformation;
     Connections{
-        target: SysInfor
-        onCpuTempChanged:{cputemp.append(currentdate,temp);
-            var datetime;
-            if(count>119){
-                datetime= dateTimex.min;
-                datetime.setSeconds(datetime.getSeconds()+1);
-                dateTimex.min=datetime;
-                datetime= dateTimex.max;
-                datetime.setSeconds(datetime.getSeconds()+1);
-                dateTimex.max=datetime;
-                count=118;
-                cpu.remove(0);
-                memory.remove(0);
-                cputemp.remove(0)
+        target:SysInfor
+        onSystemInformationChanged:{
+            currentdate=new Date();
+            console.log(infor)
+            cpu.append(currentdate,Number(infor[0]));
+            memory.append(currentdate,Number(infor[1]));
+            cputemp.append(currentdate,Number(infor[2]));
+            if(currentdate>dateTimex.max){
+                currentdate= dateTimex.min;
+                currentdate.setSeconds(currentdate.getSeconds()+1);
+                dateTimex.min=currentdate;
+                currentdate= dateTimex.max;
+                currentdate.setSeconds(currentdate.getSeconds()+1);
+                dateTimex.max=currentdate;
+                if(cpu.count>60){
+                    cpu.remove(0);
+                    memory.remove(0);
+                    cputemp.remove(0);
+                }
             }
-            count++;
-            console.log(cputemp.count);
-
-        }
-    }
-    Connections{
-        target:SysInfor
-        onMemoryInforChanged:{ memory.append(currentdate,Number(infor[1]))
         }
     }
     ChartView{

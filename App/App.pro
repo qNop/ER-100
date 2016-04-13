@@ -8,7 +8,8 @@ SOURCES += main.cpp \
     libmodbus/src/modbus-rtu.c \
     WeldAPI/ERModbus.cpp \
     WeldAPI/AppConfig.cpp \
-    WeldAPI/SysInfor.cpp
+    WeldAPI/SysInfor.cpp \
+    WeldAPI/weldmath.cpp
 
 
 RESOURCES += \
@@ -23,7 +24,8 @@ HEADERS += \
     libmodbus/src/modbus-rtu-private.h \
     WeldAPI/ERModbus.h \
     WeldAPI/AppConfig.h \
-    WeldAPI/SysInfor.h
+    WeldAPI/SysInfor.h \
+    WeldAPI/weldmath.h
 
 INCLUDEPATH +=libmodbus \
               libmodbus/src \

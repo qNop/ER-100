@@ -119,7 +119,7 @@ Controls.ApplicationWindow {
 
     OverlayLayer {
         id: overlayLayer
-	objectName: "overlayLayer"
+        objectName: "overlayLayer"
     }
 
     width: Units.dp(800)
@@ -166,6 +166,10 @@ Controls.ApplicationWindow {
 
         return errorDialog.promise
     }
+    function closeError(){
+        if(errorDialog.showing)
+            errorDialog.close();
+    }
 
     Component.onCompleted: {
         if (clientSideDecorations)
@@ -177,7 +181,7 @@ Controls.ApplicationWindow {
 
         Device.type = Qt.binding(function () {
             var diagonal = Math.sqrt(Math.pow((Screen.width/Screen.pixelDensity), 2) +
-                    Math.pow((Screen.height/Screen.pixelDensity), 2)) * 0.039370;
+                                     Math.pow((Screen.height/Screen.pixelDensity), 2)) * 0.039370;
 
             if (diagonal >= 3.5 && diagonal < 5) { //iPhone 1st generation to phablet
                 Units.multiplier = 1;
@@ -205,3 +209,4 @@ Controls.ApplicationWindow {
         })
     }
 }
+

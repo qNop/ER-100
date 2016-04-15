@@ -4,6 +4,7 @@
 #include "AppConfig.h"
 #include "ERModbus.h"
 #include "SysInfor.h"
+#include "weldmath.h"
 #include <QDebug>
 #include "gloabldefine.h"
 
@@ -29,6 +30,14 @@ QObject* SysInforEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
      SysInfor *p=new SysInfor();
      return p;
 }
+QObject* WeldMathEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
+{
+    Q_UNUSED(engine)
+    Q_UNUSED(scriptEngine)
+     WeldMath *p=new WeldMath();
+     return p;
+}
+
 int main(int argc, char *argv[])
 {
     //必须声明在APP之前声明环境变量。
@@ -36,10 +45,13 @@ int main(int argc, char *argv[])
     //显示插件调试信息
    // qputenv("QT_DEBUG_PLUGINS", QByteArray("1"));
     QApplication app(argc, argv);
+
     qmlRegisterSingletonType<SysInfor>("WeldSys.SysInfor",1,0,"SysInfor",SysInforEngineProvider);
     qmlRegisterSingletonType<AppConfig>("WeldSys.AppConfig",1,0,"AppConfig",AppConfigEngineProvider);
     qmlRegisterSingletonType<ERModbus>("WeldSys.ERModbus",1,0,"ERModbus",ERModbusEngineProvider);
+    qmlRegisterSingletonType<WeldMath>("WeldSys.WeldMath",1,0,"WeldMath",WeldMathEngineProvider);
     QQmlApplicationEngine engine;
+
     engine.setOfflineStoragePath(".");
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 

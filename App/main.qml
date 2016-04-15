@@ -3,6 +3,7 @@ import Material 0.1 as Material
 import Material.Extras 0.1
 import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
+import WeldSys.WeldMath 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
 import QtQuick.LocalStorage 2.0
@@ -55,6 +56,13 @@ Material.ApplicationWindow{
     property Item lastFocusedItem:null
     /*错误*/
     property var promise
+//    Connections{
+//        target: WeldMath
+//        onWeldRulesModelChanged:{console.log(weldRulesModelValue);console.log("Math changed")}
+//    }
+
+
+
     /*排道参数list*/
     ListModel{
         id:weldDataList

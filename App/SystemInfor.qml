@@ -41,12 +41,14 @@ Item {
         //只有 曲线有 动画其他没有
         animationOptions: ChartView.SeriesAnimations
         property bool openGl: true
+        dropShadowEnabled:true
         DateTimeAxis{
             id:dateTimex
             format: "h:mm:ss"
             titleText: "时间"
             min:new Date()
             max:{var datetime=min;datetime.setMinutes(datetime.getMinutes()+1);  return datetime;   }
+            labelsAngle: 30
         }
         ValueAxis{
             id:valueAxisy

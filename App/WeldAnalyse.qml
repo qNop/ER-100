@@ -186,6 +186,7 @@ FocusScope{
                 movable:false
                 resizable:false
             }
+            ///添加内外停留时间 两个参数
             Keys.onPressed: {
                 var diff = event.key ===Qt.Key_Right ? 50 : event.key === Qt.Key_Left ? -50 :  0
                 if(diff !==0){

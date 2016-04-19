@@ -16,7 +16,7 @@ Item {
             console.log(infor)
             cpu.append(currentdate,Number(infor[0]));
             memory.append(currentdate,Number(infor[1]));
-            cputemp.append(currentdate,Number(infor[2]));
+            cputemp.append(currentdate,Material.Device.type==Material.Device.desktop?Number(infor[2])/1000:Number(infor[2]));
             if(currentdate>dateTimex.max){
                 currentdate= dateTimex.min;
                 currentdate.setSeconds(currentdate.getSeconds()+1);
@@ -40,8 +40,7 @@ Item {
         legend.alignment: Qt.AlignTop
         //只有 曲线有 动画其他没有
         animationOptions: ChartView.SeriesAnimations
-        property bool openGl: true
-        dropShadowEnabled:true
+        property bool openGl: Material.Device.type==Material.Device.desktop?false:true
         DateTimeAxis{
             id:dateTimex
             format: "h:mm:ss"

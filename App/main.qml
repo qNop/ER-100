@@ -29,19 +29,15 @@ Material.ApplicationWindow{
     property var analyseIcon: ["awesome/line_chart","awesome/line_chart"]
     property var infor: ["SystemInfor"]
     property var inforName:["系统信息"]
-    property var inforIcon: ["awesome/tasks"]
-    property var test: ["CheckTest"]
-    property var testName:["系统测试"]
-    property var testIcon: ["awesome/tasks"]
-    property var sections: [test,preset,analyse, infor]
-    property var sectionsName:[testName,presetName,analyseName,inforName]
-    property var sectionsIcon:[testIcon,presetIcon,analyseIcon,inforIcon]
-    property var sectionTitles: ["系统测试","预置条件", "焊接分析", "系统信息"]
-    property var tabiconname: ["awesome/windows","action/settings_input_composite","awesome/line_chart","action/dashboard"]
+    property var inforIcon: ["awesome/windows"]
+    property var sections: [preset,analyse, infor]
+    property var sectionsName:[presetName,analyseName,inforName]
+    property var sectionsIcon:[presetIcon,analyseIcon,inforIcon]
+    property var sectionTitles: ["预置条件", "焊接分析", "系统信息"]
+    property var tabiconname: ["action/settings_input_composite","awesome/line_chart","awesome/windows"]
     property int  page0SelectedIndex:0
     property int  page1SelectedIndex:0
     property int  page2SelectedIndex:0
-    property int  page3SelectedIndex:0
     /*当前本地化语言*/
     property string local: "zh_CN"
     /*当前坡口形状*/
@@ -56,12 +52,6 @@ Material.ApplicationWindow{
     property Item lastFocusedItem:null
     /*错误*/
     property var promise
-//    Connections{
-//        target: WeldMath
-//        onWeldRulesModelChanged:{console.log(weldRulesModelValue);console.log("Math changed")}
-//    }
-
-
 
     /*排道参数list*/
     ListModel{
@@ -149,13 +139,14 @@ Material.ApplicationWindow{
             datetime.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd ")+new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
         }
     }
+
 //    Timer{
 //        interval: 4000;running: true;repeat: true;
 //        onTriggered: sysStatus==="0"?sysStatus="1":sysStatus==="1"?sysStatus="2":sysStatus==="2"?sysStatus="3":sysStatus==="3"?sysStatus="4":sysStatus==="4"?sysStatus="5":sysStatus==="5"?sysStatus="6":sysStatus="0";
 //    }
 
     /*握手协议 第一个为系统状态 第二个为要读取地址 第三个为读取个数*/
-    Timer{id:modbusTimer;interval: 200; running: modbusExist; repeat: true;
+    Timer{id:modbusTimer;interval: 100; running: modbusExist; repeat: true;
         onTriggered: {ERModbus.setmodbusFrame(["R","0","3"]);}
     }
     /*初始化Tabpage*/
@@ -247,14 +238,12 @@ Material.ApplicationWindow{
                         iconName: sectionsIcon[page.selectedTab][index]
                         selected:  page.selectedTab===0 ? page0SelectedIndex === index ? true:false
                         :page.selectedTab===1?page1SelectedIndex ===index ?true:false
-                        :page.selectedTab===2?page2SelectedIndex===index?true:false
-                        :page3SelectedIndex===index?true:false;
+                        :page2SelectedIndex===index?true:false;
                         onClicked: {
                             switch(page.selectedTab)
                             {case 0:page0SelectedIndex=index;break;
                              case 1:page1SelectedIndex=index;break;
-                             case 2:page2SelectedIndex=index;break;
-                             case 3:page3SelectedIndex=index;break;}
+                             case 2:page2SelectedIndex=index;break;}
                             navigationDrawer.close();
                         }
                     }
@@ -264,21 +253,11 @@ Material.ApplicationWindow{
             ListItem.Standard{
                 id:navUser
                 height:Material.Units.dp(40);
-                anchors.bottom: navUserType.top
+                anchors.bottom: navGrooveStyle.top
                 anchors.left: parent.left
                 anchors.leftMargin: Material.Units.dp(16);
                 iconName: "awesome/user"
-                text:"用户名 : "+AppConfig.currentUserName
-            }
-            ListItem.Standard{
-                id:navUserType
-                height:Material.Units.dp(40);
-                anchors.bottom: navGrooveStyle.top
-                anchors.bottomMargin: Material.Units.dp(8)
-                anchors.left: parent.left
-                anchors.leftMargin: Material.Units.dp(16);
-                iconName: "awesome/group"
-                text:"用户组 : "+AppConfig.currentUserType
+                text:"用 户:"+AppConfig.currentUserName+"/"+AppConfig.currentUserType
             }
             ListItem.Standard{
                 id:navGrooveStyle
@@ -293,17 +272,12 @@ Material.ApplicationWindow{
             Keys.onDownPressed: {  switch(page.selectedTab){
                 case 0: if(page0SelectedIndex!==navrep.count -1 )page0SelectedIndex++;else page0SelectedIndex=navrep.count-1;break;
                 case 1: if(page1SelectedIndex!==navrep.count -1 )page1SelectedIndex++;else page1SelectedIndex=navrep.count-1;break;
-                case 2: if(page2SelectedIndex!==navrep.count -1 )page2SelectedIndex++;else page2SelectedIndex=navrep.count-1;break;
-                case 3: if(page3SelectedIndex!==navrep.count -1 )page3SelectedIndex++;else page3SelectedIndex=navrep.count-1;break;} }
+                case 2: if(page2SelectedIndex!==navrep.count -1 )page2SelectedIndex++;else page2SelectedIndex=navrep.count-1;break;} }
             Keys.onUpPressed: {switch(page.selectedTab){
                 case 0: if(page0SelectedIndex) {page0SelectedIndex--; }else{page0SelectedIndex=0 ;}break;
                 case 1: if(page1SelectedIndex) {page1SelectedIndex--; }else{page1SelectedIndex=0 ;}break;
-                case 2: if(page2SelectedIndex) {page2SelectedIndex--; }else{page2SelectedIndex=0 ;}break;
-                case 3: if(page3SelectedIndex) {page3SelectedIndex--; }else{page3SelectedIndex=0 ;}break;} }
-            Keys.onDigit1Pressed:page.selectedTab===0?navigationDrawer.toggle():null
-            Keys.onDigit2Pressed:page.selectedTab===1?navigationDrawer.toggle():null
-            Keys.onDigit3Pressed:page.selectedTab===2?navigationDrawer.toggle():null
-            Keys.onDigit4Pressed:page.selectedTab===3?navigationDrawer.toggle():null
+                case 2: if(page2SelectedIndex) {page2SelectedIndex--; }else{page2SelectedIndex=0 ;}break;} }
+            Keys.onDigit1Pressed:navigationDrawer.toggle()
             /*Nav关闭时 将焦点转移到选择的Item上 方便按键的对焦*/
             function close() {
                 showing = false
@@ -311,8 +285,11 @@ Material.ApplicationWindow{
                     parent.currentOverlay = null
                 }
                 /*找出本次选择的焦点*/
-                __lastFocusedItem=Utils.findChild(page.selectedTab===0 ?systemTestTab:page.selectedTab===1?
-                                                                             preConditionTab:page.selectedTab===2?  weldAnalyseTab: systemInforTab,sections[page.selectedTab][page.selectedTab===0 ? page0SelectedIndex  : page.selectedTab===1? page1SelectedIndex : page.selectedTab===2?page2SelectedIndex:page3SelectedIndex])
+                __lastFocusedItem=Utils.findChild(page.selectedTab===0 ?preConditionTab:page.selectedTab===1?
+                                                                             weldAnalyseTab: systemInforTab
+                                                  ,sections[page.selectedTab][page.selectedTab===0 ?
+                                                                                  page0SelectedIndex  : page.selectedTab===1?
+                                                                                      page1SelectedIndex :page2SelectedIndex])
                 if (__lastFocusedItem !== null) {
                     __lastFocusedItem.forceActiveFocus()
                     lastFocusedItem=__lastFocusedItem;
@@ -323,28 +300,14 @@ Material.ApplicationWindow{
         onSelectedTabChanged: {
             Qt.inputMethod.hide();
             /*找出本次选择的焦点*/
-            lastFocusedItem=Utils.findChild(page.selectedTab===0 ?systemTestTab:page.selectedTab===1?
-                                                                       preConditionTab:page.selectedTab===2?  weldAnalyseTab: systemInforTab
+            lastFocusedItem=Utils.findChild(page.selectedTab === 0 ?preConditionTab:page.selectedTab===1?
+                                                                       weldAnalyseTab: systemInforTab
                                             ,sections[page.selectedTab][page.selectedTab===0 ?
                                                                             page0SelectedIndex  : page.selectedTab===1?
-                                                                                page1SelectedIndex : page.selectedTab===2?
-                                                                                    page2SelectedIndex:page3SelectedIndex])
+                                                                                page1SelectedIndex :page2SelectedIndex])
             if (lastFocusedItem !== null) {
                 lastFocusedItem.forceActiveFocus()
 
-            }
-        }
-        Material.Tab{
-            id:systemTestTab
-            title: qsTr("系统测试(I)")
-            iconName: "awesome/windows"
-            enabled: false
-            Flickable{
-                id:systemTestFlickable
-                anchors.fill: parent
-                clip: true;
-                contentHeight: height;
-                CheckTest{visible:page0SelectedIndex===0}
             }
         }
         Material.Tab{
@@ -356,12 +319,12 @@ Material.ApplicationWindow{
                 anchors.fill: parent
                 clip: true;
                 contentHeight: height;
-                GrooveCondition{visible: page1SelectedIndex===0}
-                TeachCondition{visible: page1SelectedIndex===1}
-                WeldCondition{visible: page1SelectedIndex===2}
+                GrooveCondition{visible: page0SelectedIndex===0}
+                TeachCondition{visible: page0SelectedIndex===1}
+                WeldCondition{visible: page0SelectedIndex===2}
                 GrooveCheck{
                    id:grooveCheck
-                   visible: page1SelectedIndex===3
+                   visible: page0SelectedIndex===3
                    grooveStyleModel: grooveStyleList
                    status: app.sysStatus
                }
@@ -376,10 +339,10 @@ Material.ApplicationWindow{
                 anchors.fill: parent
                 clip: true;
                 contentHeight: height;
-                WeldAnalyse{visible: page2SelectedIndex===0;
+                WeldAnalyse{visible: page1SelectedIndex===0;
                 weldDataModel: weldDataList
                 }
-                WeldLine{visible: page2SelectedIndex===1}
+                WeldLine{visible: page1SelectedIndex===1}
             }
         }
         Material.Tab{
@@ -391,13 +354,13 @@ Material.ApplicationWindow{
                 anchors.fill: parent
                 clip: true;
                 contentHeight: height;
-                SystemInfor{visible: page3SelectedIndex===0}
+                SystemInfor{visible: page2SelectedIndex===0}
             }
         }
-        Keys.onDigit1Pressed: {if((page.selectedTab!=0)&&(systemTestTab.enabled))page.selectedTab=0;else navigationDrawer.toggle();}
-        Keys.onDigit2Pressed: {if((page.selectedTab!=1)&&preConditionTab.enabled)page.selectedTab=1;else navigationDrawer.toggle();}
-        Keys.onDigit3Pressed: {if((page.selectedTab!=2)&&weldAnalyseTab.enabled)page.selectedTab=2;else navigationDrawer.toggle();}
-        Keys.onDigit4Pressed: {if((page.selectedTab!=3)&&(systemInforTab.enabled))page.selectedTab=3;else navigationDrawer.toggle();}
+        Keys.onDigit1Pressed:  navigationDrawer.toggle();
+        Keys.onDigit2Pressed: {if((page.selectedTab!=0)&&preConditionTab.enabled)page.selectedTab=0;}
+        Keys.onDigit3Pressed: {if((page.selectedTab!=1)&&weldAnalyseTab.enabled)page.selectedTab=1;}
+        Keys.onDigit4Pressed: {if((page.selectedTab!=2)&&(systemInforTab.enabled))page.selectedTab=2;}
         Keys.onPressed: {
             switch(event.key){
             case Qt.Key_F6:
@@ -445,7 +408,7 @@ Material.ApplicationWindow{
             if(frame[0]!=="Success"){
                 listModel.append({"time":(new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm")),"status":frame.join(",")})
                 debug.incrementCurrentIndex();
-                //app.promise= app.showError("Modbus 通讯异常！",frame[0],"关闭","");
+                app.promise= app.showError("Modbus 通讯异常！",frame[0],"关闭","");
             }else{
                 app.closeError();
                 //frame[0] 代表状态 1代读取的寄存器地址 2代表返回的 第一个数据 3代表返回的第二个数据 依次递推

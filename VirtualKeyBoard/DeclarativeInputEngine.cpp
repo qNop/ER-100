@@ -40,7 +40,6 @@ struct DeclarativeInputEnginePrivate
     QStringList val;
     QStringList Model;
     QString str;
-    long index;
     QObject* InputPanel;
 
     /**
@@ -69,7 +68,6 @@ DeclarativeInputEngine::DeclarativeInputEngine(QObject *parent) :
 {
     d->str="";
     d->Model.clear();
-    d->index=0;
     QSettings setter(":/pinyin/pinyinEx.ini", QSettings::IniFormat);
     d->key = setter.value("pyKey",d->key).toStringList();
     d->val = setter.value("pyVal", d->val).toStringList();
@@ -95,6 +93,7 @@ void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
     //qDebug() << "CDeclarativeInputEngine::sendKeyToFocusItem " << text;
     QInputMethodEvent ev;
   //  qDebug()<<"DeclarativeInputEngine::d->index"<<d->index;
+
     //删除命令
     if (text == QString("\x7F"))
     {
@@ -104,39 +103,28 @@ void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
         }
         if (d->str.length()){
             d->str.truncate(d->str.length()-1);
-            d->index=0; //每次匹配时都清零
             macthing(d->str);//匹配 汉字
         }
         else{
-            d->index=0;
             d->str = "";
         }
     }else if (text == QString("\n"))
     {
         QCoreApplication::sendEvent(QGuiApplication::focusObject(), new QKeyEvent(QEvent::KeyPress, Qt::Key_Enter, Qt::NoModifier));
         QCoreApplication::sendEvent(QGuiApplication::focusObject(), new QKeyEvent(QEvent::KeyRelease, Qt::Key_Enter, Qt::NoModifier));
-    }else if(text == QString("\x0D")){//enter
+    }else if(text.startsWith(QString("\x0D"))){//enter
+        QString str=text;
         if(d->Model.length()){
-            ev.setCommitString(d->Model.at(d->index));
+            ev.setCommitString(d->Model.at(str.replace(QString("\x0D"),"").toInt()));
             QCoreApplication::sendEvent(QGuiApplication::focusObject(),&ev);
             d->str="";
             macthing(d->str);
         }
-    }else if(text == QString("\x0E")){//>>
-        d->index++;
-        if(d->index>d->Model.length()){
-            d->index=d->Model.length();
-        }
-    }else if(text == QString("\x0F")){ // <<
-        if(d->index>0)
-            d->index--;
-        else d->index=0;
     }
     //正常命令
     else
     {
         d->str+=text;
-        d->index=0;
         macthing(d->str);//匹配 汉字
     }
 }
@@ -187,7 +175,6 @@ void DeclarativeInputEngine::macthing(QString str){
     int idx = max / 2;
     d->Model.clear();
     d->Model.append(str);
-    d->index=0;
     str = str.toLower();
     if(str != ""){
         while (true)

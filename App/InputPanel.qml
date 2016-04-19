@@ -14,7 +14,7 @@ FocusScope {
     id:root
     width: parent.width
     height: width / 3
-    onHeightChanged:    InputEngine.setKeyboardRectangle(Qt.rect(x, y, width, height));
+    onHeightChanged:InputEngine.setKeyboardRectangle(Qt.rect(x, y, width, height));
     Component.onCompleted: {
         listView.model=[""];
         InputEngine.setInputPanel(root);
@@ -119,7 +119,7 @@ FocusScope {
                     id:leftButton;
                     width: buttonWidth
                     height:parent.height
-                    onClicked: { listView.decrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0F") }//SO 代表<<
+                    onClicked: { listView.decrementCurrentIndex(); }//SO 代表<<
                     Icon{
                         anchors.centerIn:leftButton
                         source: "icon://awesome/caret_left"
@@ -128,7 +128,7 @@ FocusScope {
                         size:Units.dp(32)
                     }
                     Timer{interval: 800;running: leftButton.pressed; repeat: true;
-                        onTriggered: { listView.decrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0F");}
+                        onTriggered: { listView.decrementCurrentIndex();}
                     }
                 }
                 ListView {
@@ -140,9 +140,13 @@ FocusScope {
                     delegate:Item{
                         width:hanziTxt.width+20
                         height:parent.height
+                        Ink{
+                            anchors.fill: parent
+                            onPressed: listView.currentIndex=index;
+                        }
                         Label {
                             id: hanziTxt
-                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.centerIn: parent
                             text: modelData
                             style:"subheading"
                             color:  index === listView.currentIndex ? Theme.accentColor : Theme.lightDark(card.backgroundColor,Theme.light.textColor,Theme.dark.textColor)
@@ -154,7 +158,7 @@ FocusScope {
                     height:parent.height
                     width:buttonWidth
                     onPressedChanged:{if(pressed)
-                        listView.incrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0E") }//SO 代表<<
+                        listView.incrementCurrentIndex(); }//SO 代表<<
                     Icon{
                         anchors.centerIn:rightButton
                         source: "icon://awesome/caret_right"
@@ -163,7 +167,7 @@ FocusScope {
                         size:Units.dp(32)
                     }
                     Timer{interval: 800;running: rightButton.pressed; repeat: true;
-                        onTriggered:{ listView.incrementCurrentIndex();InputEngine.sendKeyToFocusItem("\x0E");}
+                        onTriggered:{ listView.incrementCurrentIndex();}
                     }
                 }
                 Button {
@@ -300,7 +304,7 @@ FocusScope {
                     elevation:1
                     width: backspace.width
                     height: rowHeight                
-                    onClicked: InputEngine.sendKeyToFocusItem("\x0D")//回车码
+                    onClicked: InputEngine.sendKeyToFocusItem("\x0D"+listView.currentIndex)//回车码
                     Label{
                         anchors.centerIn: parent
                         text:qsTr("确认")

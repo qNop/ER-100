@@ -14,15 +14,9 @@ FocusScope {
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "TeachCondition"
-anchors.fill: parent
+    anchors.fill: parent
     property var repeaterModel:[0,0,0,300,2,-10,-10]
-    property var listName: [qsTr("示教模式:"),
-        qsTr("始终端检测:"),
-        qsTr("示教第一点位置:"),
-        qsTr("示教点数:"),
-        qsTr("焊接长度:"),
-        qsTr("坡口检测点左:"),
-        qsTr("坡口检测点右:")]
+    property var listName: [qsTr("示教模式:"),qsTr("始终端检测:"),qsTr("示教第一点位置:"),qsTr("示教点数:"),qsTr("焊接长度:"),qsTr("坡口检测点左:"),qsTr("坡口检测点右:")]
     property var teachmodemodel: ["自动","半自动","手动"];
     property var startendcheckmodel:["自动","手动"]
     property var teachfisrtpointmodel: ["右方","左方"];
@@ -36,6 +30,7 @@ anchors.fill: parent
 
     //坡口数据库英文名称
     Component.onCompleted: {
+        Material.UserData.openDatabase();
         //读取数据库数据
         root.repeaterModel=Material.UserData.getValueFromFuncOfTable(root.objectName,"","");
         // ERModbus.setmodbusFrame(["W","100","7"].concat(repeaterModel))
@@ -104,7 +99,7 @@ anchors.fill: parent
                             delegate:Material.RadioButton{
                                 text:modelData
                                 exclusiveGroup: teachmodegroup
-                                checked: root.repeaterModel[0] ===index
+                                checked: Number(root.repeaterModel[0]) ===index
                                 onClicked: {
                                     teachmode.forceActiveFocus();
                                     Material.UserData.setValueFromFuncOfTable(root.objectName,0,index)
@@ -153,7 +148,7 @@ anchors.fill: parent
                             model:startendcheckmodel
                             delegate:Material.RadioButton{
                                 text:modelData
-                                checked: root.repeaterModel[1] ===index
+                                checked: Number(root.repeaterModel[1]) ===index
                                 exclusiveGroup: startendcheckgroup
                                 onClicked: {startendcheck.forceActiveFocus()
                                     Material.UserData.setValueFromFuncOfTable(root.objectName,1,index);
@@ -201,7 +196,7 @@ anchors.fill: parent
                             model:teachfisrtpointmodel
                             delegate:Material.RadioButton{
                                 text:modelData
-                                checked:  root.repeaterModel[2] ===index
+                                checked:  Number(root.repeaterModel[2] )===index
                                 exclusiveGroup: teachfisrtpointgroup
                                 onClicked:{
                                     teachfirstpoint.forceActiveFocus();

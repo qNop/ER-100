@@ -49,8 +49,11 @@ FocusScope {
     onCurrentGrooveChanged: {
         AppConfig.currentGroove=currentGroove;
         ERModbus.setmodbusFrame(["W","90","1",currentGroove.toString()])
+        tableview.model=limitedModel[currentGroove];
     }
-    Component.onCompleted: {currentGroove=AppConfig.currentGroove
+    Component.onCompleted: {
+        Material.UserData.openDatabase();
+        currentGroove=AppConfig.currentGroove
         bottomStyleValue=AppConfig.bottomStyle
     }
     Material.Card{
@@ -459,7 +462,6 @@ FocusScope {
                 style:MyTableViewStyle{}
                 //选择模式 单选
                 selectionMode:Controls.SelectionMode.NoSelection
-                Controls.ExclusiveGroup{  id:checkboxgroup }
                 Material.ThinDivider{anchors.bottom:tableview.bottom;color:Material.Palette.colors["grey"]["500"]}
                 Controls.TableViewColumn{
                     role:"iD"
@@ -475,9 +477,8 @@ FocusScope {
                             anchors.left: parent.left
                             anchors.leftMargin: Material.Units.dp(16)
                             anchors.verticalCenter: parent.verticalCenter
-                            checked: styleData.selected
+                            checked: true
                             visible: label.text!==""
-                            exclusiveGroup:checkboxgroup
                         }
                         Material.Label{
                             id:label
@@ -511,7 +512,7 @@ FocusScope {
                     movable:false
                     resizable:false
                 }
-                model:limitedModel[currentGroove]
+              //  model:limitedModel[currentGroove]
             }
         }
     }

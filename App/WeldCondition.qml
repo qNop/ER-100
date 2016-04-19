@@ -26,8 +26,16 @@ FocusScope {
     property var condition: [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
     Component.onCompleted: {
+        Material.UserData.openDatabase();
         condition=Material.UserData.getValueFromFuncOfTable(root.objectName,"","")
         //ERModbus.setmodbusFrame(["W","120","7"].concat(condition))
+    }
+
+    onVisibleChanged: {
+        if(visible){
+            //界面可见以后打开数据库
+            Material.UserData.openDatabase();
+        }
     }
 
     QuickControls.ExclusiveGroup { id: weldWireLengthGroup; onCurrentChanged:
@@ -124,7 +132,7 @@ FocusScope {
                                 onClicked:{
                                     Material.UserData.setValueFromFuncOfTable(root.objectName,0,index===0?1:index===1?3:index===2?4:6);
                                     weldWireLength.forceActiveFocus()}
-                                checked: root.condition[0]==index;
+                                checked: Number(root.condition[0])==index;
                                 exclusiveGroup: weldWireLengthGroup
                             }
                         }
@@ -451,7 +459,7 @@ FocusScope {
                         anchors.verticalCenter: parent.verticalCenter
                         Material.Switch{
                             id:arcTrackingSwitch
-                            checked: root.condition[7];
+                            checked: Number(root.condition[7])===1?true:0;
                             onClicked: {
                                 arcTracking.forceActiveFocus()
                                 Material.UserData.setValueFromFuncOfTable(root.objectName,7,checked);
@@ -497,7 +505,7 @@ FocusScope {
                             onClicked: {
                                 Material.UserData.setValueFromFuncOfTable(root.objectName,8,checked);
                                 grooveCheck.forceActiveFocus()}
-                            checked: root.condition[8];
+                            checked: Number(root.condition[8])===1?true:0;
                             onCheckedChanged: ERModbus.setmodbusFrame(["W","128","1",checked?"1":"0"])
                         }
                         Material.Label{
@@ -541,7 +549,7 @@ FocusScope {
                         anchors.verticalCenter: parent.verticalCenter
                         Material.Label{
                             id: solubilityglabel
-                            text: root.condition[9];
+                            text: Number(root.condition[9]);
                             onTextChanged:{}  ///ERModbus.setmodbusFrame(["W","129","1",text.toString()])
                         }
                         Material.Label{text:"%";}

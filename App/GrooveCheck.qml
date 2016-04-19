@@ -86,7 +86,7 @@ FocusScope{
             id:groovepresettitle
             anchors.top:parent.top
             anchors.left: parent.left
-            width: parent.width
+            anchors.right: parent.right
             height:Units.dp(64);
             Label{
                 id:groovepresetlabel
@@ -123,7 +123,7 @@ FocusScope{
                 right:parent.right
                 rightMargin: Units.dp(5)
                 top:groovepresettitle.bottom
-                bottom: footer.top
+                bottom:footer.top //parent.bottom//
             }
             //显示表头
             headerVisible:true
@@ -226,15 +226,14 @@ FocusScope{
         title: qsTr("坡口参数保存")
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
-        dialogContent:ListItem.Standard{
-            leftMargin:1;
-            action:Icon {
-                anchors.centerIn: parent
+        dialogContent:Row{
+            spacing: Units.dp(16)
+            Icon {
                 name: "awesome/file_text_o"
             }
-            content:TextField{
+            TextField{
                 id:filename
-                width: parent.width
+
                 placeholderText: groovepresetlabel.text
             }
         }

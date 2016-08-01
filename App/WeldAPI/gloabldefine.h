@@ -5,11 +5,11 @@
 /***********************************************************************/
 
 #define EROBOWELDSYS_DIR                                             ""
-#define EROBOWELDSYS_CURRENT_USER_NAME            "Admin"
-#define EROBOWELDSYS_CURRENT_USER_PASSWORD   "Admin"
-#define EROBOWELDSYS_CURRENT_USER_TYPE              "SuperUser"
-#define EROBOWELDSYS_LAST_USER_NAME                    "Admin"
-#define EROBOWELDSYS_LAST_USER_TYPE                       "SuperUser"
+#define EROBOWELDSYS_CURRENT_USER_NAME            "NOP"
+#define EROBOWELDSYS_CURRENT_USER_PASSWORD   "NOP"
+#define EROBOWELDSYS_CURRENT_USER_TYPE              "User"
+#define EROBOWELDSYS_LAST_USER_NAME                    "NOP"
+#define EROBOWELDSYS_LAST_USER_TYPE                       "User"
 #define EROBOWELDSYS_SCREEN_HEGHT                         480
 #define EROBOWELDSYS_SCREEN_WIDTH                         640
 #define EROBOWELDSYS_SOFTWAREVREASION               "0.1"

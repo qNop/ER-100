@@ -79,7 +79,7 @@ Item {
     }
 
     Tooltip {
-        text: action ? action.name : ""
+        text: action ? action.summary : ""
         mouseArea: ink
     }
 }

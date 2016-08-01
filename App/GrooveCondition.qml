@@ -13,8 +13,6 @@ FocusScope {
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "GrooveCondition"
     anchors.fill: parent
-    property int currentGroove;
-    property int bottomStyleValue;
     property var teachmodemodel: ["自动","半自动","手动"];
     property var startendcheckmodel:["自动","手动"]
     property var teachfisrtpointmodel: ["右方","左方"];
@@ -26,6 +24,7 @@ FocusScope {
     property var bottomStyleList: ["无衬垫","陶瓷衬垫","钢衬垫"]
     property var grooveNameCh: ["平焊单边V形坡口T接头","平焊单边V形坡口平对接","平焊V形坡口平对接","横焊单边V形坡口T接头","横焊单边V形坡口平对接","立焊单边V形坡口T接头","立焊单边V形坡口平对接","立焊V形坡口平对接","水平角焊"]
 
+    property string ruleslistName;
     property list<ListModel> limitedModel:[
         ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~70";c3:"4~10" }
             ListElement{iD:"2";c1:"45~60";c2:"9~45";c3:"0~2"}},
@@ -46,15 +45,25 @@ FocusScope {
         ListModel{ListElement{iD:"1";c1:"30~40";c2:"16~80";c3:"4~10" }}
 
     ]
-    onCurrentGrooveChanged: {
-        AppConfig.currentGroove=currentGroove;
-        ERModbus.setmodbusFrame(["W","90","1",currentGroove.toString()])
-        tableview.model=limitedModel[currentGroove];
+    Connections {
+        target:AppConfig
+        onCurrentGrooveChanged:{
+            ERModbus.setmodbusFrame(["W","90","1",AppConfig.currentGroove.toString()])
+            tableview.model=limitedModel[AppConfig.currentGroove];
+            var str=Material.UserData.getLastWeldRulesName("weldRulesList"+AppConfig.currentGroove.toString());
+            if(str){
+                root.ruleslistName=str.toString();
+            }
+        }
     }
     Component.onCompleted: {
         Material.UserData.openDatabase();
-        currentGroove=AppConfig.currentGroove
-        bottomStyleValue=AppConfig.bottomStyle
+        ERModbus.setmodbusFrame(["W","90","1",AppConfig.currentGroove.toString()])
+        tableview.model=limitedModel[AppConfig.currentGroove];
+        var str=Material.UserData.getLastWeldRulesName("weldRulesList"+AppConfig.currentGroove.toString());
+        if(str){
+            root.ruleslistName=str.toString();
+        }
     }
     Material.Card{
         anchors{ left:parent.left;right:parent.right;top:parent.top;bottom: descriptionCard.top;margins:Material.Units.dp(12)}
@@ -66,7 +75,7 @@ FocusScope {
             height: Material.Units.dp(64)
             verticalAlignment:Text.AlignVCenter
             text:qsTr("坡口条件");
-            style:"title"
+            style:"subheading"
             color: Material.Theme.light.shade(0.87)
         }
         Column{
@@ -111,18 +120,18 @@ FocusScope {
                                         if(grooveStyleGroup.current.text==="单边V形坡口"){
                                             if(weldConnectGroup.current.text!==null){
                                                 if(weldConnectGroup.current.text==="T形接头")
-                                                    currentGroove=0;
+                                                    AppConfig.currentGroove=0;
                                                 else
-                                                    currentGroove=1;}
+                                                    AppConfig.currentGroove=1;}
                                             else
-                                                currentGroove=1;
+                                                AppConfig.currentGroove=1;
                                         } else{
-                                            currentGroove=2;
+                                            AppConfig.currentGroove=2;
                                             weldConnectGroup.current=weldConnectRepeater.itemAt(1);
                                         }
                                     }
                                     else{
-                                        currentGroove=2;
+                                        AppConfig.currentGroove=2;
                                         grooveStyleGroup.current=grooveStyleRepeater.itemAt(1);
                                         weldConnectGroup.current=weldConnectRepeater.itemAt(1);
                                     }
@@ -132,16 +141,16 @@ FocusScope {
                                         if(grooveStyleGroup.current.text==="单边V形坡口"){
                                             if(weldConnectGroup.current!==null){
                                                 if(weldConnectGroup.current.text==="T形接头")
-                                                    currentGroove=3;
+                                                    AppConfig.currentGroove=3;
                                                 else
-                                                    currentGroove=4;}
+                                                    AppConfig.currentGroove=4;}
                                             else{
-                                                currentGroove=4;
+                                                AppConfig.currentGroove=4;
                                                 weldConnectGroup.current=weldConnectRepeater.itemAt(1);
                                             }}
                                     }
                                     else{
-                                        currentGroove=4;
+                                        AppConfig.currentGroove=4;
                                         grooveStyleGroup.current=grooveStyleRepeater.itemAt(0);
                                         weldConnectGroup.current=weldConnectRepeater.itemAt(1);
                                     }
@@ -151,19 +160,19 @@ FocusScope {
                                         if(grooveStyleGroup.current.text==="单边V形坡口"){
                                             if(weldConnectGroup.current!==null){
                                                 if(weldConnectGroup.current.text==="T形接头")
-                                                    currentGroove=5;
-                                                else currentGroove=6;}
-                                            else currentGroove=6;}
-                                        else {currentGroove=7;
+                                                    AppConfig.currentGroove=5;
+                                                else AppConfig.currentGroove=6;}
+                                            else AppConfig.currentGroove=6;}
+                                        else {AppConfig.currentGroove=7;
                                             weldConnectGroup.current=weldConnectRepeater.itemAt(1);
                                         }
                                     }else{
-                                        currentGroove=7;
+                                        AppConfig.currentGroove=7;
                                         grooveStyleGroup.current=grooveStyleRepeater.itemAt(1);
                                         weldConnectGroup.current=weldConnectRepeater.itemAt(1);
                                     }
                                     break;
-                                case "水平角焊":currentGroove=8;break; }}}
+                                case "水平角焊":AppConfig.currentGroove=8;break; }}}
                     }
                     Repeater{
                         id:weldDirRepeater
@@ -173,7 +182,7 @@ FocusScope {
                             exclusiveGroup: weldDirGroup
                             onClicked: weldDir.forceActiveFocus()
                             Component.onCompleted: {
-                                if(((currentGroove<3)&&(index===0))||(((currentGroove>2)&&(currentGroove<5))&&(index===1))||(((currentGroove>4)&&(currentGroove<8))&&(index===2))||((currentGroove===8)&&(index===3)))
+                                if(((AppConfig.currentGroove<3)&&(index===0))||(((AppConfig.currentGroove>2)&&(AppConfig.currentGroove<5))&&(index===1))||(((AppConfig.currentGroove>4)&&(AppConfig.currentGroove<8))&&(index===2))||((AppConfig.currentGroove===8)&&(index===3)))
                                     checked=true;
                             }}}}
                 Component.onCompleted: forceActiveFocus();
@@ -213,26 +222,26 @@ FocusScope {
                                 if(grooveStyleGroup.current.text==="单边V形坡口"){
                                     if(weldDirGroup.current.text==="平焊"){
                                         if(weldConnectGroup.current.text==="T形接头")
-                                            currentGroove=0;
+                                            AppConfig.currentGroove=0;
                                         else
-                                            currentGroove=1;}
+                                            AppConfig.currentGroove=1;}
                                     else if(weldDirGroup.current.text==="横焊"){
                                         if(weldConnectGroup.current.text==="T形接头")
-                                            currentGroove=3;
+                                            AppConfig.currentGroove=3;
                                         else
-                                            currentGroove=4; }
+                                            AppConfig.currentGroove=4; }
                                     else if(weldDirGroup.current.text==="立焊"){
                                         if(weldConnectGroup.current.text==="T形接头")
-                                            currentGroove=5;
+                                            AppConfig.currentGroove=5;
                                         else
-                                            currentGroove=6; }
+                                            AppConfig.currentGroove=6; }
                                 }else if(grooveStyleGroup.current.text==="V形坡口"){
                                     if(weldDirGroup.current.text==="平焊"){
                                         if(weldConnectGroup.current.text!=="T形接头")
-                                            currentGroove=2;}
+                                            AppConfig.currentGroove=2;}
                                     else if(weldDirGroup.current.text==="立焊") {
                                         if(weldConnectGroup.current.text!=="T形接头")
-                                            currentGroove=7;}
+                                            AppConfig.currentGroove=7;}
                                 }}
                         }
                     }
@@ -253,7 +262,7 @@ FocusScope {
                             }
                             onEnabledChanged: {if((!enabled)&&(checked)) grooveStyleGroup.current=grooveStyleRepeater.itemAt(0)}
                             Component.onCompleted: {
-                                if((((currentGroove===0)||(currentGroove===1)||(currentGroove===3)||(currentGroove===4)||(currentGroove===5)||(currentGroove===6))&&(index===0))||(((currentGroove===2)||(currentGroove===7))&&(index===1)))
+                                if((((AppConfig.currentGroove===0)||(AppConfig.currentGroove===1)||(AppConfig.currentGroove===3)||(AppConfig.currentGroove===4)||(AppConfig.currentGroove===5)||(AppConfig.currentGroove===6))&&(index===0))||(((AppConfig.currentGroove===2)||(AppConfig.currentGroove===7))&&(index===1)))
                                     checked=true;
                             }
                         }
@@ -294,25 +303,25 @@ FocusScope {
                                 if(weldConnectGroup.current.text==="T形接头"){
                                     if(weldDirGroup.current.text==="平焊"){
                                         if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=0;}
+                                            AppConfig.currentGroove=0;}
                                     else if(weldDirGroup.current.text==="横焊"){
                                         if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=3;}
+                                            AppConfig.currentGroove=3;}
                                     else if(weldDirGroup.current.text==="立焊"){
                                         if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=5;}}
+                                            AppConfig.currentGroove=5;}}
                                 else if(weldConnectGroup.current.text==="对接接头"){
                                     if(weldDirGroup.current.text==="平焊"){
                                         if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=1;
-                                        else currentGroove=2;}
+                                            AppConfig.currentGroove=1;
+                                        else AppConfig.currentGroove=2;}
                                     else if(weldDirGroup.current.text==="横焊") {
                                         if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=4;}
+                                            AppConfig.currentGroove=4;}
                                     else if(weldDirGroup.current.text==="立焊"){
                                         if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=6;
-                                        else currentGroove=7;}}}
+                                            AppConfig.currentGroove=6;
+                                        else AppConfig.currentGroove=7;}}}
                         }}
                     Repeater{
                         id:weldConnectRepeater
@@ -331,7 +340,7 @@ FocusScope {
                             }
                             onEnabledChanged: {if((!enabled)&&(checked)) weldConnectGroup.current=weldConnectRepeater.itemAt(1)}
                             Component.onCompleted: {
-                                if((((currentGroove===0)||(currentGroove===4)||(currentGroove===6))&&(index===0))||(((currentGroove===1)||(currentGroove===2)||(currentGroove===4)||(currentGroove===6)||(currentGroove===7))&&(index===1)))
+                                if((((AppConfig.currentGroove===0)||(AppConfig.currentGroove===4)||(AppConfig.currentGroove===6))&&(index===0))||(((AppConfig.currentGroove===1)||(AppConfig.currentGroove===2)||(AppConfig.currentGroove===4)||(AppConfig.currentGroove===6)||(AppConfig.currentGroove===7))&&(index===1)))
                                     checked=true;
                             }
                         }
@@ -392,7 +401,9 @@ FocusScope {
                                 }else
                                     return true;
                             }
-                            checked: bottomStyleValue===index
+                            Component.onCompleted: {
+                                checked=AppConfig.bottomStyle===index?true:false
+                            }
                         }
                     }
                 }
@@ -426,13 +437,13 @@ FocusScope {
                     height: Material.Units.dp(64)
                     verticalAlignment:Text.AlignVCenter
                     text:qsTr("坡口形状及适用范围");
-                    style:"title"
+                    style:"subheading"
                     color: Material.Theme.light.shade(0.87)
                 }
                 Image{
                     anchors.left: parent.left
                     anchors.leftMargin: Material.Units.dp(64)
-                    source: "../Pic/"+grooveNameCh[currentGroove]+".png"
+                    source: "../Pic/"+grooveNameCh[AppConfig.currentGroove]+".png"
                     sourceSize.width: Material.Units.dp(200)
                 }
             }
@@ -459,7 +470,7 @@ FocusScope {
                 //显示表头
                 headerVisible:true
                 //Tableview样式
-                style:MyTableViewStyle{}
+                style:TableStyle{}
                 //选择模式 单选
                 selectionMode:Controls.SelectionMode.NoSelection
                 Material.ThinDivider{anchors.bottom:tableview.bottom;color:Material.Palette.colors["grey"]["500"]}
@@ -512,7 +523,6 @@ FocusScope {
                     movable:false
                     resizable:false
                 }
-              //  model:limitedModel[currentGroove]
             }
         }
     }

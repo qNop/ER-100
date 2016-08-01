@@ -19,14 +19,14 @@ FocusScope {
     property var listName: [qsTr("示教模式:"),qsTr("始终端检测:"),qsTr("示教第一点位置:"),qsTr("示教点数:"),qsTr("焊接长度:"),qsTr("坡口检测点左:"),qsTr("坡口检测点右:")]
     property var teachmodemodel: ["自动","半自动","手动"];
     property var startendcheckmodel:["自动","手动"]
-    property var teachfisrtpointmodel: ["右方","左方"];
+    property var teachfisrtpointmodel: ["左方","右方"];
 
     QuickControls.ExclusiveGroup { id: teachmodegroup; onCurrentChanged:
             ERModbus.setmodbusFrame(["W","100","1",current.text ==="自动"?"0":current.text ==="半自动"?"1":"2"]) }
     QuickControls.ExclusiveGroup { id: startendcheckgroup;onCurrentChanged:
             ERModbus.setmodbusFrame(["W","101","1",current.text ==="自动"?"0":"1"]) }
     QuickControls.ExclusiveGroup { id: teachfisrtpointgroup;onCurrentChanged:
-            ERModbus.setmodbusFrame(["W","102","1",current.text ==="右方"?"0":"1"]) }
+            ERModbus.setmodbusFrame(["W","102","1",current.text ==="左方"?"0":"1"]) }
 
     //坡口数据库英文名称
     Component.onCompleted: {
@@ -46,7 +46,7 @@ FocusScope {
             height: Material.Units.dp(64)
             verticalAlignment:Text.AlignVCenter
             text:qsTr("示教条件");
-            style:"title"
+            style:"subheading"
             color: Material.Theme.light.shade(0.87)
         }
         Flickable{
@@ -90,7 +90,7 @@ FocusScope {
                             break;}}
                     onClicked:forceActiveFocus();
                     onSelectedChanged: {
-                        if(selected){descriptionlabel.text=text; }}
+                        if(selected){descriptionlabel.text="选择全自动、半自动、或手动模式。"; }}
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
                         Repeater{
@@ -119,7 +119,7 @@ FocusScope {
                     KeyNavigation.up: teachmode
                     KeyNavigation.down: teachfirstpoint
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text="设定终端的检测是自动或是手动" :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定终端的检测是自动或是手动。" :null;
                     selected: focus;
                     Keys.onPressed: {
                         switch(event.key){
@@ -169,7 +169,7 @@ FocusScope {
                         switch(event.key){
                         case Qt.Key_Right:
                             if(teachfisrtpointgroup.current){
-                                if(teachfisrtpointgroup.current.text==="右方" ){
+                                if(teachfisrtpointgroup.current.text==="左方" ){
                                     teachfisrtpointgroup.current = teachfirstpointrepeater.itemAt(1);
                                     Material.UserData.setValueFromFuncOfTable(root.objectName,2,1);
                                 }
@@ -178,7 +178,7 @@ FocusScope {
                             break;
                         case Qt.Key_Left:
                             if(teachfisrtpointgroup.current){
-                                if(teachfisrtpointgroup.current.text==="左方" ){
+                                if(teachfisrtpointgroup.current.text==="右方" ){
                                     teachfisrtpointgroup.current = teachfirstpointrepeater.itemAt(0);
                                     Material.UserData.setValueFromFuncOfTable(root.objectName,2,0);
                                 }
@@ -188,7 +188,7 @@ FocusScope {
                         }
                     }
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text="设定第一点从左右哪边开始" :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定第一点从左右哪边开始。" :null;
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
                         Repeater{
@@ -213,9 +213,9 @@ FocusScope {
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: teachfirstpoint
-                    KeyNavigation.down: teachfirstpointtimelength.visible?teachfirstpointtimelength:null
+                    KeyNavigation.down: teachfirstpointtimelength.visible?teachfirstpointtimelength:groovecheckpointleftlength
                     selected: focus
-                    onSelectedChanged:selected? descriptionlabel.text=text :null;
+                    onSelectedChanged:selected? descriptionlabel.text="设定示教点数（1~10点任意）。" :null;
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
@@ -257,7 +257,7 @@ FocusScope {
                     height: Material.Units.dp(44)
                     KeyNavigation.up: teachpointnum
                     KeyNavigation.down: groovecheckpointleftlength.visible?groovecheckpointleftlength:groovecheckpointleftlength
-                    onSelectedChanged: selected? descriptionlabel.text="示教点数为1点时,设定至第二点的焊接距离" :null;
+                    onSelectedChanged: selected? descriptionlabel.text="示教点数为1点时,设定至第二点的焊接距离。" :null;
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
@@ -300,7 +300,7 @@ FocusScope {
                     height: Material.Units.dp(44)
                     KeyNavigation.up: teachfirstpointtimelength.visible?teachfirstpointtimelength:teachpointnum
                     KeyNavigation.down: groovecheckpointrightlength
-                    onSelectedChanged: selected? descriptionlabel.text="坡口检测点左" :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定左端部的延长、缩短量。" :null;
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
@@ -364,7 +364,7 @@ FocusScope {
                     }
                     selected: focus
                     onSelectedChanged: { if(selected){
-                            descriptionlabel.text=text;
+                            descriptionlabel.text="设定右端部的延长、缩短量。";
                         }
                     }
                     secondaryItem:Row{
@@ -404,7 +404,7 @@ FocusScope {
                 height: Material.Units.dp(64)
                 verticalAlignment:Text.AlignVCenter
                 text:qsTr("描述信息");
-                style:"title"
+                style:"subheading"
                 color: Material.Theme.light.shade(0.87)
             }
             Material.Label{

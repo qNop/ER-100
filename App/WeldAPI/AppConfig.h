@@ -6,6 +6,7 @@
 #include <QtQml/QQmlListProperty>
 #include <QSettings>
 #include <QProcess>
+#include <QLocale>
 
 
 class AppConfig : public QObject
@@ -32,7 +33,19 @@ class AppConfig : public QObject
     Q_PROPERTY(QString leds READ leds WRITE setleds)
     /*当前衬垫*/
     Q_PROPERTY(int bottomStyle READ  bottomStyle WRITE setbottomStyle NOTIFY bottomStyleChanged)
-
+    /*修改当前时间*/
+     Q_PROPERTY(QStringList dateTime READ dateTime WRITE setdateTime NOTIFY dateTimeChanged)
+    /*设置本地化*/
+      Q_PROPERTY(QString language READ language WRITE setlanguage NOTIFY languageChanged)
+    /*加载本地网络*/
+     Q_PROPERTY(bool loadNet READ loadNet WRITE setloadNet NOTIFY loadNetChanged)
+    /*复制文件到backup文件夹下*/
+   // Q_PROPERTY(bool)
+    /*摇动电机点动速度*/
+    Q_PROPERTY(int swingSpeed READ swingSpeed WRITE setSwingSpeed NOTIFY swingSpeedChanged)
+    Q_PROPERTY(int xSpeed READ xSpeed WRITE setXSpeed NOTIFY xSpeedChanged)
+    Q_PROPERTY(int ySpeed READ ySpeed WRITE setYSpeed NOTIFY ySpeedChanged)
+    Q_PROPERTY(int zSpeed READ zSpeed WRITE setZSpeed NOTIFY zSpeedChanged)
 private:
     QSettings* File;
     QProcess *poc;
@@ -52,7 +65,12 @@ private:
     int BacklightValue;
     int CurrentGrooveValue;
     int  BottomStyleValue;
-
+    QString languageValue;
+    bool loadNetValue;
+    int xSpeedValue;
+    int ySpeedValue;
+    int zSpeedValue;
+    int swingSpeedValue;
 public:
     AppConfig();
     ~AppConfig();
@@ -64,14 +82,19 @@ public:
     QString currentUserPassword();//当前用户密码
     QString currentUserType();     //当前用户类型
     QString lastUser();//上一次使用用户
-    //   QString localdatetime();//本地系统时间
     int screenWidth();//屏幕宽度
     int screenHeight();       //屏幕长度
     QString themePrimaryColor();  //系统主题前景颜色
     QString themeAccentColor();  //系统主题前景颜色
     QString themeBackgroundColor();  //系统主题前景颜色
     int backLight();//系统背光
-
+    QStringList dateTime();
+    QString language();
+    bool loadNet();
+    int xSpeed();
+    int ySpeed();
+    int zSpeed();
+    int swingSpeed();
 public slots:
     void setbottomStyle(int value);
     void setbackLight(int value);
@@ -87,8 +110,18 @@ public slots:
     void setcurrentUserName(QString username);
     void setcurrentGroove(int value);
     void setleds(QString status);//leds
-
+    void setdateTime(QStringList time);
+    void setlanguage(QString str);
+    void setloadNet(bool value);
+    void setXSpeed(int value);
+    void setYSpeed(int value);
+    void setZSpeed(int value);
+    void setSwingSpeed(int value);
 signals:
+    void xSpeedChanged();
+    void ySpeedChanged();
+    void zSpeedChanged();
+    void swingSpeedChanged();
     void bottomStyleChanged(int value);
     void screenWidthChanged(int width);
     void screenHeightChanged(int hight);
@@ -102,7 +135,9 @@ signals:
     void themeBackgroundColorChanged(QString color);
     void backLightChanged(int value);
     void currentGrooveChanged(int value);
-
+    void dateTimeChanged();
+    void languageChanged(QString str);
+    void loadNetChanged();
 };
 
 #endif // AppCONFIG_H

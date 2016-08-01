@@ -36,7 +36,7 @@ ModbusThread::~ModbusThread(){
     qDebug()<<"ModbusThread::REMOVE";
 }
 
-void ModbusThread::run()Q_DECL_OVERRIDE{
+void ModbusThread::run(){
     int res,i;
     res=0;
     errno=0;
@@ -51,7 +51,7 @@ void ModbusThread::run()Q_DECL_OVERRIDE{
         if(res!=-1){
             modbusData.append(modbusReg);
             for(i=0;i<modbusNum.toInt();i++){
-                modbusData.append(QString::number(data[i]));
+                modbusData.append(QString::number(int16_t(data[i])));
             }
         }
     }else if(modbusCmd=="W"){

@@ -5,7 +5,12 @@ import QtQuick.Controls 1.2 as Controls
 import QtQuick.Window 2.2
 import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
-
+import WeldSys.WeldMath 1.0
+import QtQuick.Layouts 1.1
+/*
+  * tableview 选中当前行时必需 要更改__listview.currentrow 然后在选择要选择的行单纯的只选择 选中的行无效
+  * 能不使用 ProgressCircle 不要使用 太耗费cpu 能够达到30% 使用率
+*/
 FocusScope{
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
@@ -17,6 +22,7 @@ FocusScope{
         bottom: parent.bottom
         leftMargin:visible?0:Units.dp(250)
     }
+    property Item message
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
     /*坡口列表*/
     property var groovestyles: [
@@ -25,60 +31,153 @@ FocusScope{
         qsTr("立焊单边V型坡口T接头"),  qsTr("立焊单边V型坡口平对接"), qsTr("立焊V型坡口平对接"),
         qsTr("水平角焊") ]
     property var grooveStyleEnglish: [];
-    property var editData:["","","","","",""]
-
-    property alias grooveStyleModel: grooveTableview.model
-    property string status:"0"
+    property var editData:["","","","","","",""]
+    property bool actionEnable:false
+    property string status:"空闲态"
     property string grooveLength:"0"
+    property alias grooveModel: tableview.model
+    property alias selectedIndex:tableview.currentRow
     property list<Action> actions:[
-        Action{iconName:"awesome/folder_open_o";onTriggered: open.show()},
-        Action{iconName:"awesome/save";onTriggered: save.show()},
-        Action{iconName:"awesome/copy";
-            enabled:grooveTableview.__listView.currentIndex!==-1?true:false
-            onTriggered: copy.show();
+        Action{iconName:"awesome/folder_open_o";onTriggered: open.show();name:"打开";hoverAnimation:true;summary: "F1"},
+        Action{iconName:"awesome/save";onTriggered: save.show();name:"保存";hoverAnimation:true;summary: "F2"},
+        Action{iconName:"awesome/file_text_o";
+            onTriggered: add.show();
+            name:"新建"
+            hoverAnimation:true;summary: "F3"
+        },Action{iconName:"awesome/calendar_times_o";
+            onTriggered: {
+            }
+            name:"删除"
+            hoverAnimation:true;summary: "F4"
         },
-        Action{iconName:"awesome/paste";
-            enabled:grooveTableview.__listView.currentIndex!==-1?true:false
-            onTriggered: paste.show();
+        Action{iconName:"awesome/sticky_note_o";
+            onTriggered: {
+
+            }
+            name:"信息"
+            hoverAnimation:true;summary: "F5"
         },
-        Action{iconName:"awesome/edit";
-            enabled:grooveTableview.__listView.currentIndex!==-1?true:false
-            onTriggered: edit.show();
+        Action{iconName:"awesome/stack_overflow";
+            onTriggered: {
+                if(dropDown.showing)
+                    dropDown.close();
+                else{
+                    dropDown.open(tableview.__listView.currentItem,-5,0);
+                }
+            }
+            name:"更多"
+            hoverAnimation:true;summary: "F6"
+        }
+    ]
+    property list<Action> dropDownActions:[
+        Action{iconName:"awesome/edit";onTriggered: edit.show();name:"编辑";
         },
-        Action{iconName: "awesome/trash_o";
-            enabled:grooveTableview.__listView.currentIndex!==-1?true:false
-            onTriggered: delet.show();
+        Action{iconName:"awesome/paste";name:"复制";enabled:root.actionEnable
+            onTriggered: {
+                for(var i=0;i<7;i++){
+                    switch(i){
+                    case 0:editData[0]=tableview.model.get(selectedIndex).ID; break;
+                    case 1:editData[1]=tableview.model.get(selectedIndex).C1; break;
+                    case 2:editData[2]=tableview.model.get(selectedIndex).C2; break;
+                    case 3:editData[3]=tableview.model.get(selectedIndex).C3; break;
+                    case 4:editData[4]=tableview.model.get(selectedIndex).C4; break;
+                    case 5:editData[5]=tableview.model.get(selectedIndex).C5; break;
+                    case 6:editData[6]=tableview.model.get(selectedIndex).C6; break;
+                    }
+                }
+                message.open("已复制。");
+            }},
+        Action{iconName:"awesome/copy"; name:"粘帖";enabled:root.actionEnable
+            onTriggered: {
+                tableview.model.insert(selectedIndex,
+                                       {   "ID":editData[0],
+                                           "C1":editData[1],"C2":editData[2],
+                                           "C3":editData[3],"C4":editData[4],
+                                           "C5":editData[5],"C6":editData[6]})
+                tableview.__listView.currentIndex=selectedIndex;
+                tableview.selection.__selectOne(selectedIndex);
+                message.open("已粘帖。");
+            }
+        },
+        Action{iconName: "awesome/trash_o";  name:"删除" ;enabled:root.actionEnable
+            onTriggered: {
+                if(tableview.rowCount===1)
+                    tableview.model.set(0,{"ID":"","C1":"","C2":"","C3":"","C4":"","C5":"","C6":""})
+                else
+                    tableview.model.remove(selectedIndex);
+                message.open("已删除。");
+            }
+        },
+        Action{iconName:"awesome/send_o";
+            onTriggered:{
+                WeldMath.setGrooveRules([
+                                            tableview.model.get(0).C1,
+                                            tableview.model.get(0).C2,
+                                            tableview.model.get(0).C3,
+                                            tableview.model.get(0).C4,
+                                            tableview.model.get(0).C5]);
+                message.open("生成焊接规范。");
+            }
+            hoverAnimation:true;
+            enabled: root.actionEnable
+            name:"生成规范"
         }
     ]
     Keys.onPressed: {
         switch(event.key){
         case Qt.Key_F1:
-            open.show();
+            //  open.show();
             event.accepted=true;
             break;
         case Qt.Key_F2:
-            save.show();
+            // save.show();
             event.accepted=true;
             break;
         case Qt.Key_F3:
-            copy.show();
+            //  add.show();
             event.accepted=true;
             break;
         case Qt.Key_F4:
-            paste.show();
             event.accepted=true;
             break;
         case Qt.Key_F5:
-            edit.show();
             event.accepted=true;
             break;
         case Qt.Key_F6:
-            delet.show();
+            if(dropDown.showing)
+                dropDown.close();
+            else{
+                actionEnable=tableview.model.get(0).ID!==""?true:false
+                dropDown.open(tableview.__listView.currentItem,0,0);
+            }
             event.accepted=true;
+            break;
+        case Qt.Key_Down:
+            tableview.__listView.incrementCurrentIndex();
+            event.accept=true;
+            break;
+        case Qt.Key_Up:
+            tableview.__listView.decrementCurrentIndex();
+            event.accept=true;
             break;
         }
     }
-
+    //当前页面关闭 则 关闭当前页面内 对话框
+    onVisibleChanged: {
+        if(visible==false){
+            if(edit.showing) edit.close();
+            if(open.showing) open.close();
+            if(save.showing) save.close();
+            if(add.showing) add.close();
+        }
+    }
+    onSelectedIndexChanged: {
+        if(selectedIndex<tableview.rowCount){
+            console.log(selectedIndex);
+            tableview.__listView.currentIndex=selectedIndex;
+            tableview.selection.__selectOne(selectedIndex);
+        }
+    }
     Card{
         anchors{left:parent.left;right:parent.right;bottom: parent.bottom;top:parent.top;margins: Units.dp(12)}
         elevation: 2
@@ -94,27 +193,53 @@ FocusScope{
                 anchors.leftMargin: Units.dp(24)
                 anchors.verticalCenter: parent.verticalCenter
                 text:groovestyles[AppConfig.currentGroove]+"坡口参数"
-                style:"title"
+                style:"subheading"
                 color: Theme.light.shade(0.87)
+                wrapMode: Text.WordWrap
+                width: Units.dp(300)
             }
-            Row{
+            Row{       
                 anchors.right: parent.right
                 anchors.rightMargin: Units.dp(24)
                 anchors.verticalCenter: parent.verticalCenter
-                spacing: Units.dp(24);
+                spacing: Units.dp(12);
                 Repeater{
                     model:actions.length
-                    delegate: IconButton{
-                        action: actions[index]
-                        color: Theme.light.iconColor
-                        size: Units.dp(27)
-                        visible: action.visible
+                    delegate:View{
+                        width: row.width
+                        enabled: actions[index].enabled
+                        opacity: enabled ? 1 : 0.6
+                        radius: Units.dp(6)
+                        Ink{id:ink
+                            anchors.fill: parent
+                            onClicked: actions[index].triggered();
+                            enabled: actions[index].enabled
+
+                        }
+                        Tooltip{
+                            text:actions[index].summary
+                            mouseArea: ink
+                        }
+                        Row{
+                            id:row
+                            anchors.verticalCenter: parent.verticalCenter
+                            spacing: Units.dp(4);
+                            Icon{
+                                source:actions[index].iconSource
+                                color: Theme.accentColor
+                                size: Units.dp(27)
+                            }
+                            Label{
+                                style: "button"
+                                text:actions[index].name;
+                            }
+                        }
                     }
                 }
             }
         }
         Controls.TableView{
-            id:grooveTableview
+            id:tableview
             //不是隔行插入色彩
             alternatingRowColors:false
             anchors{
@@ -123,48 +248,36 @@ FocusScope{
                 right:parent.right
                 rightMargin: Units.dp(5)
                 top:groovepresettitle.bottom
-                bottom:footer.top //parent.bottom//
+                bottom:footer.top
             }
             //显示表头
             headerVisible:true
             __listView.add:Transition{
-                NumberAnimation { properties: "x"; from:grooveTableview.width-100;duration: 500 }
+                NumberAnimation { properties: "x"; from:tableview.width-100;duration: 500 }
             }
             __listView.removeDisplaced:Transition{
                 NumberAnimation { properties: "y";duration: 500 }
             }
             //Tableview样式
-            style:MyTableViewStyle{}
+            style:TableStyle{}
             //选择模式 单选
             selectionMode:Controls.SelectionMode.SingleSelection
             Controls.ExclusiveGroup{  id:checkboxgroup }
-            ThinDivider{anchors.bottom:grooveTableview.bottom;color:Palette.colors["grey"]["500"]}
-            onRowCountChanged: {
-                for(var i=0;i<rowCount;i++)
-                    model.set(i,{"ID":(i+1).toString()})
-            }
-            Controls.TableViewColumn{
-                role:"ID"
-                title: "No."
-                width: Units.dp(120);
-                //不可移动
-                movable:false
-                resizable:false
+            ThinDivider{anchors.bottom:tableview.bottom;color:Palette.colors["grey"]["500"]}
+            Controls.TableViewColumn{role:"ID";title: "No.";width: Units.dp(120);movable:false;resizable:false
                 delegate: Item{
                     anchors.fill: parent
                     CheckBox{
-                        id:checkbox
-                        anchors.left: parent.left
-                        anchors.leftMargin: Units.dp(16)
-                        anchors.verticalCenter: parent.verticalCenter
-                        checked: styleData.selected
-                        exclusiveGroup:checkboxgroup
-                        visible:label.text!==""?true:false
+                        id:checkbox;anchors.left: parent.left;anchors.leftMargin: Units.dp(16);
+                        anchors.verticalCenter: parent.verticalCenter;
+                        checked: styleData.selected;
+                        exclusiveGroup:checkboxgroup;
+                        visible:label.text!==""?true:false;
                     }
                     Label{
                         id:label
                         anchors.left: checkbox.right
-                        anchors.leftMargin:  Units.dp(24)
+                        anchors.leftMargin:  Units.dp(32)
                         anchors.verticalCenter: parent.verticalCenter
                         text:styleData.value
                         style:"body1"
@@ -172,18 +285,24 @@ FocusScope{
                     }
                 }
             }
-            Controls.TableViewColumn{  role:"C1"; title: "板厚 δ\n (mm)";width:Units.dp(100);movable:false;resizable:false}
-            Controls.TableViewColumn{  role:"C2"; title: "板厚差 e\n   (mm)";width:Units.dp(100);movable:false;resizable:false}
-            Controls.TableViewColumn{  role:"C3"; title: "间隙 b\n (mm)";width:Units.dp(100);movable:false;resizable:false}
-            Controls.TableViewColumn{  role:"C4"; title: "角度 β1\n  (deg)";width:Units.dp(100);movable:false;resizable:false}
-            Controls.TableViewColumn{  role:"C5"; title: "角度 β2\n  (deg)";width:Units.dp(100);movable:false;resizable:false}
-            Controls.TableViewColumn{  role:"C6"; title: "余高 h\n (mm)";width:Units.dp(100);movable:false;resizable:false}
+            Controls.TableViewColumn{  role:"C1"; title: "板厚 δ\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+            Controls.TableViewColumn{  role:"C2"; title: "板厚差 e\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+            Controls.TableViewColumn{  role:"C3"; title: "间隙 b\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+            Controls.TableViewColumn{  role:"C4"; title: "角度 β1\n  (deg)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+            Controls.TableViewColumn{  role:"C5"; title: "角度 β2\n  (deg)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+            Controls.TableViewColumn{  role:"C6"; title: "中心线 \n X(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+            Controls.TableViewColumn{  role:"C7"; title: "中心线 \n Y(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+            Controls.TableViewColumn{  role:"C8"; title: "中心线 \n Z(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
             Keys.onPressed: {
                 var diff = event.key ===Qt.Key_Right ? 50 : event.key === Qt.Key_Left ? -50 :  0
                 if(diff !==0){
-                    grooveTableview.__horizontalScrollBar.value +=diff;
+                    tableview.__horizontalScrollBar.value +=diff;
                     event.accept=true;
                 }
+            }
+            Component.onCompleted: {
+                selectedIndex=0;
+                tableview.selection.__selectOne(selectedIndex);
             }
         }
         Item{
@@ -201,14 +320,9 @@ FocusScope{
                     verticalCenter: parent.verticalCenter
                 }
                 spacing: Units.dp(16)
-                ProgressCircle{
-                    id:progress
-                    color: Theme.accentColor
-                    visible:root.status==="1"
-                }
                 Label{
                     id:status
-                    text:root.status==="1"?"坡口参数检测中":root.status>"2"?"坡口参数检测完成,坡口长度为"+grooveLength:"坡口检测空闲"
+                    text:root.status==="坡口检测态"?"坡口检测中，高压输出！注意安全！":""
                     verticalAlignment: Text.AlignVCenter
                 }
             }
@@ -217,7 +331,155 @@ FocusScope{
                 anchors.right: parent.right
                 anchors.rightMargin: Units.dp(24)
                 anchors.verticalCenter: parent.verticalCenter
-                text:"总计："+grooveTableview.rowCount+" 点"
+                text:"总计："+ tableview.rowCount  +" 点"
+            }
+        }
+    }
+    Dropdown{
+        id:dropDown
+        height: columnView.height + Units.dp(16)
+        width: Units.dp(168)
+        property int repeaterSelected: 0
+         onOpened: forceActiveFocus();
+        ColumnLayout {
+            id: columnView
+            width: parent.width
+            anchors.centerIn: parent
+            Repeater {
+                id:dropRepeater
+                model: dropDownActions.length
+                ListItem.Standard {
+                    id: listItem
+                    property Action action:dropDownActions[index]
+                    height:Units.dp(40)
+                    text:action.name;
+                    itemLabel.style: "button"
+                    iconSource: action.iconSource
+                    enabled: action.enabled
+                    textColor:Theme.light.textColor
+                    iconColor: Theme.accentColor
+                    onClicked: {
+                        dropDown.close()
+                        action.triggered(listItem)
+                    }
+                    onSelectedChanged: forceActiveFocus();
+                    //  selected: index===dropDown.repeaterSelected
+                    dividerInset:0
+                    showDivider:index===3
+                    onActiveFocusChanged: {
+                        console.log(root.objectName+" Active Focus "+ activeFocus)
+                    }
+                    Keys.onPressed:
+                    {
+                        console.log("pressed")
+                    }
+                }
+            }
+        }//上按下
+        onVisibleChanged: {
+            //初始化界面 第一条列表信息选中
+            if(visible)
+                dropRepeater.itemAt(0).selected=true;
+        }
+        Keys.onPressed:{
+            if(dropDown.visible){
+                switch(event.key){
+               // case Qt.Key_Down:
+                   // console.log(root.objectName+" dropDown index");
+                   // break;
+                    //                    switch(repeaterSelected){
+                    //                    case -1:if(dropDownActions[0].enabled)
+                    //                            repeaterSelected=0;
+                    //                        else if(dropDownActions[1].enabled)
+                    //                            repeaterSelected=1;
+                    //                        else if(dropDownActions[2].enabled)
+                    //                            repeaterSelected=2;
+                    //                        else if(dropDownActions[3].enabled)
+                    //                            repeaterSelected=3;
+                    //                        else if(dropDownActions[4].enabled)
+                    //                            repeaterSelected=4;
+                    //                        break;
+                    //                    case 0: if(dropDownActions[1].enabled)
+                    //                            repeaterSelected=1;
+                    //                        else if(dropDownActions[2].enabled)
+                    //                            repeaterSelected=2;
+                    //                        else if(dropDownActions[3].enabled)
+                    //                            repeaterSelected=3;
+                    //                        else if(dropDownActions[4].enabled)
+                    //                            repeaterSelected=4;
+                    //                        break;
+                    //                    case 1: if(dropDownActions[2].enabled)
+                    //                            repeaterSelected=2;
+                    //                        else if(dropDownActions[3].enabled)
+                    //                            repeaterSelected=3;
+                    //                        else if(dropDownActions[4].enabled)
+                    //                            repeaterSelected=4;
+                    //                        break;
+                    //                    case 2: if(dropDownActions[3].enabled)
+                    //                            repeaterSelected=3;
+                    //                        else if(dropDownActions[4].enabled)
+                    //                            repeaterSelected=4;
+                    //                        break;
+                    //                    case 3: if(dropDownActions[4].enabled)
+                    //                            repeaterSelected=4;
+                    //                        break;
+                    //                    case 4:break;
+                    //                    default:repeaterSelected=-1;break;
+                    //                    }
+                    //                    event.accept=true;
+                    //                    break;
+                    //                case Qt.Key_Up:
+                    //                    switch(repeaterSelected){
+                    //                    case -1:if(dropDownActions[0].enabled)
+                    //                            repeaterSelected=0;
+                    //                        else if(dropDownActions[1].enabled)
+                    //                            repeaterSelected=1;
+                    //                        else if(dropDownActions[2].enabled)
+                    //                            repeaterSelected=2;
+                    //                        else if(dropDownActions[3].enabled)
+                    //                            repeaterSelected=3;
+                    //                        else if(dropDownActions[4].enabled)
+                    //                            repeaterSelected=4;
+                    //                        break;
+                    //                    case 0:
+                    //                        break;
+                    //                    case 1: if(dropDownActions[0].enabled)
+                    //                            repeaterSelected=0;
+                    //                        break;
+                    //                    case 2: if(dropDownActions[1].enabled)
+                    //                            repeaterSelected=1;
+                    //                        else if(dropDownActions[0].enabled)
+                    //                            repeaterSelected=0;
+                    //                        break;
+                    //                    case 3: if(dropDownActions[2].enabled)
+                    //                            repeaterSelected=2;
+                    //                        else if(dropDownActions[1].enabled)
+                    //                            repeaterSelected=1;
+                    //                        else if(dropDownActions[0].enabled)
+                    //                            repeaterSelected=0;
+                    //                        break;
+                    //                    case 4: if(dropDownActions[3].enabled)
+                    //                            repeaterSelected=3;
+                    //                        else if(dropDownActions[2].enabled)
+                    //                            repeaterSelected=2;
+                    //                        else if(dropDownActions[1].enabled)
+                    //                            repeaterSelected=1;
+                    //                        else if(dropDownActions[0].enabled)
+                    //                            repeaterSelected=0;
+                    //                        break;
+                    //                    default:repeaterSelected=-1;break;
+                    //                    }
+                    //                    event.accept=true;
+                    //                    break;
+                case Qt.Key_Select:
+                    dropDown.close();
+                    dropDownActions[repeaterSelected].triggered();
+                    event.accept=true;
+                    break;
+                case Qt.Key_Escape:
+                    dropDown.close();
+                    event.accept=true;break;
+                }
             }
         }
     }
@@ -226,6 +488,7 @@ FocusScope{
         title: qsTr("坡口参数保存")
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
+        globalMouseAreaEnabled:false
         dialogContent:Row{
             spacing: Units.dp(16)
             Icon {
@@ -233,23 +496,22 @@ FocusScope{
             }
             TextField{
                 id:filename
-
                 placeholderText: groovepresetlabel.text
             }
         }
         onAccepted: {
             //保存文件
-            UserData.createTable(filename.text,"(ID INT NOT NULL PRIMARY KEY,C1 INT,C2 INT,C3 INT,C4 INT,C5 INT,C6 INT)");
-            for(var i=0;i<grooveTableview.model.count;i++){
-                UserData.insertTable(filename.text,"(?,?,?,?,?,?,?)",[
-                                         Number(grooveTableview.model.get(i).ID),
-                                         Number(grooveTableview.model.get(i).C1),
-                                         Number(grooveTableview.model.get(i).C2),
-                                         Number(grooveTableview.model.get(i).C3),
-                                         Number(grooveTableview.model.get(i).C4),
-                                         Number(grooveTableview.model.get(i).C5),
-                                         Number(grooveTableview.model.get(i).C6)])
-            }
+            //            UserData.createTable(filename.text,"(ID INT NOT NULL PRIMARY KEY,C1 INT,C2 INT,C3 INT,C4 INT,C5 INT,C6 INT)");
+            //            for(var i=0;i<tableview.rowCount;i++){
+            //                UserData.insertTable(filename.text,"(?,?,?,?,?,?,?)",[
+            //                                         Number(tableview.model.get(i).ID),
+            //                                         Number(tableview.model.get(i).C1),
+            //                                         Number(tableview.model.get(i).C2),
+            //                                         Number(tableview.model.get(i).C3),
+            //                                         Number(tableview.model.get(i).C4),
+            //                                         Number(tableview.model.get(i).C5),
+            //                                         Number(tableview.model.get(i).C6)])
+            //            }
         }
     }
     Dialog{
@@ -259,20 +521,54 @@ FocusScope{
         positiveButtonText:qsTr("确定")
     }
     Dialog{
+        id:add
+        title: qsTr("新建坡口")
+        negativeButtonText:qsTr("取消")
+        positiveButtonText:qsTr("确定")
+        dialogContent:Row{
+            spacing: Units.dp(16)
+            Icon {
+                name: "awesome/file_text_o"
+            }
+            TextField{
+                placeholderText: "请输入坡口名称。。"
+            }
+        }
+        onAccepted: {
+            console.log("model changed")
+            console.log(initlist.count);
+            tableview.model=initlist;
+        }
+    }
+
+    Dialog{
         id:edit
         title: qsTr("编辑坡口参数")
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
+        globalMouseAreaEnabled:false
         onAccepted: {
-            if(grooveTableview.rowCount>0)
-                grooveTableview.model.set(grooveTableview.currentRow,
-                                          {"C1":editData[0],"C2":editData[1],
-                                              "C3":editData[2],"C4":editData[3],
-                                              "C5":editData[4],"C6":editData[5]})
-            else{
-                grooveTableview.model.insert(0, {"C1":editData[0],"C2":editData[1],
-                                                 "C3":editData[2],"C4":editData[3],
-                                                 "C5":editData[4],"C6":editData[5]});
+            //只有一个空白行则插入新的行
+            tableview.model.set(selectedIndex,
+                                {   "ID":columnRepeater.itemAt(0).text,
+                                    "C1":columnRepeater.itemAt(1).text,
+                                    "C2":columnRepeater.itemAt(2).text,
+                                    "C3":columnRepeater.itemAt(3).text,
+                                    "C4":columnRepeater.itemAt(4).text,
+                                    "C5":columnRepeater.itemAt(5).text,
+                                    "C6":columnRepeater.itemAt(6).text})}
+        onOpened: {
+            //复制数据到 editData
+            for(var i=0;i<7;i++){
+                switch(i){
+                case 0:columnRepeater.itemAt(i).text=tableview.model.get(selectedIndex).ID; break;
+                case 1:columnRepeater.itemAt(i).text=tableview.model.get(selectedIndex).C1; break;
+                case 2:columnRepeater.itemAt(i).text=tableview.model.get(selectedIndex).C2; break;
+                case 3:columnRepeater.itemAt(i).text=tableview.model.get(selectedIndex).C3; break;
+                case 4:columnRepeater.itemAt(i).text=tableview.model.get(selectedIndex).C4; break;
+                case 5:columnRepeater.itemAt(i).text=tableview.model.get(selectedIndex).C5; break;
+                case 6:columnRepeater.itemAt(i).text=tableview.model.get(selectedIndex).C6; break;
+                }
             }
         }
         dialogContent: [
@@ -294,72 +590,21 @@ FocusScope{
                     anchors.right: parent.right
                     Repeater{
                         id:columnRepeater
-                        model:["板    厚δ(mm)","板厚差e(mm)","余    高h(mm)","角  度β1(deg)","角  度β2(deg)","间    隙b(mm)"]
+                        model:["           No.       ", "板    厚δ(mm)","板厚差e(mm)","间    隙b(mm)","角  度β1(deg)","角  度β2(deg)","余    高h(mm)"]
                         delegate:Row{
+                            property alias text: textField.text
                             spacing: Units.dp(8)
                             Label{text:modelData;anchors.bottom: parent.bottom}
-                            TextField{text:index===0?grooveTableview.rowCount>0?grooveTableview.model.get(grooveTableview.currentRow).C1:"0":
-                                index===1?grooveTableview.rowCount>0?grooveTableview.model.get(grooveTableview.currentRow).C2:"0":
-                                index===2?grooveTableview.rowCount>0?grooveTableview.model.get(grooveTableview.currentRow).C3:"0":
-                                index===3?grooveTableview.rowCount>0?grooveTableview.model.get(grooveTableview.currentRow).C4:"0":
-                                index===4?grooveTableview.rowCount>0?grooveTableview.model.get(grooveTableview.currentRow).C5:"0":
-                                grooveTableview.currentRow>=0?grooveTableview.model.get(grooveTableview.currentRow).C6:"0";
+                            TextField{
+                                id:textField
                                 horizontalAlignment:TextInput.AlignHCenter
                                 width: Units.dp(60)
                                 inputMethodHints: Qt.ImhDigitsOnly
-                                onTextChanged: {
-                                    if(edit.showing)
-                                        editData[index]=text;
-                                }
                             }}
                     }
                 }
             }
         ]
-    }
-    Dialog{
-        id:copy
-        title: qsTr("复制坡口参数")
-        negativeButtonText:qsTr("取消")
-        positiveButtonText:qsTr("确定")
-        onAccepted: {
-            for(var i=0;i<6;i++){
-                switch(i){
-                case 0:editData[0]=grooveTableview.model.get(grooveTableview.currentRow).C1; break;
-                case 1:editData[1]=grooveTableview.model.get(grooveTableview.currentRow).C2; break;
-                case 2:editData[2]=grooveTableview.model.get(grooveTableview.currentRow).C3; break;
-                case 3:editData[3]=grooveTableview.model.get(grooveTableview.currentRow).C4; break;
-                case 4:editData[4]=grooveTableview.model.get(grooveTableview.currentRow).C5; break;
-                case 5:editData[5]=grooveTableview.model.get(grooveTableview.currentRow).C6; break;
-                }
-            }
-        }
-    }
-    Dialog{
-        id:paste
-        title: qsTr("粘帖坡口参数")
-        text:qsTr("粘帖到当前位置")
-        negativeButtonText:qsTr("取消")
-        positiveButtonText:qsTr("确定")
-        onAccepted: {
-            grooveTableview.model.insert(grooveTableview.currentRow,
-                                         {"ID":(grooveTableview.currentRow+1).toString(),"C1":editData[0],"C2":editData[1],
-                                             "C3":editData[2],"C4":editData[3],
-                                             "C5":editData[4],"C6":editData[5]})
-            grooveTableview.selection.clear();
-            grooveTableview.selection.select((grooveTableview.currentRow+1)<grooveTableview.rowCount?grooveTableview.currentRow+1:grooveTableview.currentRow)
-        }
-    }
-    Dialog{
-        id:delet
-        title: qsTr("删除坡口参数")
-        negativeButtonText:qsTr("取消")
-        positiveButtonText:qsTr("确定")
-        text:qsTr("确认删除操作？\n删除后不可恢复")
-        onAccepted: {
-            grooveTableview.model.remove(grooveTableview.currentRow);
-            grooveTableview.selection.select((grooveTableview.currentRow+1)<grooveTableview.rowCount?grooveTableview.currentRow:grooveTableview.currentRow-1)
-        }
     }
 
 }

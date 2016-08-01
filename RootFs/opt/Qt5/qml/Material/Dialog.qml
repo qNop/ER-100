@@ -31,10 +31,9 @@ import Material.Extras 0.1
  */
 PopupBase {
     id: dialog
-    objectName: "popupbase"
+    objectName: "Dialog"
     overlayLayer: "dialogOverlayLayer"
    // overlayColor: Qt.rgba(0, 0, 0, 0.3)
-
     opacity: showing ? 1 : 0
     visible: opacity > 0
 
@@ -124,7 +123,6 @@ PopupBase {
 
     View {
         id: dialogContainer
-
         anchors.fill: parent
         elevation: 5
         radius: Units.dp(2)
@@ -140,6 +138,7 @@ PopupBase {
         }
 
         Rectangle {
+            objectName: "rect"
             anchors.fill: content
         }
 
@@ -163,10 +162,14 @@ PopupBase {
                     contentX = 0
             }
 
-            onContentYChanged: {
-                if(contentY != 0 && contentHeight <= height)
-                    contentY = 0
-            }
+//            onContentYChanged: {
+//                if(contentY != 0 && contentHeight <= height){
+//                    console.log("dialog contentY++")
+//                 //   contentY = 0
+//                }
+//                else
+//                    console.log("dialog contentY")
+//            }
 
             Column {
                 id: column
@@ -174,7 +177,7 @@ PopupBase {
                     left: parent.left
                     leftMargin: contentMargins
                     top:parent.top
-                    topMargin: contentMargins
+                    topMargin: contentMargins/2
                 }
 
                 width: content.width - 2 * contentMargins
@@ -197,7 +200,7 @@ PopupBase {
 
             View {
                  id:titleview
-                backgroundColor: theme.primaryColor
+                backgroundColor: Theme.primaryColor
                 elevation: 1 // content.atYBeginning ? 0 : 1
                 fullWidth: true
                 visible: titleLabel.visible || textLabel.visible // radius: dialogContainer.radius
@@ -320,7 +323,6 @@ PopupBase {
                     text: positiveButtonText
                     textColor: Theme.accentColor
                     context: "dialog"
-
                     anchors {
                         verticalCenter: parent.verticalCenter
                         rightMargin: Units.dp(8)
@@ -336,4 +338,3 @@ PopupBase {
         }
     }
 }
-

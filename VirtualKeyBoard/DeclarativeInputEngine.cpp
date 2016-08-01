@@ -41,6 +41,7 @@ struct DeclarativeInputEnginePrivate
     QStringList Model;
     QString str;
     QObject* InputPanel;
+    QString place_str;
 
     /**
      * Private data constructor
@@ -68,6 +69,7 @@ DeclarativeInputEngine::DeclarativeInputEngine(QObject *parent) :
 {
     d->str="";
     d->Model.clear();
+    d->place_str="";
     QSettings setter(":/pinyin/pinyinEx.ini", QSettings::IniFormat);
     d->key = setter.value("pyKey",d->key).toStringList();
     d->val = setter.value("pyVal", d->val).toStringList();
@@ -86,20 +88,29 @@ DeclarativeInputEngine::~DeclarativeInputEngine()
     delete d;
 }
 
+void DeclarativeInputEngine::setPlaceStr(QString str){
+    d->place_str=str;
+}
+
 
 //==============================================================================
 void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
 {
     //qDebug() << "CDeclarativeInputEngine::sendKeyToFocusItem " << text;
     QInputMethodEvent ev;
-  //  qDebug()<<"DeclarativeInputEngine::d->index"<<d->index;
 
+    //qDebug()<<"DeclarativeInputEngine::d->index"<<d->index;
     //删除命令
     if (text == QString("\x7F"))
     {
-        if(d->str == ""){
+        if(d->str==""){
             ev.setCommitString("",-1,1);
             QCoreApplication::sendEvent(QGuiApplication::focusObject(),&ev);
+        }
+        if(d->place_str.length()){
+            ev.setCommitString("",-1,1);
+            QCoreApplication::sendEvent(QGuiApplication::focusObject(),&ev);
+            d->place_str.remove(d->place_str.length()-1,1);
         }
         if (d->str.length()){
             d->str.truncate(d->str.length()-1);
@@ -108,15 +119,26 @@ void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
         else{
             d->str = "";
         }
-    }else if (text == QString("\n"))
-    {
-        QCoreApplication::sendEvent(QGuiApplication::focusObject(), new QKeyEvent(QEvent::KeyPress, Qt::Key_Enter, Qt::NoModifier));
-        QCoreApplication::sendEvent(QGuiApplication::focusObject(), new QKeyEvent(QEvent::KeyRelease, Qt::Key_Enter, Qt::NoModifier));
-    }else if(text.startsWith(QString("\x0D"))){//enter
+    }else if(text.startsWith(QString("\x0D"))){//确认命令输入
         QString str=text;
+        str=str.replace(QString("\x0D"),"");
         if(d->Model.length()){
-            ev.setCommitString(d->Model.at(str.replace(QString("\x0D"),"").toInt()));
+            str=d->Model.at(str.toInt());
+            //如果placestr 还有数据 则从开头对比str 和placestr 不同的地方 把不同字符输入 textfeild
+            for(int i=0;i<d->place_str.length();i++){
+                if(str.at(i)==d->place_str.at(i)){
+                    str.remove(0,1);
+                    d->place_str.remove(0,1);
+                    i-=1;
+                    qDebug()<<d->place_str<<str;
+                }else{
+                    //一旦不想等就立即退出
+                    break;
+                }
+            }
+            ev.setCommitString(str);
             QCoreApplication::sendEvent(QGuiApplication::focusObject(),&ev);
+            //确认参数
             d->str="";
             macthing(d->str);
         }
@@ -124,6 +146,16 @@ void DeclarativeInputEngine::sendKeyToFocusItem(const QString& text)
     //正常命令
     else
     {
+        //如果place上面有数 则清除 控件上的数据同时清除place-str 清除d->str
+        if(d->place_str.length()){
+            for(int i=0;i<d->place_str.length();i++){
+                ev.setCommitString("",-1,1);
+                QCoreApplication::sendEvent(QGuiApplication::focusObject(),&ev);
+            }
+            d->place_str="";
+            d->str="";
+        }
+        //处理输入的数据
         d->str+=text;
         macthing(d->str);//匹配 汉字
     }
@@ -148,7 +180,7 @@ QObject * DeclarativeInputEngine::inputPanel() {
 }
 
 void DeclarativeInputEngine::setInputPanel(QObject *Object){
-  //  qDebug()<<"DeclarativeInputEngine::setInputPanel ObjectName is "<<Object->objectName();
+    //  qDebug()<<"DeclarativeInputEngine::setInputPanel ObjectName is "<<Object->objectName();
     d->InputPanel=Object;
     InputPanelItem=dynamic_cast<QQuickItem*>(Object);
     emit inputPanelChanged(Object);
@@ -211,7 +243,7 @@ void DeclarativeInputEngine::macthing(QString str){
             }
         }
     }
-   // qDebug()<<"DeclarativeInputEngine::d->Model length"<<d->Model.length();
+    // qDebug()<<"DeclarativeInputEngine::d->Model length"<<d->Model.length();
     setchineseList(d->Model);
 }
 QStringList DeclarativeInputEngine::getchineseList(){

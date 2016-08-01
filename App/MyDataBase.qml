@@ -17,7 +17,7 @@
  */
 import QtQuick 2.4
 import QtQuick.LocalStorage 2.0 as Data
-pragma Singleton
+//pragma Singleton
 
 /*!
 /*
@@ -29,7 +29,6 @@ pragma Singleton
  *                                	1:创建初始化
  *                                	2:读取
  *                                	3:写入
- *                                 4:删除
  * 注意事项：存储路径~/.local/share/localstorage/QML/OfflineStorage/Databases/
  * 命令： CREATE TABLE IF NOT EXISTS 创建如过不存在
  *        INSERT INTO  tartget // 想追加记录的表或视图的名称
@@ -52,20 +51,21 @@ Object {
 
     property var grooveName: ["flatweldsinglebevelgroovet","flatweldsinglebevelgroove","flatweldvgroove","horizontalweldsinglebevelgroovet","horizontalweldsinglebevelgroove","verticalweldsinglebevelgroovet","verticalweldsinglebevelgroove","verticalweldvgroove","flatfillet"]
 
-    function getPageFunctionAndValueFromTable(index){
+    function getPageFunctionAndValueFromTable(index,mode){
         var result,str;
         if(!dataBase) { console.log("dataBase::dataBase ");return -1;}
         switch(index){
-        case 0:str="select * from flatweldsinglebevelgroovet";break;
-        case 1:str="select * from flatweldsinglebevelgroove";break;
-        case 2:str="select * from flatweldvgroove";break;
-        case 3:str="select * from horizontalweldsinglebevelgroovet";break;
-        case 4:str="select * from horizontalweldsinglebevelgroove";break;
-        case 5:str="select * from verticalweldsinglebevelgroovet";break;
-        case 6:str="select * from verticalweldsinglebevelgroove";break;
-        case 7:str="select * from verticalweldvgroove";break;
-        case 8:str="select * from flatfillet";break;
+        case 0:str="select * from flatweldsinglebevelgroovet where ";break;
+        case 1:str="select * from flatweldsinglebevelgroove where ";break;
+        case 2:str="select * from flatweldvgroove where ";break;
+        case 3:str="select * from flatfillet where ";break;
+        case 4:str="select * from horizontalweldsinglebevelgroovet where ";break;
+        case 5:str="select * from horizontalweldsinglebevelgroove where ";break;
+        case 6:str="select * from verticalweldsinglebevelgroovet where ";break;
+        case 7:str="select * from verticalweldsinglebevelgroove where ";break;
+        case 8:str="select * from verticalweldvgroove where ";break;
         }
+        str+= " mode  ="+"\'"+mode+"\'";
         root.dataBase.transaction( function(tx) {result = tx.executeSql(str); });
         /*遍寻所有数据转换成json格式*/
         var json="[";
@@ -76,6 +76,7 @@ Object {
             json = json.substr(0,json.length -1);
         }
         json+="]"
+        console.log(json);
         return json;
     }
     /*写入数据库相关词条的数值*/
@@ -83,14 +84,6 @@ Object {
         var result,str;
         if(!dataBase) { console.log("UserData::dataBase ");return -1;}
         str="UPDATE "+tablename+" SET value = "+"\'"+value+"\'"+" WHERE id = "+"\'"+id+"\'";
-        console.log(str);
-        dataBase.transaction( function(tx) {result = tx.executeSql(str); });
-    }
-    /*写入数据库相关词条的数值*/
-    function setValue(tablename,id,value){
-        var result,str;
-        if(!dataBase) { console.log("UserData::dataBase ");return -1;}
-        str="UPDATE "+tablename+" SET Time = "+"\'"+value+"\'"+" WHERE Name = "+"\'"+id+"\'";
         console.log(str);
         dataBase.transaction( function(tx) {result = tx.executeSql(str); });
     }
@@ -113,7 +106,7 @@ Object {
         return value;
     }
     /*从数据库中获取相关词条的数值
-          * name 数据表格名字，func 定义的名字
+          * name 数据表格名字，func 定义的名字 setvalue设定数值
          */
     function getResultFromFuncOfTable(tablename,func,name){
         var result,str;
@@ -125,69 +118,12 @@ Object {
         dataBase.transaction( function(tx) {result = tx.executeSql(str); });
         return result;
     }
-    /**
-      *从数据库中获取 焊接规范列表
-      */
-    function getWeldRules(tablename){
-        var result,str;
-        if(!dataBase) { console.log("dataBase::dataBase ");return -1;}
-        str="SELECT * FROM "+tablename;
-        dataBase.transaction( function(tx) {result = tx.executeSql(str); });
-        var value=new Array();
-        /*遍寻所有数据转换成json格式*/
-        for(var i=0;i<result.rows.length;i++){
-            //result.rows.item返回的就是json object不需要在弄
-            value.push(result.rows.item(i));
-        }
-        return value;
-    }
-    /**
-      *从数据库中获取 焊接规范
-      */
-    function getWeldRulesListName(tablename){
-        var result,str;
-        if(!dataBase) { console.log("dataBase::dataBase ");return -1;}
-        str="SELECT * FROM "+tablename+" ORDER BY Time DESC";
-        dataBase.transaction( function(tx) {result = tx.executeSql(str); });
-        var value=new Array();
-        for(var i=0;i<result.rows.length;i++){
-            value.push(String(result.rows.item(i).Name)+"."+String(result.rows.item(i).Time));
-        }
-        console.log(value);
-        return value;
-    }
-
-    /*
-    *从数据表中获取最近的头条信息 以时间顺序排列
-    */
-    function getLastWeldRulesName(tablename){
-        var error,result;
-        if(!dataBase) { console.log("dataBase::dataBase ");return -1;}
-        dataBase.transaction( function(tx) {
-            result = tx.executeSql("SELECT * FROM "+tablename+" ORDER BY Time DESC");
-        });
-        if(result.rows.length){
-            return result.rows.item(0).Name;
-        }else
-            return -1;
-    }
-    //    /*
-    //      *检索list里面是否已经包含当前名称
-    //      */
-    //    function findWeldRulesName(tablename,func){
-    //        var result
-    //        if(!dataBase) { console.log("dataBase::dataBase ");return -1;}
-    //        dataBase.transaction( function(tx) {
-    //            result = tx.executeSql("SELECT * FROM "+tablename+"");
-    //        });
-    //    }
-
     /*
       *打开数据库 输入参数 数据名称 版本 描述 类型
       */
-    function openDatabase(databaseName) {
+    function openDatabase() {
         //创建链接
-        root.dataBase = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 10000000);
+        root.dataBase = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
         if(root.dataBase)  {console.log("dataBase::Open dataBase Success .");return 1 }
         else{ console.log("dataBase::Open dataBase Fail .");return -1;}
 
@@ -198,55 +134,31 @@ Object {
     function createTable(tablename,format){
         if(!root.dataBase){ console.log("dataBase::dataBase ");return -1;}
         if((tablename!=="")&&(format!=="")){
-            var str="CREATE TABLE IF NOT EXISTS "+tablename+"("+format+")";
-            dataBase.transaction( function(tx) {tx.executeSql(str);});
+            var str="CREATE TABLE IF NOT EXISTS "+tablename+format;
+            console.log(str)
+            dataBase.transaction( function(tx) {tx.executeSql(str); });
         }else
             return -1;
     }
-    /*删除数据表数据 当func与value有效时删除func为value所在行数据，否则删除表内所有数据但是表格保留*/
-    function clearTable(tablename,func,value){
-        if(!root.dataBase){ console.log("dataBase::dataBase ");return -1;}
-        if(tablename!==""){
-            var str="DELETE FROM "+tablename;
-            if((func!=="")&&(value!=="")){
-                str+=" WHERE "+func+" = "+"\'"+value+"\'";
-            }
-            console.log(str)
-            dataBase.transaction( function(tx) { tx.executeSql(str);})
-        }
-    }
-    /*删除整个数据表格*/
-    function deleteTable(tablename){
-        if(!root.dataBase){ console.log("dataBase::dataBase ");return -1;}
-        if(tablename!==""){
-            var str="DROP TABLE "+tablename;
-            dataBase.transaction( function(tx) {tx.executeSql(str);})
-        }
-    }
     /*
           *插入指定参数到数据库 数据库不存在则返回-1
-          操作格式 func (?,?) data 为数组[,]
           */
     function insertTable(tablename,func,data){
         if(!root.dataBase){ console.log("dataBase::dataBase ");return -1;}
         var str="INSERT INTO "+tablename+" VALUES"+func;
         console.log(str)
-        dataBase.transaction( function(tx) { tx.executeSql(str,data);});
+        dataBase.transaction( function(tx) {tx.executeSql(str,data);});
     }
-    function changeTable(tablename,func,data){
+    function changeTable(name,func,set,max,min,step,init){
         if(!root.dataBase){ console.log("dataBase::dataBase ");return -1;}
-        //        for(var i=0;i<9;i++){
-        //            var str="UPDATE "+grooveName[i]+" SET "+name+" = "+"\'"+set+"\'"
-        //            //+", max = "+"\'"+max+"\'"+", min = "+"\'"+min+"\'"+", step = "+"\'"+step+"\'"+", init = "+"\'"+init+"\'"
-        //            str=str+" WHERE function = "+"\'"+func+"\'";
-        //            console.log(str)
-        //            dataBase.transaction( function(tx) {tx.executeSql(str);});
-        //        }
-        var str="UPDATE "+tablename+" SET";//+" WHERE function = "+"\'"+func+"\'";
-        console.log(str)
-        dataBase.transaction( function(tx) { tx.executeSql(str);});
+        for(var i=0;i<9;i++){
+            var str="UPDATE "+grooveName[i]+" SET "+name+" = "+"\'"+set+"\'"
+            //+", max = "+"\'"+max+"\'"+", min = "+"\'"+min+"\'"+", step = "+"\'"+step+"\'"+", init = "+"\'"+init+"\'"
+            str=str+" WHERE function = "+"\'"+func+"\'";
+            console.log(str)
+            dataBase.transaction( function(tx) {tx.executeSql(str);});
+        }
     }
-
     /*
          *打开数据库 输入参数 数据名称 版本 描述 类型
          */

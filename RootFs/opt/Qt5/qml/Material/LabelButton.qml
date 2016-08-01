@@ -29,12 +29,7 @@ Item {
     id: labelButton
 
     property Action action
-    //property string iconName
-    //property string iconSource: action ? action.iconSource : "icon://" + iconName
-   // property bool hoverAnimation: action ? action.hoverAnimation : false
     property alias color: label.color
-    //property alias size: label.size
-
     signal clicked
 
     width: label.width
@@ -69,7 +64,6 @@ Item {
         anchors.centerIn: parent
 	text: action ? action.name : ""
 	color: label.color
-        style: "subheading"
     }
 
     Tooltip {

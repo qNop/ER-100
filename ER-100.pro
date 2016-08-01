@@ -5,10 +5,3 @@ SUBDIRS = App VirtualKeyBoard
 #子目录的编译顺序在SUBDIRS中指明
 CONFIG+=ordered
 
-
-
-
-
-
-
-

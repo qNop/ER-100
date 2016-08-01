@@ -135,7 +135,7 @@ Item {
        array wih an object for each tab, or it can be a TabView object to display tabs for.
 
        If it is a Javascript array, each object represents one tab, and can either be a simple
-       string (used as the tab title), or an object with title, iconName, and/or iconSource 
+       string (used as the tab title), or an object with title, iconName, and/or iconSource
        properties.
        
        If it is a TabView component, the title of each Tab object will be used, as well as
@@ -218,7 +218,7 @@ Item {
         }
 
         color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
-                                                            Theme.dark.iconColor)
+                               Theme.dark.iconColor)
         size: Units.dp(27)
         action: backAction
 
@@ -253,7 +253,7 @@ Item {
         text: actionBar.title
         style: "title"
         color: Theme.lightDark(actionBar.backgroundColor, Theme.light.textColor,
-                                                            Theme.dark.textColor)
+                               Theme.dark.textColor)
         elide: Text.ElideRight
     }
 
@@ -266,12 +266,12 @@ Item {
         }
         height: parent.implicitHeight
 
-        spacing: Units.dp(16)
+        spacing: Units.dp(12)
 
         Repeater {
             model: __internal.visibleActions.length > maxActionCount
-                    ? maxActionCount - 2
-                    : __internal.visibleActions.length
+                   ? maxActionCount - 3
+                   : __internal.visibleActions.length
 
             delegate: IconButton {
                 id: iconAction
@@ -281,35 +281,44 @@ Item {
                 action: __internal.visibleActions[index]
 
                 color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
-                                                                  Theme.dark.iconColor)
+                                       Theme.dark.iconColor)
                 size: Units.dp(27)//iconSource == "icon://content/add" ? Units.dp(27) : Units.dp(24)
 
                 anchors.verticalCenter: parent ? parent.verticalCenter : undefined
             }
         }
-	LabelButton {
-            id: time
-            action: maxActionCount>2? __internal.visibleActions[maxActionCount-2]:null
+        LabelButton {
+            id: date
+            action: maxActionCount>3? __internal.visibleActions[maxActionCount-3]:null
             objectName: "action/datetime"
             color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
-                                                              Theme.dark.iconColor)
+                                   Theme.dark.iconColor)
+            visible: maxActionCount>3 ? true:false
+            anchors.verticalCenter: parent.verticalCenter
+        }
+        LabelButton {
+            id: time
+            action: maxActionCount>3? __internal.visibleActions[maxActionCount-2]:null
+            objectName: "action/datetime"
+            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
+                                   Theme.dark.iconColor)
             visible: maxActionCount>2 ? true:false
             anchors.verticalCenter: parent.verticalCenter
         }
-	IconButton {
+        IconButton {
             id: overflowButton
 
             iconName: "navigation/more_vert"
             objectName: "action/overflow"
             size: Units.dp(27)
             color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
-                                                              Theme.dark.iconColor)
+                                   Theme.dark.iconColor)
             visible: actionBar.overflowMenuAvailable
             anchors.verticalCenter:  parent ? parent.verticalCenter : undefined
-          	
+
             onClicked: openOverflowMenu()
         }
-      
+
     }
 
     Item {
@@ -351,16 +360,16 @@ Item {
     Dropdown {
         id: overflowMenu
         objectName: "overflowMenu"
-	
+
         width: Units.dp(250)
         height: columnView.height + Units.dp(16)
-	color:actionBar.backgroundColor
-	
+        color:actionBar.backgroundColor
+
         ColumnLayout {
             id: columnView
             width: parent.width
             anchors.centerIn: parent
-	    
+
             Repeater {
                 model: __internal.visibleActions.length - (maxActionCount - 1)
 
@@ -374,10 +383,10 @@ Item {
                     text: action.name
                     iconSource: action.iconSource
                     enabled: action.enabled
-		    textColor: Theme.lightDark(actionBar.backgroundColor,Theme.light.textColor,Theme.dark.textColor)	
-		    iconColor: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,Theme.dark.iconColor)
+                    textColor: Theme.lightDark(actionBar.backgroundColor,Theme.light.textColor,Theme.dark.textColor)
+                    iconColor: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,Theme.dark.iconColor)
                     onClicked: {
-                       
+
                         overflowMenu.close()
                         action.triggered(listItem)
                     }
@@ -386,3 +395,4 @@ Item {
         }
     }
 }
+

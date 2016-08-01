@@ -42,7 +42,6 @@ TableViewStyle{
     //frame 滚动条外围组件
     frame:Item{visible: false}
     //以上是SCROLLBAR 外观设置
-
     //以下是TableView设置
     headerDelegate:Rectangle{
         height:Material.Units.dp(56);
@@ -66,8 +65,8 @@ TableViewStyle{
     }
     rowDelegate: Rectangle{
         height: Material.Units.dp(48);
-        property color selectedColor: control.activeFocus ? Material.Palette.colors["grey"]["300"] : Material.Palette.colors["grey"]["200"] ;
-        color: styleData.selected ? selectedColor : "white"
+       // property color selectedColor: control.activeFocus ? Material.Palette.colors["grey"]["300"] : Material.Palette.colors["grey"]["200"] ;
+        color: styleData.selected ?  Material.Palette.colors["grey"]["400"] : "white"
         Material.ThinDivider{anchors.bottom: parent.bottom}
     }
 }

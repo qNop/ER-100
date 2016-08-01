@@ -5,7 +5,7 @@
         <file>WeldAnalyse.qml</file>
         <file>SystemInfor.qml</file>
         <file>InputPanel.qml</file>
-        <file>MyTableViewStyle.qml</file>
+        <file>TableStyle.qml</file>
         <file>WeldLine.qml</file>
         <file>../Pic/横焊单边V形坡口T接头.png</file>
         <file>../Pic/横焊单边V形坡口平对接.png</file>
@@ -21,7 +21,14 @@
         <file>../Pic/水平角焊.png</file>
         <file>TeachCondition.qml</file>
         <file>GrooveCondition.qml</file>
-        <file>CheckTest.qml</file>
+        <file>HandleInfor.qml</file>
         <file>GrooveCheck.qml</file>
+        <file>InputPanelButton.qml</file>
+        <file>MyDataBase.qml</file>
+        <file>ControlInfor.qml</file>
+        <file>HighVolagteInfor.qml</file>
+        <file>RoboInfor.qml</file>
+        <file>WeldPowerInfor.qml</file>
+        <file>Table.qml</file>
     </qresource>
 </RCC>

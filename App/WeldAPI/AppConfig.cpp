@@ -52,7 +52,12 @@ void Write_App_Config(QSettings *File){
     File->setValue("SoftWare_Version",EROBOWELDSYS_SOFTWAREVREASION);
 
     File->setValue("BackLight",EROBOWELDSYS_BACKLIGHT);
+    File->setValue("Language","EN");
     //
+    File->setValue("Swing","200");
+    File->setValue("X","200");
+    File->setValue("Y","200");
+    File->setValue("Z","200");
 }
 /*
  **********************************************************************************获取配置ini指针
@@ -85,9 +90,16 @@ AppConfig::AppConfig(){
     BacklightValue = File->value("BackLight").toInt();
     CurrentGrooveValue = File->value("Current_Groove").toInt();
     BottomStyleValue=File->value("Bottom_Style").toInt();
+    //languageValue=File->value("Language").toString();
+    //setlanguage(languageValue);
+    xSpeedValue=File->value("X").toInt();
+    ySpeedValue=File->value("Y").toInt();
+    zSpeedValue=File->value("Z").toInt();
+    swingSpeedValue=File->value("Swing").toInt();
 }
 AppConfig::~AppConfig(){
     qDebug()<<"AppConfig::REMOVE";
+
     delete File;
     delete poc;
 }
@@ -211,9 +223,10 @@ void AppConfig::setbackLight(int value){
     QString s;
     File->setValue("BackLight",value);
     BacklightValue=value;
-    s="/Nop/backlight ";
-    s+=QString::number(value*2);;
-    poc->start(s);
+    s="echo ";
+    s+=QString::number(value*2);
+    s+=" > /sys/devices/platform/pwm-backlight.0/backlight/pwm-backlight.0/brightness";
+    system(s.toLatin1().data());
     emit backLightChanged(value);
     qDebug() <<"AppConfig::Backlight Value Changed";
 }
@@ -256,4 +269,97 @@ void AppConfig::setleds(QString status){
 }
 QString AppConfig::leds(void){
     return led_status;
+}
+
+/*
+ * 设置系统时间 格式为 date -s "2016-05-03 10:10:10" [[[[[YY]YY]MM]DD]hh]mm[.ss]
+ */
+void AppConfig::setdateTime(QStringList time){
+    QString s;
+    int i;
+    for(i=0;i<time.length();i++){
+        if(time[i].toInt()<10){
+            time[i]="0"+time[i];
+        }
+    }
+    time.insert(0,"20");
+    time.insert(6,".");
+    s="date -s ";
+    s+=time.join("");
+    qDebug()<<s;
+    //调用系统命令
+    system(s.toLatin1().data());
+}
+
+QStringList AppConfig::dateTime(){
+    QStringList res;
+    res[0]="";
+    return res;
+}
+
+QString AppConfig::language(){
+    return languageValue;
+}
+
+void AppConfig::setlanguage(QString str){
+    languageValue=str;
+    File->setValue("Language",str);
+    qDebug()<<"AppConfig::setlanguage "<<str;
+    if(str=="EN"){
+        QLocale::setDefault(QLocale(QLocale::English,QLocale::UnitedStates));
+    }else if(str=="CH"){
+        QLocale::setDefault(QLocale(QLocale::Chinese,QLocale::China));
+    }
+}
+
+bool AppConfig::loadNet(){
+    return loadNetValue;
+}
+
+void AppConfig::setloadNet(bool value){
+    QString s;
+    loadNetValue=value;
+    //    s="./ethcfg start";
+    //    system(s.toLatin1().data());
+    //    qDebug()<<s;
+    //如果true加载网络 否则关闭网络
+    if(value){
+        s="./ethcfg mount";
+    }else{
+        s="./ethcfg umount";
+    }
+    system(s.toLatin1().data());
+    qDebug()<<s;
+}
+
+int AppConfig::swingSpeed(){
+    return swingSpeedValue;
+}
+
+void AppConfig::setSwingSpeed(int value){
+    swingSpeedValue=value;
+     File->setValue("Swing",value);
+}
+
+void AppConfig::setYSpeed(int value){
+    ySpeedValue=value;
+     File->setValue("Y",value);
+}
+int AppConfig::ySpeed(){
+    return ySpeedValue;
+}
+
+void AppConfig::setZSpeed(int value){
+    zSpeedValue=value;
+     File->setValue("Z",value);
+}
+int AppConfig::zSpeed(){
+    return zSpeedValue;
+}
+void AppConfig::setXSpeed(int value){
+    xSpeedValue=value;
+     File->setValue("X",value);
+}
+int AppConfig::xSpeed(){
+    return xSpeedValue;
 }

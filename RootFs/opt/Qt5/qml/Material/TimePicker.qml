@@ -133,7 +133,7 @@ FocusScope {
             id: headerView
             width: parent.width
             height: Units.dp(88)
-            color: Theme.accentColor
+            color: Theme.primaryColor
 
             Row {
                 id: timeContainer
@@ -143,7 +143,7 @@ FocusScope {
                 Label {
                     id:hoursLabel
                     style: "display3"
-                    color: isHours ? "white" : "#99ffffff"
+                    color: isHours ? Theme.light.textColor : "#99ffffff"
                     text: internal.timePicked.getHours()
                     anchors.verticalCenter: parent.verticalCenter
 
@@ -159,7 +159,7 @@ FocusScope {
 
                 Label {
                     style: "display3"
-                    color: "white"
+                    color:  Theme.light.textColor
                     text:":"
                     anchors.verticalCenter: parent.verticalCenter
                 }
@@ -167,7 +167,7 @@ FocusScope {
                 Label {
                     id: minutesLabel
                     style: "display3"
-                    color: !isHours ? "white" : "#99ffffff"
+                    color: !isHours ? Theme.light.textColor: "#99ffffff"
                     text: internal.timePicked.getMinutes() < 10 ? "0" +  internal.timePicked.getMinutes() : internal.timePicked.getMinutes()
                     anchors.verticalCenter: parent.verticalCenter
 
@@ -199,7 +199,7 @@ FocusScope {
                 Label {
                     style: "subheading"
                     font.weight: Font.DemiBold
-                    color: amPmPicker.isAm ? "white" : "#99ffffff"
+                    color: amPmPicker.isAm ? Theme.light.textColor : "#99ffffff"
                     text: "AM"
 
                     MouseArea {
@@ -211,7 +211,7 @@ FocusScope {
                 Label {
                     style: "subheading"
                     font.weight: Font.DemiBold
-                    color: !amPmPicker.isAm ? "white" : "#99ffffff"
+                    color: !amPmPicker.isAm ? Theme.light.textColor : "#99ffffff"
                     text: "PM"
 
                     MouseArea {

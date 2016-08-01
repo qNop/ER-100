@@ -64,7 +64,7 @@ VirtualKeyboardInputContext::VirtualKeyboardInputContext() :
     d->FlickableContentScrollAnimation = new QPropertyAnimation(this);
     d->FlickableContentScrollAnimation->setPropertyName("contentY");
     d->FlickableContentScrollAnimation->setDuration(200);
-    d->FlickableContentScrollAnimation->setEasingCurve(QEasingCurve(QEasingCurve::OutBack));
+ //   d->FlickableContentScrollAnimation->setEasingCurve(QEasingCurve(QEasingCurve::OutBack));
     qmlRegisterSingletonType<DeclarativeInputEngine>("VirtualKeyboard", 1, 0,
                                                      "InputEngine", inputEngineProvider);
 }
@@ -121,9 +121,24 @@ void VirtualKeyboardInputContext::hideInputPanel()
     if(d->Visible){
         qDebug()<<"VirtualKeyboardInputContext::Hide InputPanel .";
         d->Visible = false;
-        d->Flickable->setContentY(d->ContentY);
-        d->Flickable=0;
         d->ContentY=0;
+        if(d->Flickable){
+            d->FlickableContentScrollAnimation->setEndValue(d->ContentY);
+            d->FlickableContentScrollAnimation->start();
+            //搜寻对话框
+        QQuickItem* item=d->Flickable->parentItem();
+          while(item){
+                if(item->objectName()=="Dialog"){
+                    //先将VIEW强制对焦 剥夺 Textfeild 焦点
+                    item->childItems().at(0)->forceActiveFocus();
+                    //再将焦点归还 Dialog
+                    item->forceActiveFocus();
+                    break;
+                }
+                item=item->parentItem();
+            }
+        }
+        d->Flickable=0;
         d->InputEngineItem=0;
         QPlatformInputContext::hideInputPanel();
         //发送Qt.inputMethod.visible=false 信号
@@ -187,10 +202,11 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
         d->InputEngine->setInputMode(DeclarativeInputEngine::Chinese);
     }
     //获取控件内文字
-    /*    QQuickTextInput* TextInput=dynamic_cast<QQuickTextInput*>(d->FocusItem);
+    QQuickTextInput* TextInput=dynamic_cast<QQuickTextInput*>(d->FocusItem);
     QStringList textmodel;
     textmodel.append(TextInput->text());
-    d->InputEngine->setchineseList(textmodel);*/
+    d->InputEngine->setchineseList(textmodel);
+    d->InputEngine->setPlaceStr(TextInput->text());
     // Search for the top most flickable so that we can scroll the control
     // into the visible area, if the keyboard hides the control
     QQuickItem* i = d->FocusItem;
@@ -201,7 +217,6 @@ void VirtualKeyboardInputContext::setFocusObject(QObject *object)
         if (Flickable)
         {
             f=Flickable;
-            //d->Flickable = Flickable;
         }
         i = i->parentItem();
     }
@@ -224,41 +239,36 @@ void VirtualKeyboardInputContext::ensureFocusedObjectVisible()
     qDebug() << "VirtualKeyboardInputContext::ensureFocusedObjectVisible";
     QRectF FocusItemRect(0, 0, d->FocusItem->width(), d->FocusItem->height());
     FocusItemRect = d->Flickable->mapRectFromItem(d->FocusItem, FocusItemRect);
-    qDebug()<<"VirtualKeyboardInputContext::FocusItemRect"<<FocusItemRect;
+    //qDebug()<<"VirtualKeyboardInputContext::FocusItemRect"<<FocusItemRect;
     d->FlickableContentScrollAnimation->setTargetObject(d->Flickable);
     qreal ContentY = d->Flickable->contentY();
     if (FocusItemRect.bottom() >= d->Flickable->height())
     {
-        qDebug() << "Item outside!!!  FocusItemRect.bottom() >= d->Flickable->height()";
+        //   qDebug() << "Item outside!!!  FocusItemRect.bottom() >= d->Flickable->height()";
         ContentY = d->Flickable->contentY() + (FocusItemRect.bottom() - d->Flickable->height()) + 20;
         d->FlickableContentScrollAnimation->setEndValue(ContentY);
         d->FlickableContentScrollAnimation->start();
     }
     else if (FocusItemRect.top() < 0)
     {
-        qDebug() << "Item outside!!!  d->FocusItem->position().x < 0";
+        //qDebug() << "Item outside!!!  d->FocusItem->position().x < 0";
         ContentY = d->Flickable->contentY() + FocusItemRect.top() - 20;
         d->FlickableContentScrollAnimation->setEndValue(ContentY);
         d->FlickableContentScrollAnimation->start();
     }
     else {
         //判断键盘的item在flickable内的位置
-
         QRectF keyboardRect = d->Flickable->mapRectFromItem(d->InputEngine->InputPanelItem, d->InputEngine->keyboardRectangle());
-       //如果之前d->ContentY==0 则说明 应存储 ContentY存储移动前位置
+        //如果之前d->ContentY==0 则说明 应存储 ContentY存储移动前位置
         if(d->ContentY==0)
             d->ContentY = ContentY;
-        qDebug()<<"VirtualKeyboardInputContext::keyboardRect"<<keyboardRect;
-        qDebug()<<"VirtualKeyboardInputContext::keyboardRect.top"<<keyboardRect.top();
-        qDebug()<<"FocusItemRect.bottom()"<<FocusItemRect.bottom();
-
         if((((keyboardRect.top()-keyboardRect.height())<(FocusItemRect.bottom()+20))&&(!d->InputEngineItem))||
                 ((keyboardRect.top()<(FocusItemRect.bottom()+20))&&(d->InputEngineItem))){
             if(d->InputEngineItem)
                 ContentY+= FocusItemRect.bottom()-keyboardRect.y()+20;
             else
                 ContentY+= FocusItemRect.bottom()-keyboardRect.y()+keyboardRect.height() +20;
-            qDebug()<<"ContentY"<<ContentY;
+         //   qDebug()<<"ContentY"<<ContentY;
             d->FlickableContentScrollAnimation->setEndValue(ContentY);
             d->FlickableContentScrollAnimation->start();
         }

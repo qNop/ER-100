@@ -109,7 +109,7 @@ void SysInfor::ReadData()
             //list=s.split(":");
             system.clear();
             system.append(QString("%1").arg(cpuPercent));
-            memoryTimer->start(100);
+            memoryTimer->start(200);
             // emit cpuInforChanged(list);
             break;
         } else if (s.startsWith("MemTotal")) {
@@ -133,7 +133,7 @@ void SysInfor::ReadData()
             //   s=QString("memory:%1:%2:%3").arg(memoryPercent).arg(memoryUse).arg(memoryAll);
             // list=s.split(":");
             system.append(QString("%1").arg(memoryPercent));
-            tempTimer->start(100);
+            tempTimer->start(200);
             // emit memoryInforChanged(list);
             break;
         }
@@ -143,7 +143,7 @@ void SysInfor::ReadData()
         }
         if(status=="temp"){
             system.append(s.replace("\n",""));
-            cpuTimer->start(100);
+            cpuTimer->start(200);
             emit systemInformationChanged(system);
             break;
         }

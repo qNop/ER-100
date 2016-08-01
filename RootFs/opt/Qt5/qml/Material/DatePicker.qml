@@ -53,7 +53,7 @@ Controls.Calendar {
         navigationBar: Rectangle {
             height: isLandscape ? calendarHeight + Units.dp(64) : Units.dp(96)
 			width: isLandscape ? calendarWidth / 3 : undefined
-			color: Theme.accentColor
+			color: Theme.primaryColor
 
 			ColumnLayout {
 				anchors.verticalCenter: isLandscape ? undefined : parent.verticalCenter
@@ -79,8 +79,8 @@ Controls.Calendar {
 					Layout.fillWidth: true
 					lineHeight: 0.9
 					wrapMode: Text.Wrap
-					color: Theme.dark.textColor
-					text: control.selectedDate.toLocaleString(control.__locale, "ddd, MMM dd")
+					color: Theme.light.textColor
+					text: control.selectedDate.toLocaleString(control.__locale, "ddd   MMM   dd")
 				}
 			}
         }

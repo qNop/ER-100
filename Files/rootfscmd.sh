@@ -67,6 +67,7 @@ case  "$cmd" in
 		echo "dbus create machine-id"
 		dbus-uuidgen >/usr/var/lib/dbus/machine-id
 		echo "Send wqy-microhei.ttc"
+		rm /usr/share/fonts/turetype
 		cp /mnt/Files/wqy-microhei.ttc /usr/share/fonts/truetype	
 		echo "Send profile"
 		cp /mnt/RootFs/etc/profile /etc
@@ -75,9 +76,9 @@ case  "$cmd" in
 		echo "Send rc.conf"
 		cp /mnt/RootFs/etc/rc.d/rc.conf /etc/rc.d
 		echo "Send ethcfg"
-		cp /mnt/RootFs/etc/rc.d/init.d/ethcfg /etc/rc.d
+		cp /mnt/RootFs/etc/rc.d/init.d/ethcfg /etc/rc.d/init.d
 		echo "Send qtexport"
-		cp /mnt/RootFs/etc/rc.d/init.d/qtexport /etc/rc.d
+		cp /mnt/RootFs/etc/rc.d/init.d/qtexport /etc/rc.d/init.d
 		echo "Send Qt5"
 		cp -R /mnt/RootFs/opt/Qt5 /opt
 		;;

@@ -5,9 +5,9 @@ read cmd
 
 case  "$cmd" in
 	Run)
-	rm -R /Nop
+	#rm -R /Nop
 	echo "cp Nop."
-	cp -R /mnt/RootFs/Nop /
+	cp -R /mnt/RootFs/Nop/App /Nop
 		#支持中文字体
 		#echo "use zhonghejian"
 		#cp /mnt/zhonghejian.ttf /usr/share/fonts/turetype	

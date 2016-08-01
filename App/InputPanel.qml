@@ -25,6 +25,10 @@ FocusScope {
     property int horizontalSpacing: verticalSpacing
     property int rowHeight: column.height/5 -verticalSpacing
     property int buttonWidth:  column.width/10 - horizontalSpacing
+    MouseArea{
+        anchors.fill: parent;
+    }
+
     /**
     *键盘显示数据
    */
@@ -63,32 +67,117 @@ FocusScope {
         ListElement { letter: "n"; firstSymbol: "-"}
         ListElement { letter: "m"; firstSymbol: "+"}
     }
+    Rectangle{
+        id:pop
+        visible: false
+        radius: 2
+        property alias text: popLabel.text
+        property alias source:popIcon.source
+        color: Theme.accentColor
+        z:2
+        Label {
+            id: popLabel
+            style: "title"
+            color: Theme.lightDark(pop.color,Theme.light.textColor,Theme.dark.textColor)
+            anchors.centerIn: parent
+        }
+        Icon {
+            id: popIcon
+            anchors.centerIn: parent
+            size:Units.dp(48)
+            visible: source!==""
+            color: Theme.lightDark(pop.color,Theme.light.iconColor,Theme.dark.iconColor)
+        }
+        function open(button,inputPanel,offsetX, offsetY){
+            width=button.width*1.2
+            height=button.height*1.4
+            text=button.text;
+            if(typeof offsetX === "undefined")
+                offsetX = 0
+            if(typeof offsetY === "undefined")
+                offsetY = 0
+            var position = button.mapToItem(inputPanel, 0, 0)
+            var rootParent = Utils.findRoot(pop);
+            pop.x = Qt.binding(function() {
+                var x = position.x + (button.width / 2 - pop.width / 2) - offsetX
+                if(x + width > rootParent.width)
+                    x = rootParent.width - width
+                if (x < 0)
+                    x = 0
+                return x
+            })
+            pop.y = Qt.binding(function() {
+                var y = y = position.y - height - offsetY
+                if (y + pop.height > rootParent.height) {
+                    y = position.y - pop.height - offsetY
+                }
+                return y
+            })
+            visible=true;
+            if(button.hasOwnProperty("source"))
+                pop.source=button.source
+            else
+                pop.source="";
+        }
+        function close(){
+            visible=false;
+             pop.source="";
+        }
+    }
     /**
      * The delegate that paints the key buttons
      */
     Component {
         id: keyButtonDelegate
-        Button {
-            id: button
+        View{
+            id:view
+            property alias text: label.text
+            radius: 2
+            width: buttonWidth;
+            height:rowHeight;
+            backgroundColor:"white"
             elevation:1
-            width: buttonWidth
-            height: rowHeight
-           // text:  ( shiftModifier ) ? letter.toUpperCase()  :  ( symbolModifier ) ? firstSymbol : letter
-            onPressedChanged:{
-                if(pressed){
+            MouseArea{
+                anchors.fill: parent
+                onPressed: {
+                    view.elevation=0;
                     InputEngine.sendKeyToFocusItem(label.text);
+                    pop.open(view,root,0,verticalSpacing);
+                    rect1.color=Theme.accentColor
                 }
+                onReleased: {view.elevation=1;
+                    if(pop.visible){
+                        rect1.color="white"
+                        pop.close();
+                    }
+                }
+                onCanceled: {view.elevation=1;
+                    if(pop.visible){
+                        rect1.color="white"
+                        pop.close();
+                    }
+                }
+            }
+            Rectangle {
+                id: rect1
+                anchors.fill: parent
+                color: "white"
+                radius: parent.radius
+                antialiasing: parent.rotation || radius > 0 ? true : false
+                clip: true
             }
             Label{
                 id:label
                 anchors.centerIn: parent
                 text: ( shiftModifier ) ? letter.toUpperCase()  :  ( symbolModifier ) ? firstSymbol : letter
+                color: Theme.lightDark(rect1.color,"black",Theme.dark.textColor)
                 style:"subheading"
             }
         }
     }
-    Connections{target: InputEngine;onChineseListChanged:{listView.model = list;}}
-    Connections{target: InputEngine;onInputModeChanged:{
+    Connections{target: InputEngine;
+        onChineseListChanged:{listView.model = list;}
+        onInputModeChanged:{
             if(Mode === InputEngine.Numeric){
                 shiftModifier=0;
                 symbolModifier=1;
@@ -101,40 +190,33 @@ FocusScope {
         Column {
             id:column
             anchors.top:parent.top
-            anchors.topMargin: verticalSpacing
+            anchors.topMargin:  Units.dp(8)
             anchors.left: parent.left
             anchors.leftMargin: Units.dp(16);
             anchors.right: parent.right
             anchors.rightMargin: Units.dp(16);
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: Units.dp(12);
+            anchors.bottomMargin: Units.dp(8);
             spacing: verticalSpacing
             Row {
                 height: rowHeight
-                width:  parent.width
-                anchors.left:parent.left
-                anchors.right: parent.right
+                anchors.horizontalCenter:parent.horizontalCenter
                 spacing: horizontalSpacing
-                Button{
+                InputPanelButton{
                     id:leftButton;
+                    elevation:1
                     width: buttonWidth
                     height:parent.height
-                    onClicked: { listView.decrementCurrentIndex(); }//SO 代表<<
-                    Icon{
-                        anchors.centerIn:leftButton
-                        source: "icon://awesome/caret_left"
-                        color: listView.currentIndex ? "#1e1b18" : Palette.colors["grey"]["500"]
-                        visible: listView.model.length>1
-                        size:Units.dp(32)
-                    }
-                    Timer{interval: 800;running: leftButton.pressed; repeat: true;
-                        onTriggered: { listView.decrementCurrentIndex();}
-                    }
+                    onClicked: { listView.decrementCurrentIndex(); }
+                    source:"icon://hardware/keyboard_arrow_left"
+                    color: listView.currentIndex ? "#1e1b18" : Palette.colors["grey"]["500"]
+                    input:root
+                    pop:pop
                 }
                 ListView {
                     id:listView;
                     orientation: ListView.Horizontal
-                    width:parent.width-3*buttonWidth-3*horizontalSpacing
+                    width:7*buttonWidth+6*horizontalSpacing
                     height:parent.height
                     clip:true
                     delegate:Item{
@@ -142,45 +224,37 @@ FocusScope {
                         height:parent.height
                         Ink{
                             anchors.fill: parent
-                            onPressed: listView.currentIndex=index;
+                            onClicked: {listView.currentIndex=index;}
                         }
                         Label {
                             id: hanziTxt
                             anchors.centerIn: parent
                             text: modelData
                             style:"subheading"
-                            color:  index === listView.currentIndex ? Theme.accentColor : Theme.lightDark(card.backgroundColor,Theme.light.textColor,Theme.dark.textColor)
+                            color:  index === listView.currentIndex ? Theme.accentColor : Theme.lightDark(card.backgroundColor,"black",Theme.dark.textColor)
                         }
                     }
                 }
-                Button{
+                InputPanelButton{
                     id:rightButton;
                     height:parent.height
+                     elevation:1
                     width:buttonWidth
-                    onPressedChanged:{if(pressed)
-                        listView.incrementCurrentIndex(); }//SO 代表<<
-                    Icon{
-                        anchors.centerIn:rightButton
-                        source: "icon://awesome/caret_right"
-                        color:  "#1e1b18"
-                        visible: listView.model.length>1
-                        size:Units.dp(32)
-                    }
-                    Timer{interval: 800;running: rightButton.pressed; repeat: true;
-                        onTriggered:{ listView.incrementCurrentIndex();}
-                    }
+                    onClicked: {listView.incrementCurrentIndex()}
+                    source:"icon://hardware/keyboard_arrow_right"
+                    color:  "#1e1b18"
+                    input:root
+                    pop:pop
                 }
-                Button {
+                InputPanelButton {
                     id: hide
                     width: buttonWidth
                     height: rowHeight
-                    Icon{
-                        anchors.centerIn:hide
-                        source: "icon://hardware/keyboard_hide"
-                        color: "#1e1b18"
-                        size:Units.dp(32)
-                    }
-                   onClicked:{if(pressed)Qt.inputMethod.hide()}
+                     elevation:1
+                    source: "icon://hardware/keyboard_hide"
+                    onClicked:Qt.inputMethod.hide()
+                    input:root
+                    pop:pop
                 }
             }
             Row {
@@ -204,8 +278,10 @@ FocusScope {
             Item {
                 height: rowHeight
                 width:parent.width
-                Button{
+                InputPanelButton{
                     id:capsLock
+                    input:root
+                    pop:pop
                     elevation:1
                     anchors{left: parent.left;leftMargin: horizontalSpacing;right: thirdrow.left;rightMargin: horizontalSpacing}
                     height:rowHeight
@@ -215,12 +291,7 @@ FocusScope {
                         if(shiftModifier)capsLock.backgroundColor=Qt.darker(capsLock.backgroundColor, 1.25)
                         else capsLock.backgroundColor=backspace.backgroundColor
                     }
-                    Icon{
-                        anchors.centerIn:capsLock
-                        source: "icon://awesome/arrow_up"
-                        color: "#1e1b18"
-                        size:Units.dp(27)
-                    }
+                    source: shiftModifier ? "icon://hardware/keyboard_capslock": "icon://hardware/keyboard_arrow_up"
                 }
                 Row {
                     id:thirdrow
@@ -233,24 +304,15 @@ FocusScope {
                         delegate: keyButtonDelegate
                     }
                 }
-                Button{
+                InputPanelButton{
                     id:backspace
                     elevation:1
+                    input:root
+                    pop:pop
                     anchors{right: parent.right;leftMargin: horizontalSpacing;left: thirdrow.right;rightMargin: horizontalSpacing}
                     height:rowHeight
-                    onPressedChanged: {
-                        if(pressed)
-                        InputEngine.sendKeyToFocusItem("\x7F");//删除码
-                    }
-                    Icon{
-                        anchors.centerIn:backspace
-                        source: "icon://awesome/arrow_left"
-                        color: "#1e1b18"
-                        size:Units.dp(27)
-                    }
-                    Timer{interval: 800;running: backspace.pressed; repeat: true;
-                        onTriggered: InputEngine.sendKeyToFocusItem("\x7F");
-                    }
+                    onClicked:   InputEngine.sendKeyToFocusItem("\x7F");//删除码
+                    source: "icon://hardware/keyboard_backspace"
                 }
             }
             Row {
@@ -260,9 +322,11 @@ FocusScope {
                 anchors.rightMargin: horizontalSpacing
                 spacing: horizontalSpacing
                 anchors.leftMargin: horizontalSpacing
-                Button{
+                InputPanelButton{
                     id:inputmode
                     elevation:1
+                    input:root
+                    pop:pop
                     height: rowHeight
                     width:backspace.width
                     onClicked: {
@@ -271,45 +335,46 @@ FocusScope {
                         }
                         symbolModifier = ! symbolModifier
                     }
-                    Label{
-                        anchors.centerIn: parent
-                        text: (!symbolModifier) ? "?123" : qsTr("返回")
-                        style:"subheading"
-                    }
+                    text: (!symbolModifier) ? "?123" : "abc"
+                    style:"subheading"
                 }
-                Button {
+                InputPanelButton {
                     elevation:1
+                    input:root
+                    pop:pop
                     width: buttonWidth
                     height: rowHeight
                     text:","
                     onClicked: InputEngine.sendKeyToFocusItem(text)
                 }
-                Button {
+                InputPanelButton {
                     id: spaceKey
                     elevation:1
+                    input:root
+                    pop:pop
                     width: parent.width-2*enterKey.width-2*buttonWidth-4*parent.spacing
                     height: rowHeight
-                    text: " "
+                    source:"icon://editor/space_bar"
                     onClicked: InputEngine.sendKeyToFocusItem(text)
                 }
-                Button {
+                InputPanelButton {
                     elevation:1
+                    input:root
+                    pop:pop
                     width: buttonWidth
                     height: rowHeight
-                    text: "."
+                    text:"."
                     onClicked: InputEngine.sendKeyToFocusItem(text)
                 }
-                Button {
+                InputPanelButton {
                     id: enterKey
                     elevation:1
+                    input:root
+                    pop:pop
                     width: backspace.width
-                    height: rowHeight                
+                    height: rowHeight
                     onClicked: InputEngine.sendKeyToFocusItem("\x0D"+listView.currentIndex)//回车码
-                    Label{
-                        anchors.centerIn: parent
-                        text:qsTr("确认")
-                        style:"subheading"
-                    }
+                    source:"icon://hardware/keyboard_return"
                 }
             }
         }

@@ -41,6 +41,8 @@ public:
     QStringList getchineseList();
     QQuickItem* InputPanelItem;//输入焦点所在Item
     void setchineseList(QStringList list);
+
+    void setPlaceStr(QString str);
     /**
      * The InputMode enum provides a list of valid input modes
      */
@@ -90,6 +92,8 @@ public slots:
     void setKeyboardRectangle(const QRect& Rect);
 
     void setInputPanel(QObject* Object);
+
+
 
 signals:
 

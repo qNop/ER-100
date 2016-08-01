@@ -3,6 +3,7 @@ import Material 0.1 as Material
 import Material.Extras 0.1 as JS
 import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
+import WeldSys.WeldMath 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as QuickControls
 import QtQuick.LocalStorage 2.0
@@ -20,24 +21,20 @@ FocusScope {
     property var weldWireModel: ["实芯碳钢","药芯碳钢"]
     property var weldWireDiameterModel: ["1.2mm","1.6mm"]
     property var weldWireLengthModel: ["10mm","15mm","20mm","25mm"]
-    property var weldGasModel: ["CO2","混合气"]
-    property alias weldsolubility:solubilityglabel.text
+    property var weldGasModel: ["CO2","MAG"]
 
     property var condition: [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
     Component.onCompleted: {
         Material.UserData.openDatabase();
         condition=Material.UserData.getValueFromFuncOfTable(root.objectName,"","")
-        //ERModbus.setmodbusFrame(["W","120","7"].concat(condition))
     }
-
     onVisibleChanged: {
         if(visible){
             //界面可见以后打开数据库
             Material.UserData.openDatabase();
         }
     }
-
     QuickControls.ExclusiveGroup { id: weldWireLengthGroup; onCurrentChanged:
             //10mm 1 12mm 2 15mm 3 20mm 4 25mm 6
             ERModbus.setmodbusFrame(["W","120","1",current.text ==="10mm"?"1":current.text==="15mm"?"3":current.text==="20mm"?"4":"6"]) }
@@ -45,17 +42,22 @@ FocusScope {
             ERModbus.setmodbusFrame(["W","121","1",current.text ==="无"?"0":current.text==="左方"?"1":current.text==="右方"?"2":"3"]) }
     QuickControls.ExclusiveGroup { id: robotLayoutGroup; onCurrentChanged:
             ERModbus.setmodbusFrame(["W","122","1",current.text ==="坡口侧"?"0":"1"]) }
-    QuickControls.ExclusiveGroup { id: weldWireDiameterGroup; onCurrentChanged:
+    QuickControls.ExclusiveGroup { id: weldWireDiameterGroup; onCurrentChanged:{
             //1.2mm 4 1.6mm 6
-            ERModbus.setmodbusFrame(["W","123","1",current.text ==="1.2mm"?"4":"6"]) }
-    QuickControls.ExclusiveGroup { id: weldGasGroup;onCurrentChanged:
-            ERModbus.setmodbusFrame(["W","124","1",current.text ==="CO2"?"0":"1"]) }
+            ERModbus.setmodbusFrame(["W","123","1",current.text ==="1.2mm"?"4":"6"])
+            WeldMath.setWireD(current.text ==="1.2mm"?4:6)
+        } }
+    QuickControls.ExclusiveGroup { id: weldGasGroup;onCurrentChanged:{
+            ERModbus.setmodbusFrame(["W","124","1",current.text ==="CO2"?"0":"1"])
+            WeldMath.setGas(current.text==="CO2"?0:1);
+        }}
     QuickControls.ExclusiveGroup { id: returnWayGroup; onCurrentChanged:
             ERModbus.setmodbusFrame(["W","125","1",current.text ==="单程"?"0":"1"]) }
-    QuickControls.ExclusiveGroup { id: weldWireGroup; onCurrentChanged:
+    QuickControls.ExclusiveGroup { id: weldWireGroup; onCurrentChanged:{
             //0 实芯碳钢 4药芯碳钢
-            ERModbus.setmodbusFrame(["W","126","1",current.text ==="实芯碳钢"?"0":"1"]) }
-
+            ERModbus.setmodbusFrame(["W","126","1",current.text ==="实芯碳钢"?"0":"4"])
+            WeldMath.setWireType(current.text ==="实芯碳钢"?0:4);
+        }}
     Material.Card{
         anchors{ left:parent.left;right:parent.right;top:parent.top;bottom: descriptionCard.top;margins:Material.Units.dp(12)}
         elevation: 2
@@ -66,7 +68,7 @@ FocusScope {
             height: Material.Units.dp(64)
             verticalAlignment:Text.AlignVCenter
             text:qsTr("焊接条件");
-            style:"title"
+            style:"subheading"
             color: Material.Theme.light.shade(0.87)
         }
         Flickable{
@@ -121,7 +123,7 @@ FocusScope {
                         }
                     }
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text=text :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定焊丝端部到导电嘴的长度。" :null;
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
                         Repeater{
@@ -132,7 +134,10 @@ FocusScope {
                                 onClicked:{
                                     Material.UserData.setValueFromFuncOfTable(root.objectName,0,index===0?1:index===1?3:index===2?4:6);
                                     weldWireLength.forceActiveFocus()}
-                                checked: Number(root.condition[0])==index;
+                                      checked: (index===0)&&(Number(root.condition[0])===1)?true:
+                                                                                       (index===1)&&(Number(root.condition[0])===3)?true:
+                                                                                                                                     (index===2)&&(Number(root.condition[0])===4)?true:
+                                                                                                                                                                                   (index===3)&&(Number(root.condition[0])===6)?true:false
                                 exclusiveGroup: weldWireLengthGroup
                             }
                         }
@@ -148,7 +153,7 @@ FocusScope {
                     height: Material.Units.dp(44)
                     selected: focus;
                     KeyNavigation.up: weldWireLength
-                    KeyNavigation.down:robotLayout.visible?robotLayout:returnWay
+                    KeyNavigation.down:weldWire
                     Keys.onPressed: {
                         switch(event.key){
                         case Qt.Key_Right:
@@ -180,7 +185,7 @@ FocusScope {
                             break;}}
                     onClicked:forceActiveFocus();
                     onSelectedChanged: {
-                        if(selected){descriptionlabel.text=text; if(swingWay.y<flickable.contentY) flickable.contentY=0;}}
+                        if(selected){descriptionlabel.text="选择在端部是否摆动。"; if(swingWay.y<flickable.contentY) flickable.contentY=0;}}
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
                         Repeater{
@@ -189,10 +194,56 @@ FocusScope {
                             delegate:Material.RadioButton{
                                 text:modelData
                                 exclusiveGroup: swingWayGroup
-                                checked: root.condition[1]==index;
+                                checked: root.condition[1]===index;
                                 onClicked: {
                                     Material.UserData.setValueFromFuncOfTable(root.objectName,1,index);
                                     swingWay.forceActiveFocus()}
+                            }
+                        }
+                    }
+                }
+                /*焊丝种类*/
+                ListItem.Subtitled{
+                    id:weldWire
+                    text:qsTr("焊丝种类:");
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
+                    height: Material.Units.dp(44)
+                    selected: focus;
+                    KeyNavigation.up: swingWay
+                    KeyNavigation.down: robotLayout
+                    Keys.onPressed: {
+                        switch(event.key){
+                        case Qt.Key_Right:
+                            if(weldWireGroup.current.text==="实芯碳钢" ){
+                                weldWireGroup.current = weldWireRepeater.itemAt(1);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,6,4);
+                            }
+                            event.accepted = true;
+                            break;
+                        case Qt.Key_Left:
+                            if(weldWireGroup.current.text==="药芯碳钢" ){
+                                weldWireGroup.current = weldWireRepeater.itemAt(0);
+                                Material.UserData.setValueFromFuncOfTable(root.objectName,6,0);
+                            }
+                            event.accepted = true;
+                            break;
+                        }
+                    }
+                    onClicked:forceActiveFocus();
+                    onSelectedChanged: selected?( descriptionlabel.text="设定焊丝种类实芯碳钢或药芯碳钢。" ):null;
+                    secondaryItem:Row{
+                        anchors.verticalCenter: parent.verticalCenter
+                        Repeater{
+                            id:weldWireRepeater
+                            model:weldWireModel
+                            delegate:Material.RadioButton{
+                                text:modelData
+                                onClicked:{
+                                    Material.UserData.setValueFromFuncOfTable(root.objectName,6,index===1?4:0);
+                                    weldWire.forceActiveFocus()}
+                                exclusiveGroup: weldWireGroup
+                                checked: root.condition[6]===index;
                             }
                         }
                     }
@@ -204,10 +255,10 @@ FocusScope {
                     leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
-                    KeyNavigation.up: swingWay
-                    KeyNavigation.down: weldWire
+                    KeyNavigation.up: weldWire
+                    KeyNavigation.down: weldWireDiameter
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text=text :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定机器人相对于坡口的放置位置。" :null;
                     selected: focus;
                     Keys.onPressed: {
                         switch(event.key){
@@ -231,58 +282,11 @@ FocusScope {
                             delegate:Material.RadioButton{
                                 text:modelData
                                 exclusiveGroup: robotLayoutGroup
-                                checked: root.condition[2]==index;
+                                checked: root.condition[2]===index;
                                 onClicked: {
                                     Material.UserData.setValueFromFuncOfTable(root.objectName,2,index);
                                     robotLayout.forceActiveFocus()
                                 }}}}
-                }
-                /*焊丝种类*/
-                ListItem.Subtitled{
-                    id:weldWire
-                    text:qsTr("焊丝种类:");
-                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
-                    height: Material.Units.dp(44)
-                    selected: focus;
-                    KeyNavigation.up: robotLayout
-                    KeyNavigation.down: weldWireDiameter
-                    Keys.onPressed: {
-                        switch(event.key){
-                        case Qt.Key_Right:
-                            if(weldWireGroup.current.text==="实碳钢芯" ){
-
-                                weldWireGroup.current = weldWireRepeater.itemAt(1);
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,6,4);
-                            }
-                            event.accepted = true;
-                            break;
-                        case Qt.Key_Left:
-                            if(weldWireGroup.current.text==="药芯碳钢" ){
-                                weldWireGroup.current = weldWireRepeater.itemAt(0);
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,6,0);
-                            }
-                            event.accepted = true;
-                            break;
-                        }
-                    }
-                    onClicked:forceActiveFocus();
-                    onSelectedChanged: selected?( descriptionlabel.text=text ):null;
-                    secondaryItem:Row{
-                        anchors.verticalCenter: parent.verticalCenter
-                        Repeater{
-                            id:weldWireRepeater
-                            model:weldWireModel
-                            delegate:Material.RadioButton{
-                                text:modelData
-                                onClicked:{
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,6,index===1?4:0);
-                                    weldWire.forceActiveFocus()}
-                                exclusiveGroup: weldWireGroup
-                                checked: root.condition[6]==index;
-                            }
-                        }
-                    }
                 }
                 /*焊丝直径*/
                 ListItem.Subtitled{
@@ -292,7 +296,7 @@ FocusScope {
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     selected: focus;
-                    KeyNavigation.up: weldWire
+                    KeyNavigation.up: robotLayout
                     KeyNavigation.down: weldGas
                     Keys.onPressed: {
                         switch(event.key){
@@ -313,7 +317,7 @@ FocusScope {
                         }
                     }
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text=text :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定焊丝的直径" :null;
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
                         Repeater{
@@ -359,7 +363,7 @@ FocusScope {
                         }
                     }
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text=text :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定焊接过程中使用保护气体。" :null;
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
                         Repeater{
@@ -406,7 +410,7 @@ FocusScope {
                     }
                     onClicked:forceActiveFocus();
                     onSelectedChanged: {if(selected){
-                                           descriptionlabel.text=text ;
+                                           descriptionlabel.text="设定焊接方向为往返方向或单程方向。" ;
                                            flickable.contentY=0;
                                        }}
                     secondaryItem:Row{
@@ -433,11 +437,11 @@ FocusScope {
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: returnWay
-                    KeyNavigation.down: grooveCheck
+                    KeyNavigation.down: reinforcement
                     selected: focus;
                     onSelectedChanged:{if(selected){
-                            descriptionlabel.text=text ;
-                            flickable.contentY=flickable.contentHeight/2
+                            descriptionlabel.text="设定电弧跟踪是否开启。" ;
+                            flickable.contentY=height*7
                         }}
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
@@ -471,28 +475,33 @@ FocusScope {
                         }
                     }
                 }
-                /*焊缝检测*/
+                /*余高*/
                 ListItem.Subtitled{
-                    id:grooveCheck
-                    text:qsTr("焊丝焊缝检测机能:");
+                    id:reinforcement
+                    text:qsTr("预期余高:");
                     leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: arcTracking
                     KeyNavigation.down: solubility
                     selected: focus;
-                    onSelectedChanged:selected? descriptionlabel.text=text :null;
+                    onSelectedChanged:selected? descriptionlabel.text="设定焊接预期板面焊道堆起高度。" :null;
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
+                        var res;
                         switch(event.key){
-                        case Qt.Key_Right:
-                            grooveCheckSwitch.checked=true;
-                            Material.UserData.setValueFromFuncOfTable(root.objectName,8,1);
+                        case Qt.Key_Plus:
+                            res=Number(reinforcementLabel.text)+1;
+                            if(res>3) res=3;
+                            reinforcementLabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,8,res);
                             event.accepted = true;
                             break;
-                        case Qt.Key_Left:
-                            grooveCheckSwitch.checked=false;
-                            Material.UserData.setValueFromFuncOfTable(root.objectName,8,0);
+                        case Qt.Key_Minus:
+                            res=Number(reinforcementLabel.text)-1;
+                            if(res<-3) res=-3;
+                            reinforcementLabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,8,res);
                             event.accepted = true;
                             break;
                         }
@@ -500,17 +509,12 @@ FocusScope {
                     secondaryItem:Row{
                         spacing: Material.Units.dp(16)
                         anchors.verticalCenter: parent.verticalCenter
-                        Material.Switch{
-                            id:grooveCheckSwitch
-                            onClicked: {
-                                Material.UserData.setValueFromFuncOfTable(root.objectName,8,checked);
-                                grooveCheck.forceActiveFocus()}
-                            checked: Number(root.condition[8])===1?true:0;
-                            onCheckedChanged: ERModbus.setmodbusFrame(["W","128","1",checked?"1":"0"])
-                        }
                         Material.Label{
-                            text:grooveCheckSwitch.checked?"打开":"关闭"
+                            id:reinforcementLabel
+                            text: root.condition[8];
+                            onTextChanged: {WeldMath.setReinforcement(Number(text))}
                         }
+                        Material.Label{ text:"mm" }
                     }
                 }
                 /*溶敷系数*/
@@ -520,9 +524,9 @@ FocusScope {
                     leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
-                    KeyNavigation.up: grooveCheck
+                    KeyNavigation.up: reinforcement
                     KeyNavigation.down: currentOffset
-                    onSelectedChanged: selected? descriptionlabel.text=text :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定焊接过程中溶敷系数大小。" :null;
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
@@ -550,7 +554,7 @@ FocusScope {
                         Material.Label{
                             id: solubilityglabel
                             text: Number(root.condition[9]);
-                            onTextChanged:{}  ///ERModbus.setmodbusFrame(["W","129","1",text.toString()])
+                            onTextChanged:{WeldMath.setMeltingCoefficient(Number(solubilityglabel.text))}  ///ERModbus.setmodbusFrame(["W","129","1",text.toString()])
                         }
                         Material.Label{text:"%";}
                     }
@@ -564,13 +568,13 @@ FocusScope {
                     height: Material.Units.dp(44)
                     KeyNavigation.up: solubility
                     KeyNavigation.down: voltageOffset
-                    onSelectedChanged: selected? descriptionlabel.text=currentOffset.text:null;
+                    onSelectedChanged: selected? descriptionlabel.text="焊接条件所设定的电流和实际电流的微调整。":null;
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
                         case Qt.Key_Plus:
-                            res=Number(currentOffsetlabel.text)+5;
+                            res=Number(currentOffsetlabel.text)+1;
                             if(res>100) res=100;
                             currentOffsetlabel.text=res;
                             Material.UserData.setValueFromFuncOfTable(root.objectName,10,res);
@@ -578,7 +582,7 @@ FocusScope {
                             break;
                         case Qt.Key_Minus:
                             if(res<-100) res=-100;
-                            res=Number(currentOffsetlabel.text)-5;
+                            res=Number(currentOffsetlabel.text)-1;
                             currentOffsetlabel.text=res;
                             Material.UserData.setValueFromFuncOfTable(root.objectName,10,res);
                             event.accepted = true;
@@ -592,7 +596,7 @@ FocusScope {
                         Material.Label{
                             id: currentOffsetlabel
                             text:root.condition[10]
-                            onTextChanged:  ERModbus.setmodbusFrame(["W","130","1",text.toString()])
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","128","1",text.toString()])
                         }
                         Material.Label{text:"A";}
                     }
@@ -605,21 +609,24 @@ FocusScope {
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: currentOffset
-                    KeyNavigation.down: weldLeft
+                    KeyNavigation.down: AppConfig.currentUserType=="SuperUser"?preGasTime:null
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
                         case Qt.Key_Plus:
-                            res=Number(voltageOffsetlabel.text)+1;
+                            res=Number(voltageOffsetlabel.text)+0.1;
                             if(res>10) res=10;
+                             res=res.toFixed(1);
                             voltageOffsetlabel.text=res;
+
                             Material.UserData.setValueFromFuncOfTable(root.objectName,11,res);
                             event.accepted = true;
                             break;
                         case Qt.Key_Minus:
-                            res=Number(voltageOffsetlabel.text)-1;
+                            res=Number(voltageOffsetlabel.text)-0.1;
                             if(res<-10) res=-10;
+                             res=res.toFixed(1);
                             voltageOffsetlabel.text=res;
                             Material.UserData.setValueFromFuncOfTable(root.objectName,11,res);
                             event.accepted = true;
@@ -628,7 +635,7 @@ FocusScope {
                     }
                     selected: focus
                     onSelectedChanged: { if(selected){
-                            descriptionlabel.text=text;
+                            descriptionlabel.text="焊接条件所设定的电压和实际电压的微调整。";
                         }
                     }
                     secondaryItem:Row{
@@ -637,35 +644,38 @@ FocusScope {
                         Material.Label{
                             id: voltageOffsetlabel
                             text: root.condition[11]
-                            onTextChanged:  ERModbus.setmodbusFrame(["W","131","1",text.toString()])
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","129","1",(Number(voltageOffsetlabel.text)*10).toString()])
                         }
                         Material.Label{text:"V";}
                     }
                 }
-                /*焊接始终端偏左*/
+                /*提前送气时间*/
                 ListItem.Subtitled{
-                    id:weldLeft
-                    text:qsTr("焊接始终端偏左:");
+                    id:preGasTime
+                    text:qsTr("提前送气时间:");
                     leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: voltageOffset
-                    KeyNavigation.down: weldRight
+                    KeyNavigation.down: afterGasTime
                     onClicked:forceActiveFocus();
+                    visible: AppConfig.currentUserType=="SuperUser"?true:false
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
                         case Qt.Key_Plus:
-                            res=Number(weldLeftlabel.text)+1;
-                            if(res>10) res=10;
-                            weldLeftlabel.text=res;
+                            res=Number(preGasTimelabel.text)+0.1;
+                            if(res>5) res=5;
+                             res=res.toFixed(1);
+                            preGasTimelabel.text=res;
                             Material.UserData.setValueFromFuncOfTable(root.objectName,12,res);
                             event.accepted = true;
                             break;
                         case Qt.Key_Minus:
-                            res=Number(weldLeftlabel.text)-1;
-                            if(res<-10) res=-10;
-                            weldLeftlabel.text=res;
+                            res=Number(preGasTimelabel.text)-0.1;
+                            if(res<0) res=0;
+                            res=res.toFixed(1);
+                            preGasTimelabel.text=res;
                             Material.UserData.setValueFromFuncOfTable(root.objectName,12,res);
                             event.accepted = true;
                             break;
@@ -680,37 +690,139 @@ FocusScope {
                         spacing: Material.Units.dp(8)
                         anchors.verticalCenter: parent.verticalCenter
                         Material.Label{
-                            id: weldLeftlabel
+                            id: preGasTimelabel
                             text:root.condition[12]
-                            onTextChanged:  ERModbus.setmodbusFrame(["W","132","1",text.toString()])
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","132","1",(Number(preGasTimelabel.text)*10).toString()])
                         }
-                        Material.Label{text:"mm";}
+                        Material.Label{text:"S";}
                     }
                 }
-                /*焊接始终端偏右*/
+                /*滞后送气时间*/
                 ListItem.Subtitled{
-                    id:weldRight
-                    text:qsTr("焊接始终端偏右:");
+                    id:afterGasTime
+                    text:qsTr("滞后送气时间:");
                     leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
-                    KeyNavigation.up: weldLeft
+                    KeyNavigation.up: preGasTime
+                    KeyNavigation.down: startArcTime
                     onClicked:forceActiveFocus();
+                     visible: AppConfig.currentUserType=="SuperUser"?true:false
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
                         case Qt.Key_Plus:
-                            res=Number(weldRightlabel.text)+1;
-                            if(res>10) res=10;
-                            weldRightlabel.text=res;
+                            res=Number(afterGasTimelabel.text)+0.1;
+                            if(res>5) res=5;
+                            res=res.toFixed(1);
+                            afterGasTimelabel.text=res;
                             Material.UserData.setValueFromFuncOfTable(root.objectName,13,res);
                             event.accepted = true;
                             break;
                         case Qt.Key_Minus:
-                            res=Number(weldRightlabel.text)-1;
-                            if(res<-10) res=-10;
-                            weldRightlabel.text=res;
+                            res=Number(afterGasTimelabel.text)-0.1;
+                            if(res<0) res=0;
+                            res=res.toFixed(1);
+                            afterGasTimelabel.text=res;
                             Material.UserData.setValueFromFuncOfTable(root.objectName,13,res);
+                            event.accepted = true;
+                            break;
+                        }
+                    }
+                    selected: focus
+                    onSelectedChanged: { if(selected){
+                            descriptionlabel.text=text;
+                            flickable.contentY=height*7
+                        }
+                    }
+                    secondaryItem:Row{
+                        spacing: Material.Units.dp(8)
+                        anchors.verticalCenter: parent.verticalCenter
+                        Material.Label{
+                            id: afterGasTimelabel
+                            text:root.condition[13]
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","133","1",(Number(text)*10).toString()])
+                        }
+                        Material.Label{text:"S";}
+                    }
+                }
+                /*起弧停留时间*/
+                ListItem.Subtitled{
+                    id:startArcTime
+                    text:qsTr("起弧停留时间:");
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
+                    height: Material.Units.dp(44)
+                    KeyNavigation.up: afterGasTime
+                    KeyNavigation.down: endArcTime
+                    onClicked:forceActiveFocus();
+                     visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    Keys.onPressed: {
+                        var res;
+                        switch(event.key){
+                        case Qt.Key_Plus:
+                            res=Number(startArcTimelabel.text)+0.1;
+                            if(res>5) res=5;
+                            res=res.toFixed(1);
+                            startArcTimelabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,14,res);
+                            event.accepted = true;
+                            break;
+                        case Qt.Key_Minus:
+                            res=Number(startArcTimelabel.text)-0.1;
+                            if(res<0) res=0;
+                            res=res.toFixed(1);
+                            startArcTimelabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,14,res);
+                            event.accepted = true;
+                            break;
+                        }
+                    }
+                    selected: focus
+                    onSelectedChanged: { if(selected){
+                            descriptionlabel.text=text;
+                            flickable.contentY=height*7*2
+                        }
+                    }
+                    secondaryItem:Row{
+                        spacing: Material.Units.dp(8)
+                        anchors.verticalCenter: parent.verticalCenter
+                        Material.Label{
+                            id: startArcTimelabel
+                            text:root.condition[14]
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","134","1",(Number(text)*10).toString()])
+                        }
+                        Material.Label{text:"S";}
+                    }
+                }
+                /*收弧停留时间*/
+                ListItem.Subtitled{
+                    id:endArcTime
+                    text:qsTr("收弧停留时间:");
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
+                    height: Material.Units.dp(44)
+                    KeyNavigation.up: startArcTime
+                    KeyNavigation.down: startArcCurrent
+                    onClicked:forceActiveFocus();
+                     visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    Keys.onPressed: {
+                        var res;
+                        switch(event.key){
+                        case Qt.Key_Plus:
+                            res=Number(endArcTimelabel.text)+0.1;
+                            if(res>5) res=5;
+                            res=res.toFixed(1);
+                            endArcTimelabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,15,res);
+                            event.accepted = true;
+                            break;
+                        case Qt.Key_Minus:
+                            res=Number(endArcTimelabel.text)-0.1;
+                            if(res<0) res=0;
+                            res=res.toFixed(1);
+                            endArcTimelabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,15,res);
                             event.accepted = true;
                             break;
                         }
@@ -724,13 +836,202 @@ FocusScope {
                         spacing: Material.Units.dp(8)
                         anchors.verticalCenter: parent.verticalCenter
                         Material.Label{
-                            id: weldRightlabel
-                            text:root.condition[13]
-                            onTextChanged:  ERModbus.setmodbusFrame(["W","133","1",text.toString()])
+                            id: endArcTimelabel
+                            text:root.condition[15]
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","135","1",(Number(text)*10).toString()])
                         }
-                        Material.Label{text:"mm";}
+                        Material.Label{text:"S";}
                     }
                 }
+                /*起弧电流*/
+                ListItem.Subtitled{
+                    id:startArcCurrent
+                    text:qsTr("起弧电流:");
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
+                    height: Material.Units.dp(44)
+                    KeyNavigation.up: endArcTime
+                    KeyNavigation.down: startArcVolagte
+                    onClicked:forceActiveFocus();
+                     visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    Keys.onPressed: {
+                        var res;
+                        switch(event.key){
+                        case Qt.Key_Plus:
+                            res=Number(startArcCurrentlabel.text)+1;
+                            if(res>300) res=300;
+                            startArcCurrentlabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,16,res);
+                            event.accepted = true;
+                            break;
+                        case Qt.Key_Minus:
+                            res=Number(startArcCurrentlabel.text)-1;
+                            if(res<0) res=0;
+                            startArcCurrentlabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,16,res);
+                            event.accepted = true;
+                            break;
+                        }
+                    }
+                    selected: focus
+                    onSelectedChanged: { if(selected){
+                            descriptionlabel.text=text;
+                        }
+                    }
+                    secondaryItem:Row{
+                        spacing: Material.Units.dp(8)
+                        anchors.verticalCenter: parent.verticalCenter
+                        Material.Label{
+                            id: startArcCurrentlabel
+                            text:root.condition[16]
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","136","1",text])
+                        }
+                        Material.Label{text:"A";}
+                    }
+                }
+                /*起弧电压*/
+                ListItem.Subtitled{
+                    id:startArcVolagte
+                    text:qsTr("起弧电压:");
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
+                    height: Material.Units.dp(44)
+                    KeyNavigation.up: startArcCurrent
+                    KeyNavigation.down: endArcCurrent
+                    onClicked:forceActiveFocus();
+                     visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    Keys.onPressed: {
+                        var res;
+                        switch(event.key){
+                        case Qt.Key_Plus:
+                            res=Number(startArcVolagtelabel.text)+0.1;
+                            if(res>30) res=30;
+                            res=res.toFixed(1);
+                            startArcVolagtelabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,17,res);
+                            event.accepted = true;
+                            break;
+                        case Qt.Key_Minus:
+                            res=Number(startArcVolagtelabel.text)-0.1;
+                            if(res<0) res=0;
+                            res=res.toFixed(1);
+                            startArcVolagtelabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,17,res);
+                            event.accepted = true;
+                            break;
+                        }
+                    }
+                    selected: focus
+                    onSelectedChanged: { if(selected){
+                            descriptionlabel.text=text;
+                        }
+                    }
+                    secondaryItem:Row{
+                        spacing: Material.Units.dp(8)
+                        anchors.verticalCenter: parent.verticalCenter
+                        Material.Label{
+                            id: startArcVolagtelabel
+                            text:root.condition[17]
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","137","1",(Number(text)*10).toString()])
+                        }
+                        Material.Label{text:"V";}
+                    }
+                }
+                /*收弧电流*/
+                ListItem.Subtitled{
+                    id:endArcCurrent
+                    text:qsTr("收弧电流:");
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
+                    height: Material.Units.dp(44)
+                    KeyNavigation.up: startArcVolagte
+                    KeyNavigation.down: endArcVolagte
+                    onClicked:forceActiveFocus();
+                     visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    Keys.onPressed: {
+                        var res;
+                        switch(event.key){
+                        case Qt.Key_Plus:
+                            res=Number(endArcCurrentlabel.text)+1;
+                            if(res>300) res=300;
+                            endArcCurrentlabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,18,res);
+                            event.accepted = true;
+                            break;
+                        case Qt.Key_Minus:
+                            res=Number(endArcCurrentlabel.text)-1;
+                            if(res<0) res=0;
+                            endArcCurrentlabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,18,res);
+                            event.accepted = true;
+                            break;
+                        }
+                    }
+                    selected: focus
+                    onSelectedChanged: { if(selected){
+                            descriptionlabel.text=text;
+                        }
+                    }
+                    secondaryItem:Row{
+                        spacing: Material.Units.dp(8)
+                        anchors.verticalCenter: parent.verticalCenter
+                        Material.Label{
+                            id: endArcCurrentlabel
+                            text:root.condition[18]
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","138","1",text])
+                        }
+                        Material.Label{text:"A";}
+                    }
+                }
+                /*收弧电压*/
+                ListItem.Subtitled{
+                    id:endArcVolagte
+                    text:qsTr("收弧电压:");
+                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
+                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
+                    height: Material.Units.dp(44)
+                    KeyNavigation.up: endArcCurrent
+
+                    onClicked:forceActiveFocus();
+                     visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    Keys.onPressed: {
+                        var res;
+                        switch(event.key){
+                        case Qt.Key_Plus:
+                            res=Number(endArcVolagtelabel.text)+0.1;
+                            if(res>30) res=30;
+                            res=res.toFixed(1);
+                            endArcVolagtelabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,19,res);
+                            event.accepted = true;
+                            break;
+                        case Qt.Key_Minus:
+                            res=Number(endArcVolagtelabel.text)-0.1;
+                            if(res<0) res=0;
+                            res=res.toFixed(1);
+                            endArcVolagtelabel.text=res;
+                            Material.UserData.setValueFromFuncOfTable(root.objectName,19,res);
+                            event.accepted = true;
+                            break;
+                        }
+                    }
+                    selected: focus
+                    onSelectedChanged: { if(selected){
+                            descriptionlabel.text=text;
+                        }
+                    }
+                    secondaryItem:Row{
+                        spacing: Material.Units.dp(8)
+                        anchors.verticalCenter: parent.verticalCenter
+                        Material.Label{
+                            id: endArcVolagtelabel
+                            text:root.condition[19]
+                            onTextChanged:  ERModbus.setmodbusFrame(["W","139","1",(Number(text)*10).toString()])
+                        }
+                        Material.Label{text:"V";}
+                    }
+                }
+
             }
         }
         Material.Scrollbar {id:scrollbar;flickableItem:flickable ;
@@ -757,7 +1058,7 @@ FocusScope {
                 height: Material.Units.dp(64)
                 verticalAlignment:Text.AlignVCenter
                 text:qsTr("描述信息");
-                style:"title"
+                style:"subheading"
                 color: Material.Theme.light.shade(0.87)
             }
             Material.Label{

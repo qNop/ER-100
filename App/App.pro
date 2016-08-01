@@ -2,6 +2,8 @@ TEMPLATE = app
 
 QT += qml quick core widgets sql serialport charts
 
+#CONFIG+=staticlib
+
 SOURCES += main.cpp \
     libmodbus/src/modbus.c \
    libmodbus/src/modbus-data.c \
@@ -13,9 +15,20 @@ SOURCES += main.cpp \
 
 
 RESOURCES += \
-    qml.qrc\
+    qml.qrc
 
-
+#LIBS += -L~/ltib/rootfs/opt/Qt5/plugins/platforms -lqeglfs -L~/ltib/rootfs/opt/Qt5/plugins/imageformats -lqdds -lqicns -lqico -lqtga -lqtiff -lqwbmp -lqwebp
+#LIBS +=-L~/ltib/rootfs/opt/Qt5/plugins/egldeviceintegrations -lqeglfs-viv-integration -lqeglfs-viv-wl-integration
+#LIBS +=-L~/ltib/rootfs/opt/Qt5/plugins/qmltooling -lqmldbg_debugger -lqmldbg_inspector -lqmldbg_local -lqmldbg_native -lqmldbg_profiler -lqmldbg_server -lqmldbg_tcp
+#LIBS +=-L~/ltib/rootfs/opt/Qt5/plugins/bearer -lqconnmanbearer -lqgenericbearer -lqnmbearer
+#LIBS +=-L~/ltib/rootfs/opt/Qt5/plugins/sqldrivers -lqsqlite -lGLESv2 -lEGL -lGAL -lpthread
+#LIBS +=-L
+#LIBS + = -L ~/ltib/rootfs/opt/Qt5/plugins/platforms #-lqeglfs
+#LIBS + = -L ~/ltib/rootfs/opt/Qt5/plugins/imageformats # -lqdds -lqicns -lqico -lqtga -lqtiff -lqwbmp -lqwebp
+#LIBS + = -L ~/ltib/rootfs/opt/Qt5/plugins/egldeviceintegrations #-lqeglfs-viv-integration -lqeglfs-viv-wl-integration
+#LIBS + = -L ~/ltib/rootfs/opt/Qt5/plugins/qmltooling #-lqmldbg_debugger -lqmldbg_inspector -lqmldbg_local -lqmldbg_native -lqmldbg_profiler -lqmldbg_server -lqmldbg_tcp
+#LIBS + = -L ~/ltib/rootfs/opt/Qt5/plugins/bearer #-lqconnmanbearer -lqgenericbearer -lqnmbearer
+#LIBS + = -L ~/ltib/rootfs/opt/Qt5/plugins/sqldrivers # -lqsqlite -lGLESv2 -lEGL -lGAL -lpthread
 
 HEADERS += \
     WeldAPI/gloabldefine.h \
@@ -30,7 +43,7 @@ HEADERS += \
 INCLUDEPATH +=libmodbus \
               libmodbus/src \
               WeldAPI\
-              VirtualKeyboard\
+              VirtualKeyboard
 
 linux-g++{
    # DESTDIR = $$[QT_INSTALL_PLUGINS]/platforminputcontexts
@@ -39,6 +52,9 @@ linux-g++{
 #存储位置为 downloadfiles
     DESTDIR = /home/nop/ER-100/RootFs/Nop/
 }
+
+target.path=/ER-100
+INSTALLS += target
 
 #DISTFILES += \
 # TeachEnv.qml

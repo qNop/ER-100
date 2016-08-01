@@ -35,6 +35,7 @@ View {
     property bool opened
     property int duration: 2000
     property bool fullWidth: Device.type === Device.phone || Device.type === Device.phablet
+    property alias labelColor: snackText.color
 
     signal clicked
 
@@ -85,16 +86,17 @@ View {
         spacing: 0
 
         Item {
-            width: Units.dp(24)
+            width: Units.dp(16)
         }
 
         Label {
             id: snackText
             Layout.fillWidth: true
-            Layout.minimumWidth: snackbar.fullWidth ? -1 : Units.dp(216) - snackButton.width
+            //Layout.minimumWidth: snackbar.fullWidth ? -1 : Units.dp(216) - snackButton.width
+	    Layout.minimumWidth:-1
             Layout.maximumWidth: snackbar.fullWidth ? -1 :
-                Math.min(Units.dp(496) - snackButton.width - middleSpacer.width - Units.dp(48),
-                         snackbar.parent.width - snackButton.width - middleSpacer.width - Units.dp(48))
+                Math.min(Units.dp(496) - snackButton.width - middleSpacer.width - Units.dp(32),
+                         snackbar.parent.width - snackButton.width - middleSpacer.width - Units.dp(32))
 
             Layout.preferredHeight: lineCount == 2 ? Units.dp(80) : Units.dp(48)
             verticalAlignment: Text.AlignVCenter
@@ -121,7 +123,7 @@ View {
         }
 
         Item {
-            width: Units.dp(24)
+            width: Units.dp(16)
         }
     }
 
@@ -129,3 +131,4 @@ View {
         NumberAnimation { duration: 300 }
     }
 }
+

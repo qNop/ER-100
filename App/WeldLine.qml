@@ -91,7 +91,13 @@ FocusScope{
         //            setCurrent.append()
         //        }
     }
-    Timer{id:weldLineTime;interval: 500;repeat: true;running: true;onTriggered: {
+    Timer{interval: 10000;repeat: false;running: true;onTriggered: {//weldLineTime.running=true;
+          var time=new Date();
+            dateTimex.min=time;
+            time.setMinutes(time.getMinutes()+1);
+            dateTimex.max=time;
+        }}
+    Timer{id:weldLineTime;interval: 200;repeat: true;running: false;onTriggered: {
             var time=new Date();
             setCurrent.append(time,100+Math.random(1)*50);
             setVoltage.append(time,20+Math.random(1)*5);

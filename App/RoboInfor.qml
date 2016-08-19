@@ -47,7 +47,6 @@ Item {
     Table{
         anchors.top: groove.bottom
         tableRowCount: 2
-        header.visible: false
         tableData: [
             Controls.TableViewColumn{role: "C1";title:"   焊接\n层道数";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{role: "C2";title: "电流\n  A";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},

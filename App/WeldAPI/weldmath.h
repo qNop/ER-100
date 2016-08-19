@@ -8,7 +8,26 @@
 #include <QtCore>
 #include <QtGlobal>
 
-#define   PI   3.141592654
+#define   PI                                                3.141592654
+#define   CURRENT_LEFT                          0
+#define   CURRENT                                   1
+#define   CURRENT_RIGHT                       2
+#define   SWING_LEFT_STAYTIME            3
+#define   SWING_RIGHT_STAYTIME         4
+#define   HEIGHT                                      5
+#define   SWING_LEFT_LENGTH              6
+#define   SWING_RIGHT_LENGTH           7
+#define   MAX_SWING_LENGTH              8
+#define   SWING_SPACING                      9
+#define   K                                                 10
+#define   VOLTAGE                                    11
+
+#define  BOTTOM_0                                  0
+#define  BOTTOM_1                                  12
+#define  SECOND                                       24
+#define  FILL                                              36
+#define  TOP                                              48
+#define  LAST                                             68
 
 struct FloorLimitedCondition
 {       //电流
@@ -48,6 +67,8 @@ class WeldMath:public QObject
     Q_PROPERTY(QStringList weldRules READ weldRules WRITE setWeldRules NOTIFY weldRulesChanged)
     //groove
     Q_PROPERTY(QStringList grooveRules READ grooveRules WRITE setGrooveRules NOTIFY grooveRulesChanged)
+    //limitedCondition
+    Q_PROPERTY(QStringList limited READ limited WRITE setLimited NOTIFY limitedChanged)
     //gas
     Q_PROPERTY(int gas READ gas WRITE setGas NOTIFY gasChanged)
     //pulse
@@ -63,6 +84,7 @@ public:
     //获取坡口参数
     QStringList grooveRules();
     QStringList weldRules();
+    QStringList limited();
     //函数 用计算函数排道
     int weldMathFunction();
     //读取气体
@@ -73,6 +95,7 @@ public:
     int wireType();
     //焊丝直径
     int wireD();
+    //
 private:
     //余高
     int reinforcementValue;
@@ -139,6 +162,7 @@ public slots:
     void setWireType(int value);
     //设置焊丝直径
     void setWireD(int value);
+    void setLimited(QStringList value);
 signals:
     void grooveRulesChanged(QStringList value);
     void weldRulesChanged(QStringList value);
@@ -146,6 +170,7 @@ signals:
     void pulseChanged(int value);
     void wireTypeChanged(int value);
     void wireDChanged(int value);
+    void limitedChanged(QStringList value);
 };
 
 #endif // WELDMATH_H

@@ -28,13 +28,6 @@ FocusScope {
     QuickControls.ExclusiveGroup { id: teachfisrtpointgroup;onCurrentChanged:
             ERModbus.setmodbusFrame(["W","102","1",current.text ==="左方"?"0":"1"]) }
 
-    //坡口数据库英文名称
-    Component.onCompleted: {
-        Material.UserData.openDatabase();
-        //读取数据库数据
-        root.repeaterModel=Material.UserData.getValueFromFuncOfTable(root.objectName,"","");
-        // ERModbus.setmodbusFrame(["W","100","7"].concat(repeaterModel))
-    }
     //页面不可见的时候保存数据
     Material.Card{
         anchors{ left:parent.left;right:parent.right;top:parent.top;bottom: descriptionCard.top;margins:Material.Units.dp(12)}

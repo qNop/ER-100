@@ -14,6 +14,7 @@ import QtQuick.Window 2.2
 /*应用程序窗口*/
 Material.ApplicationWindow{
     id: app;title: "app";visible: true
+    objectName: "App"
     /*主题默认颜色*/
     theme { primaryColor: AppConfig.themePrimaryColor;accentColor: AppConfig.themeAccentColor;backgroundColor:AppConfig.themeBackgroundColor
         tabHighlightColor: "#FFFFFF"  }
@@ -23,9 +24,9 @@ Material.ApplicationWindow{
         qsTr("横焊单边V型坡口T接头"), qsTr( "横焊单边V型坡口平对接"),
         qsTr("立焊单边V型坡口T接头"),  qsTr("立焊单边V型坡口平对接"), qsTr("立焊V型坡口平对接"),
         qsTr("水平角焊")  ]
-    property var preset:["GrooveCondition","TeachCondition","WeldCondition","GrooveCheck"]
-    property var presetName: ["坡口条件","示教条件","焊接条件","坡口参数"]
-    property var presetIcon: ["awesome/road","action/android","user/MAG","awesome/road"]
+    property var preset:["GrooveCondition","TeachCondition","WeldCondition","GrooveCheck","LimitedConditon"]
+    property var presetName: ["坡口条件","示教条件","焊接条件","坡口参数","限制条件"]
+    property var presetIcon: ["awesome/road","action/android","user/MAG","awesome/road","awesome/sliders"]
     property var analyse: ["WeldAnalyse","WeldLine"]
     property var analyseName:["焊接参数","焊接曲线"]
     property var analyseIcon: ["awesome/line_chart","awesome/line_chart"]
@@ -43,7 +44,7 @@ Material.ApplicationWindow{
     /*当前本地化语言*/
     property string local: "zh_CN"
     /*当前坡口形状*/
-    property int groove:AppConfig.currentGroove
+    property int currentGroove:0//AppConfig.currentGroove
     /*Modbus重载*/
     property bool modbusBusy:false;
     /*系统信息采集标志*/
@@ -76,21 +77,28 @@ Material.ApplicationWindow{
     property bool loadInterNet: false
     /*焊接长度*/
     property int weldLength: 0
+    /*teach初始化数据*/
+    property var teachModel: [0,1,1,2,2,10,10,200,1,0,0,0]
+    /*WeldCondition初始化数据*/
+    property var weldConditionModel: [4,0,0,0,1,0,0,1,3,105,0,0,5,5,0.5,0.5,160,26,120,15,0,0,0,0,0,0,0,0]
+
+    //property var limitedId: ["陶瓷衬垫","打底层","第二层","填充层","盖面层","立板"]
+    /*account*/
+    ListModel{id:accountmodel;ListElement{name:"user";type:"user";password:"user"}}
     /*更新时间定时器*/
     Timer{
         interval:1000;running:true;repeat: true;
         onTriggered:{
-            date.name= new Date().toLocaleDateString(Qt.locale(app.local),"MMMdd ddd")
-            times.name=new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
+            dateTime.name= new Date().toLocaleString(Qt.locale(app.local),"MMMdd ddd h:mm")
+            //   times.name=new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
         }
     }
     //该页面下1000ms问一次检测参数是否有效
     Timer{ repeat: true;interval:sysStatus=="焊接态"?500:400;
         running: readTime//true//sysStatus=="坡口检测态"||sysStatus=="焊接端部暂停态"||sysStatus=="焊接态";
         onTriggered: {
-            if(sysStatus=="坡口检测态"){
+            if(sysStatus=="坡口检测态")
                 ERModbus.setmodbusFrame(["R","150","6"])
-            }
             else if(sysStatus=="焊接端部暂停态")
                 ERModbus.setmodbusFrame(["R","200","1"]);
             else if(sysStatus=="焊接态")
@@ -99,7 +107,36 @@ Material.ApplicationWindow{
                 ERModbus.setmodbusFrame(["R","0","3"]);
         }
     }
-
+    onCurrentGrooveChanged: {
+        console.log(objectName+" currentGroove "+currentGroove)
+        ERModbus.setmodbusFrame(["W","90","1",currentGroove.toString()])
+        var str=Material.UserData.getLastWeldRulesName("weldRulesList"+currentGroove.toString());
+        if(str){
+            page.connectWeldRule=str.toString();
+        }
+        AppConfig.setcurrentGroove(currentGroove);
+        var res=Material.UserData.getValueFromFuncOfTable(grooveName[currentGroove],"","")
+        var j=0,i=0;
+        for(j=0;j<6;j++){
+            limitedTable.set(j,{"C1":res[i++]+"/"+res[i++]+"/"+res[i++],
+                                 "C2":res[i++]+"/"+res[i++],
+                                 "C3":res[i++],
+                                 "C4":res[i++]+"/"+res[i++],
+                                 "C5":res[i++],
+                                 "C6":res[i++],
+                                 "C7":res[i++],
+                                 "C8":res[i++],
+                                 "C9":"100/100"})
+        }
+        WeldMath.setLimited(res);
+    }
+    ListModel{id:limitedTable;
+        ListElement{ ID:"陶瓷衬垫";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
+        ListElement{ ID:"打底层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
+        ListElement{ ID:"第二层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
+        ListElement{ ID:"填充层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
+        ListElement{ ID:"盖面层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
+        ListElement{ ID:"立板余高层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}}
     //坡口参数 初始表格
     ListModel{id:grooveTableInit;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:""}}
     //焊接规范表格
@@ -110,14 +147,9 @@ Material.ApplicationWindow{
         /*标题*/
         title:qsTr("全位置MAG焊接机器人系统")
         /*最大action显示数量*/
-        actionBar.maxActionCount: 6
+        actionBar.maxActionCount: 4
         /*actions列表*/
         actions: [
-            /*危险报警action*/
-            Material.Action {iconName: "alert/warning";
-                name: qsTr("警告");
-                //onTriggered: demo.showError("Something went wrong", "Do you want to retry?", "Close", true)
-            },
             /*背光控制插件action*/
             Material.Action{name: qsTr("背光");
                 iconName:backlightslider.value>41?"device/brightness_high":
@@ -130,11 +162,8 @@ Material.ApplicationWindow{
                 onTriggered: colorPicker.show();
             },
             /*时间action*/
-            Material.Action{name: qsTr("时间"); id:date;
-                onTriggered:datePickerDialog.show();
-            },
-            Material.Action{name: qsTr("时间"); id:times;
-                onTriggered:timePickerDialog.show();
+            Material.Action{name: qsTr("时间"); id:dateTime;
+                //  onTriggered:datePickerDialog.show();
             },
             /*账户*/
             Material.Action {id:accountname;iconName: "awesome/user";
@@ -154,13 +183,31 @@ Material.ApplicationWindow{
             }
         ]
         backAction: navigationDrawer.action
-        actionBar.tabBar.leftKeyline: 0;
-        actionBar.tabBar.isLargeDevice: false
-        actionBar.tabBar.fullWidth:false
+        actionBar.tabBar{leftKeyline: 0;isLargeDevice: false;fullWidth:false}
         Keys.onDigit1Pressed:  navigationDrawer.toggle();
         Keys.onDigit2Pressed: {if((page.selectedTab!=0)&&preConditionTab.enabled)page.selectedTab=0;}
         Keys.onDigit3Pressed: {if((page.selectedTab!=1)&&weldAnalyseTab.enabled)page.selectedTab=1;}
-        //Keys.onDigit4Pressed: {if((page.selectedTab!=2)&&(systemInforTab.enabled))page.selectedTab=2;}
+        Keys.onDigit4Pressed: {if((page.selectedTab!=2)&&(systemInforTab.enabled))page.selectedTab=2;}
+        Keys.onReleased: {
+            if(event.key===Qt.Key_F7){
+                console.log(" Qt.Key_Close.Released!")
+                event.accept=true;
+            }
+        }
+        Keys.onPressed:{
+            switch(event.key){
+            case Qt.Key_F5:
+                error.action.trigger();
+                 console.log(objectName+"key F5 Pressed")
+                event.accpet=true;
+                break;
+            case Qt.Key_F6:
+                action.action.trigger();
+                console.log(objectName+"key F6 Pressed")
+               event.accpet=true;
+                break;
+            }
+        }
         Material.NavigationDrawer{
             id:navigationDrawer
             property int oldIndex
@@ -175,6 +222,7 @@ Material.ApplicationWindow{
                 anchors.left: parent.left
                 width: parent.width
                 height:Material.Units.dp(64);
+                backgroundColor: theme.primaryColor
                 Row{
                     anchors.left: parent.left
                     anchors.leftMargin: Material.Units.dp(24)
@@ -208,6 +256,8 @@ Material.ApplicationWindow{
                         text:modelData
                         itemLabel.style: "body1"
                         leftMargin: Material.Units.dp(24)
+                        textColor: selected?theme.accentColor:Material.Theme.light.textColor;
+                        iconColor: selected?theme.accentColor:Material.Theme.light.iconColor;
                         iconName: sectionsIcon[page.selectedTab][index]
                         selected:  page.selectedTab===0 ? page0SelectedIndex === index ? true:false
                         :page.selectedTab===1?page1SelectedIndex ===index ?true:false
@@ -225,23 +275,23 @@ Material.ApplicationWindow{
             ListItem.Standard{
                 id:navUser
                 height:Material.Units.dp(40);
-                anchors.bottom: navGrooveStyle.top
+                anchors.bottom: navUserGroup.top
                 anchors.left: parent.left
                 anchors.leftMargin: Material.Units.dp(16);
                 itemLabel.style: "body1"
                 iconName: "awesome/user"
-                text:"用 户:"+AppConfig.currentUserName+"/"+AppConfig.currentUserType
+                text:"用 户:"+AppConfig.currentUserName
             }
             ListItem.Standard{
-                id:navGrooveStyle
+                id:navUserGroup
                 height:Material.Units.dp(40);
                 itemLabel.style: "body1"
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: Material.Units.dp(8)
                 anchors.left: parent.left
                 anchors.leftMargin: Material.Units.dp(16);
-                iconName: "awesome/road"
-                text:"坡口形式 : "+grooveStyleName[AppConfig.currentGroove]
+                iconName:"awesome/group"
+                text:"用户组:"+AppConfig.currentUserType
             }
             Keys.onDownPressed: {  switch(page.selectedTab){
                 case 0: if(page0SelectedIndex!==navrep.count -1 )page0SelectedIndex++;else page0SelectedIndex=navrep.count-1;break;
@@ -296,32 +346,37 @@ Material.ApplicationWindow{
             id:preConditionTab
             title: qsTr("预置条件(II)")
             iconName: "action/settings_input_composite"
-            Flickable{
-                id:preConditionFlickable
+            Item{
                 anchors.fill: parent
-                clip: true;
-                contentHeight: height;
                 GrooveCondition{
                     id:grooveConditionPage
                     visible: page0SelectedIndex===0
-                    onRuleslistNameChanged: {
-                        page.connectWeldRule=ruleslistName;
+                    currentGroove: app.currentGroove
+                    onCurrentGrooveChanged:{
+                        app.currentGroove=currentGroove;
                     }
+                    Component.onCompleted: lastFocusedItem=grooveConditionPage
                 }
                 TeachCondition{
                     id:teachConditionPage
+                    repeaterModel: app.teachModel
                     visible: page0SelectedIndex===1}
                 WeldCondition{
                     id:weldConditionPage
-                    visible: page0SelectedIndex===2
-                }
+                    condition: app.weldConditionModel
+                    visible: page0SelectedIndex===2}
                 GrooveCheck{
                     id:grooveCheckPage
                     visible: page0SelectedIndex===3
                     status: app.sysStatus
                     message:snackBar
                     grooveModel: grooveTableInit
-                    selectedIndex: grooveSelectIndex
+                    selectedIndex: grooveSelectIndex}
+                LimitedCondition{
+                    id:limitedConditionPage
+                    limitedModel: limitedTable
+                    name:app.currentGroove
+                    visible: page0SelectedIndex===4
                 }
             }
         }
@@ -331,11 +386,8 @@ Material.ApplicationWindow{
             iconName:"awesome/line_chart"
             property int currentFloorNum;
             property int  currentWeldNum;
-            Flickable{
-                id:weldAnalyseFlickable
+            Item{
                 anchors.fill: parent
-                clip: true;
-                contentHeight: height;
                 WeldAnalyse{
                     id:weldAnalysePage
                     visible: page1SelectedIndex===0;
@@ -344,19 +396,12 @@ Material.ApplicationWindow{
                     weldDataModel: weldTable
                     message:snackBar
                     weldRulesName: page.connectWeldRule
+                    currentGroove: app.currentGroove
                     onWeldNumChanged: weldAnalyseTab.currentWeldNum=weldNum
                     onFloorNumChanged: weldAnalyseTab.currentFloorNum=floorNum
                     weldLength: app.weldLength
                     weldTime: app.weldTime
-                  //  grooveModel: grooveTableInit
-                    Connections{
-                        target:app
-                        onWeldTableIndexChanged:{
-                           weldAnalysePage.weldTableCurrentRow=app.weldTableIndex;
-                        }
-                    }
                 }
-
                 WeldLine{
                     id:wledLinePage
                     visible: page1SelectedIndex===1;
@@ -368,30 +413,27 @@ Material.ApplicationWindow{
                     floorNum: weldAnalyseTab.currentFloorNum
                 }
             }
-           // enabled: sysStatus=="空闲态"||sysStatus=="焊接态"||sysStatus=="焊接中间暂停态"||sysStatus=="焊接端部暂停态"||sysStatus=="停止态"
+            // enabled: sysStatus=="空闲态"||sysStatus=="焊接态"||sysStatus=="焊接中间暂停态"||sysStatus=="焊接端部暂停态"||sysStatus=="停止态"
         }
         Material.Tab{
-                    id:systemInforTab
-                    title: qsTr("系统信息(IV)")
-                    iconName:"action/dashboard"
-                    Flickable{
-                        id:systemInforFlickable
-                        anchors.fill: parent
-                        clip: true;
-                        contentHeight: height;
-                        SystemInfor{visible: page2SelectedIndex===0}
-                        HandleInfor{visible: page2SelectedIndex===1}
-                        RoboInfor{visible: page2SelectedIndex===2}
-                        ControlInfor{visible: page2SelectedIndex===3}
-                        HighVolagteInfor{visible: page2SelectedIndex===4}
-                        WeldPowerInfor{visible: page2SelectedIndex===5}
-                    }
-                    enabled: sysStatus=="空闲态"
-                }
+            id:systemInforTab
+            title: qsTr("系统信息(IV)")
+            iconName:"action/dashboard"
+            Item{
+                anchors.fill: parent
+                SystemInfor{visible: page2SelectedIndex===0}
+                HandleInfor{visible: page2SelectedIndex===1}
+                RoboInfor{visible: page2SelectedIndex===2}
+                ControlInfor{visible: page2SelectedIndex===3}
+                HighVolagteInfor{visible: page2SelectedIndex===4}
+                WeldPowerInfor{visible: page2SelectedIndex===5}
+            }
+            enabled: sysStatus=="空闲态"
+        }
     }
     onErrorCodeChanged: {
-        //  if(Number(errorCode))
-        //   app.showError("系统异常","错误代码:"+errorCode,"关闭","")
+        if(Number(errorCode))
+            app.showError("系统异常","错误代码:"+errorCode,"关闭","")
     }
     onSysStatusChanged: {
         if(sysStatus=="空闲态"){
@@ -425,8 +467,8 @@ Material.ApplicationWindow{
             snackBar.open("坡口检测完成！正在计算相关焊接规范。")
             //切换指示灯为准备好
             AppConfig.setleds("ready");
-           // page.selectedTab=1;
-           // app.page1SelectedIndex=0;
+            // page.selectedTab=1;
+            // app.page1SelectedIndex=0;
             app.weldTableIndex=-1;
             ERModbus.setmodbusFrame(["R","104","1"])
         }else if(sysStatus=="焊接态"){
@@ -475,6 +517,7 @@ Material.ApplicationWindow{
         if (lastFocusedItem !== null) {
             lastFocusedItem.forceActiveFocus();
         }
+
     }
     Connections{
         target: ERModbus
@@ -673,7 +716,7 @@ Material.ApplicationWindow{
         onGrooveRulesChanged:{
             console.log(value);
             if(value[0]==="Clear"){
-                    weldTime.length=0;
+                weldTime.length=0;
                 if(weldTable.get(0).ID!==""){
                     //清除焊接规范表格
                     weldTable.set(0,{"ID":"","C1":"","C2":"","C3":"","C4":"","C5":"","C6":"","C7":"","C8":"","C9":"","C10":"","C11":"","C12":"","C13":"","C14":"","C15":"","C16":"",});
@@ -684,7 +727,7 @@ Material.ApplicationWindow{
                 // 切换状态为端部暂停
                 if(sysStatus==="坡口检测完成态"){
                     //下发端部暂停态
-                  //  ERModbus.setmodbusFrame(["W","0","1","5"]);
+                    //  ERModbus.setmodbusFrame(["W","0","1","5"]);
                 }
                 var res=0;
                 for(var i=0;i<weldTime.length;i++){
@@ -697,7 +740,8 @@ Material.ApplicationWindow{
     }
     Material.ActionButton{
         id:action
-        visible: (!page.actionBar.overflowMenuShowing)&&(!moto.showing)
+        visible: (!page.actionBar.overflowMenuShowing)&&(!moto.showing)&&(!navigationDrawer.showing)
+        Behavior on visible {NumberAnimation{duration: 200}}
         action:Material.Action{
             iconName:"action/android";name: qsTr("机器人操作")
             onTriggered: {
@@ -706,6 +750,20 @@ Material.ApplicationWindow{
         }
         anchors.right: snackBar.left
         anchors.rightMargin: Material.Units.dp(24)
+        anchors.verticalCenter: snackBar.verticalCenter
+        isMiniSize: true
+    }
+    /*危险报警action*/
+    Material.ActionButton{
+        id:error
+        visible: (!page.actionBar.overflowMenuShowing)&&(!moto.showing)&&(!navigationDrawer.showing)
+        Behavior on visible {NumberAnimation{duration: 200}}
+        action:Material.Action {iconName: "alert/warning";
+            name: qsTr("警告");
+            //onTriggered: app.showError("Something went wrong", "Do you want to retry?", "Close", true)
+        }
+        anchors.right: action.left
+        anchors.rightMargin: Material.Units.dp(16)
         anchors.verticalCenter: snackBar.verticalCenter
         isMiniSize: true
     }
@@ -741,33 +799,39 @@ Material.ApplicationWindow{
         ERModbus.setmodbusFrame(["R","510","6"]);
         /*打开数据库*/
         Material.UserData.openDatabase();
+        currentGroove=AppConfig.currentGroove
         var result=Material.UserData.getResultFromFuncOfTable("AccountTable","","");
         var name,type,password;
         for(var i=0;i<result.rows.length;i++){
-            name = result.rows.item(i).id;
+            name = result.rows.item(i).name;
             type=result.rows.item(i).type;
             password=result.rows.item(i).password;
-            namemodel.append({"text":name})
-            accountmodel.append( {"name":name,"type":type,"password":password});
+            accountmodel.append({"name":name,"type":type,"password":password})
             if(name === accountname.text){
                 changeuserFeildtext.selectedIndex = i+1;
                 changeuserFeildtext.helperText=type;
                 AppConfig.currentUserPassword =password;
             }
         }
-        namemodel.remove(0)
         accountmodel.remove(0);
+        teachModel.length=0;
+        teachModel=Material.UserData.getValueFromFuncOfTable("TeachCondition","","");
+        weldConditionModel.length=0;
+        weldConditionModel=Material.UserData.getValueFromFuncOfTable("WeldCondition","","");
+        //空闲态
+        AppConfig.setleds("ready");
         /*写入系统背光值*/
-        AppConfig.backLight=AppConfig.backLight;
+        //        AppConfig.backLight=AppConfig.backLight;
         //  SysInfor.systemInformation;
-      //  for(i=0;i<9;i++){
-            //  Material.UserData.deleteTable(grooveStyleName[i]+"焊接规范");
-            //  Material.UserData.createTable(grooveStyleName[i]+"焊接规范","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT");
-            //  Material.UserData.createTable("weldRulesList"+i.toString(),"Name TEXT,Time TEXT");
-            //  Material.UserData.insertTable("weldRulesList"+i.toString(),"(?,?)",[grooveStyleName[i]+"焊接规范",new Date()])
-            //Material.UserData.createTable(grooveStyleName[i]+"焊接数据","SETV TEXT,SETC TEXT,FEEDC TEXT,FEEDV TEXT,Time TEXT");
-       // }
+        //  for(i=0;i<9;i++){
+        //  Material.UserData.deleteTable(grooveStyleName[i]+"焊接规范");
+        //  Material.UserData.createTable(grooveStyleName[i]+"焊接规范","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT");
+        //  Material.UserData.createTable("weldRulesList"+i.toString(),"Name TEXT,Time TEXT");
+        //  Material.UserData.insertTable("weldRulesList"+i.toString(),"(?,?)",[grooveStyleName[i]+"焊接规范",new Date()])
+        //Material.UserData.createTable(grooveStyleName[i]+"焊接数据","SETV TEXT,SETC TEXT,FEEDC TEXT,FEEDV TEXT,Time TEXT");
+        // }
     }
+
     Material.Dialog{
         id:moto
         title: "机器人本体设定"
@@ -787,6 +851,7 @@ Material.ApplicationWindow{
             AppConfig.setXSpeed(Number(send[3]));
         }
         onRejected: {
+            send.length=0;
             send= ["0","0","0","0","0","0","0","0","0","0","0","0"];
         }
         dialogContent:[
@@ -988,20 +1053,14 @@ Material.ApplicationWindow{
             AppConfig.currentUserType = changeuserFeildtext.helperText; }
         onRejected: {
             changeuserFeildtext.helperText = AppConfig.currentUserType;
-            for(var i=0;i<100;i++){
-                if(accountname.text === accountmodel.get(i).name ){
-                    changeuserFeildtext.selectedIndex = i;
-                    break; }
-            }
         }
         Component.onCompleted: {
             changeuser.show();
         }
-        ListModel{id:accountmodel;ListElement{name:"user";type:"user";password:"user"}}
-        ListModel{id:namemodel;ListElement{text:"user"}}
         dialogContent: [Material.MenuField{id:changeuserFeildtext;
                 floatingLabel:true;
-                model:namemodel
+                textRole: "name"
+                model:accountmodel
                 placeholderText:qsTr("用户名:");
                 width:parent.width
                 onItemSelected:  {
@@ -1026,9 +1085,6 @@ Material.ApplicationWindow{
                 onHasErrorChanged: {
                     if(password.hasError === true){
                         password.helperText =qsTr( "密码超过最大限制");}}
-                onHeightChanged: {
-                    console.log("main.qml "+password.height)
-                }
             } ]
     }
     /*语言对话框*/

@@ -116,7 +116,7 @@ Item {
        from the global \l Toolbar::maxActionCount. If you are using an action bar
        for custom purposes outside of a toolbar, this defaults to \c 3.
      */
-    property int maxActionCount: toolbar ? toolbar.maxActionCount : 3
+    property int maxActionCount: toolbar ? toolbar.maxActionCount : 2
 
     /*!
        The index of the selected tab. This will be an index from the \l tabs
@@ -270,7 +270,7 @@ Item {
 
         Repeater {
             model: __internal.visibleActions.length > maxActionCount
-                   ? maxActionCount - 3
+                   ? maxActionCount - 2
                    : __internal.visibleActions.length
 
             delegate: IconButton {
@@ -287,24 +287,29 @@ Item {
                 anchors.verticalCenter: parent ? parent.verticalCenter : undefined
             }
         }
-        LabelButton {
-            id: date
-            action: maxActionCount>3? __internal.visibleActions[maxActionCount-3]:null
-            objectName: "action/datetime"
-            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
-                                   Theme.dark.iconColor)
-            visible: maxActionCount>3 ? true:false
+        Label{
+            text:__internal.visibleActions[maxActionCount-2].name
             anchors.verticalCenter: parent.verticalCenter
         }
-        LabelButton {
-            id: time
-            action: maxActionCount>3? __internal.visibleActions[maxActionCount-2]:null
-            objectName: "action/datetime"
-            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
-                                   Theme.dark.iconColor)
-            visible: maxActionCount>2 ? true:false
-            anchors.verticalCenter: parent.verticalCenter
-        }
+
+//        LabelButton {
+//            id: date
+//            action: maxActionCount>3? __internal.visibleActions[maxActionCount-3]:null
+//            objectName: "action/datetime"
+//            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
+//                                   Theme.dark.iconColor)
+//            visible: maxActionCount>3 ? true:false
+//            anchors.verticalCenter: parent.verticalCenter
+//        }
+//        LabelButton {
+//            id: time
+//            action: maxActionCount>3? __internal.visibleActions[maxActionCount-2]:null
+//            objectName: "action/datetime"
+//            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
+//                                   Theme.dark.iconColor)
+//            visible: maxActionCount>2 ? true:false
+//            anchors.verticalCenter: parent.verticalCenter
+//        }
         IconButton {
             id: overflowButton
 
@@ -395,4 +400,3 @@ Item {
         }
     }
 }
-

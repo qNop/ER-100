@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     //必须声明在APP之前声明环境变量。
     qputenv("QT_IM_MODULE", QByteArray("Virtualkeyboard"));
     //显示插件调试信息
-    // qputenv("QT_DEBUG_PLUGINS", QByteArray("1"));
+    //qputenv("QT_DEBUG_PLUGINS", QByteArray("1"));
    // AppConfig.language();
    // QLocale.setDefault();
     QApplication app(argc, argv);
@@ -58,12 +58,9 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonType<ERModbus>("WeldSys.ERModbus",1,0,"ERModbus",ERModbusEngineProvider);
     qmlRegisterSingletonType<WeldMath>("WeldSys.WeldMath",1,0,"WeldMath",WeldMathEngineProvider);
 
-
     QQmlApplicationEngine engine;
-
-      qDebug()<<engine.offlineStoragePath();
+    qDebug()<<engine.offlineStoragePath();
     engine.setOfflineStoragePath(".");
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
-
     return app.exec();
 }

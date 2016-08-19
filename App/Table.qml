@@ -11,24 +11,29 @@ import QtQuick.Layouts 1.1
 Card{
     property alias firstColumn: firstColumnData
     property list<Action> actions
-    property alias header: title
-    property alias footer: footerItem
+    property string headerTitle: "header"
+    property string footerText: "footer"
     property alias table: tableview
     property alias tableData: tableview.data
     property int tableRowCount: 0
+    property alias model: tableview.model
+    property alias currentRow: tableview.currentRow
+    property alias __listview: tableview.__listView
+    property alias actionRepeater: repeater
+    property alias menuDropDown: dropDown
+
     anchors{left:parent.left;right:parent.right;top:parent.top;margins: Units.dp(12)}
-    height: title.height+tableview.height+footer.height
+    height: title.height+tableview.height+footerItem.height
     elevation: 2
     Item{
         id:title
-        property alias text: titleLabel.text
         anchors{left:parent.left;right:parent.right;top:parent.top}
         height:Units.dp(64);
         Label{id:titleLabel
             anchors{left: parent.left;leftMargin: Units.dp(24);verticalCenter: parent.verticalCenter}
             style:"subheading"
             color: Theme.light.shade(0.87)
-            text:"header"
+            text:headerTitle
             wrapMode: Text.WordWrap
             width: Units.dp(400)
         }
@@ -36,15 +41,20 @@ Card{
             anchors{right: parent.right;rightMargin: Units.dp(14);verticalCenter: parent.verticalCenter}
             spacing: Units.dp(8);
             Repeater{
+                id:repeater
                 model:actions.length
                 delegate:View{
+                    id:view
                     width: row.width+Units.dp(4)
                     enabled: actions[index].enabled
                     opacity: enabled ? 1 : 0.6
                     height:Units.dp(36)
+                    radius: 4
+                    elevation: dropDown.place===index&&dropDown.showing?2:0
+                    Behavior on elevation {NumberAnimation {duration:200}}
                     Ink{id:ink
                         anchors.fill: parent
-                        onPressed: actions[index].triggered();
+                        onPressed: actions[index].triggered(view);
                         enabled: actions[index].enabled
                         circular: true
                         centered: true
@@ -62,10 +72,14 @@ Card{
                             source:actions[index].iconSource
                             color: Theme.accentColor
                             size: Units.dp(27)
+                            anchors.verticalCenter: parent.verticalCenter
                         }
                         Label{
                             style: "button"
                             text:actions[index].name;
+                            anchors.verticalCenter: parent.verticalCenter
+                            color: dropDown.showing ? Theme.accentColor : Theme.light.textColor
+                            Behavior on color {NumberAnimation { duration: 200 }}
                         }
                     }
                 }
@@ -103,14 +117,15 @@ Card{
                     anchors.leftMargin: Units.dp(16)
                     anchors.verticalCenter: parent.verticalCenter
                     checked: styleData.selected
-                    visible: label.text!==""
+                    visible: (typeof(label.text)==="number")
                     exclusiveGroup:checkboxgroup
                 }
                 Label{
                     id:label
-                    anchors.left: checkbox.right
-                    anchors.leftMargin:  Units.dp(24)
+                    anchors.left: checkbox.visible?checkbox.right: undefined
+                    anchors.leftMargin: checkbox.visible? Units.dp(24) : undefined
                     anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: checkbox.visible?null:parent.horizontalCenter
                     text:styleData.value
                     style:"body1"
                     color: Theme.light.shade(0.87)
@@ -135,7 +150,6 @@ Card{
     Item{
         id:footerItem
         anchors{top:tableview.bottom;left:parent.left;right:parent.right;}
-        property alias text: footerLabel.text
         height: Units.dp(47)
         Label{
             id:footerLabel
@@ -143,27 +157,11 @@ Card{
             anchors.leftMargin: Units.dp(16)
             anchors.verticalCenter: parent.verticalCenter
             style:"body1"
-            text:"footer"
+            text:footerText
         }
-//        Row{
-//            anchors{right:parent.right;rightMargin: Units.dp(14);verticalCenter: parent.verticalCenter}
-//            spacing: Units.dp(24);
-//            layoutDirection:Qt.RightToLeft
-//            IconButton{
-//                action:Action{
-//                    iconName: "hardware/keyboard_arrow_right"
-//                }
-//                size: Units.dp(24)
-//            }
-//            IconButton{
-//                action:Action{
-//                    iconName: "hardware/keyboard_arrow_left"
-//                }
-//                size: Units.dp(24)
-//            }
-//            Label{
-//                style:"body1"
-//            }
-//        }
+    }
+    MenuDropdown{
+        id:dropDown
+        property int place: 0
     }
 }

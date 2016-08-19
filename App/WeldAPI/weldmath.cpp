@@ -109,6 +109,8 @@ WeldMath::WeldMath()
     //
 }
 
+
+
 int WeldMath::weldMathFunction(){
     //当前道号
     int currentWeldNum=0;
@@ -852,6 +854,58 @@ void WeldMath::setWireD(int value){
     wireDValue=value;
 }
 
+QStringList WeldMath::limited(){
+    QStringList Here;
+    Here<<"WeldMath"<<"limited"<<"return";
+    return Here;
+}
+void WeldMath::setLimited(QStringList value){
+    qDebug()<<"WeldMath::setLimited value "<<value;
+    //底层限制条件 选取电流中间侧
+    bottomFloor.current=value.at(BOTTOM_1+CURRENT).toFloat();
+    bottomFloor.height=value.at(BOTTOM_1+HEIGHT).toFloat();
+    bottomFloor.k=value.at(BOTTOM_1+K).toFloat();
+    bottomFloor.maxSwingLength=value.at(BOTTOM_1+MAX_SWING_LENGTH).toFloat();
+    bottomFloor.swingLeftLength=value.at(BOTTOM_1+SWING_LEFT_LENGTH).toFloat();
+    bottomFloor.swingRightLength=value.at(BOTTOM_1+SWING_RIGHT_LENGTH).toFloat();
+    bottomFloor.swingLeftStayTime=value.at(BOTTOM_1+SWING_LEFT_STAYTIME).toFloat();
+    bottomFloor.swingRightStayTime=value.at(BOTTOM_1+SWING_RIGHT_STAYTIME).toFloat();
+    bottomFloor.totalStayTime=bottomFloor.swingLeftStayTime+bottomFloor.swingRightStayTime;
+    bottomFloor.weldSwingSpacing=value.at(BOTTOM_1+SWING_SPACING).toFloat();
+    //第二层限制条件
+    secondFloor.current=value.at(SECOND+CURRENT).toFloat();
+    secondFloor.height=value.at(SECOND+HEIGHT).toFloat();
+    secondFloor.k=value.at(SECOND+K).toFloat();
+    secondFloor.maxSwingLength=value.at(SECOND+MAX_SWING_LENGTH).toFloat();
+    secondFloor.swingLeftLength=value.at(SECOND+SWING_LEFT_LENGTH).toFloat();
+    secondFloor.swingRightLength=value.at(SECOND+SWING_RIGHT_LENGTH).toFloat();
+    secondFloor.swingLeftStayTime=value.at(SECOND+SWING_LEFT_STAYTIME).toFloat();
+    secondFloor.swingRightStayTime=value.at(SECOND+SWING_RIGHT_STAYTIME).toFloat();
+    secondFloor.totalStayTime=secondFloor.swingLeftStayTime+secondFloor.swingRightStayTime;
+    secondFloor.weldSwingSpacing=value.at(SECOND+SWING_SPACING).toFloat();
+    //填充层限制条件
+    fillFloor.current=value.at(FILL+CURRENT).toFloat();
+    fillFloor.height=value.at(FILL+HEIGHT).toFloat();
+    fillFloor.k=value.at(FILL+K).toFloat();
+    fillFloor.maxSwingLength=value.at(FILL+MAX_SWING_LENGTH).toFloat();
+    fillFloor.swingLeftLength=value.at(FILL+SWING_LEFT_LENGTH).toFloat();
+    fillFloor.swingRightLength=value.at(FILL+SWING_RIGHT_LENGTH).toFloat();
+    fillFloor.swingLeftStayTime=value.at(FILL+SWING_LEFT_STAYTIME).toFloat();
+    fillFloor.swingRightStayTime=value.at(FILL+SWING_RIGHT_STAYTIME).toFloat();
+    fillFloor.totalStayTime=fillFloor.swingLeftStayTime+fillFloor.swingRightStayTime;
+    fillFloor.weldSwingSpacing=value.at(FILL+SWING_SPACING).toFloat();
+    //表层限制条件
+    topFloor.current=value.at(TOP+CURRENT).toFloat();
+    topFloor.height=value.at(TOP+HEIGHT).toFloat();
+    topFloor.k=value.at(TOP+K).toFloat();
+    topFloor.maxSwingLength=value.at(TOP+MAX_SWING_LENGTH).toFloat();
+    topFloor.swingLeftLength=value.at(TOP+SWING_LEFT_LENGTH).toFloat();
+    topFloor.swingRightLength=value.at(TOP+SWING_RIGHT_LENGTH).toFloat();
+    topFloor.swingLeftStayTime=value.at(TOP+SWING_LEFT_STAYTIME).toFloat();
+    topFloor.swingRightStayTime=value.at(TOP+SWING_RIGHT_STAYTIME).toFloat();
+    topFloor.totalStayTime=topFloor.swingLeftStayTime+topFloor.swingRightStayTime;
+    topFloor.weldSwingSpacing=value.at(TOP+SWING_SPACING).toFloat();
+}
 
 
 

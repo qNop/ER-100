@@ -96,6 +96,7 @@ AppConfig::AppConfig(){
     ySpeedValue=File->value("Y").toInt();
     zSpeedValue=File->value("Z").toInt();
     swingSpeedValue=File->value("Swing").toInt();
+    setbackLight(BacklightValue);
 }
 AppConfig::~AppConfig(){
     qDebug()<<"AppConfig::REMOVE";

@@ -1,7 +1,7 @@
 [General]
 BackLight=30
 Bottom_Style=0
-Current_Groove=2
+Current_Groove=3
 Current_User_Name=TKSW
 Current_User_PassWord=TKSW
 Current_User_Type=SuperUser

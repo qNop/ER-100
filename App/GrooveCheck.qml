@@ -119,7 +119,7 @@ FocusScope{
                 message.open("生成焊接规范。");
             }
             hoverAnimation:true;
-            enabled: root.actionEnable
+            enabled: true//root.actionEnable
             name:"生成规范"
         }
     ]
@@ -138,18 +138,6 @@ FocusScope{
             event.accepted=true;
             break;
         case Qt.Key_F4:
-            event.accepted=true;
-            break;
-        case Qt.Key_F5:
-            event.accepted=true;
-            break;
-        case Qt.Key_F6:
-            if(dropDown.showing)
-                dropDown.close();
-            else{
-                actionEnable=tableview.model.get(0).ID!==""?true:false
-                dropDown.open(tableview.__listView.currentItem,0,0);
-            }
             event.accepted=true;
             break;
         case Qt.Key_Down:
@@ -204,6 +192,7 @@ FocusScope{
                 anchors.verticalCenter: parent.verticalCenter
                 spacing: Units.dp(12);
                 Repeater{
+                    id:test
                     model:actions.length
                     delegate:View{
                         width: row.width
@@ -335,153 +324,9 @@ FocusScope{
             }
         }
     }
-    Dropdown{
+    MenuDropdown{
         id:dropDown
-        height: columnView.height + Units.dp(16)
-        width: Units.dp(168)
-        property int repeaterSelected: 0
-         onOpened: forceActiveFocus();
-        ColumnLayout {
-            id: columnView
-            width: parent.width
-            anchors.centerIn: parent
-            Repeater {
-                id:dropRepeater
-                model: dropDownActions.length
-                ListItem.Standard {
-                    id: listItem
-                    property Action action:dropDownActions[index]
-                    height:Units.dp(40)
-                    text:action.name;
-                    itemLabel.style: "button"
-                    iconSource: action.iconSource
-                    enabled: action.enabled
-                    textColor:Theme.light.textColor
-                    iconColor: Theme.accentColor
-                    onClicked: {
-                        dropDown.close()
-                        action.triggered(listItem)
-                    }
-                    onSelectedChanged: forceActiveFocus();
-                    //  selected: index===dropDown.repeaterSelected
-                    dividerInset:0
-                    showDivider:index===3
-                    onActiveFocusChanged: {
-                        console.log(root.objectName+" Active Focus "+ activeFocus)
-                    }
-                    Keys.onPressed:
-                    {
-                        console.log("pressed")
-                    }
-                }
-            }
-        }//上按下
-        onVisibleChanged: {
-            //初始化界面 第一条列表信息选中
-            if(visible)
-                dropRepeater.itemAt(0).selected=true;
-        }
-        Keys.onPressed:{
-            if(dropDown.visible){
-                switch(event.key){
-               // case Qt.Key_Down:
-                   // console.log(root.objectName+" dropDown index");
-                   // break;
-                    //                    switch(repeaterSelected){
-                    //                    case -1:if(dropDownActions[0].enabled)
-                    //                            repeaterSelected=0;
-                    //                        else if(dropDownActions[1].enabled)
-                    //                            repeaterSelected=1;
-                    //                        else if(dropDownActions[2].enabled)
-                    //                            repeaterSelected=2;
-                    //                        else if(dropDownActions[3].enabled)
-                    //                            repeaterSelected=3;
-                    //                        else if(dropDownActions[4].enabled)
-                    //                            repeaterSelected=4;
-                    //                        break;
-                    //                    case 0: if(dropDownActions[1].enabled)
-                    //                            repeaterSelected=1;
-                    //                        else if(dropDownActions[2].enabled)
-                    //                            repeaterSelected=2;
-                    //                        else if(dropDownActions[3].enabled)
-                    //                            repeaterSelected=3;
-                    //                        else if(dropDownActions[4].enabled)
-                    //                            repeaterSelected=4;
-                    //                        break;
-                    //                    case 1: if(dropDownActions[2].enabled)
-                    //                            repeaterSelected=2;
-                    //                        else if(dropDownActions[3].enabled)
-                    //                            repeaterSelected=3;
-                    //                        else if(dropDownActions[4].enabled)
-                    //                            repeaterSelected=4;
-                    //                        break;
-                    //                    case 2: if(dropDownActions[3].enabled)
-                    //                            repeaterSelected=3;
-                    //                        else if(dropDownActions[4].enabled)
-                    //                            repeaterSelected=4;
-                    //                        break;
-                    //                    case 3: if(dropDownActions[4].enabled)
-                    //                            repeaterSelected=4;
-                    //                        break;
-                    //                    case 4:break;
-                    //                    default:repeaterSelected=-1;break;
-                    //                    }
-                    //                    event.accept=true;
-                    //                    break;
-                    //                case Qt.Key_Up:
-                    //                    switch(repeaterSelected){
-                    //                    case -1:if(dropDownActions[0].enabled)
-                    //                            repeaterSelected=0;
-                    //                        else if(dropDownActions[1].enabled)
-                    //                            repeaterSelected=1;
-                    //                        else if(dropDownActions[2].enabled)
-                    //                            repeaterSelected=2;
-                    //                        else if(dropDownActions[3].enabled)
-                    //                            repeaterSelected=3;
-                    //                        else if(dropDownActions[4].enabled)
-                    //                            repeaterSelected=4;
-                    //                        break;
-                    //                    case 0:
-                    //                        break;
-                    //                    case 1: if(dropDownActions[0].enabled)
-                    //                            repeaterSelected=0;
-                    //                        break;
-                    //                    case 2: if(dropDownActions[1].enabled)
-                    //                            repeaterSelected=1;
-                    //                        else if(dropDownActions[0].enabled)
-                    //                            repeaterSelected=0;
-                    //                        break;
-                    //                    case 3: if(dropDownActions[2].enabled)
-                    //                            repeaterSelected=2;
-                    //                        else if(dropDownActions[1].enabled)
-                    //                            repeaterSelected=1;
-                    //                        else if(dropDownActions[0].enabled)
-                    //                            repeaterSelected=0;
-                    //                        break;
-                    //                    case 4: if(dropDownActions[3].enabled)
-                    //                            repeaterSelected=3;
-                    //                        else if(dropDownActions[2].enabled)
-                    //                            repeaterSelected=2;
-                    //                        else if(dropDownActions[1].enabled)
-                    //                            repeaterSelected=1;
-                    //                        else if(dropDownActions[0].enabled)
-                    //                            repeaterSelected=0;
-                    //                        break;
-                    //                    default:repeaterSelected=-1;break;
-                    //                    }
-                    //                    event.accept=true;
-                    //                    break;
-                case Qt.Key_Select:
-                    dropDown.close();
-                    dropDownActions[repeaterSelected].triggered();
-                    event.accept=true;
-                    break;
-                case Qt.Key_Escape:
-                    dropDown.close();
-                    event.accept=true;break;
-                }
-            }
-        }
+        //actions: dropDownActions
     }
     Dialog{
         id:save

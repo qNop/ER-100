@@ -126,11 +126,10 @@ Controls.Button {
             implicitWidth: implicitHeight
             Icon {
                 id: icon
-
                 anchors.centerIn: parent
                 name: control.iconName
                 color: button.iconColor
-                size: Units.dp(24)
+                size: Units.dp(27)
             }
         }
     }

@@ -11,7 +11,4 @@ Item {
     anchors.fill: parent
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "ControlInfor"
-    Material.Label{
-        text:root.objectName
-    }
 }

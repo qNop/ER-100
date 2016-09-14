@@ -37,6 +37,7 @@ Controls.TextField {
     property bool hasError: characterLimit && length > characterLimit
     property int characterLimit
     property bool showBorder: true
+    property int actualHeight
 
     style: MaterialStyle.TextFieldStyle {}
 }

@@ -32,7 +32,7 @@ class AppConfig : public QObject
     /*系统led*/
     Q_PROPERTY(QString leds READ leds WRITE setleds)
     /*当前衬垫*/
-    Q_PROPERTY(int bottomStyle READ  bottomStyle WRITE setbottomStyle NOTIFY bottomStyleChanged)
+ //   Q_PROPERTY(int bottomStyle READ  bottomStyle WRITE setbottomStyle NOTIFY bottomStyleChanged)
     /*修改当前时间*/
      Q_PROPERTY(QStringList dateTime READ dateTime WRITE setdateTime NOTIFY dateTimeChanged)
     /*设置本地化*/
@@ -64,20 +64,23 @@ private:
     int Screen_Height;
     int BacklightValue;
     int CurrentGrooveValue;
-    int  BottomStyleValue;
     QString languageValue;
     bool loadNetValue;
     int xSpeedValue;
     int ySpeedValue;
     int zSpeedValue;
     int swingSpeedValue;
+    bool start_led;
+    bool ready_led;
+    bool stop_led;
+    int ptr_func_led;
 public:
     AppConfig();
     ~AppConfig();
 
     QString leds();
     int currentGroove(); // 当前坡口
-    int bottomStyle();
+ //   int bottomStyle();
     QString currentUserName();  // 当前用户名称
     QString currentUserPassword();//当前用户密码
     QString currentUserType();     //当前用户类型
@@ -96,7 +99,7 @@ public:
     int zSpeed();
     int swingSpeed();
 public slots:
-    void setbottomStyle(int value);
+//    void setbottomStyle(int value);
     void setbackLight(int value);
     void setthemeBackgroundColor(QString color);
     void setthemeAccentColor(QString color);
@@ -122,7 +125,7 @@ signals:
     void ySpeedChanged();
     void zSpeedChanged();
     void swingSpeedChanged();
-    void bottomStyleChanged(int value);
+ //   void bottomStyleChanged(int value);
     void screenWidthChanged(int width);
     void screenHeightChanged(int hight);
     void currentUserNameChanged(QString username);

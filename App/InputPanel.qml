@@ -28,7 +28,6 @@ FocusScope {
     MouseArea{
         anchors.fill: parent;
     }
-
     /**
     *键盘显示数据
    */
@@ -92,9 +91,9 @@ FocusScope {
             width=button.width*1.2
             height=button.height*1.4
             text=button.text;
-            if(typeof offsetX === "undefined")
+            if(typeof(offsetX) === "undefined")
                 offsetX = 0
-            if(typeof offsetY === "undefined")
+            if(typeof(offsetY) === "undefined")
                 offsetY = 0
             var position = button.mapToItem(inputPanel, 0, 0)
             var rootParent = Utils.findRoot(pop);

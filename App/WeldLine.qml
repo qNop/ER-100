@@ -54,14 +54,6 @@ FocusScope{
             time.setSeconds(time.getSeconds()+1);
             dateTimex.max=time;
             console.log(setCurrent.count);
-            //大于300点 删除多余
-            //            var count=setCurrent.count;
-            //            if(setCurrent.count>299){
-            //                setCurrent.removePoints(0,count-300);
-            //                setVoltage.removePoints(0,count-300);
-            //                current.removePoints(0,count-300);
-            //                voltage.removePoints(0,count-300);
-            //            }
         }
     }
     onLineTimeChanged: {
@@ -274,7 +266,7 @@ FocusScope{
             DateTimeAxis{
                 id:dateTimex
                 format: "h:mm:ss"
-                titleText: "时间"
+                titleText: "时间(s)"
                 labelsFont.pixelSize: chart.pixelSize
                 titleFont.pixelSize: chart.pixelSize
                 titleFont.weight:chart.weight

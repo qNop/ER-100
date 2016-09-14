@@ -13,40 +13,49 @@ FocusScope {
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "GrooveCondition"
     anchors.fill: parent
-    property var teachmodemodel: ["自动","半自动","手动"];
-    property var startendcheckmodel:["自动","手动"]
-    property var teachfisrtpointmodel: ["右方","左方"];
+
     //坡口数据库英文名称
-    property var grooveNameList: ["flatweldsinglebevelgroovet","flatweldsinglebevelgroove","flatweldvgroove","horizontalweldsinglebevelgroovet","horizontalweldsinglebevelgroove","verticalweldsinglebevelgroovet","verticalweldsinglebevelgroove","verticalweldvgroove","flatfillet"]
+    //  property var grooveNameList: ["flatweldsinglebevelgroovet","flatweldsinglebevelgroove","flatweldvgroove","horizontalweldsinglebevelgroovet","horizontalweldsinglebevelgroove","verticalweldsinglebevelgroovet","verticalweldsinglebevelgroove","verticalweldvgroove","flatfillet"]
     property var weldDirList: ["平焊","横焊","立焊","水平角焊"]
     property var grooveStyleList: ["单边V形坡口","V形坡口"]
     property var weldConnectList: ["T形接头","对接接头"]
     property var bottomStyleList: ["无衬垫","陶瓷衬垫","钢衬垫"]
-    property var grooveNameCh: ["平焊单边V形坡口T接头","平焊单边V形坡口平对接","平焊V形坡口平对接","横焊单边V形坡口T接头","横焊单边V形坡口平对接","立焊单边V形坡口T接头","立焊单边V形坡口平对接","立焊V形坡口平对接","水平角焊"]
 
-    property int currentGroove: 0
-    property string ruleslistName;
+    property var repeaterList:[weldDirList,grooveStyleList,weldConnectList,bottomStyleList]
+
+    property int grooveNum;
+
+    property var grooveStyleName: [
+        qsTr( "平焊单边V形坡口T接头"), qsTr( "平焊单边V形坡口平对接"),  qsTr("平焊V形坡口平对接"),
+        qsTr("横焊单边V形坡口T接头"), qsTr( "横焊单边V形坡口平对接"),
+        qsTr("立焊单边V形坡口T接头"),  qsTr("立焊单边V形坡口平对接"), qsTr("立焊V形坡口平对接"),
+        qsTr("水平角焊")  ]
+    //前两位代表焊接位置 1位代表坡口形式 1位代表街头样式 2位代表衬垫种类
+    property int currentGroove
+
     property list<ListModel> limitedModel:[
-        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~70";c3:"4~10" }
-            ListElement{iD:"2";c1:"45~60";c2:"9~45";c3:"0~2"}},
-        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~80";c3:"4~10" }
-            ListElement{iD:"2";c1:"45~60";c2:"9~45";c3:"0~2"}},
-        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~80";c3:"4~10" }},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~70";c3:"4~10" }
+            ListElement{iD:2;c1:"45~60";c2:"9~45";c3:"0~2"}},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~80";c3:"4~10" }
+            ListElement{iD:2;c1:"45~60";c2:"9~45";c3:"0~2"}},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~80";c3:"4~10" }},
 
-        ListModel{ListElement{iD:"1";c1:"30~40";c2:"12~55";c3:"4~10" }
-            ListElement{iD:"2";c1:"45~60";c2:"12~45";c3:"0~2"}},
-        ListModel{ListElement{iD:"1";c1:"30~40";c2:"12~80";c3:"4~10" }
-            ListElement{iD:"2";c1:"45~60";c2:"12~45";c3:"0~2"}},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"12~55";c3:"4~10" }
+            ListElement{ID:2;c1:"45~60";c2:"12~45";c3:"0~2"}},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"12~80";c3:"4~10" }
+            ListElement{ID:2;c1:"45~60";c2:"12~45";c3:"0~2"}},
 
-        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~50";c3:"4~10" }},
-        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~80";c3:"4~10" }},
-        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~80";c3:"4~10" }},
-        ListModel{ListElement{iD:"1";c1:"30~40";c2:"9~80";c3:"4~10" }},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~50";c3:"4~10" }},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~80";c3:"4~10" }},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~80";c3:"4~10" }},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~80";c3:"4~10" }},
 
-        ListModel{ListElement{iD:"1";c1:"30~40";c2:"16~80";c3:"4~10" }}
-
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"16~80";c3:"4~10" }}
     ]
-
+    Controls.ExclusiveGroup { id: weldDirGroup; }
+    Controls.ExclusiveGroup { id: grooveStyleGroup;}
+    Controls.ExclusiveGroup { id: weldConnectGroup;}
+    Controls.ExclusiveGroup { id: bottomStylegroup;}
     Material.Card{
         anchors{ left:parent.left;right:parent.right;top:parent.top;bottom: descriptionCard.top;margins:Material.Units.dp(12)}
         elevation: 2
@@ -70,103 +79,34 @@ FocusScope {
                 leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
                 Behavior on leftMargin{NumberAnimation { duration: 200 }}
                 height: Material.Units.dp(48)
-                selected: focus;
                 KeyNavigation.down:grooveStyle.visible?grooveStyle:bottomStyle
                 Keys.onPressed: {
+                    var i = currentGroove & 0x00000003;
                     switch(event.key){
-                    case Qt.Key_Right:
-                        if(weldDirGroup.current){
-                            switch(weldDirGroup.current.text){
-                            case "平焊":weldDirGroup.current=weldDirRepeater.itemAt(1);break;
-                            case "横焊":weldDirGroup.current=weldDirRepeater.itemAt(2);break;
-                            case "立焊":weldDirGroup.current=weldDirRepeater.itemAt(3);break; }}
+                    case Qt.Key_Right:if(i<3) i++;
                         event.accepted = true;
                         break;
-                    case Qt.Key_Left:
-                        if(weldDirGroup.current){
-                            switch(weldDirGroup.current.text){
-                            case "横焊":weldDirGroup.current=weldDirRepeater.itemAt(0);break;
-                            case "立焊":weldDirGroup.current=weldDirRepeater.itemAt(1);break;
-                            case "水平角焊":weldDirGroup.current=weldDirRepeater.itemAt(2);break; }}
+                    case Qt.Key_Left: if(i>0) i--;
                         event.accepted = true;
-                        break; }}
-                onClicked:forceActiveFocus();
+                        break; }
+                    currentGroove = ( currentGroove & 0xFFFFFFFC ) | i ;}
+                selected: activeFocus
+                onPressed:forceActiveFocus()
                 secondaryItem:Row{
                     anchors.verticalCenter: parent.verticalCenter
-                    Controls.ExclusiveGroup { id: weldDirGroup;
-                        onCurrentChanged:{
-                            if((weldDirGroup.current)){
-                                switch(weldDirGroup.current.text){
-                                case "平焊":
-                                    if(grooveStyleGroup.current!==null){
-                                        if(grooveStyleGroup.current.text==="单边V形坡口"){
-                                            if(weldConnectGroup.current.text!==null){
-                                                if(weldConnectGroup.current.text==="T形接头")
-                                                    currentGroove=0;
-                                                else
-                                                    currentGroove=1;}
-                                            else
-                                                currentGroove=1;
-                                        } else{
-                                            currentGroove=2;
-                                            weldConnectGroup.current=weldConnectRepeater.itemAt(1);
-                                        }
-                                    }
-                                    else{
-                                        currentGroove=2;
-                                        grooveStyleGroup.current=grooveStyleRepeater.itemAt(1);
-                                        weldConnectGroup.current=weldConnectRepeater.itemAt(1);
-                                    }
-                                    break;
-                                case "横焊":
-                                    if(grooveStyleGroup.current!==null){
-                                        if(grooveStyleGroup.current.text==="单边V形坡口"){
-                                            if(weldConnectGroup.current!==null){
-                                                if(weldConnectGroup.current.text==="T形接头")
-                                                    currentGroove=3;
-                                                else
-                                                    currentGroove=4;}
-                                            else{
-                                                currentGroove=4;
-                                                weldConnectGroup.current=weldConnectRepeater.itemAt(1);
-                                            }}
-                                    }
-                                    else{
-                                        currentGroove=4;
-                                        grooveStyleGroup.current=grooveStyleRepeater.itemAt(0);
-                                        weldConnectGroup.current=weldConnectRepeater.itemAt(1);
-                                    }
-                                    break;
-                                case "立焊":
-                                    if(grooveStyleGroup.current!==null){
-                                        if(grooveStyleGroup.current.text==="单边V形坡口"){
-                                            if(weldConnectGroup.current!==null){
-                                                if(weldConnectGroup.current.text==="T形接头")
-                                                    currentGroove=5;
-                                                else currentGroove=6;}
-                                            else currentGroove=6;}
-                                        else {currentGroove=7;
-                                            weldConnectGroup.current=weldConnectRepeater.itemAt(1);
-                                        }
-                                    }else{
-                                        currentGroove=7;
-                                        grooveStyleGroup.current=grooveStyleRepeater.itemAt(1);
-                                        weldConnectGroup.current=weldConnectRepeater.itemAt(1);
-                                    }
-                                    break;
-                                case "水平角焊":currentGroove=8;break; }}}
-                    }
                     Repeater{
                         id:weldDirRepeater
                         model:weldDirList
                         delegate:Material.RadioButton{
                             text:modelData
                             exclusiveGroup: weldDirGroup
-                            onClicked: weldDir.forceActiveFocus()
-                            Component.onCompleted: {
-                                if(((currentGroove<3)&&(index===0))||(((currentGroove>2)&&(currentGroove<5))&&(index===1))||(((currentGroove>4)&&(currentGroove<8))&&(index===2))||((currentGroove===8)&&(index===3)))
-                                    checked=true;
-                            }}}}
+                            onClicked:{
+                                weldDir.forceActiveFocus()
+                                //与掉低位将index插入进来
+                                currentGroove=(currentGroove&0xFFFFFFFC)|index;}
+                            canToggle: false
+                            //低两位中存在与index相当的数即checked
+                            checked:(currentGroove&0x03)===index?true:false }}}
                 Component.onCompleted: forceActiveFocus();
             }
             /*坡口型式*/
@@ -176,64 +116,37 @@ FocusScope {
                 leftMargin: visible ? Material.Units.dp(48): Material.Units.dp(250) ;
                 Behavior on leftMargin{NumberAnimation { duration: 200 }}
                 height: Material.Units.dp(48)
-                selected: focus;
                 KeyNavigation.up: weldDir
                 KeyNavigation.down:weldConnect.visible?weldConnect:bottomStyle
+                selected: activeFocus
+                onPressed:forceActiveFocus()
                 Keys.onPressed: {
+                    var i = currentGroove & 0x00000004;
+                    i>>=2;
+                    console.log("i " +i)
                     switch(event.key){
-                    case Qt.Key_Right:
-                        if(grooveStyleGroup.current)
-                            if((grooveStyleGroup.current.text==="单边V形坡口")&&(grooveStyleRepeater.itemAt(1).enabled))
-                                grooveStyleGroup.current=grooveStyleRepeater.itemAt(1);
-                        event.accepted = true;
-                        break;
-                    case Qt.Key_Left:
-                        if(grooveStyleGroup.current)
-                            if(grooveStyleGroup.current.text==="V形坡口")
-                                grooveStyleGroup.current=grooveStyleRepeater.itemAt(0);
-                        event.accepted = true;
-                        break;
+                    case Qt.Key_Right: if(i<1) i++;
+                        event.accepted = true; break;
+                    case Qt.Key_Left: if(i>0) i--;
+                        event.accepted = true;break;
                     }
+                    i<<=2;
+                    currentGroove = ( currentGroove & 0xFFFFFFFB ) | i
                 }
                 onClicked:forceActiveFocus();
                 secondaryItem:Row{
                     anchors.verticalCenter: parent.verticalCenter
-                    Controls.ExclusiveGroup { id: grooveStyleGroup;
-                        onCurrentChanged:{
-                            if((grooveStyleGroup.current)&&(weldConnectGroup.current)&&(weldDirGroup.current)){
-                                if(grooveStyleGroup.current.text==="单边V形坡口"){
-                                    if(weldDirGroup.current.text==="平焊"){
-                                        if(weldConnectGroup.current.text==="T形接头")
-                                            currentGroove=0;
-                                        else
-                                            currentGroove=1;}
-                                    else if(weldDirGroup.current.text==="横焊"){
-                                        if(weldConnectGroup.current.text==="T形接头")
-                                            currentGroove=3;
-                                        else
-                                            currentGroove=4; }
-                                    else if(weldDirGroup.current.text==="立焊"){
-                                        if(weldConnectGroup.current.text==="T形接头")
-                                            currentGroove=5;
-                                        else
-                                            currentGroove=6; }
-                                }else if(grooveStyleGroup.current.text==="V形坡口"){
-                                    if(weldDirGroup.current.text==="平焊"){
-                                        if(weldConnectGroup.current.text!=="T形接头")
-                                            currentGroove=2;}
-                                    else if(weldDirGroup.current.text==="立焊") {
-                                        if(weldConnectGroup.current.text!=="T形接头")
-                                            currentGroove=7;}
-                                }}
-                        }
-                    }
                     Repeater{
                         id:grooveStyleRepeater
                         model:grooveStyleList
                         delegate:Material.RadioButton{
                             text:modelData
                             exclusiveGroup: grooveStyleGroup
-                            onClicked: grooveStyle.forceActiveFocus()
+                            onClicked:{
+                                if(enabled)
+                                    currentGroove= ( currentGroove&0xFFFFFFFB)|(index<<2 );
+                                grooveStyle.forceActiveFocus()}
+                            canToggle: false
                             enabled: {
                                 if(weldDirGroup.current.text==="水平角焊"){
                                     return false;
@@ -242,11 +155,8 @@ FocusScope {
                                 }else
                                     return true;
                             }
-                            onEnabledChanged: {if((!enabled)&&(checked)) grooveStyleGroup.current=grooveStyleRepeater.itemAt(0)}
-                            Component.onCompleted: {
-                                if((((currentGroove===0)||(currentGroove===1)||(currentGroove===3)||(currentGroove===4)||(currentGroove===5)||(currentGroove===6))&&(index===0))||(((currentGroove===2)||(currentGroove===7))&&(index===1)))
-                                    checked=true;
-                            }
+                            onEnabledChanged: {if((!enabled)&&(checked)) currentGroove= currentGroove&0xFFFFFFFB }
+                            checked: ( currentGroove & 0x00000004 ) === (index<<2) ? true : false
                         }
                     }
                 }
@@ -258,60 +168,35 @@ FocusScope {
                 leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
                 Behavior on leftMargin{NumberAnimation { duration: 200 }}
                 height: Material.Units.dp(48)
-                selected: focus;
                 KeyNavigation.up: grooveStyle
                 KeyNavigation.down:bottomStyle
                 Keys.onPressed: {
+                    var i = currentGroove & 0x00000008;
+                    i>>=3;
                     switch(event.key){
-                    case Qt.Key_Right:
-                        if(weldConnectGroup.current)
-                            if((weldConnectGroup.current.text==="T形接头")&&(weldConnectRepeater.itemAt(1).enabled))
-                                weldConnectGroup.current=weldConnectRepeater.itemAt(1);
-                        event.accepted = true;
-                        break;
-                    case Qt.Key_Left:
-                        if(weldConnectGroup.current)
-                            if((weldConnectGroup.current.text==="对接接头")&&(weldConnectRepeater.itemAt(0).enabled))
-                                weldConnectGroup.current=weldConnectRepeater.itemAt(0);
-                        event.accepted = true;
-                        break;
+                    case Qt.Key_Right: if(i<1) i++;
+                        event.accepted = true; break;
+                    case Qt.Key_Left: if(i>0) i--;
+                        event.accepted = true;break;
                     }
+                    i<<=3;
+                    currentGroove = ( currentGroove & 0xFFFFFFF7 ) | i
                 }
-                onClicked:forceActiveFocus();
+                selected: activeFocus
+                onPressed:forceActiveFocus()
                 secondaryItem:Row{
                     anchors.verticalCenter: parent.verticalCenter
-                    Controls.ExclusiveGroup { id: weldConnectGroup;onCurrentChanged:{
-                            if((weldConnectGroup.current)&&(weldDirGroup.current)&&(grooveStyleGroup.current)){
-                                if(weldConnectGroup.current.text==="T形接头"){
-                                    if(weldDirGroup.current.text==="平焊"){
-                                        if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=0;}
-                                    else if(weldDirGroup.current.text==="横焊"){
-                                        if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=3;}
-                                    else if(weldDirGroup.current.text==="立焊"){
-                                        if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=5;}}
-                                else if(weldConnectGroup.current.text==="对接接头"){
-                                    if(weldDirGroup.current.text==="平焊"){
-                                        if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=1;
-                                        else currentGroove=2;}
-                                    else if(weldDirGroup.current.text==="横焊") {
-                                        if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=4;}
-                                    else if(weldDirGroup.current.text==="立焊"){
-                                        if(grooveStyleGroup.current.text==="单边V形坡口")
-                                            currentGroove=6;
-                                        else currentGroove=7;}}}
-                        }}
                     Repeater{
                         id:weldConnectRepeater
                         model:weldConnectList
                         delegate:Material.RadioButton{
                             text:modelData
                             exclusiveGroup: weldConnectGroup
-                            onClicked: weldConnect.forceActiveFocus()
+                            canToggle: false
+                            onClicked:{
+                                if(enabled)
+                                    currentGroove= ( currentGroove&0xFFFFFFF7)|(index<<3 );
+                                weldConnect.forceActiveFocus()}
                             enabled:{
                                 if((((weldDirGroup.current.text==="平焊")||(weldDirGroup.current.text==="立焊"))&&(grooveStyleGroup.current.text==="V形坡口"))&&(index===0)){
                                     return false;
@@ -320,11 +205,8 @@ FocusScope {
                                 }else
                                     return true;
                             }
-                            onEnabledChanged: {if((!enabled)&&(checked)) weldConnectGroup.current=weldConnectRepeater.itemAt(1)}
-                            Component.onCompleted: {
-                                if((((currentGroove===0)||(currentGroove===4)||(currentGroove===6))&&(index===0))||(((currentGroove===1)||(currentGroove===2)||(currentGroove===4)||(currentGroove===6)||(currentGroove===7))&&(index===1)))
-                                    checked=true;
-                            }
+                            onEnabledChanged: {if((!enabled)&&(checked)) currentGroove=(currentGroove&0xFFFFFFF7)|(1<<3)}
+                            checked:( currentGroove & 0x00000008 ) === (index<<3) ? true : false
                         }
                     }
                 }
@@ -336,43 +218,34 @@ FocusScope {
                 leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
                 Behavior on leftMargin{NumberAnimation { duration: 200 }}
                 height: Material.Units.dp(48)
-                selected: focus;
                 KeyNavigation.up: weldConnect.visible?weldConnect:weldDir
                 Keys.onPressed: {
+                    var i = currentGroove & 0x00000030;
+                    i>>=4;
                     switch(event.key){
-                    case Qt.Key_Right:
-                        if(bottomStylegroup.current){
-                            switch(bottomStylegroup.current.text){
-                            case "无衬垫": bottomStylegroup.current = bottomStylerepeater.itemAt(1).enabled?bottomStylerepeater.itemAt(1):bottomStylerepeater.itemAt(2)
-                                break;
-                            case "陶瓷衬垫": bottomStylegroup.current = bottomStylerepeater.itemAt(2);break; }}
-                        event.accepted = true;
-                        break;
-                    case Qt.Key_Left:
-                        if(bottomStylegroup.current){
-                            switch(bottomStylegroup.current.text){
-                            case "钢衬垫": bottomStylegroup.current = bottomStylerepeater.itemAt(1).enabled?bottomStylerepeater.itemAt(1):bottomStylerepeater.itemAt(0);
-                                break;
-                            case "陶瓷衬垫": bottomStylegroup.current = bottomStylerepeater.itemAt(0);break; }}
-                        event.accepted = true;
-                        break;}}
-                onClicked:forceActiveFocus();
+                    case Qt.Key_Right: if(i<3) i++;
+                        event.accepted = true; break;
+                    case Qt.Key_Left: if(i>0) i--;
+                        event.accepted = true;break;
+                    }
+                    i<<=4;
+                    currentGroove = ( currentGroove & 0xFFFFFFCF ) | i
+                }
+                selected: activeFocus
+                onPressed:forceActiveFocus();
                 secondaryItem:Row{
                     anchors.verticalCenter: parent.verticalCenter
-                    Controls.ExclusiveGroup { id: bottomStylegroup;
-                        onCurrentChanged:{
-                            var frame=["W","91","1"," "];
-                            frame[3]=bottomStylegroup.current.text==="无衬垫"?"0":bottomStylegroup.current.text==="陶瓷衬垫"?"1":"2";
-                            ERModbus.setmodbusFrame(frame);
-                            AppConfig.bottomStyle=Number(frame[3]);
-                        }}
                     Repeater{
                         id:bottomStylerepeater
                         model:bottomStyleList
                         delegate:Material.RadioButton{
                             text:modelData
                             exclusiveGroup: bottomStylegroup
-                            onClicked: bottomStyle.forceActiveFocus()
+                            canToggle: false
+                            onClicked:{
+                                if(enabled)
+                                    currentGroove= ( currentGroove&0xFFFFFFCF)|(index<<4 );
+                                bottomStyle.forceActiveFocus()}
                             enabled: {
                                 if((weldDirGroup.current.text==="横焊")&&(index===1)){
                                     return false;
@@ -383,9 +256,7 @@ FocusScope {
                                 }else
                                     return true;
                             }
-                            Component.onCompleted: {
-                                checked=AppConfig.bottomStyle===index?true:false
-                            }
+                            checked: ( currentGroove & 0x00000030 ) === (index<<4) ? true : false
                         }
                     }
                 }
@@ -425,7 +296,7 @@ FocusScope {
                 Image{
                     anchors.left: parent.left
                     anchors.leftMargin: Material.Units.dp(64)
-                    source: "../Pic/"+grooveNameCh[currentGroove]+".png"
+                    source: "../Pic/"+grooveStyleName[grooveNum]+".png"
                     sourceSize.width: Material.Units.dp(200)
                 }
             }
@@ -437,7 +308,7 @@ FocusScope {
                 top:parent.top
                 bottom: parent.bottom
             }
-            Controls.TableView{
+            Table{
                 id:tableview
                 anchors{
                     left:parent.left
@@ -447,44 +318,7 @@ FocusScope {
                     verticalCenter: parent.verticalCenter
                 }
                 height:Material.Units.dp(152)
-                //不是隔行插入色彩
-                alternatingRowColors:false
-                model:currentGroove>8?null:limitedModel[currentGroove];
-                //显示表头
-                headerVisible:true
-                //Tableview样式
-                style:TableStyle{}
-                //选择模式 单选
-                selectionMode:Controls.SelectionMode.NoSelection
-                Material.ThinDivider{anchors.bottom:tableview.bottom;color:Material.Palette.colors["grey"]["500"]}
-                Controls.TableViewColumn{
-                    role:"iD"
-                    title: "No."
-                    width: Material.Units.dp(120);
-                    //不可移动
-                    movable:false
-                    resizable:false
-                    delegate: Item{
-                        anchors.fill: parent
-                        Material.CheckBox{
-                            id:checkbox
-                            anchors.left: parent.left
-                            anchors.leftMargin: Material.Units.dp(16)
-                            anchors.verticalCenter: parent.verticalCenter
-                            checked: true
-                            visible: label.text!==""
-                        }
-                        Material.Label{
-                            id:label
-                            anchors.left: checkbox.right
-                            anchors.leftMargin:  Material.Units.dp(24)
-                            anchors.verticalCenter: parent.verticalCenter
-                            text:styleData.value
-                            style:"body1"
-                            color: Material.Theme.light.shade(0.87)
-                        }
-                    }
-                }
+                model:limitedModel[grooveNum];
                 Controls.TableViewColumn{
                     role: "c1"
                     title: "坡口角度A\n      (度)"

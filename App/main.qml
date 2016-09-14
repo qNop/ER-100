@@ -8,7 +8,7 @@ import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
 import QtQuick.LocalStorage 2.0
 import QtQuick.Controls 1.4
-import WeldSys.SysInfor 1.0
+//import WeldSys.SysInfor 1.0
 import QtQuick.Window 2.2
 
 /*应用程序窗口*/
@@ -19,25 +19,23 @@ Material.ApplicationWindow{
     theme { primaryColor: AppConfig.themePrimaryColor;accentColor: AppConfig.themeAccentColor;backgroundColor:AppConfig.themeBackgroundColor
         tabHighlightColor: "#FFFFFF"  }
     property var grooveName: ["flatweldsinglebevelgroovet","flatweldsinglebevelgroove","flatweldvgroove","horizontalweldsinglebevelgroovet","horizontalweldsinglebevelgroove","verticalweldsinglebevelgroovet","verticalweldsinglebevelgroove","verticalweldvgroove","flatfillet"]
-    property var grooveStyleName: [
-        qsTr( "平焊单边V型坡口T接头"), qsTr( "平焊单边V型坡口平对接"),  qsTr("平焊V型坡口平对接"),
-        qsTr("横焊单边V型坡口T接头"), qsTr( "横焊单边V型坡口平对接"),
-        qsTr("立焊单边V型坡口T接头"),  qsTr("立焊单边V型坡口平对接"), qsTr("立焊V型坡口平对接"),
-        qsTr("水平角焊")  ]
+    //不需要解释
+    property var grooveStyleName: [ "平焊单边V型坡口T接头",  "平焊单边V型坡口平对接", "平焊V型坡口平对接","横焊单边V型坡口T接头",  "横焊单边V型坡口平对接", "立焊单边V型坡口T接头",  "立焊单边V型坡口平对接", "立焊V型坡口平对接","水平角焊"  ]
     property var preset:["GrooveCondition","TeachCondition","WeldCondition","GrooveCheck","LimitedConditon"]
     property var presetName: ["坡口条件","示教条件","焊接条件","坡口参数","限制条件"]
     property var presetIcon: ["awesome/road","action/android","user/MAG","awesome/road","awesome/sliders"]
     property var analyse: ["WeldAnalyse","WeldLine"]
     property var analyseName:["焊接参数","焊接曲线"]
     property var analyseIcon: ["awesome/line_chart","awesome/line_chart"]
-    property var infor: ["SystemInfor","HandleInfor","RoboInfor","ControlInfor","HighVolagteInfor","WeldPowerInfor"]
-    property var inforName:["系统信息","手持盒信息","机器人信息","控制器信息","高压检测信息","焊接电源信息"]
-    property var inforIcon: ["awesome/windows","awesome/windows","awesome/windows","awesome/windows","awesome/windows","awesome/windows"]
+    property var infor: ["SysErrorHistroy","HandleInfor","RoboInfor","ControlInfor","HighVolagteInfor","WeldPowerInfor"]
+    property var inforName:["系统错误历史信息","手持盒信息","机器人信息","控制器信息","高压检测信息","焊接电源信息"]
+    property var inforIcon: ["awesome/list_alt","awesome/windows","awesome/windows","awesome/windows","awesome/windows","awesome/windows"]
     property var sections: [preset,analyse, infor]
     property var sectionsName:[presetName,analyseName,inforName]
     property var sectionsIcon:[presetIcon,analyseIcon,inforIcon]
     property var sectionTitles: ["预置条件", "焊接分析", "系统信息"]
     property var tabiconname: ["action/settings_input_composite","awesome/line_chart","awesome/windows"]
+    property var errorName: ["主控制器异常","CAN通讯异常","急停报警","摇动电机过热过流","摇动电机右限位","摇动电机左限位","摇动电机原点搜索","摇动电机堵转", "摆动电机过热过流","摆动电机内限位","摆动电机外限位","摆动电机原点搜索","摆动电机堵转", "上下电机过热过流","上下电机下限位","上下电机上限位","上下电机原点搜索","上下电机堵转", "行走电机过热过流","行走电机右限位","行走电机左限位","行走电机原点搜索","行走电机堵转","驱动器急停报警","手持盒通讯异常","示教器通讯异常","焊接电源通讯异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常"]
     property int  page0SelectedIndex:0
     property int  page1SelectedIndex:0
     property int  page2SelectedIndex:0
@@ -45,20 +43,24 @@ Material.ApplicationWindow{
     property string local: "zh_CN"
     /*当前坡口形状*/
     property int currentGroove:0//AppConfig.currentGroove
+    /*当前坡口形状的名称*/
+    property string currentGrooveName
     /*Modbus重载*/
     property bool modbusBusy:false;
     /*系统信息采集标志*/
     property bool sysInforFlag: true;
     /*系统状态*/
-    property string sysStatus:"空闲态"
+    property string sysStatus:"未登录态"
     /*系统状态集合*/
-    property var sysStatusList: ["空闲态","坡口检测态","坡口检测完成态","焊接态","焊接中间暂停态","焊接端部暂停态","停止态"]
+    property var sysStatusList: ["空闲态","坡口检测态","坡口检测完成态","焊接态","焊接中间暂停态","焊接端部暂停态","停止态","未登录态"]
     /*焊接时间*/
     property var weldTime:[];
     /*上一次froceitem*/
     property Item lastFocusedItem:null
     /*错误*/
-    property string errorCode:"0"
+    property int errorCode:0
+    /*上次错误*/
+    property int oldErrorCode: 0
     /*焊接分析表格index*/
     property int weldTableIndex: -1
     /*坡口表格index*/
@@ -81,21 +83,29 @@ Material.ApplicationWindow{
     property var teachModel: [0,1,1,2,2,10,10,200,1,0,0,0]
     /*WeldCondition初始化数据*/
     property var weldConditionModel: [4,0,0,0,1,0,0,1,3,105,0,0,5,5,0.5,0.5,160,26,120,15,0,0,0,0,0,0,0,0]
-
-    //property var limitedId: ["陶瓷衬垫","打底层","第二层","填充层","盖面层","立板"]
+    /*app加载完毕*/
+    property bool completed:false
     /*account*/
     ListModel{id:accountmodel;ListElement{name:"user";type:"user";password:"user"}}
+
+    ListModel{id:initialListModel; ListElement{ID:0;C1:"无";C2:"0:00"}}
     /*更新时间定时器*/
     Timer{
         interval:1000;running:true;repeat: true;
         onTriggered:{
             dateTime.name= new Date().toLocaleString(Qt.locale(app.local),"MMMdd ddd h:mm")
-            //   times.name=new Date().toLocaleTimeString(Qt.locale(app.local),"h:mm");
+            if(sysStatus=="未登录态"){
+                switch(AppConfig.leds){
+                case "start":AppConfig.setleds("stop");break;
+                case "stop":AppConfig.setleds("ready");break;
+                case "ready": AppConfig.setleds("start");break;
+                default:AppConfig.setleds("start");break;}
+            }
         }
     }
     //该页面下1000ms问一次检测参数是否有效
-    Timer{ repeat: true;interval:sysStatus=="焊接态"?500:400;
-        running: readTime//true//sysStatus=="坡口检测态"||sysStatus=="焊接端部暂停态"||sysStatus=="焊接态";
+    Timer{ repeat: true;interval:sysStatus==="焊接态"?500:400;
+        running:readTime
         onTriggered: {
             if(sysStatus=="坡口检测态")
                 ERModbus.setmodbusFrame(["R","150","6"])
@@ -103,44 +113,27 @@ Material.ApplicationWindow{
                 ERModbus.setmodbusFrame(["R","200","1"]);
             else if(sysStatus=="焊接态")
                 ERModbus.setmodbusFrame(["R","10","4"])
+            else if(sysStatus=="未登录态"){}
             else
                 ERModbus.setmodbusFrame(["R","0","3"]);
         }
     }
+    //坡口参数 初始表格
+    ListModel{id:grooveTableInit;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:""}}
+    //焊接规范表格
+    ListModel{id:weldTable;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:""}}
+    //错误历史信息 ID：条数 C1 错误代码 C2 错误状态 C3 错误信息 C4: 操作用户 C5 错误发生/解除时刻
+    ListModel{id:errorHistroy}
     onCurrentGrooveChanged: {
         console.log(objectName+" currentGroove "+currentGroove)
         ERModbus.setmodbusFrame(["W","90","1",currentGroove.toString()])
-        var str=Material.UserData.getLastWeldRulesName("weldRulesList"+currentGroove.toString());
-        if(str){
-            page.connectWeldRule=str.toString();
-        }
+        var result=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
+        if(result){currentGrooveName=result}
         AppConfig.setcurrentGroove(currentGroove);
-        var res=Material.UserData.getValueFromFuncOfTable(grooveName[currentGroove],"","")
-        var j=0,i=0;
-        for(j=0;j<6;j++){
-            limitedTable.set(j,{"C1":res[i++]+"/"+res[i++]+"/"+res[i++],
-                                 "C2":res[i++]+"/"+res[i++],
-                                 "C3":res[i++],
-                                 "C4":res[i++]+"/"+res[i++],
-                                 "C5":res[i++],
-                                 "C6":res[i++],
-                                 "C7":res[i++],
-                                 "C8":res[i++],
-                                 "C9":"100/100"})
-        }
-        WeldMath.setLimited(res);
     }
-    ListModel{id:limitedTable;
-        ListElement{ ID:"陶瓷衬垫";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
-        ListElement{ ID:"打底层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
-        ListElement{ ID:"第二层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
-        ListElement{ ID:"填充层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
-        ListElement{ ID:"盖面层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
-        ListElement{ ID:"立板余高层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}}
-    //坡口参数 初始表格
-    ListModel{id:grooveTableInit;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:""}}
-    //焊接规范表格
-    ListModel{id:weldTable;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:""}}
+    onCurrentGrooveNameChanged:{
+        console.log(objectName+" currentGrooveName "+currentGrooveName)
+    }
     /*初始化Tabpage*/
     initialPage: Material.TabbedPage {
         id: page
@@ -198,125 +191,43 @@ Material.ApplicationWindow{
             switch(event.key){
             case Qt.Key_F5:
                 error.action.trigger();
-                 console.log(objectName+"key F5 Pressed")
                 event.accpet=true;
                 break;
             case Qt.Key_F6:
-                action.action.trigger();
-                console.log(objectName+"key F6 Pressed")
-               event.accpet=true;
+                robot.action.trigger();
+                event.accpet=true;
                 break;
             }
         }
-        Material.NavigationDrawer{
+        MyNavigationDrawer{
             id:navigationDrawer
-            property int oldIndex
-            enabled: true
-            clip: true
+            ListModel{id:listModel;ListElement{name:"";icon:""}}
+            //加载model进入listview
             onOpened: {
-                oldIndex=page.selectedTab===0 ? page0SelectedIndex :page.selectedTab===1?page1SelectedIndex :page2SelectedIndex
+                listModel.clear();
+                titleImage=app.tabiconname[page.selectedTab]
+                titleLabel=app.sectionTitles[page.selectedTab]
+                console.log(navigationDrawer.objectName+"sectionsName[page.selectedTab].length"+sectionsName[page.selectedTab].length)
+                for(var i=0;i<sectionsName[page.selectedTab].length;i++){
+                    listModel.append({"name":sectionsName[page.selectedTab][i],"icon":sectionsIcon[page.selectedTab][i]})
+                }
+                model=listModel;
+                oldIndex=page.selectedTab===0 ? page0SelectedIndex :page.selectedTab===1?page1SelectedIndex :page2SelectedIndex;
+                selectedIndex=oldIndex;
             }
-            Material.Card{
-                id:header
-                anchors.top:parent.top
-                anchors.left: parent.left
-                width: parent.width
-                height:Material.Units.dp(64);
-                backgroundColor: theme.primaryColor
-                Row{
-                    anchors.left: parent.left
-                    anchors.leftMargin: Material.Units.dp(24)
-                    height: parent.height
-                    spacing: Material.Units.dp(16)
-                    Material.Icon{
-                        size:Material.Units.dp(27)
-                        anchors.verticalCenter: parent.verticalCenter
-                        name: tabiconname[page.selectedTab]
-                        color: Material.Theme.light.shade(0.87)
-                    }
-                    Material.Label{
-                        id:navlabel
-                        text:sectionTitles[page.selectedTab]
-                        style:"subheading"
-                        color: Material.Theme.light.shade(0.87)
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
+            onSelectedIndexChanged: {switch(page.selectedTab){
+                case 0:page0SelectedIndex=selectedIndex;break;
+                case 1:page1SelectedIndex=selectedIndex;break;
+                case 2:page2SelectedIndex=selectedIndex;break;
                 }
             }
-            Column{
-                id:navDrawerContent
-                anchors.top: header.bottom
-                anchors.left: parent.left
-                anchors.bottom: parent.bottom
-                width: parent.width
-                Repeater{
-                    id:navrep
-                    model:sectionsName[page.selectedTab]
-                    delegate:ListItem.Standard{
-                        text:modelData
-                        itemLabel.style: "body1"
-                        leftMargin: Material.Units.dp(24)
-                        textColor: selected?theme.accentColor:Material.Theme.light.textColor;
-                        iconColor: selected?theme.accentColor:Material.Theme.light.iconColor;
-                        iconName: sectionsIcon[page.selectedTab][index]
-                        selected:  page.selectedTab===0 ? page0SelectedIndex === index ? true:false
-                        :page.selectedTab===1?page1SelectedIndex ===index ?true:false
-                        :page2SelectedIndex===index?true:false;
-                        onClicked: {
-                            switch(page.selectedTab)
-                            {case 0:page0SelectedIndex=index;break;
-                             case 1:page1SelectedIndex=index;break;
-                             case 2:page2SelectedIndex=index;break;}
-                        }
-                    }
-                }
-            }
-            Material.ThinDivider{anchors.bottom: navUser.top }
-            ListItem.Standard{
-                id:navUser
-                height:Material.Units.dp(40);
-                anchors.bottom: navUserGroup.top
-                anchors.left: parent.left
-                anchors.leftMargin: Material.Units.dp(16);
-                itemLabel.style: "body1"
-                iconName: "awesome/user"
-                text:"用 户:"+AppConfig.currentUserName
-            }
-            ListItem.Standard{
-                id:navUserGroup
-                height:Material.Units.dp(40);
-                itemLabel.style: "body1"
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: Material.Units.dp(8)
-                anchors.left: parent.left
-                anchors.leftMargin: Material.Units.dp(16);
-                iconName:"awesome/group"
-                text:"用户组:"+AppConfig.currentUserType
-            }
-            Keys.onDownPressed: {  switch(page.selectedTab){
-                case 0: if(page0SelectedIndex!==navrep.count -1 )page0SelectedIndex++;else page0SelectedIndex=navrep.count-1;break;
-                case 1: if(page1SelectedIndex!==navrep.count -1 )page1SelectedIndex++;else page1SelectedIndex=navrep.count-1;break;
-                case 2: if(page2SelectedIndex!==navrep.count -1 )page2SelectedIndex++;else page2SelectedIndex=navrep.count-1;break;} }
-            Keys.onUpPressed: {switch(page.selectedTab){
-                case 0: if(page0SelectedIndex) {page0SelectedIndex--; }else{page0SelectedIndex=0 ;}break;
-                case 1: if(page1SelectedIndex) {page1SelectedIndex--; }else{page1SelectedIndex=0 ;}break;
-                case 2: if(page2SelectedIndex) {page2SelectedIndex--; }else{page2SelectedIndex=0 ;}break;} }
-            Keys.onDigit1Pressed:navigationDrawer.toggle();
-            Keys.onSelectPressed:navigationDrawer.toggle();
-            Keys.onEscapePressed: {
-                switch(page.selectedTab){
-                case 0: if(page0SelectedIndex) page0SelectedIndex=oldIndex; break;
-                case 1: if(page1SelectedIndex) page1SelectedIndex=oldIndex;break;
-                case 2: if(page2SelectedIndex) page2SelectedIndex=oldIndex;break;}
-                navigationDrawer.toggle();
-            }
-            /*Nav关闭时 将焦点转移到选择的Item上 方便按键的对焦*/
+            //Nav关闭时 将焦点转移到选择的Item上 方便按键的对焦//
             function close() {
                 showing = false
                 if (parent.hasOwnProperty("currentOverlay")) {
                     parent.currentOverlay = null
                 }
-                /*找出本次选择的焦点*/
+                //找出本次选择的焦点//
                 __lastFocusedItem=Utils.findChild(page.selectedTab===0 ?preConditionTab:page.selectedTab===1?
                                                                              weldAnalyseTab: systemInforTab
                                                   ,sections[page.selectedTab][page.selectedTab===0 ?
@@ -351,11 +262,30 @@ Material.ApplicationWindow{
                 GrooveCondition{
                     id:grooveConditionPage
                     visible: page0SelectedIndex===0
-                    currentGroove: app.currentGroove
                     onCurrentGrooveChanged:{
-                        app.currentGroove=currentGroove;
+                        console.log(objectName+" currentGroove "+currentGroove);
+                        switch(grooveConditionPage.currentGroove&0x0000000F){
+                        case 0: grooveNum=0;  break;
+                        case 4: grooveNum=1;  break;
+                        case 8: grooveNum=2;  break;
+
+                        case 9: grooveNum=4; break;
+                        case 1: grooveNum=3;  break;
+
+                        case 2:   grooveNum=5;  break;
+                        case 10: grooveNum=6;  break;
+                        case 14: grooveNum=7;break;
+
+                        case 3:   grooveNum=8;  break;
+                        case 11: grooveNum=8;  break;
+                        case 7:   grooveNum=8;break;
+                        case 15: grooveNum=8;break;
+                        }
+                        app.currentGroove=grooveNum;
                     }
-                    Component.onCompleted: lastFocusedItem=grooveConditionPage
+                    Component.onCompleted: {
+                        currentGroove=AppConfig.currentGroove
+                        lastFocusedItem=grooveConditionPage}
                 }
                 TeachCondition{
                     id:teachConditionPage
@@ -371,12 +301,31 @@ Material.ApplicationWindow{
                     status: app.sysStatus
                     message:snackBar
                     grooveModel: grooveTableInit
-                    selectedIndex: grooveSelectIndex}
+                    selectedIndex: grooveSelectIndex
+                    currentGrooveName:app.currentGrooveName
+                    grooveName: app.grooveStyleName[currentGroove]
+                    //改变坡口名称
+                    onChangedCurrentGroove: {
+                        //更新坡口名称
+                        app.currentGrooveName=name;
+                        //清空坡口数据
+                        grooveTableInit.clear();
+                        //获取坡口数据
+                        var listmodel=Material.UserData.getTableJson(name)
+                        //插入数据到grooveTableInit
+                        if(typeof(listmodel)==="object"){
+                            for(var i=0;i<listmodel.length;i++){
+                                grooveTableInit.append(listmodel[i])
+                            }
+                        }
+                    }
+                }
                 LimitedCondition{
                     id:limitedConditionPage
-                    limitedModel: limitedTable
-                    name:app.currentGroove
                     visible: page0SelectedIndex===4
+                    currentGrooveName:app.currentGrooveName
+                    //visible时加载数据
+
                 }
             }
         }
@@ -421,7 +370,24 @@ Material.ApplicationWindow{
             iconName:"action/dashboard"
             Item{
                 anchors.fill: parent
-                SystemInfor{visible: page2SelectedIndex===0}
+                SysErrorHistroy{
+                    model:errorHistroy
+                    visible: page2SelectedIndex===0
+                    onRemoveall:{
+                        errorHistroy.clear();
+                        //清楚数据表格
+                        Material.UserData.clearTable("SysErrorHistroy","","");
+                        snackBar.open("错误历史记录已被清空！");
+                    }
+                    onRemove:{
+                        if(seletedIndex!==-1){
+                            errorHistroy.remove(seletedIndex);
+                            Material.UserData.clearTable("SysErrorHistroy","ID",(seletedIndex+1).toString());
+                            snackBar.open("本条错误已移除！");
+                        }else
+                            snackBar.open("请选择要移除的信息条目！");
+                    }
+                }
                 HandleInfor{visible: page2SelectedIndex===1}
                 RoboInfor{visible: page2SelectedIndex===2}
                 ControlInfor{visible: page2SelectedIndex===3}
@@ -431,13 +397,8 @@ Material.ApplicationWindow{
             enabled: sysStatus=="空闲态"
         }
     }
-    onErrorCodeChanged: {
-        if(Number(errorCode))
-            app.showError("系统异常","错误代码:"+errorCode,"关闭","")
-    }
     onSysStatusChanged: {
         if(sysStatus=="空闲态"){
-            update=0;
             //高压接触传感
             snackBar.open("焊接系统空闲！")
             //空闲态
@@ -448,7 +409,6 @@ Material.ApplicationWindow{
             //清除 坡口参数选择
             grooveSelectIndex=1;
         }else if(sysStatus=="坡口检测态"){
-            update=0;
             //高压接触传感
             snackBar.open("坡口检测中，高压输出，请注意安全！")
             //切换指示灯
@@ -472,7 +432,7 @@ Material.ApplicationWindow{
             app.weldTableIndex=-1;
             ERModbus.setmodbusFrame(["R","104","1"])
         }else if(sysStatus=="焊接态"){
-            update=0;
+
             //启动焊接
             AppConfig.setleds("start");
             //提示
@@ -484,7 +444,7 @@ Material.ApplicationWindow{
             //把line的坐标更新到当前坐标
             app.startLine=new Date();
         }else if(sysStatus=="焊接端部暂停态"){
-            update=0;
+
             //焊接暂停
             AppConfig.setleds("ready");
             //系统焊接中
@@ -494,7 +454,7 @@ Material.ApplicationWindow{
             //切换到 焊接分析页面
             page.selectedTab=1;
         }else if(sysStatus=="停止态"){
-            update=0;
+
             //系统停止
             AppConfig.setleds("stop");
             //焊接系统停止
@@ -502,7 +462,6 @@ Material.ApplicationWindow{
             //将状态切换成0
             ERModbus.setmodbusFrame(["W","0","1","0"]);
         }else if(sysStatus=="焊接中间暂停态"){
-            update=0;
             //焊接中间暂停
             AppConfig.setleds("ready");
             //切换提示信息
@@ -524,17 +483,23 @@ Material.ApplicationWindow{
         //frame[0] 代表状态 1代读取的寄存器地址 2代表返回的 第一个数据 3代表返回的第二个数据 依次递推
         onModbusFrameChanged:{
             var currentID;
+            var MathError=1;
             if(frame[0]!=="Success"){
-                app.showError("Modbus 通讯异常！",frame[0],"关闭","");
-                console.log("modbus error")
+                // app.showError("Modbus 通讯异常！",frame[0],"关闭","");
+                MathError=1;
+                MathError<<=25;
+                errorCode=MathError;
             }else{
-                app.closeError();
+                //  app.closeError();
                 //查询系统状态
                 if(frame[1]==="0"){
                     //获取系统状态
                     sysStatus=sysStatusList[Number(frame[2])];
                     //获取系统错误警报
-                    errorCode=frame[3];
+                    MathError=Number(frame[4]);
+                    MathError<<=16;
+                    MathError|=Number(frame[3]);
+                    errorCode=MathError;
                 }
                 else if((frame[1]==="150")&&(sysStatus==="坡口检测态")){
                     //间隔跳示教点允许删除示教点操作尚未加入
@@ -553,16 +518,6 @@ Material.ApplicationWindow{
                         //遍寻之后表格内没有该ID 则插入该ID
                         if(currentID==="true"){
                             if(grooveTableInit.get(0).ID===""){
-                                grooveSelectIndex=0;
-                                grooveTableInit.set(0,{
-                                                        "ID":frame[2],
-                                                        "C1":(Number(frame[3])/10).toString(),
-                                                        "C2":(Number(frame[4])/10).toString(),
-                                                        "C3":(Number(frame[5])/10).toString(),
-                                                        "C4":(Number(frame[6])/10).toString(),
-                                                        "C5":(Number(frame[7])/10).toString(),
-                                                        "C6":WeldMath.reinforcement.toString()})
-                            }else{
                                 grooveTableInit.append({
                                                            "ID":frame[2],
                                                            "C1":(Number(frame[3])/10).toString(),
@@ -570,8 +525,9 @@ Material.ApplicationWindow{
                                                            "C3":(Number(frame[5])/10).toString(),
                                                            "C4":(Number(frame[6])/10).toString(),
                                                            "C5":(Number(frame[7])/10).toString(),
-                                                           "C6":WeldMath.reinforcement.toString()})
-                                grooveSelectIndex++;
+                                                           "C6":(Number(frame[8])/10).toString(),
+                                                           "C7":(Number(frame[9])/10).toString(),
+                                                           "C8":(Number(frame[10])/10).toString()})
                             }
                         }
                     }
@@ -590,7 +546,6 @@ Material.ApplicationWindow{
                                                      grooveTableInit.get(0).C4,
                                                      grooveTableInit.get(0).C5]);
                         }else if(AppConfig.currentGroove===4){
-                            update=1;
                             //清除焊接规范表格
                             weldTable.set(0,{"ID":"","C1":"","C2":"","C3":"","C4":"","C5":"","C6":"","C7":"","C8":"","C9":"","C10":"","C11":"","C12":"","C13":"","C14":"","C15":"","C16":"",});
                             weldTable.remove(1,weldTable.count-1);
@@ -666,28 +621,8 @@ Material.ApplicationWindow{
         target: WeldMath
         onWeldRulesChanged:{
             console.log(value);
-            if(weldTable.count<(Number(value[0])+1)){
-                weldTable.set(Number(value[0])-1,{
-                                  "ID":value[0],
-                                  "C1":value[1],
-                                  "C2":value[2],
-                                  "C3":value[3],
-                                  "C4":value[4],
-                                  "C5":value[5],
-                                  "C6":value[6],
-                                  "C7":value[7],
-                                  "C8":value[8],
-                                  "C9":value[9],
-                                  "C10":value[10],
-                                  "C11":value[11],
-                                  "C12":value[12],
-                                  "C13":value[13],
-                                  "C14":value[14],
-                                  "C15":value[15],
-                                  "C16":value[16],
-                              })
-            }else{
-
+            //确保数组数值正确
+            if((typeof(value)==="array")&&(value.length=16))
                 weldTable.append({
                                      "ID":value[0],
                                      "C1":value[1],
@@ -707,7 +642,7 @@ Material.ApplicationWindow{
                                      "C15":value[15],
                                      "C16":value[16],
                                  })
-            }
+
             app.weldLength=480;
             var res =(app.weldLength*360)/(Number(value[5])*Number(value[6])*(Number(value[9])+Number(value[10])));
             weldTime.push(res);
@@ -739,8 +674,8 @@ Material.ApplicationWindow{
         }
     }
     Material.ActionButton{
-        id:action
-        visible: (!page.actionBar.overflowMenuShowing)&&(!moto.showing)&&(!navigationDrawer.showing)
+        id:robot
+        visible: (!page.actionBar.overflowMenuShowing)&&(!myErrorDialog.showing)&&(!moto.showing)&&(!navigationDrawer.showing)&&(!changeuser.showing)
         Behavior on visible {NumberAnimation{duration: 200}}
         action:Material.Action{
             iconName:"action/android";name: qsTr("机器人操作")
@@ -756,13 +691,12 @@ Material.ApplicationWindow{
     /*危险报警action*/
     Material.ActionButton{
         id:error
-        visible: (!page.actionBar.overflowMenuShowing)&&(!moto.showing)&&(!navigationDrawer.showing)
-        Behavior on visible {NumberAnimation{duration: 200}}
+        visible: (!page.actionBar.overflowMenuShowing)&&(!myErrorDialog.showing)&&(!navigationDrawer.showing)&&(!changeuser.showing)
+        Behavior on anchors.right {NumberAnimation{duration: 200}}
         action:Material.Action {iconName: "alert/warning";
             name: qsTr("警告");
-            //onTriggered: app.showError("Something went wrong", "Do you want to retry?", "Close", true)
-        }
-        anchors.right: action.left
+            onTriggered: myErrorDialog.show();}
+        anchors.right: robot.visible? robot.left:snackBar.left
         anchors.rightMargin: Material.Units.dp(16)
         anchors.verticalCenter: snackBar.verticalCenter
         isMiniSize: true
@@ -776,7 +710,7 @@ Material.ApplicationWindow{
             bottom:undefined
             bottomMargin: undefined
             top:parent.top
-            topMargin:app.height-page.height-snackBar.height/2
+            topMargin:app.height-page.height-snackBar.height/2-5
             horizontalCenter:undefined
             Behavior on leftMargin {
                 NumberAnimation { duration: 300 }
@@ -794,65 +728,106 @@ Material.ApplicationWindow{
             NumberAnimation { duration: 200 }
         }
     }
-    /**/
-    Component.onCompleted: {
-        ERModbus.setmodbusFrame(["R","510","6"]);
-        /*打开数据库*/
-        Material.UserData.openDatabase();
-        currentGroove=AppConfig.currentGroove
-        var result=Material.UserData.getResultFromFuncOfTable("AccountTable","","");
-        var name,type,password;
-        for(var i=0;i<result.rows.length;i++){
-            name = result.rows.item(i).name;
-            type=result.rows.item(i).type;
-            password=result.rows.item(i).password;
-            accountmodel.append({"name":name,"type":type,"password":password})
-            if(name === accountname.text){
-                changeuserFeildtext.selectedIndex = i+1;
-                changeuserFeildtext.helperText=type;
-                AppConfig.currentUserPassword =password;
+    onErrorCodeChanged: {
+        var MathError=errorCode;
+        var MathXor=errorCode^oldErrorCode;
+        var errorTime=Material.UserData.getSysTime();
+        for(var i=0;i<errorName.length;i++){
+            //如果变化存在
+            if(MathXor&0x0001){
+                //错误存在
+                if(MathError&0x0001){
+                    //如果无错误存在则 移除无错误
+                    if(initialListModel.count){
+                        if(initialListModel.get(0).ID===0)
+                            initialListModel.remove(0,1);}
+                    initialListModel.append({"ID":Number(i+1),"C1":errorName[i],"C2":errorTime })
+                    errorHistroy.append({"ID":errorHistroy.count+1,"C1":Number(i+1),"C2":"发生","C4":errorName[i],"C3":AppConfig.currentUserName,"C5": errorTime})
+                }else{
+                    for(var j=0;j<initialListModel.count;j++){
+                        //如果列表里面有则移除 解除错误
+                        if((i+1)===(initialListModel.get(j).ID)){
+                            initialListModel.remove(j,1);
+                            errorHistroy.append({"ID":errorHistroy.count+1,"C1":Number(i+1),"C2":"解除","C4":errorName[i],"C3":AppConfig.currentUserName,"C5": errorTime})
+                            if(errorTable.__listView.currentIndex>=initialListModel.count){
+                                errorTable.__listView.currentIndex=j-1;
+                                errorTable.selection.__selectOne(j-1);}
+                        }
+                    }
+                }
+                //想数据库中插入
+                var count=errorHistroy.count-1;
+                Material.UserData.insertTable("SysErrorHistroy","(?,?,?,?,?,?)",[String(errorHistroy.get(count).ID),errorHistroy.get(count).C1,errorHistroy.get(count).C2,errorHistroy.get(count).C3,errorHistroy.get(count).C4,errorHistroy.get(count).C5])
             }
+            MathXor>>=1;
+            MathError>>=1;
         }
-        accountmodel.remove(0);
-        teachModel.length=0;
-        teachModel=Material.UserData.getValueFromFuncOfTable("TeachCondition","","");
-        weldConditionModel.length=0;
-        weldConditionModel=Material.UserData.getValueFromFuncOfTable("WeldCondition","","");
-        //空闲态
-        AppConfig.setleds("ready");
-        /*写入系统背光值*/
-        //        AppConfig.backLight=AppConfig.backLight;
-        //  SysInfor.systemInformation;
-        //  for(i=0;i<9;i++){
-        //  Material.UserData.deleteTable(grooveStyleName[i]+"焊接规范");
-        //  Material.UserData.createTable(grooveStyleName[i]+"焊接规范","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT");
-        //  Material.UserData.createTable("weldRulesList"+i.toString(),"Name TEXT,Time TEXT");
-        //  Material.UserData.insertTable("weldRulesList"+i.toString(),"(?,?)",[grooveStyleName[i]+"焊接规范",new Date()])
-        //Material.UserData.createTable(grooveStyleName[i]+"焊接数据","SETV TEXT,SETC TEXT,FEEDC TEXT,FEEDV TEXT,Time TEXT");
-        // }
+        //显示系统错误对话框
+        if((errorCode)&&(!myErrorDialog.showing))
+            myErrorDialog.show();
+        if(errorCode===0)
+        {
+            initialListModel.clear()
+            initialListModel.append({"ID":0,"C1":"无","C2":"0:00"})
+            errorTable.__listView.currentIndex=0;
+            errorTable.selection.__selectOne(0);
+        }
+        oldErrorCode=errorCode;
     }
-
+    Material.Dialog{
+        id:myErrorDialog
+        overlayLayer: "overlayLayer"
+        overlayColor: Qt.rgba(0, 0, 0, 0.3)
+        title: "系统错误"
+        property alias errorModel:errorTable.model
+        positiveButtonText: qsTr("查看错误历史信息");
+        onAccepted: {
+            page.selectedTab=2;
+            page2SelectedIndex=0;
+        }
+        negativeButton.visible: false
+        onOpened: {
+            errorTable.__listView.currentIndex=0;
+            errorTable.selection.__selectOne(0);
+        }
+        globalMouseAreaEnabled:true;
+        dismissOnTap:false
+        //按键优先队列
+        Keys.forwardTo: [errorTable]
+        Table{
+            id:errorTable
+            model:initialListModel
+            width:Material.Units.dp(570)
+            height:initialListModel.count<6?initialListModel.count*Material.Units.dp(48)+Material.Units.dp(56):Material.Units.dp(344)
+            firstData.title: "错误代码"
+            TableViewColumn{role: "C1";title:"错误信息";width:Material.Units.dp(250);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+            TableViewColumn{role: "C2";title:"发生时间";width:Material.Units.dp(180);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+        }
+    }
     Material.Dialog{
         id:moto
         title: "机器人本体设定"
         property var send:  ["0","0","0","0","0","0","0","0","0","0","0","0"]
         negativeButtonText:qsTr("取消");positiveButtonText: qsTr("完成");
         onAccepted:{
-            // console.log(["W","30","12"].concat(send))
             //下发数据
             ERModbus.setmodbusFrame(["W","26","12"].concat(send));
             //同时也保存数据
             AppConfig.setSwingSpeed(Number(send[0]));
-            //同时也保存数据
             AppConfig.setZSpeed(Number(send[1]));
-            //同时也保存数据
             AppConfig.setYSpeed(Number(send[2]));
-            //同时也保存数据
             AppConfig.setXSpeed(Number(send[3]));
+        }
+        Keys.onPressed: {
+            if((event.keys===Qt.Key_F6)&&(moto.showing)){
+                moto.close();
+                event.accpet=true;
+            }
         }
         onRejected: {
             send.length=0;
             send= ["0","0","0","0","0","0","0","0","0","0","0","0"];
+            console.log("moto rejected")
         }
         dialogContent:[
             Column{
@@ -861,7 +836,6 @@ Material.ApplicationWindow{
                     model:["摇动电机：  ","摆动电机：  ", "上下电机：  ","行走电机：  ",]
                     delegate:Row {
                         id:motoRow
-                        // spacing: Material.Units.dp(8)
                         Material.Label{
                             text:modelData;anchors.verticalCenter: parent.verticalCenter
                         }
@@ -908,7 +882,7 @@ Material.ApplicationWindow{
                             }
                             onTextChanged: {
                                 if(Number(text)<40)
-                                    moto.send[index]=Number(text)*10;
+                                    moto.send[index]=(Number(text)*10).toString();
                                 else
                                     moto.send[index]="400";}
                             inputMethodHints: Qt.ImhDigitsOnly
@@ -1035,33 +1009,55 @@ Material.ApplicationWindow{
             }
         }
     }
-    Connections{
-        target:SysInfor
-        onSystemInformationChanged:{
-            console.log(infor)
-        }}
     /*更换用户对话框*/
     Material.Dialog{
         id:changeuser;
-        width:Material.Units.dp(300)
-        title:qsTr("登陆用户");negativeButtonText:qsTr("取消");positiveButtonText:qsTr("确定");
+        width:Material.Units.dp(350)
+        title:qsTr("用户登录");
+        negativeButtonText:qsTr("取消");positiveButtonText:qsTr("确定");
         positiveButtonEnabled:false;
-        globalMouseAreaEnabled: false
+        negativeButton.visible: false;
+        globalMouseAreaEnabled: true
+        dismissOnTap:false
         overlayColor: Qt.rgba(0, 0, 0, 0.3)
+        Keys.onPressed: {
+            if (event.key === Qt.Key_Escape) {
+                closeKeyPressed(event);
+                rejected();
+            }
+            if (event.key === Qt.Key_Enter){
+                closeKeyPressed(event);
+                accepted();
+            }
+        }
+        function closeKeyPressed(event) {
+            if (changeuser.showing) {
+                //          if ((changeuser.dismissOnTap)&&(changeuser.positiveButtonEnabled)) {
+                changeuser.close()
+                //       }
+                event.accepted = true
+            }
+        }
         onAccepted: {
-            AppConfig.currentUserName = changeuserFeildtext.selectedText;
-            AppConfig.currentUserType = changeuserFeildtext.helperText; }
+            if(changeuser.positiveButtonEnabled){
+                AppConfig.currentUserName = changeuserFeildtext.selectedText;
+                AppConfig.currentUserType = changeuserFeildtext.helperText;
+                app.sysStatus="空闲态";
+            }
+        }
         onRejected: {
             changeuserFeildtext.helperText = AppConfig.currentUserType;
+            app.sysStatus="空闲态";
         }
-        Component.onCompleted: {
-            changeuser.show();
-        }
-        dialogContent: [Material.MenuField{id:changeuserFeildtext;
-                floatingLabel:true;
+        dialogContent: [
+            Material.Label{
+                text:qsTr("用户名:");
+                style:"subheading"
+                color: Material.Theme.light.shade(0.54)
+            },
+            Material.MenuField{id:changeuserFeildtext;
                 textRole: "name"
                 model:accountmodel
-                placeholderText:qsTr("用户名:");
                 width:parent.width
                 onItemSelected:  {
                     password.enabled=true;
@@ -1069,23 +1065,33 @@ Material.ApplicationWindow{
                     AppConfig.currentUserPassword = data.password;
                     AppConfig.currentUserType=changeuserFeildtext.helperText = data.type;
                     password.text="";}},
+            Material.Label{
+                text:qsTr("密码:");
+                style:"subheading"
+                color: Material.Theme.light.shade(0.54)
+            },
             Material.TextField{id:password;
-                floatingLabel:true;
-                placeholderText:qsTr("密码:");
+                //floatingLabel:true;
+                placeholderText:qsTr("请输入密码...");
                 characterLimit: 8;
                 objectName: "TextField"
                 width:parent.width
+                color: Material.Theme.light.shade(0.54)
                 onTextChanged:{
                     if(password.text=== AppConfig.currentUserPassword){
                         changeuser.positiveButtonEnabled=true;
                         password.helperText.color="green";
                         password.helperText=qsTr("密码正确");}
-                    else{changeuser.positiveButtonEnabled=false;
-                        password.helperText=qsTr("请输入密码...");}}
+                    else{changeuser.positiveButtonEnabled=false;}}
                 onHasErrorChanged: {
                     if(password.hasError === true){
                         password.helperText =qsTr( "密码超过最大限制");}}
-            } ]
+            },
+            Item{
+                width:parent.width
+                height:Material.Units.dp(16)
+            }
+        ]
     }
     /*语言对话框*/
     Material.Dialog{  id:languagePicker;
@@ -1109,5 +1115,56 @@ Material.ApplicationWindow{
                 }
             }
         }
+    }
+    Component.onCompleted: {
+        ERModbus.setmodbusFrame(["R","510","6"]);
+        /*打开数据库*/
+        Material.UserData.openDatabase();
+        var result=Material.UserData.getResultFromFuncOfTable("AccountTable","","");
+        var name,type,password;
+        for(var i=0;i<result.rows.length;i++){
+            name = result.rows.item(i).name;
+            type=result.rows.item(i).type;
+            password=result.rows.item(i).password;
+            accountmodel.append({"name":name,"type":type,"password":password})
+            if(name === accountname.text){
+                changeuserFeildtext.selectedIndex = i+1;
+                changeuserFeildtext.helperText=type;
+                AppConfig.currentUserPassword =password;
+            }
+        }
+        accountmodel.remove(0);
+        changeuser.show();
+        teachModel.length=0;
+        teachModel=Material.UserData.getValueFromFuncOfTable("TeachCondition","","");
+        weldConditionModel.length=0;
+        weldConditionModel=Material.UserData.getValueFromFuncOfTable("WeldCondition","","");
+
+        //创建错误历史记录
+        Material.UserData.createTable("SysErrorHistroy","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT");
+        result=Material.UserData.getResultFromFuncOfTable("SysErrorHistroy","","");
+        if(result){
+            for(i=0;i<result.rows.length;i++){
+                errorHistroy.append({"ID":Number(result.rows.item(i).ID),"C1":Number(result.rows.item(i).C1),"C2":result.rows.item(i).C2,"C3":result.rows.item(i).C3,"C4":result.rows.item(i).C4,"C5":result.rows.item(i).C5})
+            }
+        }
+
+        //创建9个表格
+        // for(i=0;i<9;i++){
+        //if(i)
+        //删除列表
+        //Material.UserData.deleteTable(grooveStyleName[i]+"坡口条件")
+        //创建列表
+        //Material.UserData.createTable(grooveStyleName[i]+"列表","Teach TEXT,Weld TEXT,Groove TEXT,Limited TEXT,Rules TEXT,CheckError TEXT,WeldLine TEXT,CreatTime TEXT,Creator TEXT,EditTime TEXT,Editor TEXT")
+        //清除数据
+        //Material.UserData.clearTable(grooveStyleName[i]+"列表","","")
+        //初始化列表
+        //Material.UserData.insertTable(grooveStyleName[i]+"列表","(?,?,?,?,?,?,?,?,?,?,?)",[grooveStyleName[i]+"示教条件",grooveStyleName[i]+"焊接条件",grooveStyleName[i],grooveStyleName[i]+"限制条件",grooveStyleName[i]+"焊接规范",grooveStyleName[i]+"错误检测",grooveStyleName[i]+"焊接曲线",new Date(),"TKSW",new Date(),"TKSW"])
+        //创建坡口条件
+        //Material.UserData.createTable(grooveStyleName[i],"ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT")
+        // }
+        //获取最近的坡口条件 包含名称
+        result=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
+        if(result){currentGrooveName=result}
     }
 }

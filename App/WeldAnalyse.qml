@@ -143,8 +143,8 @@ FocusScope{
             if(add.showing) add.close();
 
         }else{
-            root.forceActiveFocus();
-            console.log(root.objectName+"forceActiveFocus"+root.activeFocus)
+            //root.forceActiveFocus();
+            //console.log(root.objectName+"forceActiveFocus"+root.activeFocus)
             //当前页面打开 且weldTableCurrentRow=-1则切换weldTableCurrentRow=0;
             if(weldTableCurrentRow==-1){
                 weldTableCurrentRow=0;
@@ -292,11 +292,11 @@ FocusScope{
                     message.open("请选择下发焊接规范。")
                 }
             }
-            hoverAnimation:true;summary: "F6"
+            hoverAnimation:true;summary: "F4"
             enabled: root.actionEnable
             name:"下发规范"
         }]
-    Table{
+    TableCard{
         id:tableView
         headerTitle: weldRulesName
         footerText:  "参数"
@@ -306,28 +306,28 @@ FocusScope{
                 onTriggered: {
                     //source为triggered的传递参数
                     tableView.menuDropDown.actions=fileMenu;
-                    tableView.menuDropDown.open(source,0,source.height+5);
+                    tableView.menuDropDown.open(source,0,source.height+3);
                     tableView.menuDropDown.place=0;
                 }
             },
             Action{iconName:"awesome/edit"; name:"修改";hoverAnimation:true;summary: "F2";
                 onTriggered:{
                     tableView.menuDropDown.actions=editMenu;
-                    tableView.menuDropDown.open(source,0,source.height+5);
+                    tableView.menuDropDown.open(source,0,source.height+3);
                     tableView.menuDropDown.place=1;
                 }
             },
             Action{iconName:"awesome/calendar_plus_o";name:"信息";hoverAnimation:true;summary: "F3"
                 onTriggered:{
                     tableView.menuDropDown.actions=inforMenu;
-                    tableView.menuDropDown.open(source,0,source.height+5);
+                    tableView.menuDropDown.open(source,0,source.height+3);
                     tableView.menuDropDown.place=2;
                 }
             },
             Action{iconName:"awesome/stack_overflow";  name:"工具";hoverAnimation:true;summary: "F4"
                 onTriggered:{
                     tableView.menuDropDown.actions=funcMenu;
-                    tableView.menuDropDown.open(source,0,source.height+5);
+                    tableView.menuDropDown.open(source,0,source.height+3);
                     tableView.menuDropDown.place=3;
                 }
             }

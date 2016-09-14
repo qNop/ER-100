@@ -81,7 +81,8 @@ ERModbus::ERModbus(QObject *parent)
    // connect(pModbusThread,&ModbusThread::finished,pModbusThread,&ModbusThread::stop);
 }
 ERModbus::~ERModbus(){
-    delete pModbusThread;
+    pModbusThread->quit();
+    pModbusThread->wait();
 }
 
 QStringList ERModbus::modbusFrame(){

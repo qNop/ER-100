@@ -48,12 +48,12 @@ int main(int argc, char *argv[])
     //必须声明在APP之前声明环境变量。
     qputenv("QT_IM_MODULE", QByteArray("Virtualkeyboard"));
     //显示插件调试信息
-    //qputenv("QT_DEBUG_PLUGINS", QByteArray("1"));
+   // qputenv("QT_DEBUG_PLUGINS", QByteArray("1"));
    // AppConfig.language();
    // QLocale.setDefault();
     QApplication app(argc, argv);
 
-    qmlRegisterSingletonType<SysInfor>("WeldSys.SysInfor",1,0,"SysInfor",SysInforEngineProvider);
+  //  qmlRegisterSingletonType<SysInfor>("WeldSys.SysInfor",1,0,"SysInfor",SysInforEngineProvider);
     qmlRegisterSingletonType<AppConfig>("WeldSys.AppConfig",1,0,"AppConfig",AppConfigEngineProvider);
     qmlRegisterSingletonType<ERModbus>("WeldSys.ERModbus",1,0,"ERModbus",ERModbusEngineProvider);
     qmlRegisterSingletonType<WeldMath>("WeldSys.WeldMath",1,0,"WeldMath",WeldMathEngineProvider);

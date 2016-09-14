@@ -55,6 +55,8 @@ TextFieldStyle {
         property int characterLimit: control.hasOwnProperty("characterLimit") ? control.characterLimit : 0
         property bool showBorder: control.hasOwnProperty("showBorder") ? control.showBorder : true
 
+      //implicitHeight:parent.height
+
         Rectangle {
             id: underline
             color: background.hasError ? background.errorColor
@@ -79,7 +81,6 @@ TextFieldStyle {
             }
         }
 
-
         Label {
             id: fieldPlaceholder
 
@@ -102,7 +103,7 @@ TextFieldStyle {
                     }
                     PropertyChanges {
                         target: fieldPlaceholder
-                        font.pixelSize: 12//Units.dp(14)
+                        font.pixelSize: 14//Units.dp(14)
                     }
                 },
                 State {
@@ -128,18 +129,16 @@ TextFieldStyle {
                     }
                 }
             ]
-
-            Component.onCompleted: floatingTransition.enabled = true
         }
 
         RowLayout {
+            id:rowLayout
             anchors {
                 left: parent.left
                 right: parent.right
                 top: underline.top
                 topMargin: Units.dp(4)
             }
-
             Label {
                 id: helperTextLabel
                 visible: background.helperText && background.showBorder
@@ -170,6 +169,15 @@ TextFieldStyle {
                 }
             }
         }
+        //加载完成绑定实际高度属性
+        Component.onCompleted: {
+                if(control.hasOwnProperty("actualHeight")){
+                        control.actualHeight=Qt.binding(function(){
+                            var heightValue=background.height+rowLayout.height;
+                            if(showBorder) heightValue+=underline.height;
+                            if(floatingLabel) heightValue+=fieldPlaceholder.height
+                            return heightValue})
+                }
+        }
     }
 }
-

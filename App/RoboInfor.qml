@@ -12,7 +12,7 @@ Item {
     anchors.fill: parent
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "RoboInfor"
-    Table{
+    TableCard{
         id:groove
         tableRowCount: 2
       actions:[
@@ -44,7 +44,7 @@ Item {
             Controls.TableViewColumn{  role:"C5"; title: "角度 β2\n  (deg)";width:Units.dp(105);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{  role:"C6"; title: "余高 h\n (mm)";width:Units.dp(105);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}]
         }
-    Table{
+    TableCard{
         anchors.top: groove.bottom
         tableRowCount: 2
         tableData: [

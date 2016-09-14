@@ -43,6 +43,7 @@ View {
 
     signal clicked()
     signal pressAndHold()
+    signal pressed()
 
     opacity: enabled ? 1 : 0.6
 
@@ -58,6 +59,7 @@ View {
 
         onClicked: listItem.clicked()
         onPressAndHold: listItem.pressAndHold()
+	onPressed: listItem.pressed()
 
         anchors.fill: parent
 
@@ -66,6 +68,6 @@ View {
     }
 
     tintColor: selected
-               ? Qt.rgba(0,0,0,0.1) : Qt.rgba(0,0,0,0)
+               ? Qt.rgba(0,0,0,0.25) : Qt.rgba(0,0,0,0)
              //  : ink.containsMouse ? Qt.rgba(0,0,0,0.08) : Qt.rgba(0,0,0,0)
 }

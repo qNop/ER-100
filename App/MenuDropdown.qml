@@ -5,11 +5,25 @@ import QtQuick.Layouts 1.1
 
 Dropdown{
     id:root
+    objectName: "Dropdown"
     property list<Action>  actions;
     property int rootIndex:0;
     height: columnView.height + Units.dp(16)
     width: Units.dp(168)
-    onOpened: forceActiveFocus()
+    onVisibleChanged: {
+        //找到第一个使能的index
+        if(visible){
+            rootIndex=0;
+            for(var i=0;i<actions.length;i++){
+                if(actions[i].enabled){
+                    rootIndex=i;
+                    break;
+                }
+            }
+            //获取焦点
+          root.forceActiveFocus();
+        }
+    }
     ColumnLayout {
         id: columnView
         width: parent.width
@@ -43,7 +57,7 @@ Dropdown{
                     //小于最大深度
                     for( i=rootIndex+1;i<actions.length;i++){
                         if(actions[i].enabled){
-                             rootIndex=i;
+                            rootIndex=i;
                             break;
                         }
                     }
@@ -76,8 +90,4 @@ Dropdown{
             }
         }
     }//上按下
-    onVisibleChanged: {
-        //初始化界面 第一条列表信息选中
-        rootIndex=0;
-    }
 }

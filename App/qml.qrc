@@ -24,7 +24,6 @@
         <file>HandleInfor.qml</file>
         <file>GrooveCheck.qml</file>
         <file>InputPanelButton.qml</file>
-        <file>MyDataBase.qml</file>
         <file>ControlInfor.qml</file>
         <file>HighVolagteInfor.qml</file>
         <file>RoboInfor.qml</file>
@@ -32,5 +31,11 @@
         <file>Table.qml</file>
         <file>LimitedCondition.qml</file>
         <file>MenuDropdown.qml</file>
+        <file>../Pic/公司照片.jpg</file>
+        <file>MyNavigationDrawer.qml</file>
+        <file>TableCard.qml</file>
+        <file>MyList.qml</file>
+        <file>SysErrorHistroy.qml</file>
+        <file>DoModbus.js</file>
     </qresource>
 </RCC>

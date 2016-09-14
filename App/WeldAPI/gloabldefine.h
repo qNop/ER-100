@@ -21,6 +21,8 @@
 #define EROBOWELDSYS_THEMEACCENTCOLOR               "yellow"
 #define EROBOWELDSYS_BACKLIGHT                                 50
 
+#define EROBOWELDSYS_PLATFORM                                  1//1代表TKSW内核 0代表陈世豪内核
+
 /************************************************************************/
 
 #define EROBOWELDSYS_MODE                                           "Auto"

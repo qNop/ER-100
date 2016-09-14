@@ -1,5 +1,5 @@
 import QtQuick 2.4
-import WeldSys.SysInfor 1.0
+//import WeldSys.SysInfor 1.0
 import QtCharts 2.0
 import Material 0.1 as Material
 

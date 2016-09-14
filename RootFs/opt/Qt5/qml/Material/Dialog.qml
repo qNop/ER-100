@@ -96,7 +96,7 @@ PopupBase {
             closeKeyPressed(event);
             rejected();
         }
-        if (event.key === Qt.Key_Select){
+        if (event.key === Qt.Key_Enter){
             closeKeyPressed(event);
             accepted();
         }

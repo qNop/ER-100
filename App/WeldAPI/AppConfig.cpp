@@ -78,7 +78,6 @@ QSettings *PfromQfile(){
 AppConfig::AppConfig(){
     /*获取ini信息*/
     File=PfromQfile();
-    poc = new QProcess(this);
     Screen_Width = File->value("Screen_Width").toInt();
     Screen_Height = File->value("Screen_Height").toInt();
     Name = File->value("Current_User_Name").toString();
@@ -89,7 +88,7 @@ AppConfig::AppConfig(){
     Backgroundcolor = File->value("Theme_BackgroundColor").toString();
     BacklightValue = File->value("BackLight").toInt();
     CurrentGrooveValue = File->value("Current_Groove").toInt();
-    BottomStyleValue=File->value("Bottom_Style").toInt();
+    // BottomStyleValue=File->value("Bottom_Style").toInt();
     //languageValue=File->value("Language").toString();
     //setlanguage(languageValue);
     xSpeedValue=File->value("X").toInt();
@@ -97,12 +96,16 @@ AppConfig::AppConfig(){
     zSpeedValue=File->value("Z").toInt();
     swingSpeedValue=File->value("Swing").toInt();
     setbackLight(BacklightValue);
+    start_led=0;
+    ready_led=0;
+    stop_led=0;
+    ptr_func_led=open("/dev/leds",0);
+    qDebug()<<"AppConfig::Gpio"<<ioctl(ptr_func_led,1,1);
 }
 AppConfig::~AppConfig(){
     qDebug()<<"AppConfig::REMOVE";
 
     delete File;
-    delete poc;
 }
 /*
  ************************************************************************************屏幕宽度读写
@@ -226,7 +229,10 @@ void AppConfig::setbackLight(int value){
     BacklightValue=value;
     s="echo ";
     s+=QString::number(value*2);
-    s+=" > /sys/devices/platform/pwm-backlight.0/backlight/pwm-backlight.0/brightness";
+    //陈世豪的内核
+    //s+=" > /sys/devices/platform/pwm-backlight.0/backlight/pwm-backlight.0/brightness";
+    //TKSW内核
+    s+=EROBOWELDSYS_PLATFORM?" > /sys/devices/platform/pwm-backlight.2/backlight/pwm-backlight.2/brightness":" > /sys/devices/platform/pwm-backlight.0/backlight/pwm-backlight.0/brightness";
     system(s.toLatin1().data());
     emit backLightChanged(value);
     qDebug() <<"AppConfig::Backlight Value Changed";
@@ -238,34 +244,36 @@ int AppConfig::currentGroove(){
     return CurrentGrooveValue;
 }
 void AppConfig::setcurrentGroove(int value){
-    if(value>8)
-        value=0;
     File->setValue("Current_Groove",value);
     CurrentGrooveValue=value;
     emit currentGrooveChanged(value);
     qDebug() <<"AppConfig::Current Groove Changed";
 }
-int AppConfig::bottomStyle(){
-    return BottomStyleValue;
-}
-void AppConfig::setbottomStyle(int value){
-    if(value>2)
-        value=0;
-    File->setValue("Bottom_Style",value);
-    BottomStyleValue=value;
-    emit bottomStyleChanged(value);
-    qDebug() <<"AppConfig::Bottom Style Changed";
-}
-
 /*
  * set led status
  */
 void AppConfig::setleds(QString status){
     QString s;
-    s="/Nop/leds ";
-    s+=status;
-    qDebug()<<s;
-    poc->start(s);
+    int i,flag,temp;
+    if(status=="setup")       flag=0;
+    else if(status=="start") flag=0x01;
+    else if(status=="stop")  flag=0x02;
+    else if(status=="ready")flag=0x04;
+    else if(status=="all")      flag=0x07;
+    else flag=0xFFFFFFFF;
+    for(i=0;i<3;i++){
+        s="echo ";
+        temp=flag&0x01;
+        s+=QString::number(temp);
+        s+=" > /sys/class/leds/";
+        if(i==0) s+=EROBOWELDSYS_PLATFORM?"start_led":"WeldSys_Start_Led";
+        else if(i==1) s+=EROBOWELDSYS_PLATFORM?"stop_led":"WeldSys_Stop_Led";
+        else s+=EROBOWELDSYS_PLATFORM?"ready_led":"WeldSys_Ready_Led";
+        s+="/brightness";
+        flag>>=1;
+        system(s.toLatin1().data());
+        qDebug()<<s;
+    }
     led_status=status;
 }
 QString AppConfig::leds(void){
@@ -339,12 +347,12 @@ int AppConfig::swingSpeed(){
 
 void AppConfig::setSwingSpeed(int value){
     swingSpeedValue=value;
-     File->setValue("Swing",value);
+    File->setValue("Swing",value);
 }
 
 void AppConfig::setYSpeed(int value){
     ySpeedValue=value;
-     File->setValue("Y",value);
+    File->setValue("Y",value);
 }
 int AppConfig::ySpeed(){
     return ySpeedValue;
@@ -352,14 +360,14 @@ int AppConfig::ySpeed(){
 
 void AppConfig::setZSpeed(int value){
     zSpeedValue=value;
-     File->setValue("Z",value);
+    File->setValue("Z",value);
 }
 int AppConfig::zSpeed(){
     return zSpeedValue;
 }
 void AppConfig::setXSpeed(int value){
     xSpeedValue=value;
-     File->setValue("X",value);
+    File->setValue("X",value);
 }
 int AppConfig::xSpeed(){
     return xSpeedValue;

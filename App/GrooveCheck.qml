@@ -45,148 +45,9 @@ FocusScope{
         id:pasteModel
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:""}
     }
-
-    property list<Action> fileMenu: [
-        Action{iconName:"av/playlist_add";name:"新建";
-            onTriggered: {newFile.show()}},
-        //newFile.show();},
-        Action{iconName:"awesome/folder_open_o";name:"打开";
-            onTriggered: open.show();},
-        Action{iconName:"awesome/save";name:"保存";
-            onTriggered: {
-                if(typeof(currentGrooveName)==="string"){
-                    //清除保存数据库
-                    UserData.clearTable(currentGrooveName,"","");
-                    for(var i=0;i<tableView.table.rowCount;i++){
-                        //插入新的数据
-                        UserData.insertTable(currentGrooveName,"(?,?,?,?,?,?,?,?,?)",[
-                                                 tableView.model.get(i).ID,
-                                                 tableView.model.get(i).C1,
-                                                 tableView.model.get(i).C2,
-                                                 tableView.model.get(i).C3,
-                                                 tableView.model.get(i).C4,
-                                                 tableView.model.get(i).C5,
-                                                 tableView.model.get(i).C6,
-                                                 tableView.model.get(i).C7,
-                                                 tableView.model.get(i).C8])}
-
-                    //更新数据库保存时间
-                    UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"EditTime",UserData.getSysTime())
-                    //更新数据库保存
-                    UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"Editor",AppConfig.currentUserName)
-                    message.open("坡口参数已保存。");
-                }else{
-                    message.open("坡口名称格式不是字符串！")
-                }
-            }},
-
-        Action{iconName:"awesome/trash_o";name:"删除";enabled: grooveName===currentGrooveName?false:true
-            onTriggered: remove.show();}
-    ]
-    property list<Action> editMenu:[
-        Action{iconName:"awesome/calendar_plus_o";onTriggered: add.show();name:"添加"},
-        Action{iconName:"awesome/edit";onTriggered: edit.show();name:"编辑";enabled:actionEnable},
-        Action{iconName:"awesome/paste";name:"复制";enabled:actionEnable
-            onTriggered: {
-                pasteModel.set(0,tableView.model.get(selectedIndex));
-                message.open("已复制。");
-            }},
-        Action{iconName:"awesome/copy"; name:"粘帖";enabled:actionEnable
-            onTriggered: {
-                tableView.model.insert(selectedIndex,pasteModel.get(0));
-                tableView.table.selection.__selectOne(selectedIndex);
-                message.open("已粘帖。");
-            }
-        },
-        Action{iconName: "awesome/calendar_times_o";  name:"移除" ;enabled:actionEnable
-            onTriggered: {
-                tableView.model.remove(selectedIndex);
-                message.open("已删除。");}
-        },
-        Action{iconName:"awesome/calendar_o";name:"清空";enabled:actionEnable
-            onTriggered: {
-                tableView.model.clear();
-                message.open("已清空。");
-            }}
-    ]
-    property list<Action> inforMenu: [ Action{iconName: "awesome/sticky_note_o";  name:"移除";enabled:root.actionEnable
-            onTriggered: {}}]
-    property list<Action> funcMenu: [
-        Action{iconName:"awesome/send_o";hoverAnimation:true;summary: "F4"; name:"生成规范";enabled:actionEnable;
-            onTriggered:{
-                if(selectedIndex>-1){
-                    WeldMath.setGrooveRules([
-                                                tableView.model.get(0).C1,
-                                                tableView.model.get(0).C2,
-                                                tableView.model.get(0).C3,
-                                                tableView.model.get(0).C4,
-                                                tableView.model.get(0).C5,
-                                                tableView.model.get(0).C6,
-                                                tableView.model.get(0).C7,
-                                                tableView.model.get(0).C8
-                                            ]);
-                    message.open("生成焊接规范。");
-                }else {
-                    message.open("请选择要生成规范的坡口信息。")
-                }
-            }
-        },
-        Action{iconName: "av/fast_forward";  name:"移至中线";enabled:root.actionEnable}
-    ]
-    Keys.onPressed: {
-        switch(event.key){
-        case Qt.Key_F1:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.toggle();
-            else{
-                tableView.actions[0].triggered(tableView.actionRepeater.itemAt(0));
-                tableView.menuDropDown.place=0;
-            }
-            event.accepted=true;
-            break;
-        case Qt.Key_F2:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.close();
-            else{
-                tableView.actions[1].triggered(tableView.actionRepeater.itemAt(1));
-                tableView.menuDropDown.place=1;
-            }
-            event.accepted=true;
-            break;
-        case Qt.Key_F3:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.close();
-            else{
-                tableView.actions[2].triggered(tableView.actionRepeater.itemAt(2));
-                tableView.menuDropDown.place=2;
-            }
-            event.accepted=true;
-            break;
-        case Qt.Key_F4:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.close();
-            else{
-                tableView.actions[3].triggered(tableView.actionRepeater.itemAt(3));
-                tableView.menuDropDown.place=3;
-            }
-            event.accepted=true;
-            break;
-        case Qt.Key_Down:
-            tableView.table.__incrementCurrentIndex();
-            event.accept=true;
-            break;
-        case Qt.Key_Up:
-            tableView.table.__decrementCurrentIndex();
-            event.accept=true;
-            break;
-        case Qt.Key_Right:
-            tableView.table.__horizontalScrollBar.value +=Units.dp(70);
-            event.accept=true;
-            break;
-        case Qt.Key_Left:
-            tableView.table.__horizontalScrollBar.value -=Units.dp(70);
-            event.accept=true;
-            break;
+    onActiveFocusChanged: {
+        if(activeFocus){
+            tableView.forceActiveFocus();
         }
     }
     TableCard{
@@ -194,37 +55,97 @@ FocusScope{
         headerTitle: currentGrooveName+"坡口参数"
         footerText:  "参数"
         tableRowCount:7
-        actions: [
-            Action{iconName:"awesome/file_text_o";name:"文件";hoverAnimation:true;summary: "F1"
+        fileMenu: [
+            Action{iconName:"av/playlist_add";name:"新建";
+                onTriggered: {newFile.show()}},
+            //newFile.show();},
+            Action{iconName:"awesome/folder_open_o";name:"打开";
+                onTriggered: open.show();},
+            Action{iconName:"awesome/save";name:"保存";
                 onTriggered: {
-                    //source为triggered的传递参数
-                    tableView.menuDropDown.actions=fileMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=0;
+                    if(typeof(currentGrooveName)==="string"){
+                        //清除保存数据库
+                        UserData.clearTable(currentGrooveName,"","");
+                        for(var i=0;i<tableView.table.rowCount;i++){
+                            //插入新的数据
+                            UserData.insertTable(currentGrooveName,"(?,?,?,?,?,?,?,?,?)",[
+                                                     tableView.model.get(i).ID,
+                                                     tableView.model.get(i).C1,
+                                                     tableView.model.get(i).C2,
+                                                     tableView.model.get(i).C3,
+                                                     tableView.model.get(i).C4,
+                                                     tableView.model.get(i).C5,
+                                                     tableView.model.get(i).C6,
+                                                     tableView.model.get(i).C7,
+                                                     tableView.model.get(i).C8])}
+                        //更新数据库保存时间
+                        UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"EditTime",UserData.getSysTime())
+                        //更新数据库保存
+                        UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"Editor",AppConfig.currentUserName)
+                        message.open("坡口参数已保存。");
+                    }else{
+                        message.open("坡口名称格式不是字符串！")
+                    }
+                }},
+
+            Action{iconName:"awesome/trash_o";name:"删除";enabled: grooveName===currentGrooveName?false:true
+                onTriggered: remove.show();}
+        ]
+        editMenu:[
+            Action{iconName:"awesome/calendar_plus_o";onTriggered: add.show();name:"添加"},
+            Action{iconName:"awesome/edit";onTriggered: edit.show();name:"编辑";enabled:actionEnable},
+            Action{iconName:"awesome/paste";name:"复制";enabled:actionEnable
+                onTriggered: {
+                    pasteModel.set(0,tableView.model.get(selectedIndex));
+                    message.open("已复制。");
+                }},
+            Action{iconName:"awesome/copy"; name:"粘帖";enabled:actionEnable
+                onTriggered: {
+                    tableView.model.insert(selectedIndex,pasteModel.get(0));
+                    tableView.table.selection.__selectOne(selectedIndex);
+                    message.open("已粘帖。");
                 }
             },
-            Action{iconName:"awesome/edit"; name:"修改";hoverAnimation:true;summary: "F2";
+            Action{iconName: "awesome/calendar_times_o";  name:"移除" ;enabled:actionEnable
+                onTriggered: {
+                    tableView.model.remove(selectedIndex);
+                    message.open("已删除。");}
+            },
+            Action{iconName:"awesome/calendar_o";name:"清空";enabled:actionEnable
+                onTriggered: {
+                    tableView.model.clear();
+                    message.open("已清空。");
+                }}
+        ]
+        inforMenu: [ Action{iconName: "awesome/sticky_note_o";  name:"移除";enabled:root.actionEnable
+                onTriggered: {}}]
+        funcMenu: [
+            Action{iconName:"awesome/send_o";hoverAnimation:true;summary: "F4"; name:"生成规范";enabled:actionEnable;
                 onTriggered:{
-                    tableView.menuDropDown.actions=editMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=1;
+                    if(selectedIndex>-1){
+                        WeldMath.setGrooveRules([
+                                                    tableView.model.get(0).C1,
+                                                    tableView.model.get(0).C2,
+                                                    tableView.model.get(0).C3,
+                                                    tableView.model.get(0).C4,
+                                                    tableView.model.get(0).C5,
+                                                    tableView.model.get(0).C6,
+                                                    tableView.model.get(0).C7,
+                                                    tableView.model.get(0).C8
+                                                ]);
+                        message.open("生成焊接规范。");
+                    }else {
+                        message.open("请选择要生成规范的坡口信息。")
+                    }
                 }
             },
-            Action{iconName:"awesome/sticky_note_o";name:"信息";hoverAnimation:true;summary: "F3"
-                onTriggered:{
-                    tableView.menuDropDown.actions=inforMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=2;
-                }
-            },
-            Action{iconName:"awesome/stack_overflow";  name:"工具";hoverAnimation:true;summary: "F4"
-                onTriggered:{
-                    tableView.menuDropDown.actions=funcMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=3;
+            Action{iconName: "av/fast_forward";  name:"移至中线";enabled:root.actionEnable
+                onTriggered: {
+
                 }
             }
         ]
+
         tableData:[
             Controls.TableViewColumn{  role:"C1"; title: "板厚 δ\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{  role:"C2"; title: "板厚差 e\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
@@ -343,9 +264,9 @@ FocusScope{
             }
         }
         dialogContent:[Item{
-                    width: Units.dp(240)
-                    height:newFileTextField.actualHeight
-                   TextField{
+                width: Units.dp(240)
+                height:newFileTextField.actualHeight
+                TextField{
                     id:newFileTextField
                     text:currentGrooveName
                     helperText: "请输入新的坡口参数"//new Date().toLocaleString("yyMd hh:mm")
@@ -384,9 +305,7 @@ FocusScope{
                 //更新名称
                 changedCurrentGroove(name);
             }
-        }
-    }
-
+        }}
     Dialog{
         id:add
         title: qsTr("添加坡口参数")
@@ -459,20 +378,19 @@ FocusScope{
         onOpened: {
             //复制数据到 editData
             var Index=selectedIndex;
-            console.log("tableView.table.columnCount"+tableView.table.columnCount)
-            for(var i=0;i<tableView.table.columnCount;i++){
-                editData[i]="";
-                switch(i){
-                case 0:columnRepeater.itemAt(0).text=tableView.model.get(Index).ID; break;
-                case 1:columnRepeater.itemAt(1).text=tableView.model.get(Index).C1; break;
-                case 2:columnRepeater.itemAt(2).text=tableView.model.get(Index).C2; break;
-                case 3:columnRepeater.itemAt(3).text=tableView.model.get(Index).C3; break;
-                case 4:columnRepeater.itemAt(4).text=tableView.model.get(Index).C4; break;
-                case 5:columnRepeater.itemAt(5).text=tableView.model.get(Index).C5; break;
-                case 6:columnRepeater.itemAt(6).text=tableView.model.get(Index).C6; break;
-                case 5:columnRepeater.itemAt(7).text=tableView.model.get(Index).C7; break;
-                case 6:columnRepeater.itemAt(8).text=tableView.model.get(Index).C8; break;
-                }
+            if(Index>=0){
+            columnRepeater.itemAt(0).text=tableView.model.get(Index).ID;
+            columnRepeater.itemAt(1).text=tableView.model.get(Index).C1;
+            columnRepeater.itemAt(2).text=tableView.model.get(Index).C2;
+            columnRepeater.itemAt(3).text=tableView.model.get(Index).C3;
+            columnRepeater.itemAt(4).text=tableView.model.get(Index).C4;
+            columnRepeater.itemAt(5).text=tableView.model.get(Index).C5;
+            columnRepeater.itemAt(6).text=tableView.model.get(Index).C6;
+            columnRepeater.itemAt(7).text=tableView.model.get(Index).C7;
+            columnRepeater.itemAt(8).text=tableView.model.get(Index).C8;
+            }else{
+                message.open("请选择要编辑的行！");
+                         positiveButtonEnabled=false;
             }
         }
         dialogContent: [

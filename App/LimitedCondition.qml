@@ -19,10 +19,18 @@ FocusScope {
         leftMargin:visible?0:Units.dp(250)
     }
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
-    // property alias name: tableView.headerTitle
-    // property alias limitedModel: tableView.model
 
+    property Item message
     property string currentGrooveName
+    property var repeaterModel: ["电流前侧","电流中间","电流后侧","端部停止时间前(ms)","端部停止时间后(ms)","层高MAX","接近前","接近后","最大摆宽","摆动间隔","分开结束比","焊接电压","焊接最大速度","焊接最小速度"]
+    property alias selectedIndex: tableView.currentRow
+
+
+    onActiveFocusChanged: {
+        if(activeFocus){
+            tableView.forceActiveFocus();
+        }
+    }
 
     ListModel{id:limitedTable;
         ListElement{ ID:"陶瓷衬垫";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
@@ -31,29 +39,7 @@ FocusScope {
         ListElement{ ID:"填充层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
         ListElement{ ID:"盖面层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
         ListElement{ ID:"立板余高层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}}
-    property list<Action> fileMenu: [
-        Action{iconName:"awesome/calendar_plus_o";name:"新建";enabled: false;
-        },
-        Action{iconName:"awesome/folder_open_o";name:"打开";
-        },
-        Action{iconName:"awesome/save";name:"保存";
-        },
-        Action{iconName:"awesome/calendar_times_o";name:"删除";
-        }
-    ]
-    property list<Action> editMenu:[
-        Action{iconName:"awesome/edit";name:"编辑";
-        },
-        Action{iconName:"awesome/paste";name:"复制";enabled: false;
-        },
-        Action{iconName:"awesome/copy"; name:"粘帖";enabled: false
-        },
-        Action{iconName: "awesome/trash_o";  name:"移除" ;enabled: false
-        }]
-    property list<Action> inforMenu: [ Action{iconName: "awesome/trash_o";  name:"移除" ;
-        }]
-    property list<Action> funcMenu: [ Action{iconName:"awesome/send_o";name:"下发规范";
-        }]
+
     TableCard{
         id:tableView
         firstColumn.title: "    层\\限制参数"
@@ -61,37 +47,41 @@ FocusScope {
         footerText:  "参数"
         tableRowCount:7
         model:limitedTable
-        actions: [
-            Action{iconName:"awesome/file_text_o";name:"文件";hoverAnimation:true;summary: "F1"
-                onTriggered: {
-                    //source为triggered的传递参数
-                    tableView.menuDropDown.actions=fileMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=0;
+        fileMenu: [
+            Action{iconName:"awesome/calendar_plus_o";name:"新建";enabled: false;
+            },
+            Action{iconName:"awesome/folder_open_o";name:"打开";enabled:false;
+            },
+            Action{iconName:"awesome/save";name:"保存";
+                onTriggered: { if(typeof(currentGrooveName)==="string"){
+                        //清空数据表格
+                        UserData.clearTable(currentGrooveName+"限制条件","","")
+                        //数据表格重新插入数据
+                        for(var i=0;i<tableView.table.rowCount;i++){
+                            UserData.insertTable(currentGrooveName+"限制条件","(?,?,?,?,?,?,?,?,?,?)",[
+                                                     limitedTable.get(i).ID,limitedTable.get(i).C1,limitedTable.get(i).C2,limitedTable.get(i).C3,limitedTable.get(i).C4,
+                                                     limitedTable.get(i).C5,limitedTable.get(i).C6,limitedTable.get(i).C7,limitedTable.get(i).C8,limitedTable.get(i).C9  ])
+                        }
+                    }
                 }
             },
-            Action{iconName:"awesome/edit"; name:"修改";hoverAnimation:true;summary: "F2";
-                onTriggered:{
-                    tableView.menuDropDown.actions=editMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=1;
-                }
-            },
-            Action{iconName:"awesome/calendar_plus_o";name:"信息";hoverAnimation:true;summary: "F3"
-                onTriggered:{
-                    tableView.menuDropDown.actions=inforMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=2;
-                }
-            },
-            Action{iconName:"awesome/stack_overflow";  name:"工具";hoverAnimation:true;summary: "F4"
-                onTriggered:{
-                    tableView.menuDropDown.actions=funcMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=3;
-                }
+            Action{iconName:"awesome/calendar_times_o";name:"删除";enabled: false;
             }
         ]
+        editMenu:[
+            Action{iconName:"awesome/edit";name:"编辑";
+                onTriggered: edit.show()
+            },
+            Action{iconName:"awesome/paste";name:"复制";enabled: false;
+            },
+            Action{iconName:"awesome/copy"; name:"粘帖";enabled: false
+            },
+            Action{iconName: "awesome/trash_o";  name:"移除" ;enabled: false
+            }]
+        inforMenu: [ Action{iconName: "awesome/trash_o";  name:"移除" ;
+            }]
+        funcMenu: [ Action{iconName:"awesome/send_o";name:"更新算法";
+            }]
         tableData:[
             Controls.TableViewColumn{role: "C1";title:"焊接电流\n前/中/后";width:Units.dp(120);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{role: "C2";title: "停留时间\n   前/后";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
@@ -104,83 +94,114 @@ FocusScope {
             Controls.TableViewColumn{role: "C9";title: "焊接速度\nMin/Max";width:Units.dp(100);movable:false;resizable:false;}
         ]
     }
-    Keys.onPressed: {
-        console.log(event.key)
-        switch(event.key){
-        case Qt.Key_F1:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.toggle();
-            else{
-                tableView.actions[0].triggered(tableView.actionRepeater.itemAt(0));
-                tableView.menuDropDown.place=0;
+    onCurrentGrooveNameChanged: {
+        if((currentGrooveName!=="")&&(typeof(currentGrooveName)==="string")){
+            var res=UserData.getTableJson(currentGrooveName+"限制条件")
+            var resArray=new Array();
+            var temp;
+            if(typeof(res)==="object"){
+                for(var i=0;i<res.length;i++){
+                    limitedTable.set(i,res[i])
+                    temp=res[i].C1.split("/")
+                    resArray.push(temp[0])
+                    resArray.push(temp[1])
+                    resArray.push(temp[2])
+                    temp=res[i].C2.split("/")
+                    resArray.push(temp[0])
+                    resArray.push(temp[1])
+                    resArray.push(res[i].C3)
+                    temp=res[i].C4.split("/")
+                    resArray.push(temp[0])
+                    resArray.push(temp[1])
+                    resArray.push(res[i].C5)
+                    resArray.push(res[i].C6)
+                    resArray.push(res[i].C7)
+                    resArray.push(res[i].C8)
+                    temp=res[i].C9.split("/")
+                    resArray.push(temp[0])
+                    resArray.push(temp[1])
+                }
+                WeldMath.setLimited(resArray);
+            }else{
+                message.open(currentGrooveName+"限制条件 数据不存在！")
             }
-            event.accepted=true;
-            break;
-        case Qt.Key_F2:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.close();
-            else{
-                tableView.actions[1].triggered(tableView.actionRepeater.itemAt(1));
-                tableView.menuDropDown.place=1;
-            }
-            event.accepted=true;
-            break;
-        case Qt.Key_F3:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.close();
-            else{
-                tableView.actions[2].triggered(tableView.actionRepeater.itemAt(2));
-                tableView.menuDropDown.place=2;
-            }
-            event.accepted=true;
-            break;
-        case Qt.Key_F4:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.close();
-            else{
-                tableView.actions[3].triggered(tableView.actionRepeater.itemAt(3));
-                tableView.menuDropDown.place=3;
-            }
-            event.accepted=true;
-            break;
-        case Qt.Key_Down:
-            tableView.__listView.incrementCurrentIndex();
-            event.accept=true;
-            break;
-        case Qt.Key_Up:
-            tableView.__listView.decrementCurrentIndex();
-            event.accept=true;
-            break;
-        case Qt.Key_Right:
-            tableView.__horizontalScrollBar.value +=Units.dp(70);
-            event.accept=true;
-            break;
-        case Qt.Key_Left:
-            tableView.__horizontalScrollBar.value -=Units.dp(70);
-            event.accept=true;
-            break;
         }
     }
-
-    onCurrentGrooveNameChanged: {
-        if(currentGrooveName!==""){
-            var res=UserData.getValueFromFuncOfTable(currentGrooveName+"限制条件","","")
-            if(res!==-1){
-                var j=0,i=0;
-                for(j=0;j<6;j++){
-                    limitedTable.set(j,{"C1":res[i++]+"/"+res[i++]+"/"+res[i++],
-                                         "C2":res[i++]+"/"+res[i++],
-                                         "C3":res[i++],
-                                         "C4":res[i++]+"/"+res[i++],
-                                         "C5":res[i++],
-                                         "C6":res[i++],
-                                         "C7":res[i++],
-                                         "C8":res[i++],
-                                         "C9":"100/100"})
-
+    Dialog{
+        id:edit
+        title: qsTr("编辑限制条件")
+        negativeButtonText:qsTr("取消")
+        positiveButtonText:qsTr("确定")
+        globalMouseAreaEnabled:false
+        property var editData:new Array(repeaterModel.length)
+        onAccepted: {
+            //只有一个空白行则插入新的行
+            tableView.model.set(selectedIndex,
+                                {   "C1":editData[0]+"/"+editData[1]+"/"+editData[2],"C2":editData[3]+"/"+editData[4],
+                                    "C3":editData[5],"C4":editData[6]+"/"+editData[7],
+                                    "C5":editData[8],"C6":editData[9],
+                                    "C7":editData[10],"C8":editData[11],"C9":editData[12]+"/"+editData[13]})}
+        onOpened: {
+            //复制数据到 editData
+            var Index=selectedIndex;
+            if(Index>=0){
+                var str=limitedTable.get(Index).C1;
+                if(typeof(str)==="string"){
+                    var strData=str.split("/")
+                    columnRepeater.itemAt(0).text=strData[0];
+                    columnRepeater.itemAt(1).text=strData[1];
+                    columnRepeater.itemAt(2).text=strData[2];
                 }
-                WeldMath.setLimited(res);
+                str=limitedTable.get(Index).C2
+                if(typeof(str)==="string"){
+                    strData=str.split("/")
+                    columnRepeater.itemAt(3).text=strData[0];
+                    columnRepeater.itemAt(4).text=strData[1];
+                }
+                columnRepeater.itemAt(5).text=limitedTable.get(Index).C3;
+                str=limitedTable.get(Index).C4
+                if(typeof(str)==="string"){
+                    strData=str.split("/")
+                    columnRepeater.itemAt(6).text=strData[0];
+                    columnRepeater.itemAt(7).text=strData[1];
+                }
+                columnRepeater.itemAt(8).text=limitedTable.get(Index).C5;
+                columnRepeater.itemAt(9).text=limitedTable.get(Index).C6;
+                columnRepeater.itemAt(10).text=limitedTable.get(Index).C7;
+                columnRepeater.itemAt(11).text=limitedTable.get(Index).C8;
+                str=limitedTable.get(Index).C9
+                if(typeof(str)==="string"){
+                    strData=str.split("/")
+                    columnRepeater.itemAt(12).text=strData[0];
+                    columnRepeater.itemAt(13).text=strData[1];
+                }
+            }else{
+                message.open("请选择要编辑的行！");
+                positiveButtonEnabled=false;
             }
         }
+        dialogContent: [
+            Column{
+                id:column
+                Repeater{
+                    id:columnRepeater
+                    model:repeaterModel
+                    delegate:Row{
+                        property alias text: textField.text
+                        spacing: Units.dp(8)
+                        Label{text:modelData;anchors.bottom: parent.bottom}
+                        TextField{
+                            id:textField
+                            horizontalAlignment:TextInput.AlignHCenter
+                            width: Units.dp(60)
+                            inputMethodHints: Qt.ImhDigitsOnly
+                            onTextChanged: {
+                                edit.editData[index]=text;
+                            }
+                        }
+                    }
+                }
+            }
+        ]
     }
 }

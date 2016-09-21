@@ -140,11 +140,9 @@ PopupBase {
         root.toggle();}
     Keys.onEnterPressed:{
         oldIndex=selectedIndex;
-        console.log(objectName+"Keys Enter Pressed .")
         root.toggle();}
     Keys.onReturnPressed: {
         oldIndex=selectedIndex;
-        console.log(objectName+"Keys Return Pressed .")
         root.toggle();
     }
     Keys.onEscapePressed: {

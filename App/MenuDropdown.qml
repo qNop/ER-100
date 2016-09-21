@@ -38,8 +38,8 @@ Dropdown{
                 itemLabel.style: "button"
                 iconSource: actions[index].iconSource
                 enabled: actions[index].enabled
-                textColor:Theme.light.textColor
-                iconColor: Theme.accentColor
+                textColor:selected?Theme.accentColor:Theme.light.textColor
+                iconColor: selected?Theme.accentColor:Theme.light.iconColor
                 selected: root.rootIndex===index
                 onClicked: {
                     root.close()
@@ -68,7 +68,7 @@ Dropdown{
                 if(rootIndex>0){
                     //大于最大深度
                     for(i=rootIndex-1;i>=0;i--){
-                        if(actions[i].enabled){
+                        if((rootIndex<actions.length)&&(actions[i].enabled)){
                             rootIndex=i;
                             break;
                         }
@@ -76,7 +76,7 @@ Dropdown{
                 }
                 event.accpet=true;
                 break;
-            case Qt.Key_Select:
+            case Qt.Key_Return:
                 root.close();
                 actions[rootIndex].triggered();
                 event.accept=true;

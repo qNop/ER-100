@@ -21,7 +21,6 @@
         <file>../Pic/水平角焊.png</file>
         <file>TeachCondition.qml</file>
         <file>GrooveCondition.qml</file>
-        <file>HandleInfor.qml</file>
         <file>GrooveCheck.qml</file>
         <file>InputPanelButton.qml</file>
         <file>ControlInfor.qml</file>
@@ -37,5 +36,7 @@
         <file>MyList.qml</file>
         <file>SysErrorHistroy.qml</file>
         <file>DoModbus.js</file>
+        <file>SysTime.qml</file>
+        <file>UserAccount.qml</file>
     </qresource>
 </RCC>

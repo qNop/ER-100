@@ -16,7 +16,7 @@ TableViewStyle{
         implicitHeight: styleData.horizontal ? 5:Math.round(TextSingleton.implicitHeight) + 1
         width: !styleData.horizontal && transientScrollBars ? 5 : parent.width-10
         height: styleData.horizontal && transientScrollBars ? 5 : parent.height- 4
-        color: Material.Palette.colors["grey"]["400"]
+        color: Material.Theme.accentColor//Material.Palette.colors["grey"]["400"]
         anchors.centerIn: parent
         radius: styleData.horizontal ? height/2 : width/2
     }

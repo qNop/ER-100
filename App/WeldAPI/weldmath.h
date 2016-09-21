@@ -21,13 +21,15 @@
 #define   SWING_SPACING                      9
 #define   K                                                 10
 #define   VOLTAGE                                    11
+#define   MIN_SPEED                                12
+#define   MAX_SPEED                                13
 
 #define  BOTTOM_0                                  0
-#define  BOTTOM_1                                  12
-#define  SECOND                                       24
-#define  FILL                                              36
-#define  TOP                                              48
-#define  LAST                                             68
+#define  BOTTOM_1                                 14
+#define  SECOND                                      28
+#define  FILL                                              42
+#define  TOP                                              56
+#define  LAST                                             70
 
 struct FloorLimitedCondition
 {       //电流

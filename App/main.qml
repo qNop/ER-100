@@ -27,8 +27,8 @@ Material.ApplicationWindow{
     property var analyse: ["WeldAnalyse","WeldLine"]
     property var analyseName:["焊接参数","焊接曲线"]
     property var analyseIcon: ["awesome/line_chart","awesome/line_chart"]
-    property var infor: ["SysErrorHistroy","HandleInfor","RoboInfor","ControlInfor","HighVolagteInfor","WeldPowerInfor"]
-    property var inforName:["系统错误历史信息","手持盒信息","机器人信息","控制器信息","高压检测信息","焊接电源信息"]
+    property var infor: ["SysErrorHistroy","SysTime","UserAccount","ControlInfor","HighVolagteInfor","WeldPowerInfor"]
+    property var inforName:["系统错误历史信息","系统时间设定","用户管理","控制器信息","高压检测信息","焊接电源信息"]
     property var inforIcon: ["awesome/list_alt","awesome/windows","awesome/windows","awesome/windows","awesome/windows","awesome/windows"]
     property var sections: [preset,analyse, infor]
     property var sectionsName:[presetName,analyseName,inforName]
@@ -181,12 +181,6 @@ Material.ApplicationWindow{
         Keys.onDigit2Pressed: {if((page.selectedTab!=0)&&preConditionTab.enabled)page.selectedTab=0;}
         Keys.onDigit3Pressed: {if((page.selectedTab!=1)&&weldAnalyseTab.enabled)page.selectedTab=1;}
         Keys.onDigit4Pressed: {if((page.selectedTab!=2)&&(systemInforTab.enabled))page.selectedTab=2;}
-        Keys.onReleased: {
-            if(event.key===Qt.Key_F7){
-                console.log(" Qt.Key_Close.Released!")
-                event.accept=true;
-            }
-        }
         Keys.onPressed:{
             switch(event.key){
             case Qt.Key_F5:
@@ -207,7 +201,6 @@ Material.ApplicationWindow{
                 listModel.clear();
                 titleImage=app.tabiconname[page.selectedTab]
                 titleLabel=app.sectionTitles[page.selectedTab]
-                console.log(navigationDrawer.objectName+"sectionsName[page.selectedTab].length"+sectionsName[page.selectedTab].length)
                 for(var i=0;i<sectionsName[page.selectedTab].length;i++){
                     listModel.append({"name":sectionsName[page.selectedTab][i],"icon":sectionsIcon[page.selectedTab][i]})
                 }
@@ -252,7 +245,6 @@ Material.ApplicationWindow{
                 lastFocusedItem.forceActiveFocus();
             }
         }
-        property string connectWeldRule;
         Material.Tab{
             id:preConditionTab
             title: qsTr("预置条件(II)")
@@ -324,6 +316,7 @@ Material.ApplicationWindow{
                     id:limitedConditionPage
                     visible: page0SelectedIndex===4
                     currentGrooveName:app.currentGrooveName
+                    message: snackBar
                     //visible时加载数据
 
                 }
@@ -334,7 +327,7 @@ Material.ApplicationWindow{
             title: qsTr("焊接分析(III)")
             iconName:"awesome/line_chart"
             property int currentFloorNum;
-            property int  currentWeldNum;
+            property int currentWeldNum;
             Item{
                 anchors.fill: parent
                 WeldAnalyse{
@@ -344,23 +337,22 @@ Material.ApplicationWindow{
                     weldTableCurrentRow: app.weldTableIndex
                     weldDataModel: weldTable
                     message:snackBar
-                    weldRulesName: page.connectWeldRule
-                    currentGroove: app.currentGroove
+                    weldRulesName: app.currentGrooveName
                     onWeldNumChanged: weldAnalyseTab.currentWeldNum=weldNum
                     onFloorNumChanged: weldAnalyseTab.currentFloorNum=floorNum
                     weldLength: app.weldLength
                     weldTime: app.weldTime
                 }
-                WeldLine{
-                    id:wledLinePage
-                    visible: page1SelectedIndex===1;
-                    status: app.sysStatus
-                    lineActive: app.dataActive
-                    lineModel: app.lineData
-                    lineTime: app.startLine
-                    weldNum: weldAnalyseTab.currentWeldNum
-                    floorNum: weldAnalyseTab.currentFloorNum
-                }
+//                WeldLine{
+//                    id:wledLinePage
+//                    visible: page1SelectedIndex===1;
+//                    status: app.sysStatus
+//                    lineActive: app.dataActive
+//                    lineModel: app.lineData
+//                    lineTime: app.startLine
+//                    weldNum: weldAnalyseTab.currentWeldNum
+//                    floorNum: weldAnalyseTab.currentFloorNum
+//                }
             }
             // enabled: sysStatus=="空闲态"||sysStatus=="焊接态"||sysStatus=="焊接中间暂停态"||sysStatus=="焊接端部暂停态"||sysStatus=="停止态"
         }
@@ -388,8 +380,8 @@ Material.ApplicationWindow{
                             snackBar.open("请选择要移除的信息条目！");
                     }
                 }
-                HandleInfor{visible: page2SelectedIndex===1}
-                RoboInfor{visible: page2SelectedIndex===2}
+                SysTime{visible: page2SelectedIndex===1}
+                UserAccount{visible: page2SelectedIndex===2}
                 ControlInfor{visible: page2SelectedIndex===3}
                 HighVolagteInfor{visible: page2SelectedIndex===4}
                 WeldPowerInfor{visible: page2SelectedIndex===5}
@@ -717,7 +709,7 @@ Material.ApplicationWindow{
             }
         }
         fullWidth:false
-        duration:4000;
+        duration:3000;
     }
     InputPanel{
         id:input
@@ -742,22 +734,21 @@ Material.ApplicationWindow{
                         if(initialListModel.get(0).ID===0)
                             initialListModel.remove(0,1);}
                     initialListModel.append({"ID":Number(i+1),"C1":errorName[i],"C2":errorTime })
-                    errorHistroy.append({"ID":errorHistroy.count+1,"C1":Number(i+1),"C2":"发生","C4":errorName[i],"C3":AppConfig.currentUserName,"C5": errorTime})
+                    errorHistroy.insert(0,{"ID":String(errorHistroy.count+1),"C1":String(i+1),"C2":"发生","C4":errorName[i],"C3":AppConfig.currentUserName,"C5": errorTime})
                 }else{
                     for(var j=0;j<initialListModel.count;j++){
                         //如果列表里面有则移除 解除错误
                         if((i+1)===(initialListModel.get(j).ID)){
                             initialListModel.remove(j,1);
-                            errorHistroy.append({"ID":errorHistroy.count+1,"C1":Number(i+1),"C2":"解除","C4":errorName[i],"C3":AppConfig.currentUserName,"C5": errorTime})
+                            errorHistroy.insert(0,{"ID":String(errorHistroy.count+1),"C1":String(i+1),"C2":"解除","C4":errorName[i],"C3":AppConfig.currentUserName,"C5": errorTime})
                             if(errorTable.__listView.currentIndex>=initialListModel.count){
                                 errorTable.__listView.currentIndex=j-1;
                                 errorTable.selection.__selectOne(j-1);}
                         }
                     }
                 }
-                //想数据库中插入
-                var count=errorHistroy.count-1;
-                Material.UserData.insertTable("SysErrorHistroy","(?,?,?,?,?,?)",[String(errorHistroy.get(count).ID),errorHistroy.get(count).C1,errorHistroy.get(count).C2,errorHistroy.get(count).C3,errorHistroy.get(count).C4,errorHistroy.get(count).C5])
+                //想数据库中插入          
+                Material.UserData.insertTable("SysErrorHistroy","(?,?,?,?,?,?)",[errorHistroy.get(0).ID,errorHistroy.get(0).C1,errorHistroy.get(0).C2,errorHistroy.get(0).C3,errorHistroy.get(0).C4,errorHistroy.get(0).C5])
             }
             MathXor>>=1;
             MathError>>=1;
@@ -1142,15 +1133,14 @@ Material.ApplicationWindow{
 
         //创建错误历史记录
         Material.UserData.createTable("SysErrorHistroy","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT");
-        result=Material.UserData.getResultFromFuncOfTable("SysErrorHistroy","","");
-        if(result){
-            for(i=0;i<result.rows.length;i++){
-                errorHistroy.append({"ID":Number(result.rows.item(i).ID),"C1":Number(result.rows.item(i).C1),"C2":result.rows.item(i).C2,"C3":result.rows.item(i).C3,"C4":result.rows.item(i).C4,"C5":result.rows.item(i).C5})
+        result=Material.UserData.getSysErrorOrderByTime("SysErrorHistroy","C5")//.getResultFromFuncOfTable("SysErrorHistroy","","");
+        if(typeof(result)==="object"){
+            for(i=0;i<result.length;i++){
+                errorHistroy.append(result[i])//{"ID":Number(result.rows.item(i).ID),"C1":Number(result.rows.item(i).C1),"C2":result.rows.item(i).C2,"C3":result.rows.item(i).C3,"C4":result.rows.item(i).C4,"C5":result.rows.item(i).C5})
             }
         }
-
         //创建9个表格
-        // for(i=0;i<9;i++){
+       //  for(i=0;i<9;i++){
         //if(i)
         //删除列表
         //Material.UserData.deleteTable(grooveStyleName[i]+"坡口条件")
@@ -1162,7 +1152,11 @@ Material.ApplicationWindow{
         //Material.UserData.insertTable(grooveStyleName[i]+"列表","(?,?,?,?,?,?,?,?,?,?,?)",[grooveStyleName[i]+"示教条件",grooveStyleName[i]+"焊接条件",grooveStyleName[i],grooveStyleName[i]+"限制条件",grooveStyleName[i]+"焊接规范",grooveStyleName[i]+"错误检测",grooveStyleName[i]+"焊接曲线",new Date(),"TKSW",new Date(),"TKSW"])
         //创建坡口条件
         //Material.UserData.createTable(grooveStyleName[i],"ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT")
-        // }
+         //删除坡口限制条件
+         //  Material.UserData.deleteTable(grooveStyleName[i]+"限制条件")
+         //创建坡口限制条件
+         //  Material.UserData.createTable(grooveStyleName[i]+"限制条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT")
+         //}
         //获取最近的坡口条件 包含名称
         result=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
         if(result){currentGrooveName=result}

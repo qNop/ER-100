@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <string.h>
+#include <unistd.h>
 
 /*
  ********************************************************************************检测文件是否存在
@@ -99,13 +100,9 @@ AppConfig::AppConfig(){
     start_led=0;
     ready_led=0;
     stop_led=0;
-    ptr_func_led=open("/dev/leds",0);
-    qDebug()<<"AppConfig::Gpio"<<ioctl(ptr_func_led,1,1);
 }
 AppConfig::~AppConfig(){
     qDebug()<<"AppConfig::REMOVE";
-
-    delete File;
 }
 /*
  ************************************************************************************屏幕宽度读写

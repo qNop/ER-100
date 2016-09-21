@@ -17,42 +17,22 @@ Item {
 
     property alias model:tableCard.model
     property alias seletedIndex: tableCard.currentRow
-    property list<Action> editMenu:[
-        Action{iconName:"awesome/edit";name:"清空错误";
-            onTriggered: removeall()
-        },
-        Action{iconName: "awesome/trash_o"; name:"移除" ;
-            onTriggered:{ remove();
-            console.log(objectName+" tableCard.__listview.currentIndex "+tableCard.__listview.currentIndex)
-            }
-        }]
-    property list<Action> inforMenu: [ Action{iconName: "awesome/trash_o";  name:"错误描述" ;
-        }]
 
     TableCard{
         id:tableCard
         headerTitle:"系统错误历史信息"
         tableRowCount:7
         footerText:"总计："+table.rowCount+"条错误信息"
-        actions: [
-            Action{iconName:"awesome/file_text_o";name:"文件";hoverAnimation:true;summary: "F1";enabled:false
+        editMenu:[
+            Action{iconName:"awesome/edit";name:"清空错误";
+                onTriggered: removeall()
             },
-            Action{iconName:"awesome/edit"; name:"修改";hoverAnimation:true;summary: "F2";
-                onTriggered:{
-                    tableCard.menuDropDown.actions=editMenu;
-                    tableCard.menuDropDown.open(source,0,source.height+3);
-                    tableCard.menuDropDown.place=1;
+            Action{iconName: "awesome/trash_o"; name:"移除" ;
+                onTriggered:{ remove();
                 }
-            },
-            Action{iconName:"awesome/calendar_plus_o";name:"信息";hoverAnimation:true;summary: "F3"
-                onTriggered:{
-                    tableCard.menuDropDown.actions=inforMenu;
-                    tableCard.menuDropDown.open(source,0,source.height+3);
-                    tableCard.menuDropDown.place=2;
-                }
-            },
-            Action{iconName:"awesome/stack_overflow";  name:"工具";hoverAnimation:true;summary: "F4"; enabled: false; }
-        ]
+            }]
+         inforMenu: [ Action{iconName: "awesome/trash_o";  name:"错误描述" ;
+            }]
         tableData:[
             Controls.TableViewColumn{role: "C1";title:"错误代码";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{role: "C2";title:"错误状态";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},

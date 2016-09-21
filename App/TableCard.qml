@@ -9,8 +9,14 @@ import WeldSys.WeldMath 1.0
 import QtQuick.Layouts 1.1
 
 Card{
+    id:root
+    objectName: "TableCard"
+    anchors{left:parent.left;right:parent.right;top:parent.top;margins: Units.dp(12)}
+    height: title.height+tableview.height+footerItem.height
+    elevation: 2
+
     property alias firstColumn: firstColumnData
-    property list<Action> actions
+
     property string headerTitle: "header"
     property string footerText: "footer"
     property alias table: tableview
@@ -19,14 +25,47 @@ Card{
     property alias model: tableview.model
     property alias currentRow: tableview.currentRow
     property alias __listview: tableview.__listView
-    property alias actionRepeater: repeater
-    property alias menuDropDown: dropDown
+
     property alias header: title
     property alias footer: footerItem
 
-    anchors{left:parent.left;right:parent.right;top:parent.top;margins: Units.dp(12)}
-    height: title.height+tableview.height+footerItem.height
-    elevation: 2
+    property list<Action> fileMenu;
+    property list<Action> editMenu;
+    property list<Action> inforMenu;
+    property list<Action> funcMenu;
+
+    property list<Action>  actions: [
+        Action{iconName:"awesome/file_text_o";name:"文件";hoverAnimation:true;summary: "F1"
+            onTriggered: {
+                //source为triggered的传递参数
+                dropDown.actions=fileMenu;
+                dropDown.open(source,0,source.height+3);
+                dropDown.place=0;
+            }
+        },
+        Action{iconName:"awesome/edit"; name:"修改";hoverAnimation:true;summary: "F2";
+            onTriggered:{
+                dropDown.actions=editMenu;
+                dropDown.open(source,0,source.height+3);
+                dropDown.place=1;
+            }
+        },
+        Action{iconName:"awesome/sticky_note_o";name:"信息";hoverAnimation:true;summary: "F3"
+            onTriggered:{
+                dropDown.actions=inforMenu;
+                dropDown.open(source,0,source.height+3);
+                dropDown.place=2;
+            }
+        },
+        Action{iconName:"awesome/stack_overflow";  name:"工具";hoverAnimation:true;summary: "F4"
+            onTriggered:{
+                dropDown.actions=funcMenu;
+                dropDown.open(source,0,source.height+3);
+                dropDown.place=3;
+            }
+        }
+    ]
+
     Item{
         id:title
         anchors{left:parent.left;right:parent.right;top:parent.top}
@@ -52,7 +91,6 @@ Card{
                     opacity: enabled ? 1 : 0.6
                     height:Units.dp(36)
                     radius: 4
-                    Behavior on elevation {NumberAnimation {duration:200}}
                     Ink{id:ink
                         anchors.fill: parent
                         onPressed: actions[index].triggered(view);
@@ -72,7 +110,7 @@ Card{
                         Icon{
                             id:icon
                             source:actions[index].iconSource
-                            color: Theme.light.textColor
+                            color: dropDown.place===index&& dropDown.showing ?Theme.accentColor : Theme.light.iconColor
                             size: Units.dp(27)
                             anchors.verticalCenter: parent.verticalCenter
                         }
@@ -80,8 +118,7 @@ Card{
                             style: "button"
                             text:actions[index].name;
                             anchors.verticalCenter: parent.verticalCenter
-                            color: dropDown.place===index && dropDown.showing ? Theme.accentColor : Theme.light.textColor
-                            Behavior on color {NumberAnimation { duration: 200 }}
+                            color: dropDown.place===index&& dropDown.showing ?Theme.accentColor : Theme.light.textColor
                         }
                     }
                 }
@@ -141,14 +178,6 @@ Card{
         __listView.removeDisplaced:Transition{
             NumberAnimation { properties: "y";duration: 200 }
         }
-        ///添加内外停留时间 两个参数
-        Keys.onPressed: {
-            var diff = event.key ===Qt.Key_Right ? Units.dp(70) : event.key === Qt.Key_Left ? -Units.dp(70) :  0
-            if(diff !==0){
-                tableview.__horizontalScrollBar.value +=diff;
-                event.accept=true;
-            }
-        }
     }
     Item{
         id:footerItem
@@ -166,5 +195,63 @@ Card{
     MenuDropdown{
         id:dropDown
         property int place: 0
+    }
+    Keys.onPressed: {
+        switch(event.key){
+        case Qt.Key_F1:
+            if(dropDown.showing)
+                dropDown.close();
+            else{
+                actions[0].triggered(repeater.itemAt(0));
+                dropDown.place=0;
+            }
+            event.accepted=true;
+            break;
+        case Qt.Key_F2:
+            if(dropDown.showing)
+                dropDown.close();
+            else{
+                actions[1].triggered(repeater.itemAt(1));
+                dropDown.place=1;
+            }
+            event.accepted=true;
+            break;
+        case Qt.Key_F3:
+            if(dropDown.showing)
+                dropDown.close();
+            else{
+                actions[2].triggered(repeater.itemAt(2));
+                dropDown.place=2;
+            }
+            event.accepted=true;
+            break;
+        case Qt.Key_F4:
+            if(dropDown.showing)
+                dropDown.close();
+            else{
+                actions[3].triggered(repeater.itemAt(3));
+                dropDown.place=3;
+            }
+            event.accepted=true;
+            break;
+        case Qt.Key_Down:
+            if(tableview.currentRow<(tableview.rowCount-1))
+                tableview.__incrementCurrentIndex();
+            event.accept=true;
+            break;
+        case Qt.Key_Up:
+            if(tableview.currentRow>0)
+                tableview.__decrementCurrentIndex();
+            event.accept=true;
+            break;
+        case Qt.Key_Right:
+            tableview.__horizontalScrollBar.value +=Units.dp(70);
+            event.accept=true;
+            break;
+        case Qt.Key_Left:
+            tableview.__horizontalScrollBar.value -=Units.dp(70);
+            event.accept=true;
+            break;
+        }
     }
 }

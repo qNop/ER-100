@@ -179,6 +179,24 @@ Object {
         }else
             return -1;
     }
+    /*获取错误倒序排列*/
+        function getSysErrorOrderByTime(tablename,func){
+            var result,str;
+            if(!dataBase) { console.log("Open dataBase::dataBase fail !");return -1;}
+            str="SELECT * FROM "+tablename+" ORDER BY "+func+" DESC";
+            console.log(str)
+            if((typeof(tablename)==="string")&&(typeof(func)==="string")){
+                dataBase.transaction( function(tx) {result = tx.executeSql(str); });
+                var value=new Array();
+                for(var i=0;i<result.rows.length;i++){
+                    value.push(result.rows.item(i));
+                }
+                console.log(value);
+                return value;
+            }else
+                return -1;
+        }
+
     /**
       *从数据库中获取 焊接规范
       */

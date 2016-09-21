@@ -34,7 +34,6 @@ FocusScope{
     //上次焊接规范名称
     property alias weldRulesName: tableView.headerTitle
     property bool weldTableEx:AppConfig.currentUserType=="SuperUser"?true:false
-    property  int  currentGroove:0
     //当前层数
     property int floorNum:0
     //焊缝长度
@@ -57,66 +56,11 @@ FocusScope{
     property int totalFloorNum: 0
     //总共多少道
     property int totalWeldNum:0
-    Keys.onPressed: {
-        switch(event.key){
-        case Qt.Key_F1:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.toggle();
-            else{
-                tableView.actions[0].triggered(tableView.actionRepeater.itemAt(0));
-                tableView.menuDropDown.place=0;
-            }
-            event.accepted=true;
-            break;
-        case Qt.Key_F2:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.close();
-            else{
-                tableView.actions[1].triggered(tableView.actionRepeater.itemAt(1));
-                tableView.menuDropDown.place=1;
-            }
-            event.accepted=true;
-            break;
-        case Qt.Key_F3:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.close();
-            else{
-                tableView.actions[2].triggered(tableView.actionRepeater.itemAt(2));
-                tableView.menuDropDown.place=2;
-            }
-            event.accepted=true;
-            break;
-        case Qt.Key_F4:
-            if(tableView.menuDropDown.showing)
-                tableView.menuDropDown.close();
-            else{
-                tableView.actions[3].triggered(tableView.actionRepeater.itemAt(3));
-                tableView.menuDropDown.place=3;
-            }
-            event.accepted=true;
-            break;
-        case Qt.Key_Down:
-            tableView.__listView.incrementCurrentIndex();
-            event.accept=true;
-            break;
-        case Qt.Key_Up:
-            tableView.__listView.decrementCurrentIndex();
-            event.accept=true;
-            break;
-        case Qt.Key_Right:
-            tableView.__horizontalScrollBar.value +=Units.dp(70);
-            event.accept=true;
-            break;
-        case Qt.Key_Left:
-            tableView.__horizontalScrollBar.value -=Units.dp(70);
-            event.accept=true;
-            break;
-        }
-    }
+
     onWeldTableCurrentRowChanged: {
         if(weldTableCurrentRow!==-1){
             actionEnable=weldDataModel.get(weldTableCurrentRow).ID!==""?true:false
-            tableView.selection.__selectOne(weldTableCurrentRow);
+            tableView.table.selection.__selectOne(weldTableCurrentRow);
             if(weldDataModel.get(weldTableCurrentRow).C1!==""){
                 var floor=weldDataModel.get(weldTableCurrentRow).C1.split("/");
                 floorNum=floor[0];
@@ -136,202 +80,146 @@ FocusScope{
             }
         } }
     //当前页面关闭 则 关闭当前页面内 对话框
-    onVisibleChanged: {
-        if(visible==false){
-            if(edit.showing) edit.close();
-            if(open.showing) open.close();
-            if(add.showing) add.close();
 
-        }else{
-            //root.forceActiveFocus();
-            //console.log(root.objectName+"forceActiveFocus"+root.activeFocus)
-            //当前页面打开 且weldTableCurrentRow=-1则切换weldTableCurrentRow=0;
-            if(weldTableCurrentRow==-1){
-                weldTableCurrentRow=0;
-                //tableView.selection.__selectOne(weldTableCurrentRow);
-
-            }
-        }
-    }
-    property list<Action> fileMenu: [
-        Action{iconName:"awesome/calendar_plus_o";name:"新建";
-            onTriggered: newFile.show();},
-        Action{iconName:"awesome/folder_open_o";name:"打开";
-            onTriggered: open.show();},
-        Action{iconName:"awesome/save";name:"保存";
-            onTriggered: {
-                if(weldRulesName){
-                    //清除保存数据库
-                    UserData.clearTable(weldRulesName,"","");
-                }
-                for(var i=0;i<tableView.rowCount;i++){
-                    if(weldRulesName){
-                        //插入新的数据
-                        UserData.insertTable(weldRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[
-                                                 tableView.model.get(i).ID,
-                                                 tableView.model.get(i).C1,
-                                                 tableView.model.get(i).C2,
-                                                 tableView.model.get(i).C3,
-                                                 tableView.model.get(i).C4,
-                                                 tableView.model.get(i).C5,
-                                                 tableView.model.get(i).C6,
-                                                 tableView.model.get(i).C7,
-                                                 tableView.model.get(i).C8,
-                                                 tableView.model.get(i).C9,
-                                                 tableView.model.get(i).C10,
-                                                 tableView.model.get(i).C11,
-                                                 tableView.model.get(i).C12,
-                                                 tableView.model.get(i).C13,
-                                                 tableView.model.get(i).C14,
-                                                 tableView.model.get(i).C15,
-                                                 tableView.model.get(i).C16,])
-                    }
-                }
-                //更新数据库保存时间
-                UserData.setValue("weldRulesList"+currentGroove.toString(),weldRulesName,new Date())
-                message.open("焊接规范已保存。");
-            }},
-        Action{iconName:"awesome/calendar_times_o";name:"删除";
-            onTriggered: remove.show();}
-    ]
-    property list<Action> editMenu:[
-        Action{iconName:"awesome/plus_square_o";onTriggered: add.show();name:"添加"},
-        Action{iconName:"awesome/edit";onTriggered: edit.show();name:"编辑";
-        },
-        Action{iconName:"awesome/paste";name:"复制";enabled:root.actionEnable
-            onTriggered: {
-                for(var i=0;i<tableView.rowCount;i++){
-                    switch(i){
-                    case 0:editData[0]=tableView.model.get(weldTableCurrentRow).ID; break;
-                    case 1:editData[1]=tableView.model.get(weldTableCurrentRow).C1; break;
-                    case 2:editData[2]=tableView.model.get(weldTableCurrentRow).C2; break;
-                    case 3:editData[3]=tableView.model.get(weldTableCurrentRow).C3; break;
-                    case 4:editData[4]=tableView.model.get(weldTableCurrentRow).C4; break;
-                    case 5:editData[5]=tableView.model.get(weldTableCurrentRow).C5; break;
-                    case 6:editData[6]=tableView.model.get(weldTableCurrentRow).C6; break;
-                    case 7:editData[7]=tableView.model.get(weldTableCurrentRow).C7; break;
-                    case 8:editData[8]=tableView.model.get(weldTableCurrentRow).C8; break;
-                    case 9:editData[9]=tableView.model.get(weldTableCurrentRow).C9; break;
-                    case 10:editData[10]=tableView.model.get(weldTableCurrentRow).C10; break;
-                    case 11:editData[11]=tableView.model.get(weldTableCurrentRow).C11; break;
-                    case 12:editData[12]=tableView.model.get(weldTableCurrentRow).C12; break;
-                    case 13:editData[13]=tableView.model.get(weldTableCurrentRow).C13; break;
-                    case 14:editData[14]=tableView.model.get(weldTableCurrentRow).C14; break;
-                    case 15:editData[15]=tableView.model.get(weldTableCurrentRow).C15; break;
-                    case 16:editData[16]=tableView.model.get(weldTableCurrentRow).C16; break;
-                    }
-                }
-                message.open("已复制。");
-            }},
-        Action{iconName:"awesome/copy"; name:"粘帖";enabled:root.actionEnable
-            onTriggered: {
-                tableView.model.insert(weldTableCurrentRow,
-                                       {   "ID":editData[0],
-                                           "C1":editData[1],"C2":editData[2],
-                                           "C3":editData[3],"C4":editData[4],
-                                           "C5":editData[5],"C6":editData[6],
-                                           "C7":editData[7],"C8":editData[8],
-                                           "C9":editData[9],"C10":editData[10],
-                                           "C11":editData[11],"C12":editData[12],
-                                           "C13":editData[13],"C14":editData[14],
-                                           "C15":editData[15],"C16":editData[16],
-                                       })
-                tableView.__listView.currentIndex=weldTableCurrentRow;
-                tableView.selection.__selectOne(weldTableCurrentRow);
-                message.open("已粘帖。");
-            }
-        },
-        Action{iconName: "awesome/trash_o";  name:"移除" ;enabled:root.actionEnable
-            onTriggered: {
-                if(tableView.rowCount===1)
-                    tableView.model.set(0,{"ID":"","C1":"","C2":"","C3":"","C4":"","C5":"","C6":"","C7":"",
-                                            "C8":"","C9":"","C10":"","C11":"","C12":"","C13":"","C14":"",
-                                            "C15":"","C16":"",})
-                else
-                    tableView.model.remove(weldTableCurrentRow);
-                message.open("已删除。");
-            }
-        }]
-    property list<Action> inforMenu: [ Action{iconName: "awesome/trash_o";  name:"移除" ;enabled:root.actionEnable
-            onTriggered: {
-                if(tableView.rowCount===1)
-                    tableView.model.set(0,{"ID":"","C1":"","C2":"","C3":"","C4":"","C5":"","C6":"","C7":"",
-                                            "C8":"","C9":"","C10":"","C11":"","C12":"","C13":"","C14":"",
-                                            "C15":"","C16":"",})
-                else
-                    tableView.model.remove(weldTableCurrentRow);
-                message.open("已删除。");
-            }
-        }]
-    property list<Action> funcMenu: [
-        Action{iconName:"awesome/send_o";
-            onTriggered:{
-                if(weldTableCurrentRow>-1){
-                    var floor=tableView.model.get(weldTableCurrentRow).C1.split("/");
-                    ERModbus.setmodbusFrame(["W","201","17",
-                                             (Number(floor[0])*100+Number(floor[1])).toString(),
-                                             tableView.model.get(weldTableCurrentRow).C2,
-                                             tableView.model.get(weldTableCurrentRow).C3*10,
-                                             tableView.model.get(weldTableCurrentRow).C4*10,
-                                             tableView.model.get(weldTableCurrentRow).C5,
-                                             tableView.model.get(weldTableCurrentRow).C6*10,
-                                             tableView.model.get(weldTableCurrentRow).C7*10,
-                                             tableView.model.get(weldTableCurrentRow).C8*10,
-                                             tableView.model.get(weldTableCurrentRow).C9*10,
-                                             tableView.model.get(weldTableCurrentRow).C10*10,
-                                             tableView.model.get(weldTableCurrentRow).C11==="连续"?"0":"1",
-                                                                                                  tableView.model.get(weldTableCurrentRow).C12*10,//层面积
-                                                                                                  tableView.model.get(weldTableCurrentRow).C13*10,//单道面积
-                                                                                                  tableView.model.get(weldTableCurrentRow).C14*10,//起弧位置偏移
-                                                                                                  tableView.model.get(weldTableCurrentRow).C15*10,//起弧
-                                                                                                  tableView.model.get(weldTableCurrentRow).C16*10,//起弧
-                                                                                                  tableView.rowCount//总共焊道号
-                                            ]);
-                    message.open("已下发焊接规范。");
-                }else {
-                    message.open("请选择下发焊接规范。")
-                }
-            }
-            hoverAnimation:true;summary: "F4"
-            enabled: root.actionEnable
-            name:"下发规范"
-        }]
     TableCard{
         id:tableView
-        headerTitle: weldRulesName
         footerText:  "参数"
         tableRowCount:7
-        actions: [
-            Action{iconName:"awesome/file_text_o";name:"文件";hoverAnimation:true;summary: "F1"
+        fileMenu: [
+            Action{iconName:"awesome/calendar_plus_o";name:"新建"; enabled: false
+                onTriggered: newFile.show();},
+            Action{iconName:"awesome/folder_open_o";name:"打开"; enabled: false
+                onTriggered: open.show();},
+            Action{iconName:"awesome/save";name:"保存";
                 onTriggered: {
-                    //source为triggered的传递参数
-                    tableView.menuDropDown.actions=fileMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=0;
-                }
-            },
-            Action{iconName:"awesome/edit"; name:"修改";hoverAnimation:true;summary: "F2";
-                onTriggered:{
-                    tableView.menuDropDown.actions=editMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=1;
-                }
-            },
-            Action{iconName:"awesome/calendar_plus_o";name:"信息";hoverAnimation:true;summary: "F3"
-                onTriggered:{
-                    tableView.menuDropDown.actions=inforMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=2;
-                }
-            },
-            Action{iconName:"awesome/stack_overflow";  name:"工具";hoverAnimation:true;summary: "F4"
-                onTriggered:{
-                    tableView.menuDropDown.actions=funcMenu;
-                    tableView.menuDropDown.open(source,0,source.height+3);
-                    tableView.menuDropDown.place=3;
-                }
-            }
+                    if((typeof(weldRulesName)==="string")&&(weldRulesName!=="")){
+                        for(var i=0;i<tableView.table.rowCount;i++){
+                            //插入新的数据
+                            UserData.insertTable(weldRulesName+"焊接规范","(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[
+                                                     tableView.model.get(i).ID,
+                                                     tableView.model.get(i).C1,
+                                                     tableView.model.get(i).C2,
+                                                     tableView.model.get(i).C3,
+                                                     tableView.model.get(i).C4,
+                                                     tableView.model.get(i).C5,
+                                                     tableView.model.get(i).C6,
+                                                     tableView.model.get(i).C7,
+                                                     tableView.model.get(i).C8,
+                                                     tableView.model.get(i).C9,
+                                                     tableView.model.get(i).C10,
+                                                     tableView.model.get(i).C11,
+                                                     tableView.model.get(i).C12,
+                                                     tableView.model.get(i).C13,
+                                                     tableView.model.get(i).C14,
+                                                     tableView.model.get(i).C15,
+                                                     tableView.model.get(i).C16,])
+                        }
+                        message.open("焊接规范已保存。");}
+                    else{
+                        message.open("焊接规范名称格式不符，规范未保存！")
+                    }
+                }},
+            Action{iconName:"awesome/calendar_times_o";name:"删除";enabled: false
+                onTriggered: remove.show();}
         ]
+        editMenu:[
+            Action{iconName:"awesome/plus_square_o";onTriggered: add.show();name:"添加"},
+            Action{iconName:"awesome/edit";onTriggered: edit.show();name:"编辑";
+            },
+            Action{iconName:"awesome/paste";name:"复制";enabled:root.actionEnable
+                onTriggered: {
+                    if(weldTableCurrentRow>=0){
+                        editData[0]=tableView.model.get(weldTableCurrentRow).ID;
+                        editData[1]=tableView.model.get(weldTableCurrentRow).C1;
+                        editData[2]=tableView.model.get(weldTableCurrentRow).C2;
+                        editData[3]=tableView.model.get(weldTableCurrentRow).C3;
+                        editData[4]=tableView.model.get(weldTableCurrentRow).C4;
+                        editData[5]=tableView.model.get(weldTableCurrentRow).C5;
+                        editData[6]=tableView.model.get(weldTableCurrentRow).C6;
+                        editData[7]=tableView.model.get(weldTableCurrentRow).C7;
+                        editData[8]=tableView.model.get(weldTableCurrentRow).C8;
+                        editData[9]=tableView.model.get(weldTableCurrentRow).C9;
+                        editData[10]=tableView.model.get(weldTableCurrentRow).C10;
+                        editData[11]=tableView.model.get(weldTableCurrentRow).C11;
+                        editData[12]=tableView.model.get(weldTableCurrentRow).C12;
+                        editData[13]=tableView.model.get(weldTableCurrentRow).C13;
+                        editData[14]=tableView.model.get(weldTableCurrentRow).C14;
+                        editData[15]=tableView.model.get(weldTableCurrentRow).C15;
+                        editData[16]=tableView.model.get(weldTableCurrentRow).C16;
+                        message.open("已复制。");}
+                    else{
+                        message.open("请选择要复制的行！")
+                    }
+                }},
+            Action{iconName:"awesome/copy"; name:"粘帖";enabled:root.actionEnable
+                onTriggered: {
+                    if(weldTableCurrentRow>=0){
+                        var index=weldTableCurrentRow;
+                        tableView.model.insert(index,
+                                               {   "ID":editData[0],
+                                                   "C1":editData[1],"C2":editData[2],
+                                                   "C3":editData[3],"C4":editData[4],
+                                                   "C5":editData[5],"C6":editData[6],
+                                                   "C7":editData[7],"C8":editData[8],
+                                                   "C9":editData[9],"C10":editData[10],
+                                                   "C11":editData[11],"C12":editData[12],
+                                                   "C13":editData[13],"C14":editData[14],
+                                                   "C15":editData[15],"C16":editData[16],
+                                               })
+                        tableView.table.selection.clear();
+                        tableView.table.selection.select(index);
+                        message.open("已粘帖。");}
+                    else
+                        message.open("请选择要粘帖的行！")
+                }
+            },
+            Action{iconName: "awesome/trash_o";  name:"移除" ;enabled:root.actionEnable
+                onTriggered: {
+                    if(weldTableCurrentRow>=0){
+                        tableView.model.remove(weldTableCurrentRow);
+                        message.open("已移除。");}
+                    else
+                        message.open("请选择要移除的行！")
+                }
+            }]
+        inforMenu: [ Action{iconName: "awesome/trash_o";  name:"移除" ;enabled:root.actionEnable
+                onTriggered: {
+
+                }
+            }]
+        funcMenu: [
+            Action{iconName:"awesome/send_o";
+                onTriggered:{
+                    if(weldTableCurrentRow>-1){
+                        var floor=tableView.model.get(weldTableCurrentRow).C1.split("/");
+                        ERModbus.setmodbusFrame(["W","201","17",
+                                                 (Number(floor[0])*100+Number(floor[1])).toString(),
+                                                 tableView.model.get(weldTableCurrentRow).C2,
+                                                 tableView.model.get(weldTableCurrentRow).C3*10,
+                                                 tableView.model.get(weldTableCurrentRow).C4*10,
+                                                 tableView.model.get(weldTableCurrentRow).C5,
+                                                 tableView.model.get(weldTableCurrentRow).C6*10,
+                                                 tableView.model.get(weldTableCurrentRow).C7*10,
+                                                 tableView.model.get(weldTableCurrentRow).C8*10,
+                                                 tableView.model.get(weldTableCurrentRow).C9*10,
+                                                 tableView.model.get(weldTableCurrentRow).C10*10,
+                                                 tableView.model.get(weldTableCurrentRow).C11==="连续"?"0":"1",
+                                                                                                      tableView.model.get(weldTableCurrentRow).C12*10,//层面积
+                                                                                                      tableView.model.get(weldTableCurrentRow).C13*10,//单道面积
+                                                                                                      tableView.model.get(weldTableCurrentRow).C14*10,//起弧位置偏移
+                                                                                                      tableView.model.get(weldTableCurrentRow).C15*10,//起弧
+                                                                                                      tableView.model.get(weldTableCurrentRow).C16*10,//起弧
+                                                                                                      tableView.rowCount//总共焊道号
+                                                ]);
+                        message.open("已下发焊接规范。");
+                    }else {
+                        message.open("请选择下发焊接规范。")
+                    }
+                }
+                hoverAnimation:true;summary: "F4"
+                enabled: root.actionEnable
+                name:"下发规范"
+            }]
         tableData:[
             Controls.TableViewColumn{role: "C1";title:"   焊接\n层道数";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{role: "C2";title: "电流\n  A";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
@@ -351,13 +239,8 @@ FocusScope{
             Controls.TableViewColumn{role: "C16";title: "起弧z";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx}
         ]
     }
-    Dialog{
-        id:infor
-        title:qsTr("信息")
-        negativeButtonText:qsTr("取消")
-        positiveButtonText:qsTr("确定")
-    }
-    Dialog{
+
+      /*  Dialog{
         id:open
         title:qsTr("打开焊接规范")
         negativeButtonText:qsTr("取消")
@@ -365,63 +248,17 @@ FocusScope{
         property var listName:[""]
         property var listTime:[""]
         onOpened:{
-            var  Name =UserData.getWeldRulesListName("weldRulesList"+currentGroove.toString());
-            if(Name){
-                var buf;
-                listName=[""];
-                listTime=[""];
-                for(var i=0;i<Name.length;i++){
-                    buf=Name[i].split(".")
-                    listName[i]=buf[0];
-                    listTime[i]=String(buf[1]).replace("T"," ");}
-                menuField.model=listName
-                menuField.helperText=listTime[0];
-            }
+
         }
         dialogContent:MenuField{
             id:menuField
             width: Units.dp(240)
             onItemSelected: {
-                weldRulesName=open.listName[index];
-                menuField.helperText=open.listTime[index]
-            }
-        }
-        Keys.onPressed: {
-            switch(event.key){
-            case Qt.Key_Up:
-                if(open.visible){
-                    if(menuField.weldTableCurrentRow!==0){
-                        menuField.weldTableCurrentRow--;
-                        weldRulesName=open.listName[menuField.weldTableCurrentRow];
-                        menuField.helperText=open.listTime[menuField.weldTableCurrentRow]
-                    }event.accpet=true;
-                }break;
-            case Qt.Key_Down:
-                if(open.visible){
-                    if(menuField.weldTableCurrentRow!==(menuField.model.length-1)){
-                        menuField.weldTableCurrentRow++;
-                        weldRulesName=open.listName[menuField.weldTableCurrentRow];
-                        menuField.helperText=open.listTime[menuField.weldTableCurrentRow]
-                    } event.accept=true;}break;
-            }
-        }
-        onAccepted: {
-            console.log(weldRulesName)
-            headerTitle=weldRulesName;
-            var listModel=UserData.getWeldRules(weldRulesName);
-            if(weldDataModel.count>1)
-                weldDataModel.remove(1,weldDataModel.count-1);
-            if(listModel.length>1){
-                weldDataModel.set(0,listModel[0])
-                for(var i=1;i<listModel.length;i++){
-                    weldDataModel.append(listModel[i]);
-                }
-            }else{
-                weldDataModel.set(0,{"ID":"","C1":"","C2":"","C3":"","C4":"","C5":"","C6":"","C7":"","C8":"","C9":"","C10":"","C11":"","C12":"","C13":"","C14":"","C15":"","C16":"",})
+
             }
         }
     }
-    Dialog{
+  Dialog{
         id:newFile
         title: qsTr("新建焊接规范")
         negativeButtonText:qsTr("取消")
@@ -495,7 +332,7 @@ FocusScope{
                 }
             }
         }
-    }
+    }*/
     Dialog{
         id:add
         title: qsTr("添加焊接规范")
@@ -546,13 +383,6 @@ FocusScope{
                 property int  focusIndex;
                 width: Units.dp(140)
                 height:column.height
-                //                Image{
-                //                    id:image
-                //                    anchors.left: parent.left
-                //                    anchors.verticalCenter: parent.verticalCenter
-                //                    source: "../Pic/坡口参数图.png"
-                //                    sourceSize.width: Units.dp(350)
-                //                }
                 Column{
                     id:column
                     anchors.top:parent.top
@@ -679,27 +509,29 @@ FocusScope{
                                     "C16":"0"}
                                 )}
         onOpened: {
-            //复制数据到 editData
-            for(var i=0;i<editcolumnRepeater.model.length;i++){
-                switch(i){
-                case 0:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).ID; break;
-                case 1:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C1; break;
-                case 2:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C2; break;
-                case 3:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C3; break;
-                case 4:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C4; break;
-                case 5:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C5; break;
-                case 6:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C6; break;
-                case 7:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C7; break;
-                case 8:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C8; break;
-                case 9:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C9; break;
-                case 10:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C10; break;
-                case 11:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C11; break;
-                case 12:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C12; break;
-                case 13:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C13; break;
-                case 14:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C14; break;
-                case 15:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C15; break;
-                case 16:editcolumnRepeater.itemAt(i).text=tableView.model.get(weldTableCurrentRow).C16; break;
-                }
+            if(weldTableCurrentRow>-1){
+                //复制数据到 editData
+                editcolumnRepeater.itemAt(0).text=tableView.model.get(weldTableCurrentRow).ID;
+                editcolumnRepeater.itemAt(1).text=tableView.model.get(weldTableCurrentRow).C1;
+                editcolumnRepeater.itemAt(2).text=tableView.model.get(weldTableCurrentRow).C2;
+                editcolumnRepeater.itemAt(3).text=tableView.model.get(weldTableCurrentRow).C3;
+                editcolumnRepeater.itemAt(4).text=tableView.model.get(weldTableCurrentRow).C4;
+                editcolumnRepeater.itemAt(5).text=tableView.model.get(weldTableCurrentRow).C5;
+                editcolumnRepeater.itemAt(6).text=tableView.model.get(weldTableCurrentRow).C6;
+                editcolumnRepeater.itemAt(7).text=tableView.model.get(weldTableCurrentRow).C7;
+                editcolumnRepeater.itemAt(8).text=tableView.model.get(weldTableCurrentRow).C8;
+                editcolumnRepeater.itemAt(9).text=tableView.model.get(weldTableCurrentRow).C9;
+                editcolumnRepeater.itemAt(10).text=tableView.model.get(weldTableCurrentRow).C10;
+                editcolumnRepeater.itemAt(11).text=tableView.model.get(weldTableCurrentRow).C11;
+                editcolumnRepeater.itemAt(12).text=tableView.model.get(weldTableCurrentRow).C12;
+                editcolumnRepeater.itemAt(13).text=tableView.model.get(weldTableCurrentRow).C13;
+                editcolumnRepeater.itemAt(14).text=tableView.model.get(weldTableCurrentRow).C14;
+                editcolumnRepeater.itemAt(15).text=tableView.model.get(weldTableCurrentRow).C15;
+                aeditcolumnRepeater.itemAt(16).text=tableView.model.get(weldTableCurrentRow).C16;
+            }
+            else{
+                message.open("请选择要编辑的行！")
+                positiveButtonEnabled=false;
             }
         }
         dialogContent: [

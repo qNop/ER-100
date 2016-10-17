@@ -34,23 +34,23 @@ FocusScope {
     property int currentGroove
 
     property list<ListModel> limitedModel:[
-        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~70";c3:"4~10" }
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"4~10" }
             ListElement{iD:2;c1:"45~60";c2:"9~45";c3:"0~2"}},
-        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~80";c3:"4~10" }
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"4~10" }
             ListElement{iD:2;c1:"45~60";c2:"9~45";c3:"0~2"}},
-        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~80";c3:"4~10" }},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"4~10" }},
 
         ListModel{ListElement{ID:1;c1:"30~40";c2:"12~55";c3:"4~10" }
             ListElement{ID:2;c1:"45~60";c2:"12~45";c3:"0~2"}},
-        ListModel{ListElement{ID:1;c1:"30~40";c2:"12~80";c3:"4~10" }
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"12~60";c3:"4~10" }
             ListElement{ID:2;c1:"45~60";c2:"12~45";c3:"0~2"}},
 
-        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~50";c3:"4~10" }},
-        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~80";c3:"4~10" }},
-        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~80";c3:"4~10" }},
-        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~80";c3:"4~10" }},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~40";c3:"4~10" }},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"4~10" }},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"4~10" }},
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"4~10" }},
 
-        ListModel{ListElement{ID:1;c1:"30~40";c2:"16~80";c3:"4~10" }}
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"16~60";c3:"4~10" }}
     ]
     Controls.ExclusiveGroup { id: weldDirGroup; }
     Controls.ExclusiveGroup { id: grooveStyleGroup;}
@@ -123,7 +123,6 @@ FocusScope {
                 Keys.onPressed: {
                     var i = currentGroove & 0x00000004;
                     i>>=2;
-                    console.log("i " +i)
                     switch(event.key){
                     case Qt.Key_Right: if(i<1) i++;
                         event.accepted = true; break;
@@ -317,25 +316,26 @@ FocusScope {
                     rightMargin: Material.Units.dp(24)
                     verticalCenter: parent.verticalCenter
                 }
+                __listView.interactive:false
                 height:Material.Units.dp(152)
                 model:limitedModel[grooveNum];
                 Controls.TableViewColumn{
                     role: "c1"
-                    title: "坡口角度A\n      (度)"
+                    title: "坡口角度α\n      (度)"
                     width:Material.Units.dp(100);
                     movable:false
                     resizable:false
                 }
                 Controls.TableViewColumn{
                     role: "c2"
-                    title: "板厚T\n (mm)"
+                    title: "板厚δ\n (mm)"
                     width:Material.Units.dp(100);
                     movable:false
                     resizable:false
                 }
                 Controls.TableViewColumn{
                     role: "c3"
-                    title: "根部间隙G\n     (mm)"
+                    title: "根部间隙b\n     (mm)"
                     width:Material.Units.dp(100);
                     movable:false
                     resizable:false

@@ -5,8 +5,7 @@ import Material 0.1
 import QtQuick.Controls 1.3 as Controls
 /*
 
-
-  */
+*/
 ListView{
     id:root
     objectName: "MyListview"

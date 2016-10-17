@@ -270,7 +270,7 @@ Item {
 
         Repeater {
             model: __internal.visibleActions.length > maxActionCount
-                   ? maxActionCount - 2
+                   ? maxActionCount - 3
                    : __internal.visibleActions.length
 
             delegate: IconButton {
@@ -287,29 +287,25 @@ Item {
                 anchors.verticalCenter: parent ? parent.verticalCenter : undefined
             }
         }
-        Label{
-            text:__internal.visibleActions[maxActionCount-2].name
+        LabelButton {
+            id: date
+            action: maxActionCount>3? __internal.visibleActions[maxActionCount-3]:null
+            objectName: "action/datetime"
+            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
+                                   Theme.dark.iconColor)
+            visible: maxActionCount>3 ? true:false
+            anchors.verticalCenter: parent.verticalCenter
+        }
+        LabelButton {
+            id: time
+            action: maxActionCount>3? __internal.visibleActions[maxActionCount-2]:null
+            objectName: "action/datetime"
+            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
+                                   Theme.dark.iconColor)
+            visible: maxActionCount>2 ? true:false
             anchors.verticalCenter: parent.verticalCenter
         }
 
-//        LabelButton {
-//            id: date
-//            action: maxActionCount>3? __internal.visibleActions[maxActionCount-3]:null
-//            objectName: "action/datetime"
-//            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
-//                                   Theme.dark.iconColor)
-//            visible: maxActionCount>3 ? true:false
-//            anchors.verticalCenter: parent.verticalCenter
-//        }
-//        LabelButton {
-//            id: time
-//            action: maxActionCount>3? __internal.visibleActions[maxActionCount-2]:null
-//            objectName: "action/datetime"
-//            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
-//                                   Theme.dark.iconColor)
-//            visible: maxActionCount>2 ? true:false
-//            anchors.verticalCenter: parent.verticalCenter
-//        }
         IconButton {
             id: overflowButton
 

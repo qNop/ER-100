@@ -17,12 +17,13 @@ FocusScope{
         leftMargin:visible?0:Units.dp(250)
     }
 
+       Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InQuad }}
     //当前层数
     property int floorNum:0
     //当前道数
     property int weldNum:0
 
-    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InQuad }}
+
 
     property string status:"空闲态"
 

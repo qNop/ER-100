@@ -1,0 +1,35 @@
+重新更新操作系统时候要加入
+
+
+修改root密码 
+passwd root
+root 用户设置密码 890329
+
+
+ssh root@192.168.1.103
+链接示教器
+
+错误
+SSH 登录失败：Host key verification failed
+解决办法
+1. .ssh/known_hosts 裡面记录的目标主机 key 值不正确。这是最普遍的情况，只要删除对应的主机记录就能恢复正常。
+
+运行命令： sudo rm /home/yourname/.ssh/known_hosts
+
+2. .ssh 目录或者 .ssh/known_hosts 对当前用户的权限设置不正确。这种情况比较少，一般正确设置读写权限以后也能恢复正常。
+3. /dev/tty 对 other 用户没有放开读写权限。这种情况极为罕见。出现的现象是，只有 root 用户能够使用 ssh client，而所有其他的普通用户都会出现错误。
+我今天遇到的就是第三种情况，修改 /dev/tty 的权限后，一切正常。为了避免以后忘记解决方法，记录在这里
+
+错误
+WARNING: Your password has expired. You must change your password now and login again! passwd: No such file or directory
+
+修改 etc/shadow
+
+root:密码不要动:11851:0:99999:7:5:99999:
+sshd:!!:11851:0:99999:7:5:99999:
+
+服务：密码：修改密码时间：修改密码后多长时间内禁止密码修改：系统强制变更密码有效期：密码有效期前警告提示天数：密码有效期过后宽限登陆天数：密码有效期;保留
+
+4;Protocol major versions differ: 2 vs. 1
+ssh版本问题 ssh -1 root@192.168.1.103
+

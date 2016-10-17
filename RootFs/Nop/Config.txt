@@ -1,7 +1,7 @@
 [General]
 BackLight=30
 Bottom_Style=0
-Current_Groove=0
+Current_Groove=7
 Current_User_Name=Nop
 Current_User_PassWord=Nop
 Current_User_Type=User

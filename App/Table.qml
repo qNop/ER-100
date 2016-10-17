@@ -12,6 +12,7 @@ Controls.TableView{
     id:tableview
     property alias firstData: firstColumnData
    // property bool transientScrollBars: true
+    property int tableRowCount: 0
     height:tableRowCount*Units.dp(48)+Units.dp(56)
     sortIndicatorVisible:true
     //不是隔行插入色彩

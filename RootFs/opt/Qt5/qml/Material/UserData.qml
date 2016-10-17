@@ -54,11 +54,11 @@ Object {
 
     //获取系统时间
     function getSysTime(){
-            return new Date().toLocaleString(Qt.locale("ch_ZN"),"yyyy-MM-dd h:mm:ss")
+        return new Date().toLocaleString(Qt.locale("ch_ZN"),"yyyy-MM-dd h:mm:ss")
     }
     function getPageFunctionAndValueFromTable(index){
         var result,str;
-        if(!dataBase) { console.log("Open dataBase::dataBase fail !");return -1;}
+        if(!dataBase) { if(openDatabase()===-1) return -1;}
         switch(index){
         case 0:str="select * from 平焊单边V型坡口T接头限制条件";break;
         case 1:str="select * from 平焊单边V型坡口平对接限制条件";break;
@@ -85,7 +85,7 @@ Object {
     /*写入数据库相关词条的数值*/
     function setValueFromFuncOfTable(tablename,id,value){
         var result,str;
-        if(!dataBase) { console.log("UserData::dataBase ");return -1;}
+        if(!dataBase) { if(openDatabase()===-1);return -1;}
         str="UPDATE "+tablename+" SET value = "+"\'"+value+"\'"+" WHERE id = "+"\'"+id+"\'";
         console.log(str);
         dataBase.transaction( function(tx) {result = tx.executeSql(str); });
@@ -93,7 +93,7 @@ Object {
     /*写入数据库相关词条的数值*/
     function setValue(tablename,id,value){
         var result,str;
-        if(!dataBase) { console.log("UserData::dataBase ");return -1;}
+        if(!dataBase) { if(openDatabase()===-1);return -1;}
         if((typeof(tablename)==="string")&&(typeof(funcI)==="string")){
             str="UPDATE "+tablename+" SET Time = "+"\'"+value+"\'"+" WHERE Name = "+"\'"+id+"\'";
             console.log(str);
@@ -104,8 +104,8 @@ Object {
     /*写入任何字符串*/
     function setValueWanted(tablename,funcI,id,funcV,value){
         var result,str;
-        if(!dataBase) { console.log("UserData::dataBase ");return -1;}
-         console.log(value)
+        if(!dataBase) { if(openDatabase()===-1);return -1;}
+        console.log(value)
         if((typeof(tablename)==="string")&&(typeof(funcI)==="string")&&(typeof(id)==="string")&&(typeof(funcV)==="string")){
             str="UPDATE "+tablename+" SET "+funcV+ " = "+"\'"+value+"\'"+" WHERE "+funcI+" = "+"\'"+id+"\'";
             dataBase.transaction( function(tx) {result = tx.executeSql(str); });
@@ -118,7 +118,7 @@ Object {
     function getValueFromFuncOfTable(tablename,func,name){
         var result,str;
         var value=new Array();
-        if(!dataBase) { console.log("Open dataBase::dataBase fail !");return -1;}
+        if(!dataBase) { if(openDatabase()===-1) return -1;}
         str="SELECT * FROM "+tablename;
         if(func!=="")
             str+=" WHERE "+func+" ="+"\'"+name+"\'";
@@ -133,10 +133,15 @@ Object {
     /*从数据库中获取相关词条的数值
           * name 数据表格名字，func 定义的名字
          */
-    function getResultFromFuncOfTable(tablename,func,name){
+    function getResultFromFuncOfTable(tablename,column,func,name){
         var result,str;
-        if(!dataBase) { console.log("Open dataBase::dataBase fail !");return -1;}
-        str="SELECT * FROM "+tablename;
+        if(!dataBase) { if(openDatabase()===-1) return -1;}
+        str="SELECT ";
+        if(column==="")
+            str+="*"
+        else
+            str+=column;
+        str+=" FROM "+tablename;
         if(func!=="")
             str+= " WHERE "+func+" ="+"\'"+name+"\'";
         console.log(str);
@@ -146,26 +151,30 @@ Object {
     /**
       *从数据库中获取 焊接规范列表
       */
-    function getWeldRules(tablename){
+    function getWeldRulesNameOrderByTime(tablename,func){
         var result,str;
-        if(!dataBase) { console.log("Open dataBase::dataBase fail !");return -1;}
-        str="SELECT * FROM "+tablename;
-        dataBase.transaction( function(tx) {result = tx.executeSql(str); });
-        var value=new Array();
-        /*遍寻所有数据转换成json格式*/
-        for(var i=0;i<result.rows.length;i++){
-            //result.rows.item返回的就是json object不需要在弄
-            value.push(result.rows.item(i));
-        }
-        return value;
+        if(!dataBase) { if(openDatabase()===-1) return -1;}
+        str="SELECT * FROM "+tablename+" ORDER BY "+func+" DESC";
+        console.log(str)
+        if((typeof(tablename)==="string")&&(typeof(func)==="string")){
+            dataBase.transaction( function(tx) {result = tx.executeSql(str); });
+            var value=new Array();
+            for(var i=0;i<result.rows.length;i++){
+                value.push(result.rows.item(i));
+            }
+            console.log(value);
+            return value;
+        }else
+            return -1;
     }
     /**
       *从数据库中获取 列表
       */
     function getTableJson(tablename){
         var result,str;
-        if(!dataBase) { console.log("Open dataBase::dataBase fail !");return -1;}
+        if(!dataBase) { if(openDatabase()===-1) return -1;}
         str="SELECT * FROM "+tablename;
+        console.log(str)
         if(typeof(tablename)==="string"){
             dataBase.transaction( function(tx) {result = tx.executeSql(str); });
             var value=new Array();
@@ -179,30 +188,31 @@ Object {
         }else
             return -1;
     }
+
     /*获取错误倒序排列*/
-        function getSysErrorOrderByTime(tablename,func){
-            var result,str;
-            if(!dataBase) { console.log("Open dataBase::dataBase fail !");return -1;}
-            str="SELECT * FROM "+tablename+" ORDER BY "+func+" DESC";
-            console.log(str)
-            if((typeof(tablename)==="string")&&(typeof(func)==="string")){
-                dataBase.transaction( function(tx) {result = tx.executeSql(str); });
-                var value=new Array();
-                for(var i=0;i<result.rows.length;i++){
-                    value.push(result.rows.item(i));
-                }
-                console.log(value);
-                return value;
-            }else
-                return -1;
-        }
+    function getSysErrorOrderByTime(tablename,func){
+        var result,str;
+        if(!dataBase) { if(openDatabase()===-1) return -1;}
+        str="SELECT * FROM "+tablename+" ORDER BY "+func+" DESC";
+        console.log(str)
+        if((typeof(tablename)==="string")&&(typeof(func)==="string")){
+            dataBase.transaction( function(tx) {result = tx.executeSql(str); });
+            var value=new Array();
+            for(var i=0;i<result.rows.length;i++){
+                value.push(result.rows.item(i));
+            }
+            console.log(value);
+            return value;
+        }else
+            return -1;
+    }
 
     /**
       *从数据库中获取 焊接规范
       */
     function getListGrooveName(tablename,func){
         var result,str;
-        if(!dataBase) { console.log("Open dataBase::dataBase fail !");return -1;}
+        if(!dataBase) { if(openDatabase()===-1) return -1;}
         str="SELECT * FROM "+tablename+" ORDER BY "+func+" DESC";
         console.log(str)
         if((typeof(tablename)==="string")&&(typeof(func)==="string")){
@@ -222,7 +232,7 @@ Object {
     */
     function getLastGrooveName(tablename,func){
         var error,result;
-        if(!dataBase) { console.log("Open dataBase::dataBase fail !");return -1;}
+        if(!dataBase) { if(openDatabase()===-1) return -1;}
         if((typeof(tablename)==="string")&&(typeof(func)==="string")){
             dataBase.transaction( function(tx) {
                 result = tx.executeSql("SELECT * FROM "+tablename+" ORDER BY "+func+" DESC");
@@ -239,7 +249,7 @@ Object {
           */
     function createTable(tablename,format){
         var res;
-        if(!root.dataBase){ console.log("Open dataBase::dataBase fail !");return -1;}
+        if(!root.dataBase){ if(openDatabase()===-1) return -1;}
         if(typeof(tablename)==="string"){
             var str="CREATE TABLE IF NOT EXISTS "+tablename+"("+format+")";
             dataBase.transaction( function(tx) {tx.executeSql(str);
@@ -252,7 +262,7 @@ Object {
     }
     /*删除数据表数据 当func与value有效时删除func为value所在行数据，否则删除表内所有数据但是表格保留*/
     function clearTable(tablename,func,value){
-        if(!root.dataBase){ console.log("Open dataBase::dataBase fail !");return -1;}
+        if(!root.dataBase){ if(openDatabase()===-1) return -1;}
         if(typeof(tablename)==="string"){
             var str="DELETE FROM "+tablename;
             if((func!=="")&&(value!=="")){
@@ -265,7 +275,7 @@ Object {
     }
     /*删除整个数据表格*/
     function deleteTable(tablename){
-        if(!root.dataBase){ console.log("Open dataBase::dataBase fail !");return -1;}
+        if(!root.dataBase){ if(openDatabase()===-1) return -1;}
         if(tablename!==""){
             var str="DROP TABLE "+tablename;
             console.log(str);
@@ -277,7 +287,7 @@ Object {
           操作格式 func (?,?) data 为数组[,]
           */
     function insertTable(tablename,func,data){
-        if(!root.dataBase){ console.log("Open dataBase::dataBase fail !");return -1;}
+        if(!root.dataBase){ if(openDatabase()===-1) return -1;}
         var str="INSERT INTO "+tablename+" VALUES"+func;
         console.log(str)
         dataBase.transaction( function(tx) { tx.executeSql(str,data);});
@@ -291,10 +301,12 @@ Object {
         //创建链接
         root.dataBase = Data.LocalStorage.openDatabaseSync("ERoboWeldSysDataBase","1.0","DataBase", 100000);
         if(root.dataBase)  {
-            console.log("DB::Open DB Success .");
+            console.log("Open dataBase::dataBase Success .");
+            return 1;
         }
         else{
-            console.log("DB::Open DB Fail .");
+            console.log("Open dataBase::dataBase fail !");
+            return -1
         }
     }
     //坡口参数初始值设置

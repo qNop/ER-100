@@ -33,6 +33,7 @@ PopupBase {
     id: dialog
     objectName: "Dialog"
     overlayLayer: "dialogOverlayLayer"
+
    // overlayColor: Qt.rgba(0, 0, 0, 0.3)
     opacity: showing ? 1 : 0
     visible: opacity > 0
@@ -100,6 +101,10 @@ PopupBase {
             closeKeyPressed(event);
             accepted();
         }
+        if (event.key === Qt.Key_Return){
+            closeKeyPressed(event);
+            accepted();
+        }
     }
 
     Keys.onReleased: {
@@ -161,16 +166,6 @@ PopupBase {
                 if(contentX != 0 && contentWidth <= width)
                     contentX = 0
             }
-
-//            onContentYChanged: {
-//                if(contentY != 0 && contentHeight <= height){
-//                    console.log("dialog contentY++")
-//                 //   contentY = 0
-//                }
-//                else
-//                    console.log("dialog contentY")
-//            }
-
             Column {
                 id: column
                 anchors {
@@ -328,7 +323,6 @@ PopupBase {
                         rightMargin: Units.dp(8)
                         right: negativeButton.visible ? negativeButton.left : parent.right // parent.right
                     }
-
                     onClicked: {
                         close()
                         accepted();

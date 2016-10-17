@@ -48,8 +48,7 @@ Dropdown{
             }
         }
     }
-    Keys.onPressed:
-    { var i=0;
+    Keys.onPressed: { var i=0;
         if(root.visible){
             switch(event.key){
             case Qt.Key_Down:

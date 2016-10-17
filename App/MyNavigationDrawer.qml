@@ -121,7 +121,7 @@ PopupBase {
                         height:Units.dp(40);
                         itemLabel.style: "body1"
                         iconName:modelData
-                        text:index?"用 户"+AppConfig.currentUserName:"用户组:"+AppConfig.currentUserType
+                        text:index?"用户组："+AppConfig.currentUserType:"用户名："+AppConfig.currentUserName
                         ThinDivider{anchors.top: parent.Top;visible: index===0}
                     }
                 }

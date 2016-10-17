@@ -23,7 +23,6 @@
         <file>GrooveCondition.qml</file>
         <file>GrooveCheck.qml</file>
         <file>InputPanelButton.qml</file>
-        <file>ControlInfor.qml</file>
         <file>HighVolagteInfor.qml</file>
         <file>RoboInfor.qml</file>
         <file>WeldPowerInfor.qml</file>
@@ -38,5 +37,6 @@
         <file>DoModbus.js</file>
         <file>SysTime.qml</file>
         <file>UserAccount.qml</file>
+        <file>WeldData.qml</file>
     </qresource>
 </RCC>

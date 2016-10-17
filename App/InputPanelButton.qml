@@ -23,6 +23,12 @@ View {
             pop.close();
         }
     }
+    Timer{
+        id:time
+        interval: 400
+        /*****************此处要添加东西************************/
+    }
+
     MouseArea{
         id:ink
         anchors.fill: parent

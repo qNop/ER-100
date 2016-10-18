@@ -2,9 +2,9 @@
 BackLight=30
 Bottom_Style=0
 Current_Groove=7
-Current_User_Name=Nop
-Current_User_PassWord=Nop
-Current_User_Type=User
+Current_User_Name=TKSW
+Current_User_PassWord=TKSW
+Current_User_Type=\x8d85\x7ea7\x7528\x6237
 Language=EN
 Last_User=SuperUser
 Screen_Height=480

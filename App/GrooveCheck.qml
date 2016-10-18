@@ -64,7 +64,7 @@ FocusScope{
     TableCard{
         id:tableView
         headerTitle: currentGrooveName+"坡口参数"
-        footerText:  "系统当前处于"+status.replace("态","状态。")
+        footerText:  status==="坡口检测态"?"系统当前处于"+status.replace("态","状态。高压输出！"):"系统当前处于"+status.replace("态","状态。")
         tableRowCount:7
         model: grooveTableInit;
         fileMenu: [
@@ -212,8 +212,20 @@ FocusScope{
             }
         }
         onAccepted: {
-            if(typeof(open.name)==="string")
+            if(typeof(open.name)==="string"){
+                //清空坡口数据
+                grooveTableInit.clear();
+                //获取坡口数据
+                var listmodel=UserData.getTableJson(name)
+                //插入数据到grooveTableInit
+                if(typeof(listmodel)==="object"){
+                    for(var i=0;i<listmodel.length;i++){
+                        grooveTableInit.append(listmodel[i])
+                    }
+                }
                 changedCurrentGroove(open.name);
+
+            }
         }
         onRejected: {
             open.name=currentGrooveName
@@ -268,9 +280,20 @@ FocusScope{
                 //获取最新列表
                 var name=UserData.getLastGrooveName(grooveName+"列表","EditTime")
                 console.log("delete table name "+name)
-                if((typeof(name)==="string")&&(name!==""))
+                if((typeof(name)==="string")&&(name!=="")){
+                    //清空坡口数据
+                    grooveTableInit.clear();
+                    //获取坡口数据
+                    var listmodel=UserData.getTableJson(name)
+                    //插入数据到grooveTableInit
+                    if(typeof(listmodel)==="object"){
+                        for(var i=0;i<listmodel.length;i++){
+                            grooveTableInit.append(listmodel[i])
+                        }
+                    }
                     //更新新列表数据
                     changedCurrentGroove(name);
+                }
                 message.open(qsTr("已删除坡口参数表格！"))
             }
         }
@@ -348,6 +371,16 @@ FocusScope{
                 //创建新的过程分析列表
                 UserData.createTable(name+"过程分析","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT")
 
+                //清空坡口数据
+                grooveTableInit.clear();
+                //获取坡口数据
+                var listmodel=UserData.getTableJson(name)
+                //插入数据到grooveTableInit
+                if(typeof(listmodel)==="object"){
+                    for(var i=0;i<listmodel.length;i++){
+                        grooveTableInit.append(listmodel[i])
+                    }
+                }
                 //更新名称
                 changedCurrentGroove(name);
 
@@ -526,6 +559,8 @@ FocusScope{
                                                            "C6":((Number(frame[8])|(Number(frame[9])<<16))/10).toString(),
                                                            "C7":(Number(frame[10])/10).toString(),
                                                            "C8":(Number(frame[11])/10).toString()})
+                            selectedIndex=Number(frame[2]);
+                            selectIndex(selectedIndex);
                         }
                     }
                     ERModbus.setmodbusFrame(["R","0","3"]);

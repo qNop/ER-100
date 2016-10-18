@@ -158,7 +158,7 @@ void WeldMath::FloorFunc(FloorCondition *pF){
             value<<status<<QString::number(currentWeldNum)<<QString::number(floorNum)+"/"+QString::number(j+1)<<QString::number(weldCurrent[j])<<QString::number(weldVoltage[j])<<QString::number(swingLengthOne/2)
                 <<QString::number(swingHz)<<QString::number(weldTravelSpeed[j]/10)<<QString::number(weldLineX)<<QString::number(weldLineY)
                <<QString::number(pF->swingLeftStayTime)<<QString::number(pF->swingRightStayTime)<<"1"
-              <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(weldFill[j]*10))/10)<<QString::number(weldLineX)<<QString::number(weldLineY) <<QString::number(startArcz);;
+              <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(weldFill[j]*10))/10)<<QString::number(weldLineX)<<QString::number(weldLineY) <<QString::number(0);;
             emit weldRulesChanged(value);
         }
         //迭代赋值
@@ -248,7 +248,7 @@ void WeldMath::topFloorFunc(){
         value<<status<<QString::number(currentWeldNum)<<QString::number(floorNum)+"/"+QString::number(j+1)<<QString::number(weldCurrent[j])<<QString::number(weldVoltage[j])<<QString::number(swingLengthOne/2)
             <<QString::number(swingHz)<<QString::number(weldTravelSpeed[j]/10)<<QString::number(weldLineX)<<QString::number(weldLineY)
            <<QString::number(topFloor.swingLeftStayTime)<<QString::number(topFloor.swingRightStayTime)<<"1"
-          <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(weldFill[j]*10))/10)<<QString::number(weldLineX)<<QString::number(weldLineY) <<QString::number(startArcz);;
+          <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(weldFill[j]*10))/10)<<QString::number(weldLineX)<<QString::number(weldLineY) <<QString::number(0);;
 
         emit weldRulesChanged(value);
     }
@@ -392,7 +392,7 @@ int WeldMath::weldMathFunction(){
       <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(s*10))/10)<<QString::number(weldLineX)<<QString::number(weldLineY)
      <<QString::number(startArcz);
     emit weldRulesChanged(value);
-    startArcz-=3;
+    startArcz=0;
 
     /**********************************************************************
      * 计算层数
@@ -618,7 +618,7 @@ int WeldMath::solveN(float *pH){
 
     int res=0;
 
-    if(*pH<=0){
+    if(qRound(*pH)<=0){
         fillFloor.num=topFloor.num=secondFloor.num=0;
         bottomFloor.height=grooveHeight+reinforcementValue;
         //调用重新匹配第一层
@@ -626,7 +626,7 @@ int WeldMath::solveN(float *pH){
         firstFloorFunc();
         res=1;
 #endif
-    }else if(*pH<=topFloor.maxHeight){
+    }else if(qRound(*pH)<=topFloor.maxHeight){
         fillFloor.num=secondFloor.num=0;
         topFloor.num=1;
         if(*pH>=topFloor.minHeight){
@@ -644,7 +644,7 @@ int WeldMath::solveN(float *pH){
             res=2;
 #endif
         }
-    }else if(*pH<=(secondFloor.maxHeight+topFloor.maxHeight)){
+    }else if(qRound(*pH)<=(secondFloor.maxHeight+topFloor.maxHeight)){
         secondFloor.num=1;
         fillFloor.num=0;
         topFloor.num=1;
@@ -691,16 +691,16 @@ int WeldMath::solveN(float *pH){
         if(fillFloor_MinNum<=fillFloor_MaxNum){
             fillFloor.num=fillFloor_MinNum;
             tempHav=*pH/(fillFloor.num+2);
-            topFloor.height=secondFloor.height=qRound(tempHav*2)/2;
+            topFloor.height=secondFloor.height=float(qRound(tempHav*5))/5;
             if((topFloor.height<topFloor.minHeight)||(topFloor.height>topFloor.maxHeight)){
                 topFloor.height=topFloor.height<topFloor.minHeight?topFloor.minHeight:topFloor.maxHeight;
-                secondFloor.height=qRound(((*pH-topFloor.height)/(fillFloor.num+1))*2)/2;
+                secondFloor.height=float(qRound(((*pH-topFloor.height)/(fillFloor.num+1))*5))/5;
             }
             if((secondFloor.height<secondFloor.minHeight)||(secondFloor.height>secondFloor.maxHeight)){
                 secondFloor.height=secondFloor.height<secondFloor.minHeight?secondFloor.minHeight:secondFloor.maxHeight;
                 //判断盖面层层高是最小值或最大值不能更改，否则，盖面层和填充层一起计算平均层高。
                 if((topFloor.height==topFloor.minHeight)||(topFloor.height==topFloor.maxHeight)){
-                    topFloor.height=qRound(((*pH-secondFloor.height)/(fillFloor.num+1))*2)/2;
+                    topFloor.height=float(qRound(((*pH-secondFloor.height)/(fillFloor.num+1))*5))/5;
                     topFloor.height=topFloor.height<topFloor.minHeight?topFloor.minHeight:topFloor.height>topFloor.maxHeight?topFloor.maxHeight:topFloor.height;
                 }
             }
@@ -727,6 +727,7 @@ int WeldMath::solveN(float *pH){
         }
 
     }
+    qDebug()<<bottomFloor.height<<secondFloor.height<<fillFloor.height<<topFloor.height;
     return res;
 }
 
@@ -765,8 +766,10 @@ void WeldMath::setGrooveRules(QStringList value){
         grooveHeight=value.at(0).toFloat();
         grooveHeightError=value.at(1).toFloat();
         rootGap=value.at(2).toFloat();
-        grooveAngel1=value.at(3).toFloat();
-        grooveAngel2=value.at(4).toFloat();
+        grooveAngel2=value.at(3).toFloat();
+       float temp=value.at(4).toFloat();
+        grooveAngel1=-temp;
+        qDebug()<<grooveAngel1<<grooveAngel2;
         pulseValue=0;
     }
     value.clear();

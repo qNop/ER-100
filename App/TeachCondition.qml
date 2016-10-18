@@ -105,14 +105,14 @@ FocusScope {
                 //始终端检测
                 ListItem.Subtitled{
                     id:startendcheck
-                    text:qsTr("始终端检测:");
+                    text:qsTr("焊接起始、终端检测:");
                     leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: teachmode
                     KeyNavigation.down: teachfirstpoint
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text="设定终端的检测是自动或是手动。" :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定焊接起始、终端的检测是自动或是手动。" :null;
                     selected: focus;
                     Keys.onPressed: {
                         switch(event.key){
@@ -213,14 +213,14 @@ FocusScope {
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
-                        case Qt.Key_Plus:
+                        case Qt.Key_VolumeUp:
                             res= Number(teachpointnumlabel.text)+1
                             if(res>30) res=30;
                             teachpointnumlabel.text=res.toString();
                             Material.UserData.setValueFromFuncOfTable(root.objectName,3,res);
                             event.accepted = true;
                             break;
-                        case Qt.Key_Minus:
+                        case Qt.Key_VolumeDown:
                             res= Number(teachpointnumlabel.text)-1
                             if(res<1) res=1;
                             teachpointnumlabel.text=res.toString();
@@ -255,14 +255,14 @@ FocusScope {
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
-                        case Qt.Key_Plus:
+                        case Qt.Key_VolumeUp:
                             res=Number(teachfirstpointtimelengthglabel.text)+2;
                             if(res>10000) res=10000;
                             teachfirstpointtimelengthglabel.text=res;
                             Material.UserData.setValueFromFuncOfTable(root.objectName,4,res);
                             event.accepted = true;
                             break;
-                        case Qt.Key_Minus:
+                        case Qt.Key_VolumeDown:
                             if(res<10) res=10;
                             res=Number(teachfirstpointtimelengthglabel.text)-2;
                             teachfirstpointtimelengthglabel.text=res;

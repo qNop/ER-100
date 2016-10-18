@@ -766,7 +766,7 @@ FocusScope{
                 // 切换状态为端部暂停
                 if(status==="坡口检测完成态"){
                     //下发端部暂停态
-                    //  ERModbus.setmodbusFrame(["W","0","1","5"]);
+                      ERModbus.setmodbusFrame(["W","0","1","5"]);
                 }
                 tableView.forceActiveFocus();
                 weldTableIndex=0;

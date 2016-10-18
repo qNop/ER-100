@@ -17,11 +17,13 @@ FocusScope {
 
     property var swingWayModel: ["无","左方","右方","左右"];
     property var robotLayoutModel:["坡口侧","非坡口侧"]
-    property var returnWayModel: ["单程","往返"];
+    property var returnWayModel: ["单向","往返"];
     property var weldWireModel: ["实芯碳钢","药芯碳钢"]
     property var weldWireDiameterModel: ["1.2mm","1.6mm"]
     property var weldWireLengthModel: ["10mm","15mm","20mm","25mm"]
     property var weldGasModel: ["CO2","MAG"]
+
+    property bool type:AppConfig.currentUserType==="超级用户"?true:false
 
     property var condition: [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
@@ -175,7 +177,7 @@ FocusScope {
                             break;}}
                     onClicked:forceActiveFocus();
                     onSelectedChanged: {
-                        if(selected){descriptionlabel.text="选择在端部是否摆动。"; if(swingWay.y<flickable.contentY) flickable.contentY=0;}}
+                        if(selected){descriptionlabel.text="设定在焊接的起始、端部头部是否摆动。"; if(swingWay.y<flickable.contentY) flickable.contentY=0;}}
                     secondaryItem:Row{
                         anchors.verticalCenter: parent.verticalCenter
                         Repeater{
@@ -241,14 +243,14 @@ FocusScope {
                 /*机器人放置面*/
                 ListItem.Subtitled{
                     id:robotLayout
-                    text:qsTr("机器人放置面:");
+                    text:qsTr("机头放置侧:");
                     leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: weldWire
                     KeyNavigation.down: weldWireDiameter
                     onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text="设定机器人相对于坡口的放置位置。" :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定机头相对于坡口的放置位置。" :null;
                     selected: focus;
                     Keys.onPressed: {
                         switch(event.key){
@@ -383,7 +385,7 @@ FocusScope {
                     Keys.onPressed: {
                         switch(event.key){
                         case Qt.Key_Right:
-                            if(returnWayGroup.current.text==="单程" ) {
+                            if(returnWayGroup.current.text==="单向" ) {
                                 Material.UserData.setValueFromFuncOfTable(root.objectName,5,1);
                                 returnWayGroup.current = returnWayRepeater.itemAt(1);
                             }
@@ -400,7 +402,7 @@ FocusScope {
                     }
                     onClicked:forceActiveFocus();
                     onSelectedChanged: {if(selected){
-                            descriptionlabel.text="设定焊接方向为往返方向或单程方向。" ;
+                            descriptionlabel.text="设定焊接往返动作方向为往返方向或单向。" ;
                             flickable.contentY=0;
                         }}
                     secondaryItem:Row{
@@ -516,7 +518,7 @@ FocusScope {
                     height: Material.Units.dp(44)
                     KeyNavigation.up: reinforcement
                     KeyNavigation.down: currentOffset
-                    onSelectedChanged: selected? descriptionlabel.text="设定焊接过程中溶敷系数大小。" :null;
+                    onSelectedChanged: selected? descriptionlabel.text="设定焊接过程中溶敷系数的大小，以方便推算更合适的焊接规范。" :null;
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
@@ -599,7 +601,7 @@ FocusScope {
                     Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: currentOffset
-                    KeyNavigation.down: AppConfig.currentUserType=="SuperUser"?preGasTime:null
+                    KeyNavigation.down: root.type?preGasTime:null
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
@@ -649,7 +651,7 @@ FocusScope {
                     KeyNavigation.up: voltageOffset
                     KeyNavigation.down: afterGasTime
                     onClicked:forceActiveFocus();
-                    visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    visible: root.type
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
@@ -697,7 +699,7 @@ FocusScope {
                     KeyNavigation.up: preGasTime
                     KeyNavigation.down: startArcTime
                     onClicked:forceActiveFocus();
-                    visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    visible:root.type
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
@@ -746,7 +748,7 @@ FocusScope {
                     KeyNavigation.up: afterGasTime
                     KeyNavigation.down: endArcTime
                     onClicked:forceActiveFocus();
-                    visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    visible: root.type
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
@@ -795,7 +797,7 @@ FocusScope {
                     KeyNavigation.up: startArcTime
                     KeyNavigation.down: startArcCurrent
                     onClicked:forceActiveFocus();
-                    visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    visible:root.type
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
@@ -843,7 +845,7 @@ FocusScope {
                     KeyNavigation.up: endArcTime
                     KeyNavigation.down: startArcVolagte
                     onClicked:forceActiveFocus();
-                    visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    visible: root.type
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
@@ -889,7 +891,7 @@ FocusScope {
                     KeyNavigation.up: startArcCurrent
                     KeyNavigation.down: endArcCurrent
                     onClicked:forceActiveFocus();
-                    visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    visible: root.type
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
@@ -937,7 +939,7 @@ FocusScope {
                     KeyNavigation.up: startArcVolagte
                     KeyNavigation.down: endArcVolagte
                     onClicked:forceActiveFocus();
-                    visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    visible: root.type
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
@@ -983,7 +985,7 @@ FocusScope {
                     KeyNavigation.up: endArcCurrent
 
                     onClicked:forceActiveFocus();
-                    visible: AppConfig.currentUserType=="SuperUser"?true:false
+                    visible: root.type
                     Keys.onPressed: {
                         var res;
                         switch(event.key){

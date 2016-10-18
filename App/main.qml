@@ -141,7 +141,7 @@ Material.ApplicationWindow{
     initialPage: Material.TabbedPage {
         id: page
         /*标题*/
-        title:qsTr("全位置MAG焊接机器人系统")
+        title:qsTr("全位置MAG焊接系统")
         /*最大action显示数量*/
         actionBar.maxActionCount: 5
         /*actions列表*/
@@ -210,9 +210,12 @@ Material.ApplicationWindow{
                 listModel.clear();
                 titleImage=app.tabiconname[page.selectedTab]
                 titleLabel=app.sectionTitles[page.selectedTab]
+                var type=AppConfig.currentUserType;
                 for(var i=0;i<sectionsName[page.selectedTab].length;i++){
                     listModel.append({"name":sectionsName[page.selectedTab][i],"icon":sectionsIcon[page.selectedTab][i]})
                 }
+                if((page.selectedTab===0)&&(type==="用户"))
+                    listModel.remove(4,1);
                 model=listModel;
                 oldIndex=page.selectedTab===0 ? page0SelectedIndex :page.selectedTab===1?page1SelectedIndex :page2SelectedIndex;
                 selectedIndex=oldIndex;
@@ -326,16 +329,16 @@ Material.ApplicationWindow{
                     onChangedCurrentGroove: {
                         //更新坡口名称
                         app.currentGrooveName=name;
-                        //清空坡口数据
-                        grooveTableInit.clear();
-                        //获取坡口数据
-                        var listmodel=Material.UserData.getTableJson(name)
-                        //插入数据到grooveTableInit
-                        if(typeof(listmodel)==="object"){
-                            for(var i=0;i<listmodel.length;i++){
-                                grooveTableInit.append(listmodel[i])
-                            }
-                        }
+//                        //清空坡口数据
+//                        grooveTableInit.clear();
+//                        //获取坡口数据
+//                        var listmodel=Material.UserData.getTableJson(name)
+//                        //插入数据到grooveTableInit
+//                        if(typeof(listmodel)==="object"){
+//                            for(var i=0;i<listmodel.length;i++){
+//                                grooveTableInit.append(listmodel[i])
+//                            }
+//                        }
                     }
                 }
                 LimitedCondition{
@@ -460,7 +463,7 @@ Material.ApplicationWindow{
             //提示
             snackBar.open(weldFix?"焊接系统修补焊接中。":"焊接系统焊接中。")
             //切换到 焊接曲线页面下
-            app.page1SelectedIndex=1;
+            app.page1SelectedIndex=0;
             //切换到 焊接分析页面
             page.selectedTab=1;
             //把line的坐标更新到当前坐标
@@ -559,7 +562,7 @@ Material.ApplicationWindow{
         visible: (!page.actionBar.overflowMenuShowing)&&(!myErrorDialog.showing)&&(!moto.showing)&&(!navigationDrawer.showing)&&(!changeuser.showing)
         Behavior on visible {NumberAnimation{duration: 200}}
         action:Material.Action{
-            iconName:"action/android";name: qsTr("机器人操作")
+            iconName:"action/android";name: qsTr("机头操作")
             onTriggered: {
                 moto.open();
             }
@@ -690,7 +693,7 @@ Material.ApplicationWindow{
     }
     Material.Dialog{
         id:moto
-        title: "机器人本体设定"
+        title: "机头坐标设定"
         property var send:  ["0","0","0","0","0","0","0","0","0","0","0","0"]
         negativeButtonText:qsTr("取消");positiveButtonText: qsTr("完成");
         onAccepted:{
@@ -900,31 +903,12 @@ Material.ApplicationWindow{
         positiveButtonEnabled:false;
         negativeButton.visible: false;
         globalMouseAreaEnabled: true
-        dismissOnTap:false
+        dismissOnTap:positiveButtonEnabled
         overlayColor: Qt.rgba(0, 0, 0, 0.3)
         property string password
         property string user
         property string type
-        Keys.onPressed: {
-            if (event.key === Qt.Key_Escape) {
-                closeKeyPressed(event);
-                rejected();
-            }
-            if (event.key === Qt.Key_Enter){
-                closeKeyPressed(event);
-                accepted();
-            }
-            if (event.key === Qt.Key_Return){
-                closeKeyPressed(event);
-                accepted();
-            }
-        }
-        function closeKeyPressed(event) {
-            if (changeuser.showing) {
-                changeuser.close()
-                event.accepted = true
-            }
-        }
+
         function getIndex(name){
             for(var i=0;i<accountmodel.count;i++){
                 if(accountmodel.get(i).C2===name)
@@ -947,11 +931,8 @@ Material.ApplicationWindow{
         onRejected: {
             changeuserFeildtext.selectedIndex=getIndex(AppConfig.currentUserName);
             changeuser.type=AppConfig.currentUserType;
-            if(app.sysStatus==="未登录态")
-                app.sysStatus="空闲态";
         }
         onOpened: {
-
             if(accountmodel.count>0){
                 changeuser.user=AppConfig.currentUserName;
                 var index=getIndex(changeuser.user);
@@ -1067,7 +1048,6 @@ Material.ApplicationWindow{
         teachModel=Material.UserData.getValueFromFuncOfTable("TeachCondition","","");
         weldConditionModel.length=0;
         weldConditionModel=Material.UserData.getValueFromFuncOfTable("WeldCondition","","");
-
         //创建错误历史记录
         Material.UserData.createTable("SysErrorHistroy","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT");
         var res=Material.UserData.getTableJson("SysErrorHistroy","","")

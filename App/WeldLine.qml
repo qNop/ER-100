@@ -23,8 +23,6 @@ FocusScope{
     //当前道数
     property int weldNum:0
 
-
-
     property string status:"空闲态"
 
     property var lineTime:new Date()

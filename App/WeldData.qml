@@ -21,27 +21,37 @@ FocusScope{
         leftMargin:visible?0:Units.dp(250)
     }
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InQuad }}
-    property var groovestyles: [
-        qsTr( "平焊单边V型坡口T接头"), qsTr( "平焊单边V型坡口平对接"),  qsTr("平焊V型坡口平对接"),
-        qsTr("横焊单边V型坡口T接头"), qsTr( "横焊单边V型坡口平对接"),
-        qsTr("立焊单边V型坡口T接头"),  qsTr("立焊单边V型坡口平对接"), qsTr("立焊V型坡口平对接"),
-        qsTr("水平角焊")  ]
+
     property Item message
-    property var editData:["","","","","","","","","","","","","","",""]
     property string status:"空闲态"
     property alias weldTableIndex: tableView.currentRow
+
+    property alias model: tableView.model
 
     property int currentGroove: 0
     //上次焊接规范名称
     property string weldRulesName;
-    property bool weldTableEx:AppConfig.currentUserType=="超级用户"?true:false
-
+    property bool weldTableEx
     property string currentGrooveName
 
     property var rulesList;
+    //外部更新数据
+    signal updateModel(string str,var data);
 
-    //焊接规范表格
-    ListModel{id:weldTable;}
+    property var weldCondtion: [
+        "        NO.          ",
+        "层    /道      号 ",
+        "电      流  (A)   ",
+        "电      压  (V)   ",
+        "摆      幅(mm) ",
+        "摆      频(mm) ",
+        "焊速(cm/min)",
+        "焊接线X(mm)",
+        "焊接线Y(mm)",
+        "内   停  留 (s)  ",
+        "外   停  留 (s)  ",
+        "停  止 时 间(s)","层面积","道面积","起弧点X","起弧点Y","起弧点Z"]
+    ListModel{id:pasteModel}
 
     function getLastRulesName(){
         if((typeof(currentGrooveName)==="string")&&(currentGrooveName!=="")){
@@ -57,41 +67,39 @@ FocusScope{
 
     onCurrentGrooveNameChanged: {
         var res=getLastRulesName();
+        console.log(objectName+" currentGrooveName "+res)
         if(res!==-1){
             weldRulesName=res;
-            weldTable.clear()
+            updateModel("Clear",{})
             res=UserData.getTableJson(weldRulesName)
             if(res!==-1){
                 for(var i=0;i<res.length;i++){
-                    weldTable.append(res[i])
+                    updateModel("Append",res[i])
                 }
             }
         }
     }
     //当前页面关闭 则 关闭当前页面内 对话框
-
     onStatusChanged: {
         if(status==="坡口检测完成态"){
             weldTableIndex=0;
-            weldTable.clear();
+            selectIndex(0)
         }
     }
     function selectIndex(index){
-        if((index<weldTable.count)&&(index>-1)){
+        if((index<model.count)&&(index>-1)){
             tableView.table.selection.clear();
             tableView.table.selection.select(index);
         }
         else
             message.open("索引超过条目上限或索引无效！")
     }
-
     TableCard{
         id:tableView
         footerText:  "系统当前处于"+status.replace("态","状态。")
         tableRowCount:7
         headerTitle: weldRulesName
         table.__listView.interactive: status!=="焊接态"
-        model: weldTable
         fileMenu: [
             Action{iconName:"awesome/calendar_plus_o";name:"新建";
                 onTriggered: newFile.show();},
@@ -105,23 +113,23 @@ FocusScope{
                         for(var i=0;i<tableView.table.rowCount;i++){
                             //插入新的数据
                             UserData.insertTable(weldRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[
-                                                     tableView.model.get(i).ID,
-                                                     tableView.model.get(i).C1,
-                                                     tableView.model.get(i).C2,
-                                                     tableView.model.get(i).C3,
-                                                     tableView.model.get(i).C4,
-                                                     tableView.model.get(i).C5,
-                                                     tableView.model.get(i).C6,
-                                                     tableView.model.get(i).C7,
-                                                     tableView.model.get(i).C8,
-                                                     tableView.model.get(i).C9,
-                                                     tableView.model.get(i).C10,
-                                                     tableView.model.get(i).C11,
-                                                     tableView.model.get(i).C12,
-                                                     tableView.model.get(i).C13,
-                                                     tableView.model.get(i).C14,
-                                                     tableView.model.get(i).C15,
-                                                     tableView.model.get(i).C16,])
+                                                     model.get(i).ID,
+                                                     model.get(i).C1,
+                                                     model.get(i).C2,
+                                                     model.get(i).C3,
+                                                     model.get(i).C4,
+                                                     model.get(i).C5,
+                                                     model.get(i).C6,
+                                                     model.get(i).C7,
+                                                     model.get(i).C8,
+                                                     model.get(i).C9,
+                                                     model.get(i).C10,
+                                                     model.get(i).C11,
+                                                     model.get(i).C12,
+                                                     model.get(i).C13,
+                                                     model.get(i).C14,
+                                                     model.get(i).C15,
+                                                     model.get(i).C16,])
                         }
                         message.open("焊接规范已保存。");}
                     else{
@@ -143,25 +151,8 @@ FocusScope{
             },
             Action{iconName:"awesome/copy";name:"复制";
                 onTriggered: {
-                    var index =weldTableIndex;
                     if(weldTableIndex>=0){
-                        editData[0]=tableView.model.get(index).ID;
-                        editData[1]=tableView.model.get(index).C1;
-                        editData[2]=tableView.model.get(index).C2;
-                        editData[3]=tableView.model.get(index).C3;
-                        editData[4]=tableView.model.get(index).C4;
-                        editData[5]=tableView.model.get(index).C5;
-                        editData[6]=tableView.model.get(index).C6;
-                        editData[7]=tableView.model.get(index).C7;
-                        editData[8]=tableView.model.get(index).C8;
-                        editData[9]=tableView.model.get(index).C9;
-                        editData[10]=tableView.model.get(index).C10;
-                        editData[11]=tableView.model.get(index).C11;
-                        editData[12]=tableView.model.get(index).C12;
-                        editData[13]=tableView.model.get(index).C13;
-                        editData[14]=tableView.model.get(index).C14;
-                        editData[15]=tableView.model.get(index).C15;
-                        editData[16]=tableView.model.get(index).C16;
+                        pasteModel.set(0,model.get(weldTableIndex));
                         message.open("已复制。");}
                     else{
                         message.open("请选择要复制的行！")
@@ -170,19 +161,8 @@ FocusScope{
             Action{iconName:"awesome/paste"; name:"粘帖"
                 onTriggered: {
                     if(weldTableIndex>=0){
-                        var index=weldTableIndex;
-                        tableView.model.set(index,
-                                            {   "ID":editData[0],
-                                                "C1":editData[1],"C2":editData[2],
-                                                "C3":editData[3],"C4":editData[4],
-                                                "C5":editData[5],"C6":editData[6],
-                                                "C7":editData[7],"C8":editData[8],
-                                                "C9":editData[9],"C10":editData[10],
-                                                "C11":editData[11],"C12":editData[12],
-                                                "C13":editData[13],"C14":editData[14],
-                                                "C15":editData[15],"C16":editData[16],
-                                            })
-                        selectIndex(index)
+                        updateModel("Set", pasteModel.get(0));
+                        selectIndex(weldTableIndex)
                         message.open("已粘帖。");}
                     else
                         message.open("请选择要粘帖的行！")
@@ -191,12 +171,18 @@ FocusScope{
             Action{iconName: "awesome/trash_o";  name:"移除";
                 onTriggered: {
                     if(weldTableIndex>=0){
-                        tableView.model.remove(weldTableIndex);
+                        updateModel("Remove",{})
                         message.open("已移除。");}
                     else
                         message.open("请选择要移除的行！")
                 }
-            }]
+            },
+            Action{iconName:"awesome/calendar_o";name:"清空";
+                onTriggered: {
+                    updateModel("Clear",{});
+                    message.open("已清空。");
+                }}
+        ]
         inforMenu: [ Action{iconName: "awesome/info";  name:"详细信息" ;
                 onTriggered: {info.show();}
             }]
@@ -208,22 +194,22 @@ FocusScope{
                         var floor=tableView.model.get(index).C1.split("/");
                         ERModbus.setmodbusFrame(["W","201","17",
                                                  (Number(floor[0])*100+Number(floor[1])).toString(),
-                                                 tableView.model.get(index).C2,
-                                                 tableView.model.get(index).C3*10,
-                                                 tableView.model.get(index).C4*10,
-                                                 tableView.model.get(index).C5,
-                                                 tableView.model.get(index).C6*10,
-                                                 tableView.model.get(index).C7*10,
-                                                 tableView.model.get(index).C8*10,
-                                                 tableView.model.get(index).C9*10,
-                                                 tableView.model.get(index).C10*10,
-                                                 tableView.model.get(index).C11==="连续"?"0":"1",
-                                                                                        tableView.model.get(index).C12*10,//层面积
-                                                                                        tableView.model.get(index).C13*10,//单道面积
-                                                                                        tableView.model.get(index).C14*10,//起弧位置偏移
-                                                                                        tableView.model.get(index).C15*10,//起弧
-                                                                                        tableView.model.get(index).C16*10,//起弧
-                                                                                        tableView.rowCount//总共焊道号
+                                                 model.get(index).C2,
+                                                 model.get(index).C3*10,
+                                                 model.get(index).C4*10,
+                                                 model.get(index).C5,
+                                                 model.get(index).C6*10,
+                                                 model.get(index).C7*10,
+                                                 model.get(index).C8*10,
+                                                 model.get(index).C9*10,
+                                                 model.get(index).C10*10,
+                                                 model.get(index).C11==="连续"?"0":"1",
+                                                                              model.get(index).C12*10,//层面积
+                                                                              model.get(index).C13*10,//单道面积
+                                                                              model.get(index).C14*10,//起弧位置偏移
+                                                                              model.get(index).C15*10,//起弧
+                                                                              model.get(index).C16*10,//起弧
+                                                                              tableView.table.rowCount//总共焊道号
                                                 ]);
                         message.open("已下发焊接规范。");
                     }else {
@@ -300,11 +286,11 @@ FocusScope{
             if(typeof(open.name)==="string")
             {
                 weldRulesName=open.name
-                weldTable.clear()
+                updateModel("CLear",{})
                 var res=UserData.getTableJson(open.name)
                 if(res!==-1){
                     for(var i=0;i<res.length;i++){
-                        weldTable.append(res[i])
+                        updateModel("Append",res[i])
                     }
                 }
             }
@@ -414,9 +400,10 @@ FocusScope{
             if(res!==-1){
                 weldRulesName=res;
                 var listModel=UserData.getTableJson(weldRulesName);
+                updateModel("Clear",{});
                 if(listModel!==-1)
                     for(var i=0;i<listModel.length;i++){
-                        weldTable.append(listModel[i]);
+                        updateModel("Append",listModel[i])
                     }
             }
         }
@@ -428,43 +415,14 @@ FocusScope{
         positiveButtonText:qsTr("确定")
         globalMouseAreaEnabled:false
         onAccepted: {
-            //只有一个空白行则插入新的行
-            tableView.model.append(
-                        weldTableEx?  { "ID":columnRepeater.itemAt(0).text,
-                                         "C1":columnRepeater.itemAt(1).text,
-                                         "C2":columnRepeater.itemAt(2).text,
-                                         "C3":columnRepeater.itemAt(3).text,
-                                         "C4":columnRepeater.itemAt(4).text,
-                                         "C5":columnRepeater.itemAt(5).text,
-                                         "C6":columnRepeater.itemAt(6).text,
-                                         "C7":columnRepeater.itemAt(7).text,
-                                         "C8":columnRepeater.itemAt(8).text,
-                                         "C9":columnRepeater.itemAt(9).text,
-                                         "C10":columnRepeater.itemAt(10).text,
-                                         "C11":columnRepeater.itemAt(11).text,
-                                         "C12":columnRepeater.itemAt(12).text,
-                                         "C13":columnRepeater.itemAt(13).text,
-                                         "C14":columnRepeater.itemAt(14).text,
-                                         "C15":columnRepeater.itemAt(15).text,
-                                         "C16":columnRepeater.itemAt(16).text}
-                        :{ "ID":columnRepeater.itemAt(0).text,
-                            "C1":columnRepeater.itemAt(1).text,
-                            "C2":columnRepeater.itemAt(2).text,
-                            "C3":columnRepeater.itemAt(3).text,
-                            "C4":columnRepeater.itemAt(4).text,
-                            "C5":columnRepeater.itemAt(5).text,
-                            "C6":columnRepeater.itemAt(6).text,
-                            "C7":columnRepeater.itemAt(7).text,
-                            "C8":columnRepeater.itemAt(8).text,
-                            "C9":columnRepeater.itemAt(9).text,
-                            "C10":columnRepeater.itemAt(10).text,
-                            "C11":columnRepeater.itemAt(11).text,
-                            "C12":"0",
-                            "C13":"0",
-                            "C14":"0",
-                            "C15":"0",
-                            "C16":"0"}
-                        )}
+            updateModel("Append", pasteModel.get(0))
+        }
+        onOpened: {
+            pasteModel.set(0,{"ID":"0", "C1":"0","C2":"0","C3":"0","C4":"0","C5":"0","C6":"0","C7":"0","C8":"0","C9":"0","C10":"0","C11":"0","C12":"0","C13":"0","C14":"0","C15":"0","C16":"0"})
+            for(var i=0;i<weldCondtion.length;i++){
+                columnRepeater.itemAt(i).text="0";
+            }
+        }
         dialogContent: [
             Item{
                 id:item
@@ -479,31 +437,7 @@ FocusScope{
                     anchors.right: parent.right
                     Repeater{
                         id:columnRepeater
-                        model:weldTableEx?[
-                                               "        NO.          ",
-                                               "层    /道      号 ",
-                                               "电      流  (A)   ",
-                                               "电      压  (V)   ",
-                                               "摆      幅(mm) ",
-                                               "摆      频(mm) ",
-                                               "焊速(cm/min)",
-                                               "焊接线X(mm)",
-                                               "焊接线Y(mm)",
-                                               "内   停  留 (s)  ",
-                                               "外   停  留 (s)  ",
-                                               "预   约  停  止 ","层面积","道面积","起弧点X","起弧点Y","起弧点Z"]
-                                         :[ "        NO.          ",
-                                           "层    /道      号 ",
-                                           "电      流  (A)   ",
-                                           "电      压  (V)   ",
-                                           "摆      幅(mm) ",
-                                           "摆      频(mm) ",
-                                           "焊速(cm/min)",
-                                           "焊接线X(mm)",
-                                           "焊接线Y(mm)",
-                                           "内   停  留 (s)  ",
-                                           "外   停  留 (s)  ",
-                                           "预   约  停  止 "]
+                        model:weldCondtion
                         delegate:Row{
                             property alias text: textField.text
                             property bool textFeildfocus:false
@@ -513,20 +447,38 @@ FocusScope{
                                 }
                             }
                             spacing: Units.dp(8)
-                            Label{text:modelData;anchors.bottom: parent.bottom}
+                            Label{text:modelData;anchors.bottom: parent.bottom
+                                visible:weldTableEx?true:index<12?true:false }
                             TextField{
                                 id:textField
                                 horizontalAlignment:TextInput.AlignHCenter
+                                visible:weldTableEx?true:index<12?true:false
                                 width: Units.dp(60)
-                                onVisibleChanged: {
-                                    if(visible){
-                                        text="0";
-                                    }
-                                }
                                 inputMethodHints: Qt.ImhDigitsOnly
                                 onActiveFocusChanged: {
                                     if(activeFocus){
                                         item.focusIndex=index;
+                                    }
+                                }
+                                onTextChanged: {
+                                    switch(index){
+                                    case 0:pasteModel.setProperty(0,"ID",text);break;
+                                    case 1:pasteModel.setProperty(0,"C1",text);break;
+                                    case 2:pasteModel.setProperty(0,"C2",text);break;
+                                    case 3:pasteModel.setProperty(0,"C3",text);break;
+                                    case 4:pasteModel.setProperty(0,"C4",text);break;
+                                    case 5:pasteModel.setProperty(0,"C5",text);break;
+                                    case 6:pasteModel.setProperty(0,"C6",text);break;
+                                    case 7:pasteModel.setProperty(0,"C7",text);break;
+                                    case 8:pasteModel.setProperty(0,"C8",text);break;
+                                    case 9:pasteModel.setProperty(0,"C9",text);break;
+                                    case 10:pasteModel.setProperty(0,"C10",text);break;
+                                    case 11:pasteModel.setProperty(0,"C11",text);break;
+                                    case 12:pasteModel.setProperty(0,"C12",text);break;
+                                    case 13:pasteModel.setProperty(0,"C13",text);break;
+                                    case 14:pasteModel.setProperty(0,"C14",text);break;
+                                    case 15:pasteModel.setProperty(0,"C15",text);break;
+                                    case 16:pasteModel.setProperty(0,"C16",text);break;
                                     }
                                 }
                             }}
@@ -559,64 +511,30 @@ FocusScope{
         positiveButtonText:qsTr("确定")
         globalMouseAreaEnabled:false
         onAccepted: {
-            //只有一个空白行则插入新的行
-            tableView.model.set(weldTableIndex,
-                                weldTableEx?  { "ID":editcolumnRepeater.itemAt(0).text,
-                                                 "C1":editcolumnRepeater.itemAt(1).text,
-                                                 "C2":editcolumnRepeater.itemAt(2).text,
-                                                 "C3":editcolumnRepeater.itemAt(3).text,
-                                                 "C4":editcolumnRepeater.itemAt(4).text,
-                                                 "C5":editcolumnRepeater.itemAt(5).text,
-                                                 "C6":editcolumnRepeater.itemAt(6).text,
-                                                 "C7":editcolumnRepeater.itemAt(7).text,
-                                                 "C8":editcolumnRepeater.itemAt(8).text,
-                                                 "C9":editcolumnRepeater.itemAt(9).text,
-                                                 "C10":editcolumnRepeater.itemAt(10).text,
-                                                 "C11":editcolumnRepeater.itemAt(11).text,
-                                                 "C12":editcolumnRepeater.itemAt(12).text,
-                                                 "C13":editcolumnRepeater.itemAt(13).text,
-                                                 "C14":editcolumnRepeater.itemAt(14).text,
-                                                 "C15":editcolumnRepeater.itemAt(15).text,
-                                                 "C16":editcolumnRepeater.itemAt(16).text}
-                                :{ "ID":editcolumnRepeater.itemAt(0).text,
-                                    "C1":editcolumnRepeater.itemAt(1).text,
-                                    "C2":editcolumnRepeater.itemAt(2).text,
-                                    "C3":editcolumnRepeater.itemAt(3).text,
-                                    "C4":editcolumnRepeater.itemAt(4).text,
-                                    "C5":editcolumnRepeater.itemAt(5).text,
-                                    "C6":editcolumnRepeater.itemAt(6).text,
-                                    "C7":editcolumnRepeater.itemAt(7).text,
-                                    "C8":editcolumnRepeater.itemAt(8).text,
-                                    "C9":editcolumnRepeater.itemAt(9).text,
-                                    "C10":editcolumnRepeater.itemAt(10).text,
-                                    "C11":editcolumnRepeater.itemAt(11).text,
-                                    "C12":"0",
-                                    "C13":"0",
-                                    "C14":"0",
-                                    "C15":"0",
-                                    "C16":"0"}
-                                )}
+            updateModel("Set",pasteModel.get(0))
+        }
         onOpened: {
             if(weldTableIndex>-1){
                 //复制数据到 editData
                 var index=weldTableIndex
-                editcolumnRepeater.itemAt(0).text=tableView.model.get(index).ID;
-                editcolumnRepeater.itemAt(1).text=tableView.model.get(index).C1;
-                editcolumnRepeater.itemAt(2).text=tableView.model.get(index).C2;
-                editcolumnRepeater.itemAt(3).text=tableView.model.get(index).C3;
-                editcolumnRepeater.itemAt(4).text=tableView.model.get(index).C4;
-                editcolumnRepeater.itemAt(5).text=tableView.model.get(index).C5;
-                editcolumnRepeater.itemAt(6).text=tableView.model.get(index).C6;
-                editcolumnRepeater.itemAt(7).text=tableView.model.get(index).C7;
-                editcolumnRepeater.itemAt(8).text=tableView.model.get(index).C8;
-                editcolumnRepeater.itemAt(9).text=tableView.model.get(index).C9;
-                editcolumnRepeater.itemAt(10).text=tableView.model.get(index).C10;
-                editcolumnRepeater.itemAt(11).text=tableView.model.get(index).C11;
-                editcolumnRepeater.itemAt(12).text=tableView.model.get(index).C12;
-                editcolumnRepeater.itemAt(13).text=tableView.model.get(index).C13;
-                editcolumnRepeater.itemAt(14).text=tableView.model.get(index).C14;
-                editcolumnRepeater.itemAt(15).text=tableView.model.get(index).C15;
-                aeditcolumnRepeater.itemAt(16).text=tableView.model.get(index).C16;
+                editcolumnRepeater.itemAt(0).text=model.get(index).ID;
+                editcolumnRepeater.itemAt(1).text=model.get(index).C1;
+                editcolumnRepeater.itemAt(2).text=model.get(index).C2;
+                editcolumnRepeater.itemAt(3).text=model.get(index).C3;
+                editcolumnRepeater.itemAt(4).text=model.get(index).C4;
+                editcolumnRepeater.itemAt(5).text=model.get(index).C5;
+                editcolumnRepeater.itemAt(6).text=model.get(index).C6;
+                editcolumnRepeater.itemAt(7).text=model.get(index).C7;
+                editcolumnRepeater.itemAt(8).text=model.get(index).C8;
+                editcolumnRepeater.itemAt(9).text=model.get(index).C9;
+                editcolumnRepeater.itemAt(10).text=model.get(index).C10;
+                editcolumnRepeater.itemAt(11).text=model.get(index).C11;
+                editcolumnRepeater.itemAt(12).text=model.get(index).C12;
+                editcolumnRepeater.itemAt(13).text=model.get(index).C13;
+                editcolumnRepeater.itemAt(14).text=model.get(index).C14;
+                editcolumnRepeater.itemAt(15).text=model.get(index).C15;
+                editcolumnRepeater.itemAt(16).text=model.get(index).C16;
+                pasteModel.set(0,model.get(0));
             }
             else{
                 message.open("请选择要编辑的行！")
@@ -649,37 +567,12 @@ FocusScope{
                 Column{
                     id:editcolumn
                     anchors.top:parent.top
-                    anchors.left: parent.left//editimage.right
+                    anchors.left: parent.left
                     anchors.leftMargin: Units.dp(16)
                     anchors.right: parent.right
                     Repeater{
                         id:editcolumnRepeater
-                        model:weldTableEx?[
-                                               "        NO.          ",
-                                               "层    /道      号 ",
-                                               "电      流  (A)   ",
-                                               "电      压  (V)   ",
-                                               "摆      幅(mm) ",
-                                               "摆      频(mm) ",
-                                               "焊速(cm/min)",
-                                               "焊接线X(mm)",
-                                               "焊接线Y(mm)",
-                                               "内   停  留 (s)  ",
-                                               "外   停  留 (s)  ",
-                                               "预   约  停  止 ",
-                                               "层面积","道面积","起弧点X","起弧点Y","起弧点Z"]
-                                         :[ "        NO.          ",
-                                           "层    /道      号 ",
-                                           "电      流  (A)   ",
-                                           "电      压  (V)   ",
-                                           "摆      幅(mm) ",
-                                           "摆      频(mm) ",
-                                           "焊速(cm/min)",
-                                           "焊接线X(mm)",
-                                           "焊接线Y(mm)",
-                                           "内   停  留 (s)  ",
-                                           "外   停  留 (s)  ",
-                                           "预   约  停  止 "]
+                        model:weldCondtion
                         delegate:Row{
                             property alias text: edittextField.text
                             property bool textFeildfocus:false
@@ -689,15 +582,38 @@ FocusScope{
                                 }
                             }
                             spacing: Units.dp(8)
-                            Label{text:modelData;anchors.bottom: parent.bottom}
+                            Label{text:modelData;anchors.bottom: parent.bottom
+                                visible:weldTableEx?true:index<12?true:false}
                             TextField{
                                 id:edittextField
+                                visible:weldTableEx?true:index<12?true:false
                                 horizontalAlignment:TextInput.AlignHCenter
                                 width: Units.dp(60)
                                 inputMethodHints: Qt.ImhDigitsOnly
                                 onActiveFocusChanged: {
                                     if(activeFocus){
                                         item1.focusIndex=index;
+                                    }
+                                }
+                                onTextChanged: {
+                                    switch(index){
+                                    case 0:pasteModel.setProperty(0,"ID",text);break;
+                                    case 1:pasteModel.setProperty(0,"C1",text);break;
+                                    case 2:pasteModel.setProperty(0,"C2",text);break;
+                                    case 3:pasteModel.setProperty(0,"C3",text);break;
+                                    case 4:pasteModel.setProperty(0,"C4",text);break;
+                                    case 5:pasteModel.setProperty(0,"C5",text);break;
+                                    case 6:pasteModel.setProperty(0,"C6",text);break;
+                                    case 7:pasteModel.setProperty(0,"C7",text);break;
+                                    case 8:pasteModel.setProperty(0,"C8",text);break;
+                                    case 9:pasteModel.setProperty(0,"C9",text);break;
+                                    case 10:pasteModel.setProperty(0,"C10",text);break;
+                                    case 11:pasteModel.setProperty(0,"C11",text);break;
+                                    case 12:pasteModel.setProperty(0,"C12",text);break;
+                                    case 13:pasteModel.setProperty(0,"C13",text);break;
+                                    case 14:pasteModel.setProperty(0,"C14",text);break;
+                                    case 15:pasteModel.setProperty(0,"C15",text);break;
+                                    case 16:pasteModel.setProperty(0,"C16",text);break;
                                     }
                                 }
                             }}
@@ -725,100 +641,6 @@ FocusScope{
             Label{text:"总计焊接时间："+10},
             Label{text:"总计气体消耗量："+10}
         ]
-    }
-    //链接 weldmath
-    Connections{
-        target: WeldMath
-        onWeldRulesChanged:{
-            console.log(value);
-            //确保数组数值正确
-            if((typeof(value)==="object")&&(value.length===18)&&(value[0]==="Successed")){
-                weldTable.set(Number(value[1])-1,{
-                                  "ID":value[1],
-                                  "C1":value[2],
-                                  "C2":value[3],
-                                  "C3":value[4],
-                                  "C4":value[5],
-                                  "C5":value[6],
-                                  "C6":value[7],
-                                  "C7":value[8],
-                                  "C8":value[9],
-                                  "C9":value[10],
-                                  "C10":value[11],
-                                  "C11":value[12],
-                                  "C12":value[13],
-                                  "C13":value[14],
-                                  "C14":value[15],
-                                  "C15":value[16],
-                                  "C16":value[17]
-                              })
-            }else{//输出错误
-                message.open(value[0]);
-            }
-        }
-        onGrooveRulesChanged:{
-            console.log(value);
-            if(value[0]==="Clear"){
-                //清除焊接规范表格
-                weldTable.clear();
-            }
-            else if(value[0]==="Finish"){
-                // 切换状态为端部暂停
-                if(status==="坡口检测完成态"){
-                    //下发端部暂停态
-                      ERModbus.setmodbusFrame(["W","0","1","5"]);
-                }
-                tableView.forceActiveFocus();
-                weldTableIndex=0;
-                selectIndex(weldTableIndex);
-            }
-        }
-    }
-
-    Connections{
-        target: ERModbus
-        //frame[0] 代表状态 1代读取的寄存器地址 2代表返回的 第一个数据 3代表返回的第二个数据 依次递推
-        onModbusFrameChanged:{
-            //通讯帧接受成功
-            if(frame[0]==="Success"){
-                if((frame[1]==="200")&&(status==="焊接端部暂停态")){
-                    if((frame[2]!==weldTableIndex.toString())){
-                        if(frame[2]!=="99"){
-                            //当前焊道号与实际焊道号不符 更换当前焊道
-                            weldTableIndex=Number(frame[2]);
-                            selectIndex(weldTableIndex);
-                        }
-                        //选择行数据有效
-                        if((weldTableIndex<weldTable.count)&&(weldTableIndex>-1)){
-                            //分离层/道
-                            var floor=weldTable.get(weldTableIndex).C1.split("/");
-                            ERModbus.setmodbusFrame(["W","201","17",
-                                                     (Number(floor[0])*100+Number(floor[1])).toString(),
-                                                     weldTable.get(weldTableIndex).C2,
-                                                     weldTable.get(weldTableIndex).C3*10,
-                                                     weldTable.get(weldTableIndex).C4*10,
-                                                     weldTable.get(weldTableIndex).C5,
-                                                     weldTable.get(weldTableIndex).C6*10,
-                                                     weldTable.get(weldTableIndex).C7*10,
-                                                     weldTable.get(weldTableIndex).C8*10,
-                                                     weldTable.get(weldTableIndex).C9*10,
-                                                     weldTable.get(weldTableIndex).C10*10,
-                                                     weldTable.get(weldTableIndex).C11==="连续"?"0":"1",
-                                                                                               weldTable.get(weldTableIndex).C12*10,//层面积
-                                                                                               weldTable.get(weldTableIndex).C13*10,//单道面积
-                                                                                               weldTable.get(weldTableIndex).C14*10,//起弧位置偏移
-                                                                                               weldTable.get(weldTableIndex).C15*10,//起弧
-                                                                                               weldTable.get(weldTableIndex).C16*10,//起弧
-                                                                                               weldTable.count//总共焊道号
-                                                    ]);
-                        }else
-                            //发送全0数据
-                            ERModbus.setmodbusFrame((["W","201","17","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]));
-                    }else
-                        ERModbus.setmodbusFrame(["R","0","3"]);
-                }
-            }
-        }
     }
 }
 

@@ -11,7 +11,10 @@ SOURCES += main.cpp \
     WeldAPI/ERModbus.cpp \
     WeldAPI/AppConfig.cpp \
     WeldAPI/SysInfor.cpp \
-    WeldAPI/weldmath.cpp
+    WeldAPI/weldmath.cpp \
+    WeldAPI/verticalmath.cpp \
+    WeldAPI/flatmath.cpp \
+    WeldAPI/horizontalmath.cpp
 
 
 RESOURCES += \
@@ -38,7 +41,10 @@ HEADERS += \
     WeldAPI/ERModbus.h \
     WeldAPI/AppConfig.h \
     WeldAPI/SysInfor.h \
-    WeldAPI/weldmath.h
+    WeldAPI/weldmath.h \
+    WeldAPI/verticalmath.h \
+    WeldAPI/flatmath.h \
+    WeldAPI/horizontalmath.h
 
 INCLUDEPATH +=libmodbus \
               libmodbus/src \

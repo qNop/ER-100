@@ -64,6 +64,7 @@ Item {
         anchors.centerIn: parent
 	text: action ? action.name : ""
 	color: label.color
+	style: "button"
     }
 
     Tooltip {

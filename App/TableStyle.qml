@@ -47,7 +47,7 @@ TableViewStyle{
         height:Material.Units.dp(56);
         Material.Label{
             anchors.centerIn: parent
-            text:styleData.value
+            text:typeof(styleData.value)!=="string"?"":styleData.value
             style:"menu"
             color:Material.Theme.light.shade(0.54)
         }
@@ -58,14 +58,13 @@ TableViewStyle{
         anchors.fill: parent
         Material.Label{
             anchors.centerIn: parent
-            text:styleData.value
+            text:typeof(styleData.value)!=="string"?"":styleData.value
             style:"body1"
             color: styleData.pressed?Material.Theme.light.shade(0.1):Material.Theme.light.shade(0.87)
         }
     }
     rowDelegate: Rectangle{
         height: Material.Units.dp(48);
-       // property color selectedColor: control.activeFocus ? Material.Palette.colors["grey"]["300"] : Material.Palette.colors["grey"]["200"] ;
         color: styleData.selected ?  Material.Palette.colors["grey"]["400"] : "white"
         Material.ThinDivider{anchors.bottom: parent.bottom}
     }

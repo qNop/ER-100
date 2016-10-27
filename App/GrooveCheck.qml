@@ -23,8 +23,6 @@ FocusScope{
         leftMargin:visible?0:Units.dp(250)
     }
 
-    signal changedCurrentGroove(string name)
-
     property Item message
     property string helpText;
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
@@ -32,41 +30,50 @@ FocusScope{
     property string grooveName
     //当前坡口名称
     property string currentGrooveName
-    property var editData:["","","","","","","","",""]
     property string status:"空闲态"
 
-    property alias selectedIndex:tableView.currentRow
+    property alias grooveTableIndex:tableView.currentRow
 
-    property var test: [new Date()];
+    property alias model: tableView.model
 
-    property bool actionEnable: ((grooveTableInit.count>0)&&(selectedIndex>-1))?true:false
+    property bool actionEnable: ((model.count>0)&&(grooveTableIndex>-1))?true:false
 
-    //坡口参数 初始表格
-    ListModel{id:grooveTableInit;}
+    property var grooveRules: ["           No.       ", "板    厚δ(mm)","板厚差e(mm)","间    隙b(mm)","角  度β1(deg)","角  度β2(deg)","中心线X(mm)","中心线Y(mm)","中心线Z(mm)"]
+
+    ListModel{id:pasteModel}
+
+    signal changedCurrentGroove(string name)
+    //外部更新数据
+    signal updateModel(string str,var data);
 
     function selectIndex(index){
-        if((index<grooveTableInit.count)&&(index>-1)){
+        if((index<model.count)&&(index>-1)){
             tableView.table.selection.clear();
             tableView.table.selection.select(index);
         }
         else
             message.open("索引超过条目上限或索引无效！")
     }
-    ListModel{
-        id:pasteModel
-        ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:""}
-    }
-    onActiveFocusChanged: {
-        if(activeFocus){
-            tableView.forceActiveFocus();
+    onCurrentGrooveNameChanged: {
+        if(currentGrooveName!==""){
+            //清空坡口数据
+            updateModel("Clear",{});
+            //获取坡口数据
+            var res=UserData.getTableJson(currentGrooveName)
+            //插入数据到grooveTableInit
+            if(typeof(res)==="object"){
+                for(var i=0;i<res.length;i++){
+                    updateModel("Append",res[i])
+                }
+            }
         }
     }
+
     TableCard{
         id:tableView
         headerTitle: currentGrooveName+"坡口参数"
         footerText:  status==="坡口检测态"?"系统当前处于"+status.replace("态","状态。高压输出！"):"系统当前处于"+status.replace("态","状态。")
         tableRowCount:7
-        model: grooveTableInit;
         fileMenu: [
             Action{iconName:"av/playlist_add";name:"新建";
                 onTriggered: {newFile.show()}},
@@ -81,15 +88,15 @@ FocusScope{
                         for(var i=0;i<tableView.table.rowCount;i++){
                             //插入新的数据
                             UserData.insertTable(currentGrooveName,"(?,?,?,?,?,?,?,?,?)",[
-                                                     grooveTableInit.get(i).ID,
-                                                     grooveTableInit.get(i).C1,
-                                                     grooveTableInit.get(i).C2,
-                                                     grooveTableInit.get(i).C3,
-                                                     grooveTableInit.get(i).C4,
-                                                     grooveTableInit.get(i).C5,
-                                                     grooveTableInit.get(i).C6,
-                                                     grooveTableInit.get(i).C7,
-                                                     grooveTableInit.get(i).C8])}
+                                                     model.get(i).ID,
+                                                     model.get(i).C1,
+                                                     model.get(i).C2,
+                                                     model.get(i).C3,
+                                                     model.get(i).C4,
+                                                     model.get(i).C5,
+                                                     model.get(i).C6,
+                                                     model.get(i).C7,
+                                                     model.get(i).C8])}
                         //更新数据库保存时间
                         UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"EditTime",UserData.getSysTime())
                         //更新数据库保存
@@ -108,24 +115,34 @@ FocusScope{
             Action{iconName:"awesome/edit";onTriggered: edit.show();name:"编辑";enabled:actionEnable},
             Action{iconName:"awesome/paste";name:"复制";enabled:actionEnable
                 onTriggered: {
-                    pasteModel.set(0,grooveTableInit.get(selectedIndex));
-                    message.open("已复制。");
+                    if(grooveTableIndex>=0){
+                        pasteModel.set(0,model.get(grooveTableIndex));
+                        message.open("已复制。");}
+                    else{
+                        message.open("请选择要复制的行！")
+                    }
                 }},
             Action{iconName:"awesome/copy"; name:"粘帖";enabled:actionEnable
                 onTriggered: {
-                    grooveTableInit.set(selectedIndex,pasteModel.get(0));
-                    selectIndex(selectedIndex);
-                    message.open("已粘帖。");
+                    if(grooveTableIndex>=0){
+                        updateModel("Set", pasteModel.get(0));
+                        selectIndex(grooveTableIndex)
+                        message.open("已粘帖。");}
+                    else
+                        message.open("请选择要粘帖的行！")
                 }
             },
             Action{iconName: "awesome/calendar_times_o";  name:"移除" ;enabled:actionEnable
                 onTriggered: {
-                    grooveTableInit.remove(selectedIndex);
-                    message.open("已删除。");}
+                    if(grooveTableIndex>=0){
+                        updateModel("Remove",{})
+                        message.open("已移除。");}
+                    else
+                        message.open("请选择要移除的行！")}
             },
             Action{iconName:"awesome/calendar_o";name:"清空";enabled:actionEnable
                 onTriggered: {
-                    grooveTableInit.clear();
+                    updateModel("Clear",{});
                     message.open("已清空。");
                 }}
         ]
@@ -134,16 +151,16 @@ FocusScope{
         funcMenu: [
             Action{iconName:"awesome/send_o";hoverAnimation:true;summary: "F4"; name:"生成规范";enabled:actionEnable;
                 onTriggered:{
-                    if(selectedIndex>-1){
+                    if(grooveTableIndex>-1){
                         WeldMath.setGrooveRules([
-                                                    grooveTableInit.get(0).C1,
-                                                    grooveTableInit.get(0).C2,
-                                                    grooveTableInit.get(0).C3,
-                                                    grooveTableInit.get(0).C4,
-                                                    grooveTableInit.get(0).C5,
-                                                    grooveTableInit.get(0).C6,
-                                                    grooveTableInit.get(0).C7,
-                                                    grooveTableInit.get(0).C8
+                                                    model.get(0).C1,
+                                                    model.get(0).C2,
+                                                    model.get(0).C3,
+                                                    model.get(0).C4,
+                                                    model.get(0).C5,
+                                                    model.get(0).C6,
+                                                    model.get(0).C7,
+                                                    model.get(0).C8
                                                 ]);
                         message.open("生成焊接规范。");
                     }else {
@@ -213,18 +230,7 @@ FocusScope{
         }
         onAccepted: {
             if(typeof(open.name)==="string"){
-                //清空坡口数据
-                grooveTableInit.clear();
-                //获取坡口数据
-                var listmodel=UserData.getTableJson(name)
-                //插入数据到grooveTableInit
-                if(typeof(listmodel)==="object"){
-                    for(var i=0;i<listmodel.length;i++){
-                        grooveTableInit.append(listmodel[i])
-                    }
-                }
                 changedCurrentGroove(open.name);
-
             }
         }
         onRejected: {
@@ -281,16 +287,6 @@ FocusScope{
                 var name=UserData.getLastGrooveName(grooveName+"列表","EditTime")
                 console.log("delete table name "+name)
                 if((typeof(name)==="string")&&(name!=="")){
-                    //清空坡口数据
-                    grooveTableInit.clear();
-                    //获取坡口数据
-                    var listmodel=UserData.getTableJson(name)
-                    //插入数据到grooveTableInit
-                    if(typeof(listmodel)==="object"){
-                        for(var i=0;i<listmodel.length;i++){
-                            grooveTableInit.append(listmodel[i])
-                        }
-                    }
                     //更新新列表数据
                     changedCurrentGroove(name);
                 }
@@ -337,7 +333,7 @@ FocusScope{
                         if(check){
                             newFile.positiveButtonEnabled=false;
                             helperText="该坡口参数名称已存在！"
-                            hasError=ture
+                            hasError=true;
                         }else{
                             newFile.positiveButtonEnabled=true;
                             helperText="坡口参数名称有效！"
@@ -370,17 +366,6 @@ FocusScope{
 
                 //创建新的过程分析列表
                 UserData.createTable(name+"过程分析","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT")
-
-                //清空坡口数据
-                grooveTableInit.clear();
-                //获取坡口数据
-                var listmodel=UserData.getTableJson(name)
-                //插入数据到grooveTableInit
-                if(typeof(listmodel)==="object"){
-                    for(var i=0;i<listmodel.length;i++){
-                        grooveTableInit.append(listmodel[i])
-                    }
-                }
                 //更新名称
                 changedCurrentGroove(name);
 
@@ -396,15 +381,10 @@ FocusScope{
         globalMouseAreaEnabled:false
         onAccepted: {
             //只有一个空白行则插入新的行
-            grooveTableInit.append(
-                        {   "ID":editData[0],
-                            "C1":editData[1],"C2":editData[2],
-                            "C3":editData[3],"C4":editData[4],
-                            "C5":editData[5],"C6":editData[6],
-                            "C7":editData[7],"C8":editData[8]})}
+            updateModel("Append",pasteModel.get(0))}
         onOpened: {
-            for(var i=0;i<editData.length;i++){
-                editData[i]="";
+            pasteModel.set(0,{"ID":"0", "C1":"0","C2":"0","C3":"0","C4":"0","C5":"0","C6":"0","C7":"0","C8":"0"})
+            for(var i=0;i<grooveRules.length;i++){
                 addColumnRepeater.itemAt(i).text="";
             }
         }
@@ -427,8 +407,7 @@ FocusScope{
                     anchors.right: parent.right
                     Repeater{
                         id:addColumnRepeater
-
-                        model:["           No.       ", "板    厚δ(mm)","板厚差e(mm)","间    隙b(mm)","角  度β1(deg)","角  度β2(deg)","中心线X(mm)","中心线Y(mm)","中心线Z(mm)"]
+                        model:grooveRules
                         delegate:Row{
                             property alias text: addTextField.text
                             spacing: Units.dp(8)
@@ -438,7 +417,19 @@ FocusScope{
                                 horizontalAlignment:TextInput.AlignHCenter
                                 width: Units.dp(60)
                                 inputMethodHints: Qt.ImhDigitsOnly
-                                onTextChanged: {editData[index]=text}
+                                onTextChanged: {
+                                    switch(index){
+                                    case 0:pasteModel.setProperty(0,"ID",text);break;
+                                    case 1:pasteModel.setProperty(0,"C1",text);break;
+                                    case 2:pasteModel.setProperty(0,"C2",text);break;
+                                    case 3:pasteModel.setProperty(0,"C3",text);break;
+                                    case 4:pasteModel.setProperty(0,"C4",text);break;
+                                    case 5:pasteModel.setProperty(0,"C5",text);break;
+                                    case 6:pasteModel.setProperty(0,"C6",text);break;
+                                    case 7:pasteModel.setProperty(0,"C7",text);break;
+                                    case 8:pasteModel.setProperty(0,"C8",text);break;
+                                    }
+                                }
                             }
                         }
                     }
@@ -454,26 +445,22 @@ FocusScope{
         positiveButtonText:qsTr("确定")
         globalMouseAreaEnabled:false
         onAccepted: {
-            //只有一个空白行则插入新的行
-            grooveTableInit.set(selectedIndex,
-                                {   "ID":editData[0],
-                                    "C1":editData[1],"C2":editData[2],
-                                    "C3":editData[3],"C4":editData[4],
-                                    "C5":editData[5],"C6":editData[6],
-                                    "C7":editData[7],"C8":editData[8]})}
+            updateModel("Set",pasteModel.get(0))
+        }
         onOpened: {
             //复制数据到 editData
-            var Index=selectedIndex;
+            var Index=grooveTableIndex;
             if(Index>=0){
-                columnRepeater.itemAt(0).text=grooveTableInit.get(Index).ID;
-                columnRepeater.itemAt(1).text=grooveTableInit.get(Index).C1;
-                columnRepeater.itemAt(2).text=grooveTableInit.get(Index).C2;
-                columnRepeater.itemAt(3).text=grooveTableInit.get(Index).C3;
-                columnRepeater.itemAt(4).text=grooveTableInit.get(Index).C4;
-                columnRepeater.itemAt(5).text=grooveTableInit.get(Index).C5;
-                columnRepeater.itemAt(6).text=grooveTableInit.get(Index).C6;
-                columnRepeater.itemAt(7).text=grooveTableInit.get(Index).C7;
-                columnRepeater.itemAt(8).text=grooveTableInit.get(Index).C8;
+                columnRepeater.itemAt(0).text=model.get(Index).ID;
+                columnRepeater.itemAt(1).text=model.get(Index).C1;
+                columnRepeater.itemAt(2).text=model.get(Index).C2;
+                columnRepeater.itemAt(3).text=model.get(Index).C3;
+                columnRepeater.itemAt(4).text=model.get(Index).C4;
+                columnRepeater.itemAt(5).text=model.get(Index).C5;
+                columnRepeater.itemAt(6).text=model.get(Index).C6;
+                columnRepeater.itemAt(7).text=model.get(Index).C7;
+                columnRepeater.itemAt(8).text=model.get(Index).C8;
+                pasteModel.set(0,model.get(0));
             }else{
                 message.open("请选择要编辑的行！");
                 positiveButtonEnabled=false;
@@ -498,7 +485,7 @@ FocusScope{
                     anchors.right: parent.right
                     Repeater{
                         id:columnRepeater
-                        model:["           No.       ", "板    厚δ(mm)","板厚差e(mm)","间    隙b(mm)","角  度β1(deg)","角  度β2(deg)","中心线X(mm)","中心线Y(mm)","中心线Z(mm)"]
+                        model:grooveRules
                         delegate:Row{
                             property alias text: textField.text
                             spacing: Units.dp(8)
@@ -509,7 +496,17 @@ FocusScope{
                                 width: Units.dp(60)
                                 inputMethodHints: Qt.ImhDigitsOnly
                                 onTextChanged: {
-                                    editData[index]=text;
+                                    switch(index){
+                                    case 0:pasteModel.setProperty(0,"ID",text);break;
+                                    case 1:pasteModel.setProperty(0,"C1",text);break;
+                                    case 2:pasteModel.setProperty(0,"C2",text);break;
+                                    case 3:pasteModel.setProperty(0,"C3",text);break;
+                                    case 4:pasteModel.setProperty(0,"C4",text);break;
+                                    case 5:pasteModel.setProperty(0,"C5",text);break;
+                                    case 6:pasteModel.setProperty(0,"C6",text);break;
+                                    case 7:pasteModel.setProperty(0,"C7",text);break;
+                                    case 8:pasteModel.setProperty(0,"C8",text);break;
+                                    }
                                 }
                             }
                         }
@@ -517,73 +514,6 @@ FocusScope{
                 }
             }
         ]
-    }
-    onStatusChanged:{
-        if(status=="坡口检测态"){
-            //清空 数据表格
-            grooveTableInit.clear();
-        }
-    }
-
-    Connections{
-        target: ERModbus
-        //frame[0] 代表状态 1代读取的寄存器地址 2代表返回的 第一个数据 3代表返回的第二个数据 依次递推
-        onModbusFrameChanged:{
-            var currentID;
-            //通讯帧接受成功
-            if(frame[0]==="Success"){
-                if((frame[1]==="150")&&(status==="坡口检测态")){
-                    //间隔跳示教点允许删除示教点操作尚未加入
-                    console.log(frame);
-                    if(frame[2]!=="0"){
-                        currentID="true"
-                        //遍寻 ID有没有相等
-                        for(var i=0;i<grooveTableInit.count;i++){
-                            //ID相等则退出
-                            if(frame[2]===grooveTableInit.get(i).ID){
-                                currentID="false"
-                                break;
-                            }else {
-                                currentID="true"
-                            }
-                        }
-                        //遍寻之后表格内没有该ID 则插入该ID
-                        if(currentID==="true"){
-                                grooveTableInit.append({
-                                                           "ID":frame[2],
-                                                           "C1":(Number(frame[3])/10).toString(),
-                                                           "C2":(Number(frame[4])/10).toString(),
-                                                           "C3":(Number(frame[5])/10).toString(),
-                                                           "C4":(Number(frame[6])/10).toString(),
-                                                           "C5":(Number(frame[7])/10).toString(),
-                                                           "C6":((Number(frame[8])|(Number(frame[9])<<16))/10).toString(),
-                                                           "C7":(Number(frame[10])/10).toString(),
-                                                           "C8":(Number(frame[11])/10).toString()})
-                            selectedIndex=Number(frame[2]);
-                            selectIndex(selectedIndex);
-                        }
-                    }
-                    ERModbus.setmodbusFrame(["R","0","3"]);
-                }
-                else if((frame[1]==="104")&&(status=="坡口检测完成态")){
-                    //读取焊接长度
-                    console.log(frame)
-                    //如果坡口参数里面有数据 则进行计算数据
-                    if(grooveTableInit.count!==0){
-                        WeldMath.setGrooveRules([
-                                                    grooveTableInit.get(0).C1,
-                                                    grooveTableInit.get(0).C2,
-                                                    grooveTableInit.get(0).C3,
-                                                    grooveTableInit.get(0).C4,
-                                                    grooveTableInit.get(0).C5,
-                                                    grooveTableInit.get(0).C6,
-                                                    grooveTableInit.get(0).C7,
-                                                    grooveTableInit.get(0).C8
-                                                ]);
-                    }
-                }
-            }
-        }
     }
 }
 

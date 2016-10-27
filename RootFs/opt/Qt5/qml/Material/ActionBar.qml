@@ -268,47 +268,33 @@ Item {
 
         spacing: Units.dp(12)
 
+        Repeater{
+                model:3
+                delegate: LabelButton {
+                    action: __internal.visibleActions[index]
+                    color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
+                                           Theme.dark.iconColor)
+                    anchors.verticalCenter: parent ? parent.verticalCenter : undefined
+                }
+        }
+
         Repeater {
             model: __internal.visibleActions.length > maxActionCount
-                   ? maxActionCount - 3
+                   ? maxActionCount - 4
                    : __internal.visibleActions.length
-
             delegate: IconButton {
                 id: iconAction
 
-                objectName: "action/" + action.objectName
-
-                action: __internal.visibleActions[index]
+                action: __internal.visibleActions[index+3]
 
                 color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
                                        Theme.dark.iconColor)
-                size: Units.dp(27)//iconSource == "icon://content/add" ? Units.dp(27) : Units.dp(24)
-
+                size: Units.dp(27)
                 anchors.verticalCenter: parent ? parent.verticalCenter : undefined
             }
         }
-        LabelButton {
-            id: date
-            action: maxActionCount>3? __internal.visibleActions[maxActionCount-3]:null
-            objectName: "action/datetime"
-            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
-                                   Theme.dark.iconColor)
-            visible: maxActionCount>3 ? true:false
-            anchors.verticalCenter: parent.verticalCenter
-        }
-        LabelButton {
-            id: time
-            action: maxActionCount>3? __internal.visibleActions[maxActionCount-2]:null
-            objectName: "action/datetime"
-            color: Theme.lightDark(actionBar.backgroundColor, Theme.light.iconColor,
-                                   Theme.dark.iconColor)
-            visible: maxActionCount>2 ? true:false
-            anchors.verticalCenter: parent.verticalCenter
-        }
-
         IconButton {
             id: overflowButton
-
             iconName: "navigation/more_vert"
             objectName: "action/overflow"
             size: Units.dp(27)
@@ -316,7 +302,6 @@ Item {
                                    Theme.dark.iconColor)
             visible: actionBar.overflowMenuAvailable
             anchors.verticalCenter:  parent ? parent.verticalCenter : undefined
-
             onClicked: openOverflowMenu()
         }
 

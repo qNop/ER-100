@@ -23,38 +23,19 @@ FocusScope {
     property Item message
     property string currentGrooveName
     property string limitedRulesName
-    property var repeaterModel: ["电流前侧","电流中间","电流后侧","端部停止时间前(s)","端部停止时间后(s)","层高Min","层高Max","接近前","接近后","最大摆宽","摆动间隔","分开结束比","焊接电压","焊接速度min","焊接速度Min"]
+    property var repeaterModel: ["电流前侧","电流中间","电流后侧","端部停止时间前(s)","端部停止时间后(s)","层高Min","层高Max","接近前","接近后","最大摆宽","摆动间隔","分开结束比","焊接电压","焊接速度min","焊接速度Min","层填充系数"]
     property alias selectedIndex: tableView.currentRow
 
-
-    onActiveFocusChanged: {
-        if(activeFocus){
-            tableView.forceActiveFocus();
-        }
-    }
-    //坡口名称变化时的变化时重新加载限制条件
-    onCurrentGrooveNameChanged: {
-        if((currentGrooveName!=="")&&(typeof(currentGrooveName)==="string")){
-            console.log(objectName+"currentGrooveName"+currentGrooveName)
-            var res=UserData.getTableJson(currentGrooveName)
-            if((typeof(res)==="object")&&(res.length)){
-                for(var i=0;i<res.length;i++){
-                    limitedTable.set(i,res[i])
-                }
-                WeldMath.setLimited(lmitedMath());
-                tableView.headerTitle=currentGrooveName;
-            }else{
-                message.open(currentGrooveName+"数据不存在！")
-            }
-        }
-    }
     //规则改变时重新加载限制条件
     onLimitedRulesNameChanged:{
         if((limitedRulesName!=="")&&(typeof(limitedRulesName)==="string")){
             console.log(objectName+"limitedRulesName"+limitedRulesName)
-            var res=UserData.getTableJson(limitedRulesName)
+            var res=UserData.getLimitedTableJson(limitedRulesName,"4")
             if((typeof(res)==="object")&&(res.length)){
                 for(var i=0;i<res.length;i++){
+                    //删除object 里面C11属性
+                    delete res[i].C11
+               //     console.log(res[i].ID+res[i].C1+res[i].C2+res[i].C3+res[i].C4+res[i].C5+res[i].C6+res[i].C7+res[i].C8+res[i].C9+res[i].C10);
                     limitedTable.set(i,res[i])
                 }
                 WeldMath.setLimited(lmitedMath());
@@ -128,22 +109,21 @@ FocusScope {
                 resArray.push("0")
                 resArray.push("0")
             }
+            if((typeof(res.C10)==="string")&&(res.C10!=="")){
+                resArray.push(res.C10)
+            }else{
+                resArray.push("0")
+            }
+
         }
         return resArray;
     }
 
-    ListModel{id:limitedTable;
-        ListElement{ ID:"陶瓷衬垫";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
-        ListElement{ ID:"打底层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
-        ListElement{ ID:"第二层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
-        ListElement{ ID:"填充层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
-        ListElement{ ID:"盖面层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}
-        ListElement{ ID:"立板余高层";C1:"200/201/202";C2:"500/500";C3:"6";C4:"2/2";C5:"20";C6:"2";C7:"0.9";C8:"30";C9:"200/201"}}
+    ListModel{id:limitedTable;}
 
     TableCard{
         id:tableView
         firstColumn.title: "    层\\限制参数"
-
         footerText:  "参数"
         tableRowCount:7
         model:limitedTable
@@ -158,9 +138,9 @@ FocusScope {
                         UserData.clearTable(currentGrooveName.replace("焊接规范","限制条件"),"","")
                         //数据表格重新插入数据
                         for(var i=0;i<tableView.table.rowCount;i++){
-                            UserData.insertTable(currentGrooveName.replace("焊接规范","限制条件"),"(?,?,?,?,?,?,?,?,?,?)",[
+                            UserData.insertTable(currentGrooveName.replace("焊接规范","限制条件"),"(?,?,?,?,?,?,?,?,?,?,?)",[
                                                      limitedTable.get(i).ID,limitedTable.get(i).C1,limitedTable.get(i).C2,limitedTable.get(i).C3,limitedTable.get(i).C4,
-                                                     limitedTable.get(i).C5,limitedTable.get(i).C6,limitedTable.get(i).C7,limitedTable.get(i).C8,limitedTable.get(i).C9  ])
+                                                     limitedTable.get(i).C5,limitedTable.get(i).C6,limitedTable.get(i).C7,limitedTable.get(i).C8,limitedTable.get(i).C9])
                         }
                     }
                 }
@@ -186,13 +166,14 @@ FocusScope {
         tableData:[
             Controls.TableViewColumn{role: "C1";title:"焊接电流\n前/中/后";width:Units.dp(120);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{role: "C2";title: "停留时间\n   前/后";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
-            Controls.TableViewColumn{role: "C3";title: "层高\nMin/Max";width:Units.dp(50);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
+            Controls.TableViewColumn{role: "C3";title: "    层高    \nMin/Max";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
             Controls.TableViewColumn{role: "C4";title: "接近坡口\n   前/后";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
             Controls.TableViewColumn{role: "C5";title: "摆宽\nMax";width:Units.dp(50);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
             Controls.TableViewColumn{role: "C6";title: "分道\n间隔";width:Units.dp(50);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
             Controls.TableViewColumn{role: "C7";title: "结束开始\n      比";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-            Controls.TableViewColumn{role: "C8";title: "焊接\n电压";width:Units.dp(50);movable:false;resizable:false;},
-            Controls.TableViewColumn{role: "C9";title: "焊接速度\nMin/Max";width:Units.dp(100);movable:false;resizable:false;}
+            Controls.TableViewColumn{role: "C8";title: "焊接\n电压";width:Units.dp(50);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+            Controls.TableViewColumn{role: "C9";title: "焊接速度\nMin/Max";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+            Controls.TableViewColumn{role: "C10";title:"  层填充 \n   系数";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
         ]
     }
 
@@ -216,7 +197,7 @@ FocusScope {
             if(Index>=0){
                 var res=lmitedMath();
                 for(var i=0;i<res.length;i++){
-                    columnRepeater.itemAt(i).text=res[0];
+                    columnRepeater.itemAt(i).text=res[i];
                 }
             }else{
                 message.open("请选择要编辑的行！");

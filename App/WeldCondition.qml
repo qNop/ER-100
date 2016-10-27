@@ -318,7 +318,7 @@ FocusScope {
                             delegate:Material.RadioButton{
                                 text:modelData
                                 exclusiveGroup: weldWireDiameterGroup
-                                checked: root.condition[3]==index;
+                                checked: ((root.condition[3]===4)&&(index===0))||((root.condition[3]===6)&&(index===1));
                                 onClicked: {
                                     Material.UserData.setValueFromFuncOfTable(root.objectName,3,index===0?4:6);
                                     weldWireDiameter.forceActiveFocus()}
@@ -367,7 +367,7 @@ FocusScope {
                                     Material.UserData.setValueFromFuncOfTable(root.objectName,4,index);
                                     weldGas.forceActiveFocus()}
                                 exclusiveGroup: weldGasGroup
-                                checked: root.condition[4]==index;
+                                checked: root.condition[4]===index;
                             }
                         }
                     }
@@ -416,7 +416,7 @@ FocusScope {
                                     Material.UserData.setValueFromFuncOfTable(root.objectName,5,index);
                                     returnWay.forceActiveFocus()}
                                 exclusiveGroup: returnWayGroup
-                                checked: root.condition[5]==index;
+                                checked: root.condition[5]===index;
                             }
                         }
                     }

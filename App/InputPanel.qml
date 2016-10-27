@@ -66,6 +66,11 @@ FocusScope {
         ListElement { letter: "n"; firstSymbol: "-"}
         ListElement { letter: "m"; firstSymbol: "+"}
     }
+    onVisibleChanged: {
+            //无论打开或者关闭都关闭掉pop
+            pop.close()
+    }
+
     Rectangle{
         id:pop
         visible: false
@@ -96,18 +101,18 @@ FocusScope {
             if(typeof(offsetY) === "undefined")
                 offsetY = 0
             var position = button.mapToItem(inputPanel, 0, 0)
-            var rootParent = Utils.findRoot(pop);
+          //  var rootParent = Utils.findRoot(pop);
             pop.x = Qt.binding(function() {
                 var x = position.x + (button.width / 2 - pop.width / 2) - offsetX
-                if(x + width > rootParent.width)
-                    x = rootParent.width - width
+                if(x + width > 640)
+                    x = 640 - width
                 if (x < 0)
                     x = 0
                 return x
             })
             pop.y = Qt.binding(function() {
                 var y = y = position.y - height - offsetY
-                if (y + pop.height > rootParent.height) {
+                if (y + pop.height > 480) {
                     y = position.y - pop.height - offsetY
                 }
                 return y
@@ -137,22 +142,24 @@ FocusScope {
             backgroundColor:"white"
             elevation:1
             MouseArea{
+                id:ink
                 anchors.fill: parent
                 onPressed: {
-                    view.elevation=0;
-                    InputEngine.sendKeyToFocusItem(label.text);
                     pop.open(view,root,0,verticalSpacing);
-                    rect1.color=Theme.accentColor
+                    InputEngine.sendKeyToFocusItem(label.text);
                 }
-                onReleased: {view.elevation=1;
+                onReleased: {
                     if(pop.visible){
-                        rect1.color="white"
                         pop.close();
                     }
                 }
-                onCanceled: {view.elevation=1;
+                onCanceled: {
                     if(pop.visible){
-                        rect1.color="white"
+                        pop.close();
+                    }
+                }
+                onExited: {
+                    if(pop.visible){
                         pop.close();
                     }
                 }
@@ -160,7 +167,7 @@ FocusScope {
             Rectangle {
                 id: rect1
                 anchors.fill: parent
-                color: "white"
+                color: ink.pressed&&pop.visible?Theme.accentColor:"white"
                 radius: parent.radius
                 antialiasing: parent.rotation || radius > 0 ? true : false
                 clip: true
@@ -169,7 +176,7 @@ FocusScope {
                 id:label
                 anchors.centerIn: parent
                 text: ( shiftModifier ) ? letter.toUpperCase()  :  ( symbolModifier ) ? firstSymbol : letter
-                color: Theme.lightDark(rect1.color,"black",Theme.dark.textColor)
+                color:ink.pressed&&pop.visible?"white":"black"
                 style:"subheading"
             }
         }

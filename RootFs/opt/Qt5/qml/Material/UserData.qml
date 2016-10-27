@@ -50,7 +50,7 @@ Object {
 
     property var dataBase;
 
-    property var grooveStyleName: [ "平焊单边V型坡口T接头",  "平焊单边V型坡口平对接", "平焊V型坡口平对接","横焊单边V型坡口T接头",  "横焊单边V型坡口平对接", "立焊单边V型坡口T接头",  "立焊单边V型坡口平对接", "立焊V型坡口平对接","水平角焊"  ]
+    property var grooveStyleName: [ "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接", "平焊V形坡口平对接","横焊单边V形坡口T接头",  "横焊单边V形坡口平对接", "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接","水平角焊"  ]
 
     //获取系统时间
     function getSysTime(){
@@ -60,14 +60,14 @@ Object {
         var result,str;
         if(!dataBase) { if(openDatabase()===-1) return -1;}
         switch(index){
-        case 0:str="select * from 平焊单边V型坡口T接头限制条件";break;
-        case 1:str="select * from 平焊单边V型坡口平对接限制条件";break;
-        case 2:str="select * from 平焊V型坡口平对接限制条件";break;
-        case 3:str="select * from 横焊单边V型坡口T接头限制条件";break;
-        case 4:str="select * from 横焊单边V型坡口平对接限制条件";break;
-        case 5:str="select * from 立焊单边V型坡口T接头限制条件";break;
-        case 6:str="select * from 立焊单边V型坡口平对接限制条件";break;
-        case 7:str="select * from 立焊V型坡口平对接限制条件";break;
+        case 0:str="select * from 平焊单边V形坡口T接头限制条件";break;
+        case 1:str="select * from 平焊单边V形坡口平对接限制条件";break;
+        case 2:str="select * from 平焊V形坡口平对接限制条件";break;
+        case 3:str="select * from 横焊单边V形坡口T接头限制条件";break;
+        case 4:str="select * from 横焊单边V形坡口平对接限制条件";break;
+        case 5:str="select * from 立焊单边V形坡口T接头限制条件";break;
+        case 6:str="select * from 立焊单边V形坡口平对接限制条件";break;
+        case 7:str="select * from 立焊V形坡口平对接限制条件";break;
         case 8:str="select * from 水平角焊限制条件";break;
         }
         root.dataBase.transaction( function(tx) {result = tx.executeSql(str); });
@@ -188,6 +188,27 @@ Object {
         }else
             return -1;
     }
+    /*
+      *从限制条件表选取 合适的参数
+      */
+    function getLimitedTableJson(tablename,id){
+        var result,str;
+        if(!dataBase) { if(openDatabase()===-1) return -1;}
+        str="SELECT * FROM "+tablename+ " WHERE C11 "+" = "+"\'"+id+"\'";
+        console.log(str)
+        if(typeof(tablename)==="string"){
+            dataBase.transaction( function(tx) {result = tx.executeSql(str); });
+            var value=new Array();
+            /*遍寻所有数据转换成json格式*/
+            for(var i=0;i<result.rows.length;i++){
+                //result.rows.item返回的就是json object不需要在弄
+                value.push(result.rows.item(i));
+            }
+            console.log(value)
+            return value;
+        }else
+            return -1;
+    }
 
     /*获取错误倒序排列*/
     function getSysErrorOrderByTime(tablename,func){
@@ -293,7 +314,25 @@ Object {
         dataBase.transaction( function(tx) { tx.executeSql(str,data);});
     }
     /*
-         *打开数据库 输入参数 数据名称 版本 描述 类型
+        * 重命名表格
+    */
+    function renameTable(oldName,newName){
+        if(!root.dataBase){ if(openDatabase()===-1) return -1;}
+        var str="ALTER TABLE "+oldName+" RENAME TO "+newName;
+        console.log(str)
+        dataBase.transaction( function(tx) { tx.executeSql(str);});
+    }
+    /*
+        * 表格增加字段
+    */
+    function alterTable(tableName,columnName){
+        if(!root.dataBase){ if(openDatabase()===-1) return -1;}
+        var str="ALTER TABLE "+tableName+" ADD COLUMN "+columnName;
+        console.log(str)
+        dataBase.transaction( function(tx) { tx.executeSql(str);});
+    }
+    /*
+         *打开数据库 输入参数 数据名称 版本 描述 类形
          */
     function openDatabase() {
         var table;
@@ -490,1724 +529,279 @@ Object {
                 console.log("Skip Create accountTable Table .");}
         })
     }
+
     /***************************************************焊接规范限制**********************************************/
-    function createLimited0Table(tableName){
-        if(typeof(tableName)==="string"){
-            var str="CREATE TABLE IF NOT EXISTS ";
-            str+=tableName;
-            str+="(id INT NOT NULL PRIMARY KEY,value TEXT)"
-            var table;
-            dataBase.transaction( function(tx) {
-                tx.executeSql(str);
-                table = tx.executeSql("select * from "+tableName);
-                str="insert into "
-                str+=tableName;
-                str+=" values(?,?)"
-                if(table.rows.length === 0){
-                    //初层陶衬垫电流前侧
-                    tx.executeSql(str,[0,"230"]);
-                    //初层陶衬垫电流中间
-                    tx.executeSql(str,[1,"230"]);
-                    //初层陶衬垫电流后侧
-                    tx.executeSql(str,[2,"230"]);
-                    //初层陶衬垫端部停止时间前（ms）
-                    tx.executeSql(str,[3,"400"]);
-                    //初层陶衬垫端部停止时间后（ms）
-                    tx.executeSql(str,[4,"400"]);
-                    //初层陶衬垫堆高MAX
-                    tx.executeSql(str,[5,"9.0"]);
-                    //初层陶衬垫接近-前
-                    tx.executeSql(str,[6,"2.0"]);
-                    //初层陶衬垫接近-后
-                    tx.executeSql(str,[7,"2.0"]);
-                    //初层陶衬垫分开最大摆动宽度
-                    tx.executeSql(str,[8,"20.0"]);
-                    //初层陶衬垫摆动宽度间隔
-                    tx.executeSql(str,[9,"100.0"]);
-                    //初层陶衬垫分开结束/开始比
-                    tx.executeSql(str,[10,"0.85"]);
-                    //初层陶衬垫焊接电压  0代表自动设定
-                    tx.executeSql(str,[11,"0"]);
-
-                    //初层电流前侧
-                    tx.executeSql(str,[12,"300"]);
-                    //初层电流中间
-                    tx.executeSql(str,[13,"300"]);
-                    //初层电流后侧
-                    tx.executeSql(str,[14,"300"]);
-                    //初层端部停止时间前（ms）
-                    tx.executeSql(str,[15,"500"]);
-                    //初层端部停止时间后（ms）
-                    tx.executeSql(str,[16,"0"]);
-                    //初层堆高MAX
-                    tx.executeSql(str,[17,"7.0"]);
-                    //初层接近-前
-                    tx.executeSql(str,[18,"1.0"]);
-                    //初层接近-后
-                    tx.executeSql(str,[19,"2.0"]);
-                    //初层分开最大摆动宽度
-                    tx.executeSql(str,[20,"20.0"]);
-                    //初层摆动宽度间隔
-                    tx.executeSql(str,[21,"100.0"]);
-                    //初层分开结束/开始比
-                    tx.executeSql(str,[22,"1.0"]);
-                    //初层焊接电压
-                    tx.executeSql(str,[23,"0"]);
-
-                    //第二层电流前侧
-                    tx.executeSql(str,[24,"290"]);
-                    //第二层电流中间
-                    tx.executeSql(str,[25,"290"]);
-                    //第二层电流后侧
-                    tx.executeSql(str,[26,"290"]);
-                    //第二层端部停止时间前（ms）
-                    tx.executeSql(str,[27,"100"]);
-                    //第二层端部停止时间后（ms）
-                    tx.executeSql(str,[28,"100"]);
-                    //第二层堆高MAX
-                    tx.executeSql(str,[29,"5.0"]);
-                    //第二层接近-前
-                    tx.executeSql(str,[30,"1.0"]);
-                    //第二层接近-后
-                    tx.executeSql(str,[31,"2.0"]);
-                    //第二层分开最大摆动宽度
-                    tx.executeSql(str,[32,"16.0"]);
-                    //第二层摆动宽度间隔
-                    tx.executeSql(str,[33,"5.0"]);
-                    //第二层分开结束/开始比
-                    tx.executeSql(str,[34,"0.85"]);
-                    //第二层焊接电压
-                    tx.executeSql(str,[35,"0"]);
-
-                    //中间层电流前侧
-                    tx.executeSql(str,[36,"290"]);
-                    //中间层电流中间
-                    tx.executeSql(str,[37,"290"]);
-                    //中间层电流后侧
-                    tx.executeSql(str,[38,"290"]);
-                    //中间层端部停止时间前（ms）
-                    tx.executeSql(str,[39,"100"]);
-                    //中间层端部停止时间后（ms）
-                    tx.executeSql(str,[40,"100"]);
-                    //中间层堆高MAX
-                    tx.executeSql(str,[41,"5.0"]);
-                    //中间层接近-前
-                    tx.executeSql(str,[42,"1.0"]);
-                    //中间层接近-后
-                    tx.executeSql(str,[43,"2.0"]);
-                    //中间层分开最大摆动宽度
-                    tx.executeSql(str,[44,"16.0"]);
-                    //中间层摆动宽度间隔
-                    tx.executeSql(str,[45,"5.0"]);
-                    //中间层分开结束/开始比
-                    tx.executeSql(str,[46,"0.85"]);
-                    //中间层焊接电压
-                    tx.executeSql(str,[47,"0"]);
-
-                    //表面层电流前侧
-                    tx.executeSql(str,[48,"280"]);
-                    //表面层电流中间
-                    tx.executeSql(str,[49,"280"]);
-                    //表面层电流后侧
-                    tx.executeSql(str,[50,"280"]);
-                    //表面层端部停止时间前（ms）
-                    tx.executeSql(str,[51,"0"]);
-                    //表面层端部停止时间后（ms）
-                    tx.executeSql(str,[52,"0"]);
-                    //表面层堆高MAX
-                    tx.executeSql(str,[53,"4.0"]);
-                    //表面层接近-前
-                    tx.executeSql(str,[54,"2.0"]);
-                    //表面层接近-后
-                    tx.executeSql(str,[55,"2.0"]);
-                    //表面层分开最大摆动宽度
-                    tx.executeSql(str,[56,"11.0"]);
-                    //表面层摆动宽度间隔
-                    tx.executeSql(str,[57,"5.0"]);
-                    //表面层分开结束/开始比
-                    tx.executeSql(str,[58,"1.0"]);
-                    //表面层焊接电压
-                    tx.executeSql(str,[59,"0"]);
-
-                    //表面层余高层数
-                    tx.executeSql(str,[60,"0"]);
-                    //表面层分开方向 0 反方向 1标准
-                    tx.executeSql(str,[61,"0"]);
-                    //表面层起弧位置  00代表收弧位置
-                    tx.executeSql(str,[62,"0"]);
-                    //开始位置坐标X（mm）
-                    tx.executeSql(str,[63,"4.0"]);
-                    //开始位置坐标Y（mm）
-                    tx.executeSql(str,[64,"0.0"]);
-                    //开始位置坐标z（mm）
-                    tx.executeSql(str,[65,"-3.0"]);
-                    //表面层收弧动作 0 单程 1往返
-                    tx.executeSql(str,[66,"0"]);
-                    //表面层返回步骤距离
-                    tx.executeSql(str,[67,"5.0"]);
-
-                    //立板余高层电流前侧
-                    tx.executeSql(str,[68,"250"]);
-                    //立板余高层电流中间
-                    tx.executeSql(str,[69,"250"]);
-                    //立板余高层电流后侧
-                    tx.executeSql(str,[70,"250"]);
-                    //立板余高层端部停止时间前（ms）
-                    tx.executeSql(str,[71,"0.0"]);
-                    //立板余高层端部停止时间后（ms）
-                    tx.executeSql(str,[72,"0.0"]);
-                    //立板余高层堆高MAX
-                    tx.executeSql(str,[73,"5.0"]);
-                    //立板余高层接近-前
-                    tx.executeSql(str,[74,"2.0"]);
-                    //立板余高层接近-后
-                    tx.executeSql(str,[75,"15.0"]);
-                    //立板余高层分开最大摆动宽度
-                    tx.executeSql(str,[76,"10.0"]);
-                    //立板余高层摆动宽度间隔
-                    tx.executeSql(str,[77,"5.0"]);
-                    //立板余高层分开结束/开始比
-                    tx.executeSql(str,[78,"1.0"]);
-                    //立板余高层焊接电压
-                    tx.executeSql(str,[79,"0"]);
-                    //立板余高层MAX焊接速度
-                    tx.executeSql(str,[80,"500.0"]);
-
-                    /***************************************************焊接规范列表**********************************************/
-                }else{
-                    console.log("Skip Create "+tableName+" Table .");}
-            })}
-        else
-            return -1;
+    function createLimited0Table(){
+        var table;
+        dataBase.transaction( function(tx) {
+            tx.executeSql("CREATE TABLE IF NOT EXISTS 平焊单边V形坡口T接头限制条件 (ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT)");
+            table = tx.executeSql("SELECT * FROM 平焊单边V形坡口T接头限制条件");
+            var str="INSERT INTO 平焊单边V形坡口T接头限制条件 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+            if(table.rows.length === 0){
+                //气体   脉冲  焊丝种类  直径
+                //    8       7       654          3210
+                //气体 CO2 脉冲无 焊丝实芯碳钢 直径1.2
+                //        0          0                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","4"]);
+                tx.executeSql(str,["打底层","290/290/290","0/0","5/6","2/2","20","20","1","0","180/450","1","4"]);
+                tx.executeSql(str,["第二层","280/280/280","0.1/0.1","4/5","2/2","16","6","0.95","0","180/450","1","4"]);
+                tx.executeSql(str,["填充层","280/280/280","0.2/0.2","3.5/5","2/2","18","6","0.95","0","180/450","1","4"]);
+                tx.executeSql(str,["盖面层","270/270/270","0.2/0.2","3.5/5","2/2","18","4","1","0","180/450","1","4"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","4"]);
+                //气体 MAG 脉冲有 焊丝实芯碳钢 直径1.2
+                //        1          1                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","388"]);
+                tx.executeSql(str,["打底层","290/290/290","0/0","5/6","2/2","20","20","1","0","180/450","1","388"]);
+                tx.executeSql(str,["第二层","280/280/280","0.1/0.1","4/5","2/2","16","6","0.95","0","180/450","1","388"]);
+                tx.executeSql(str,["填充层","280/280/280","0.2/0.2","3.5/5","2/2","18","6","0.95","0","180/450","1","388"]);
+                tx.executeSql(str,["盖面层","270/270/270","0.2/0.2","3.5/5","2/2","18","4","1","0","180/450","1","388"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","388"]);
+            }else{
+                console.log("Skip Create 平焊单边V形坡口T接头限制条件 Table .");}
+        })
     }
-    function createLimited1Table(tableName){
-        if(typeof(tableName)==="string"){
-            var str="CREATE TABLE IF NOT EXISTS ";
-            str+=tableName;
-            str+="(id INT NOT NULL PRIMARY KEY,value TEXT)"
-            var table;
-            dataBase.transaction( function(tx) {
-                tx.executeSql(str);
-                table = tx.executeSql("select * from "+tableName);
-                str="insert into "
-                str+=tableName;
-                str+=" values(?,?)"
-                if(table.rows.length === 0){
-                    //初层陶衬垫电流前侧
-                    tx.executeSql(str,[0,"230"]);
-                    //初层陶衬垫电流中间
-                    tx.executeSql(str,[1,"230"]);
-                    //初层陶衬垫电流后侧
-                    tx.executeSql(str,[2,"230"]);
-                    //初层陶衬垫端部停止时间前（ms）
-                    tx.executeSql(str,[3,"500"]);
-                    //初层陶衬垫端部停止时间后（ms）
-                    tx.executeSql(str,[4,"500"]);
-                    //初层陶衬垫堆高MAX
-                    tx.executeSql(str,[5,"8.5"]);
-                    //初层陶衬垫接近-前
-                    tx.executeSql(str,[6,"2.0"]);
-                    //初层陶衬垫接近-后
-                    tx.executeSql(str,[7,"2.5"]);
-                    //初层陶衬垫分开最大摆动宽度
-                    tx.executeSql(str,[8,"20.0"]);
-                    //初层陶衬垫摆动宽度间隔
-                    tx.executeSql(str,[9,"100.0"]);
-                    //初层陶衬垫分开结束/开始比
-                    tx.executeSql(str,[10,"0.85"]);
-                    //初层陶衬垫焊接电压  0代表自动设定
-                    tx.executeSql(str,[11,"28"]);
-
-
-                    //初层电流前侧
-                    tx.executeSql(str,[12,"300"]);
-                    //初层电流中间
-                    tx.executeSql(str,[13,"300"]);
-                    //初层电流后侧
-                    tx.executeSql(str,[14,"300"]);
-                    //初层端部停止时间前（ms）
-                    tx.executeSql(str,[15,"200"]);
-                    //初层端部停止时间后（ms）
-                    tx.executeSql(str,[16,"200"]);
-                    //初层堆高MAX
-                    tx.executeSql(str,[17,"7.0"]);
-                    //初层接近-前
-                    tx.executeSql(str,[18,"2.0"]);
-                    //初层接近-后
-                    tx.executeSql(str,[19,"2.0"]);
-                    //初层分开最大摆动宽度
-                    tx.executeSql(str,[20,"20.0"]);
-                    //初层摆动宽度间隔
-                    tx.executeSql(str,[21,"100.0"]);
-                    //初层分开结束/开始比
-                    tx.executeSql(str,[22,"1.0"]);
-                    //初层焊接电压
-                    tx.executeSql(str,[23,"0"]);
-
-                    //第二层电流前侧
-                    tx.executeSql(str,[24,"290"]);
-                    //第二层电流中间
-                    tx.executeSql(str,[25,"290"]);
-                    //第二层电流后侧
-                    tx.executeSql(str,[26,"290"]);
-                    //第二层端部停止时间前（ms）
-                    tx.executeSql(str,[27,"100"]);
-                    //第二层端部停止时间后（ms）
-                    tx.executeSql(str,[28,"100"]);
-                    //第二层堆高MAX
-                    tx.executeSql(str,[29,"5.0"]);
-                    //第二层接近-前
-                    tx.executeSql(str,[30,"1.0"]);
-                    //第二层接近-后
-                    tx.executeSql(str,[31,"1.0"]);
-                    //第二层分开最大摆动宽度
-                    tx.executeSql(str,[32,"16.0"]);
-                    //第二层摆动宽度间隔
-                    tx.executeSql(str,[33,"5.0"]);
-                    //第二层分开结束/开始比
-                    tx.executeSql(str,[34,"0.85"]);
-                    //第二层焊接电压
-                    tx.executeSql(str,[35,"0"]);
-
-                    //中间层电流前侧
-                    tx.executeSql(str,[36,"290"]);
-                    //中间层电流中间
-                    tx.executeSql(str,[37,"290"]);
-                    //中间层电流后侧
-                    tx.executeSql(str,[38,"290"]);
-                    //中间层端部停止时间前（ms）
-                    tx.executeSql(str,[39,"100"]);
-                    //中间层端部停止时间后（ms）
-                    tx.executeSql(str,[40,"100"]);
-                    //中间层堆高MAX
-                    tx.executeSql(str,[41,"5.0"]);
-                    //中间层接近-前
-                    tx.executeSql(str,[42,"1.0"]);
-                    //中间层接近-后
-                    tx.executeSql(str,[43,"1.0"]);
-                    //中间层分开最大摆动宽度
-                    tx.executeSql(str,[44,"16.0"]);
-                    //中间层摆动宽度间隔
-                    tx.executeSql(str,[45,"5.0"]);
-                    //中间层分开结束/开始比
-                    tx.executeSql(str,[46,"0.85"]);
-                    //中间层焊接电压
-                    tx.executeSql(str,[47,"0"]);
-
-                    //表面层电流前侧
-                    tx.executeSql(str,[48,"280"]);
-                    //表面层电流中间
-                    tx.executeSql(str,[49,"280"]);
-                    //表面层电流后侧
-                    tx.executeSql(str,[50,"280"]);
-                    //表面层端部停止时间前（ms）
-                    tx.executeSql(str,[51,"100"]);
-                    //表面层端部停止时间后（ms）
-                    tx.executeSql(str,[52,"100"]);
-                    //表面层堆高MAX
-                    tx.executeSql(str,[53,"4.0"]);
-                    //表面层接近-前
-                    tx.executeSql(str,[54,"2.0"]);
-                    //表面层接近-后
-                    tx.executeSql(str,[55,"2.0"]);
-                    //表面层分开最大摆动宽度
-                    tx.executeSql(str,[56,"16.0"]);
-                    //表面层摆动宽度间隔
-                    tx.executeSql(str,[57,"5.0"]);
-                    //表面层分开结束/开始比
-                    tx.executeSql(str,[58,"1.0"]);
-                    //表面层焊接电压
-                    tx.executeSql(str,[59,"0"]);
-
-                    //表面层余高层数
-                    tx.executeSql(str,[60,"0"]);
-                    //表面层分开方向 0 反方向 1标准
-                    tx.executeSql(str,[61,"0"]);
-                    //表面层起弧位置  00代表收弧位置
-                    tx.executeSql(str,[62,"0"]);
-                    //开始位置坐标X（mm）
-                    tx.executeSql(str,[63,"4.0"]);
-                    //开始位置坐标Y（mm）
-                    tx.executeSql(str,[64,"0.0"]);
-                    //开始位置坐标z（mm）
-                    tx.executeSql(str,[65,"-3.0"]);
-                    //表面层收弧动作 0 单程 1往返
-                    tx.executeSql(str,[66,"0"]);
-                    //表面层返回步骤距离
-                    tx.executeSql(str,[67,"5.0"]);
-
-
-                    //立板余高层电流前侧
-                    tx.executeSql(str,[68,"0"]);
-                    //立板余高层电流中间
-                    tx.executeSql(str,[69,"0"]);
-                    //立板余高层电流后侧
-                    tx.executeSql(str,[70,"0"]);
-                    //立板余高层端部停止时间前（ms）
-                    tx.executeSql(str,[71,"0"]);
-                    //立板余高层端部停止时间后（ms）
-                    tx.executeSql(str,[72,"0"]);
-                    //立板余高层堆高MAX
-                    tx.executeSql(str,[73,"0"]);
-                    //立板余高层接近-前
-                    tx.executeSql(str,[74,"0"]);
-                    //立板余高层接近-后
-                    tx.executeSql(str,[75,"0"]);
-                    //立板余高层分开最大摆动宽度
-                    tx.executeSql(str,[76,"0"]);
-                    //立板余高层摆动宽度间隔
-                    tx.executeSql(str,[77,"0"]);
-                    //立板余高层分开结束/开始比
-                    tx.executeSql(str,[78,"0"]);
-                    //立板余高层焊接电压
-                    tx.executeSql(str,[79,"0"]);
-                    //立板余高层MAX焊接速度
-                    tx.executeSql(str,[80,"0"]);
-                    /***************************************************焊接规范列表**********************************************/
-                }
-                else{
-                    console.log("Skip Create "+tableName+" Table .");}
-            })
-        }else
-            return -1;
+    function createLimited1Table(){
+        var table;
+        dataBase.transaction( function(tx) {
+            tx.executeSql("CREATE TABLE IF NOT EXISTS 平焊单边V形坡口平对接限制条件 (ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT)");
+            table = tx.executeSql("SELECT * FROM 平焊单边V形坡口平对接限制条件");
+            var str="INSERT INTO 平焊单边V形坡口平对接限制条件 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+            if(table.rows.length === 0){
+                //气体   脉冲  焊丝种类  直径
+                //    8       7       654          3210
+                //气体 CO2 脉冲无 焊丝实芯碳钢 直径1.2
+                //        0          0                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","4"]);
+                tx.executeSql(str,["打底层","290/290/290","0/0","5/6","2/2","20","20","1","0","180/450","1","4"]);
+                tx.executeSql(str,["第二层","280/280/280","0.1/0.1","4/5","2/2","16","6","0.95","0","180/450","1","4"]);
+                tx.executeSql(str,["填充层","280/280/280","0.2/0.2","3.5/5","2/2","18","6","0.95","0","180/450","1","4"]);
+                tx.executeSql(str,["盖面层","270/270/270","0.2/0.2","3.5/5","2/2","18","4","1","0","180/450","1","4"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","4"]);
+                //气体 MAG 脉冲有 焊丝实芯碳钢 直径1.2
+                //        1          1                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","388"]);
+                tx.executeSql(str,["打底层","290/290/290","0/0","5/6","2/2","20","20","1","0","180/450","1","388"]);
+                tx.executeSql(str,["第二层","280/280/280","0.1/0.1","4/5","2/2","16","6","0.95","0","180/450","1","388"]);
+                tx.executeSql(str,["填充层","280/280/280","0.2/0.2","3.5/5","2/2","18","6","0.95","0","180/450","1","388"]);
+                tx.executeSql(str,["盖面层","270/270/270","0.2/0.2","3.5/5","2/2","18","4","1","0","180/450","1","388"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","388"]);
+            }else{
+                console.log("Skip Create 平焊单边V形坡口平对接限制条件 Table .");}
+        })
+    }
+    function createLimited2Table(){
+        var table;
+        dataBase.transaction( function(tx) {
+            tx.executeSql("CREATE TABLE IF NOT EXISTS 平焊V形坡口平对接限制条件 (ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT)");
+            table = tx.executeSql("SELECT * FROM 平焊V形坡口平对接限制条件");
+            var str="INSERT INTO 平焊V形坡口平对接限制条件 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+            if(table.rows.length === 0){
+                //气体   脉冲  焊丝种类  直径
+                //    8       7       654          3210
+                //气体 CO2 脉冲无 焊丝实芯碳钢 直径1.2
+                //        0          0                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","4"]);
+                tx.executeSql(str,["打底层","290/290/290","0/0","5/6","2/2","20","20","1","0","180/450","1","4"]);
+                tx.executeSql(str,["第二层","280/280/280","0.1/0.1","4/5","2/2","16","6","0.95","0","180/450","1","4"]);
+                tx.executeSql(str,["填充层","280/280/280","0.2/0.2","3.5/5","2/2","18","6","0.95","0","180/450","1","4"]);
+                tx.executeSql(str,["盖面层","270/270/270","0.2/0.2","3.5/5","2/2","18","4","1","0","180/450","1","4"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","4"]);
+                //气体 MAG 脉冲有 焊丝实芯碳钢 直径1.2
+                //        1          1                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","388"]);
+                tx.executeSql(str,["打底层","290/290/290","0/0","5/6","2/2","20","20","1","0","180/450","1","388"]);
+                tx.executeSql(str,["第二层","280/280/280","0.1/0.1","4/5","2/2","16","6","0.95","0","180/450","1","388"]);
+                tx.executeSql(str,["填充层","280/280/280","0.2/0.2","3.5/5","2/2","18","6","0.95","0","180/450","1","388"]);
+                tx.executeSql(str,["盖面层","270/270/270","0.2/0.2","3.5/5","2/2","18","4","1","0","180/450","1","388"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","388"]);
+            }else{
+                console.log("Skip Create 平焊V形坡口平对接限制条件 Table .");}
+        })
+    }
+    function createLimited3Table(){
+        var table;
+        dataBase.transaction( function(tx) {
+            tx.executeSql("CREATE TABLE IF NOT EXISTS 横焊单边V形坡口T接头限制条件 (ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT)");
+            table = tx.executeSql("SELECT * FROM 横焊单边V形坡口T接头限制条件");
+            var str="INSERT INTO 横焊单边V形坡口T接头限制条件 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+            if(table.rows.length === 0){
+                //气体   脉冲  焊丝种类  直径
+                //    8       7       654          3210
+                //气体 CO2 脉冲无 焊丝实芯碳钢 直径1.2
+                //        0          0                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","4"]);
+                tx.executeSql(str,["打底层","300/300/300","0/0","5/6","1/3","7","0","1","0","300/600","1","4"]);
+                tx.executeSql(str,["第二层","270/270/270","0/0","4.5/5.2","2/3","5.5","0","1","0","300/600","1","4"]);
+                tx.executeSql(str,["填充层","250/260/260","0/0","4/5.2","2/3","5","0","0.95","0","300/600","1","4"]);
+                tx.executeSql(str,["盖面层","250/260/260","0/0","4.5/5.1","3/3","4.5","0","1","0","300/600","1","4"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","4"]);
+                //气体 MAG 脉冲有 焊丝实芯碳钢 直径1.2
+                //        1          1                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","388"]);
+                tx.executeSql(str,["打底层","300/300/300","0/0","5/6","1/3","7","0","1","0","300/600","1","388"]);
+                tx.executeSql(str,["第二层","270/270/270","0/0","4.5/5.2","2/3","5.5","0","1","0","300/600","1","388"]);
+                tx.executeSql(str,["填充层","250/260/260","0/0","4/5.2","2/3","5","0","0.95","0","300/600","1","388"]);
+                tx.executeSql(str,["盖面层","250/260/260","0/0","4.5/5.1","3/3","4.5","0","1","0","300/600","1","388"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","388"]);
+            }else{
+                console.log("Skip Create 横焊单边V形坡口T接头限制条件 Table .");}
+        })
+    }
+    function createLimited4Table(){
+        var table;
+        dataBase.transaction( function(tx) {
+            tx.executeSql("CREATE TABLE IF NOT EXISTS 横焊单边V形坡口平对接限制条件 (ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT)");
+            table = tx.executeSql("SELECT * FROM 横焊单边V形坡口平对接限制条件");
+            var str="INSERT INTO 横焊单边V形坡口平对接限制条件 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+            if(table.rows.length === 0){
+                //气体   脉冲  焊丝种类  直径
+                //    8       7       654          3210
+                //气体 CO2 脉冲无 焊丝实芯碳钢 直径1.2
+                //        0          0                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","4"]);
+                tx.executeSql(str,["打底层","300/300/300","0/0","5/6","1/3","7","0","1","0","300/600","1","4"]);
+                tx.executeSql(str,["第二层","270/270/270","0/0","4.5/5.2","2/3","5.5","0","1","0","300/600","1","4"]);
+                tx.executeSql(str,["填充层","250/260/260","0/0","4/5.2","2/3","5","0","0.95","0","300/600","1","4"]);
+                tx.executeSql(str,["盖面层","250/260/260","0/0","4.5/5.1","3/3","4.5","0","1","0","300/600","1","4"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","4"]);
+                //气体 MAG 脉冲有 焊丝实芯碳钢 直径1.2
+                //        1          1                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","388"]);
+                tx.executeSql(str,["打底层","300/300/300","0/0","5/6","1/3","7","0","1","0","300/600","1","388"]);
+                tx.executeSql(str,["第二层","270/270/270","0/0","4.5/5.2","2/3","5.5","0","1","0","300/600","1","388"]);
+                tx.executeSql(str,["填充层","250/260/260","0/0","4/5.2","2/3","5","0","0.95","0","300/600","1","388"]);
+                tx.executeSql(str,["盖面层","250/260/260","0/0","4.5/5.1","3/3","4.5","0","1","0","300/600","1","388"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","388"]);
+            }else{
+                console.log("Skip Create 横焊单边V形坡口T接头限制条件 Table .");}
+        })
+    }
+    function createLimited5Table(){
+        var table;
+        dataBase.transaction( function(tx) {
+            tx.executeSql("CREATE TABLE IF NOT EXISTS 立焊单边V形坡口T接头限制条件 (ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT)");
+            table = tx.executeSql("SELECT * FROM 立焊单边V形坡口T接头限制条件");
+            var str="INSERT INTO 立焊单边V形坡口T接头限制条件 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+            if(table.rows.length === 0){
+                //气体   脉冲  焊丝种类  直径
+                //    8       7       654          3210
+                //气体 CO2 脉冲无 焊丝实芯碳钢 直径1.2
+                //        0          0                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","4"]);
+                tx.executeSql(str,["打底层","140/140/140","0.5/0.5","3.5/5","1.2/1.2","20","20","1","0","80/250","1","4"]);
+                tx.executeSql(str,["第二层","150/150/150","0.6/0.6","4/5","1.2/1.2","16","2","0.95","0","80/250","1","4"]);
+                tx.executeSql(str,["填充层","150/150/150","0.5/0.5","3.5/5","1.2/1.2","16","2","0.95","0","80/250","1","4"]);
+                tx.executeSql(str,["盖面层","130/130/130","0.4/0.4","4/5","1.2/1.2","18","2","1","0","80/250","1","4"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","4"]);
+                //气体 MAG 脉冲有 焊丝实芯碳钢 直径1.2
+                //        1          1                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","388"]);
+                tx.executeSql(str,["打底层","140/140/140","0.5/0.5","3.5/5","1.2/1.2","20","20","1","0","80/250","1","388"]);
+                tx.executeSql(str,["第二层","150/150/150","0.6/0.6","4/5","1.2/1.2","16","2","0.95","0","80/250","1","388"]);
+                tx.executeSql(str,["填充层","150/150/150","0.5/0.5","3.5/5","1.2/1.2","16","2","0.95","0","80/250","1","388"]);
+                tx.executeSql(str,["盖面层","130/130/130","0.4/0.4","4/5","1.2/1.2","18","2","1","0","80/250","1","388"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","388"]);
+            }else{
+                console.log("Skip Create 立焊单边V形坡口T接头限制条件 Table .");}
+        })
+    }
+    function createLimited6Table(){
+        var table;
+        dataBase.transaction( function(tx) {
+            tx.executeSql("CREATE TABLE IF NOT EXISTS 立焊单边V形坡口平对接限制条件 (ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT)");
+            table = tx.executeSql("SELECT * FROM 立焊单边V形坡口平对接限制条件");
+            var str="INSERT INTO 立焊单边V形坡口平对接限制条件 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+            if(table.rows.length === 0){
+                //气体   脉冲  焊丝种类  直径
+                //    8       7       654          3210
+                //气体 CO2 脉冲无 焊丝实芯碳钢 直径1.2
+                //        0          0                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","4"]);
+                tx.executeSql(str,["打底层","140/140/140","0.5/0.5","3.5/5","1.2/1.2","20","20","1","0","80/250","1","4"]);
+                tx.executeSql(str,["第二层","150/150/150","0.6/0.6","4/5","1.2/1.2","16","2","0.95","0","80/250","1","4"]);
+                tx.executeSql(str,["填充层","150/150/150","0.5/0.5","3.5/5","1.2/1.2","16","2","0.95","0","80/250","1","4"]);
+                tx.executeSql(str,["盖面层","130/130/130","0.4/0.4","4/5","1.2/1.2","18","2","1","0","80/250","1","4"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","4"]);
+                //气体 MAG 脉冲有 焊丝实芯碳钢 直径1.2
+                //        1          1                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","388"]);
+                tx.executeSql(str,["打底层","140/140/140","0.5/0.5","3.5/5","1.2/1.2","20","20","1","0","80/250","1","388"]);
+                tx.executeSql(str,["第二层","150/150/150","0.6/0.6","4/5","1.2/1.2","16","2","0.95","0","80/250","1","388"]);
+                tx.executeSql(str,["填充层","150/150/150","0.5/0.5","3.5/5","1.2/1.2","16","2","0.95","0","80/250","1","388"]);
+                tx.executeSql(str,["盖面层","130/130/130","0.4/0.4","4/5","1.2/1.2","18","2","1","0","80/250","1","388"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","388"]);
+            }else{
+                console.log("Skip Create 立焊单边V形坡口平对接限制条件 Table .");}
+        })
+    }
+    function createLimited7Table(){
+        var table;
+        dataBase.transaction( function(tx) {
+            tx.executeSql("CREATE TABLE IF NOT EXISTS 立焊V形坡口平对接限制条件 (ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT)");
+            table = tx.executeSql("SELECT * FROM 立焊V形坡口平对接限制条件");
+            var str="INSERT INTO 立焊V形坡口平对接限制条件 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+            if(table.rows.length === 0){
+                //气体   脉冲  焊丝种类  直径
+                //    8       7       654          3210
+                //气体 CO2 脉冲无 焊丝实芯碳钢 直径1.2
+                //        0          0                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","4"]);
+                tx.executeSql(str,["打底层","140/140/140","0.5/0.5","3.5/5","1.2/1.2","20","20","1","0","80/250","1","4"]);
+                tx.executeSql(str,["第二层","150/150/150","0.6/0.6","4/5","1.2/1.2","16","2","0.95","0","80/250","1","4"]);
+                tx.executeSql(str,["填充层","150/150/150","0.5/0.5","3.5/5","1.2/1.2","16","2","0.95","0","80/250","1","4"]);
+                tx.executeSql(str,["盖面层","130/130/130","0.4/0.4","4/5","1.2/1.2","18","2","1","0","80/250","1","4"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","4"]);
+                //气体 MAG 脉冲有 焊丝实芯碳钢 直径1.2
+                //        1          1                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","388"]);
+                tx.executeSql(str,["打底层","140/140/140","0.5/0.5","3.5/5","1.2/1.2","20","20","1","0","80/250","1","388"]);
+                tx.executeSql(str,["第二层","150/150/150","0.6/0.6","4/5","1.2/1.2","16","2","0.95","0","80/250","1","388"]);
+                tx.executeSql(str,["填充层","150/150/150","0.5/0.5","3.5/5","1.2/1.2","16","2","0.95","0","80/250","1","388"]);
+                tx.executeSql(str,["盖面层","130/130/130","0.4/0.4","4/5","1.2/1.2","18","2","1","0","80/250","1","388"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","388"]);
+            }else{
+                console.log("Skip Create 立焊V形坡口平对接限制条件 Table .");}
+        })
+    }
+    function createLimited8Table(){
+        var table;
+        dataBase.transaction( function(tx) {
+            tx.executeSql("CREATE TABLE IF NOT EXISTS 水平角焊限制条件 (ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT)");
+            table = tx.executeSql("SELECT * FROM 水平角焊限制条件");
+            var str="INSERT INTO 水平角焊限制条件 VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+            if(table.rows.length === 0){
+                //气体   脉冲  焊丝种类  直径
+                //    8       7       654          3210
+                //气体 CO2 脉冲无 焊丝实芯碳钢 直径1.2
+                //        0          0                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","4"]);
+                tx.executeSql(str,["打底层","140/140/140","0.5/0.5","3.5/5","1.2/1.2","20","20","1","0","80/250","1","4"]);
+                tx.executeSql(str,["第二层","150/150/150","0.6/0.6","4/5","1.2/1.2","16","2","0.95","0","80/250","1","4"]);
+                tx.executeSql(str,["填充层","150/150/150","0.5/0.5","3.5/5","1.2/1.2","16","2","0.95","0","80/250","1","4"]);
+                tx.executeSql(str,["盖面层","130/130/130","0.4/0.4","4/5","1.2/1.2","18","2","1","0","80/250","1","4"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","4"]);
+                //气体 MAG 脉冲有 焊丝实芯碳钢 直径1.2
+                //        1          1                    0             4              ID = 4
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","388"]);
+                tx.executeSql(str,["打底层","140/140/140","0.5/0.5","3.5/5","1.2/1.2","20","20","1","0","80/250","1","388"]);
+                tx.executeSql(str,["第二层","150/150/150","0.6/0.6","4/5","1.2/1.2","16","2","0.95","0","80/250","1","388"]);
+                tx.executeSql(str,["填充层","150/150/150","0.5/0.5","3.5/5","1.2/1.2","16","2","0.95","0","80/250","1","388"]);
+                tx.executeSql(str,["盖面层","130/130/130","0.4/0.4","4/5","1.2/1.2","18","2","1","0","80/250","1","388"]);
+                tx.executeSql(str,["立板余高层","","","","","","","","","","","388"]);
+            }else{
+                console.log("Skip Create 水平角焊限制条件 Table .");}
+        })
     }
 
-    function createLimited2Table(tableName){
-        if(typeof(tableName)==="string"){
-            var str="CREATE TABLE IF NOT EXISTS ";
-            str+=tableName;
-            str+="(id INT NOT NULL PRIMARY KEY,value TEXT)"
-            var table;
-            dataBase.transaction( function(tx) {
-                tx.executeSql(str);
-                table = tx.executeSql("select * from "+tableName);
-                str="insert into "
-                str+=tableName;
-                str+=" values(?,?)"
-                if(table.rows.length === 0){
-                    /***************************************************焊接规范限制**********************************************/
-                    //初层陶衬垫电流前侧
-                    tx.executeSql(str,[0,"230"]);
-                    //初层陶衬垫电流中间
-                    tx.executeSql(str,[1,"230"]);
-                    //初层陶衬垫电流后侧
-                    tx.executeSql(str,[2,"230"]);
-                    //初层陶衬垫端部停止时间前（ms）
-                    tx.executeSql(str,[3,"400"]);
-                    //初层陶衬垫端部停止时间后（ms）
-                    tx.executeSql(str,[4,"400"]);
-                    //初层陶衬垫堆高MAX
-                    tx.executeSql(str,[5,"9.0"]);
-                    //初层陶衬垫接近-前
-                    tx.executeSql(str,[6,"2.0"]);
-                    //初层陶衬垫接近-后
-                    tx.executeSql(str,[7,"2.0"]);
-                    //初层陶衬垫分开最大摆动宽度
-                    tx.executeSql(str,[8,"20.0"]);
-                    //初层陶衬垫摆动宽度间隔
-                    tx.executeSql(str,[9,"100.0"]);
-                    //初层陶衬垫分开结束/开始比
-                    tx.executeSql(str,[10,"0.85"]);
-                    //初层陶衬垫焊接电压  0代表自动设定
-                    tx.executeSql(str,[11,"28"]);
-
-                    //初层电流前侧
-                    tx.executeSql(str,[12,"300"]);
-                    //初层电流中间
-                    tx.executeSql(str,[13,"300"]);
-                    //初层电流后侧
-                    tx.executeSql(str,[14,"300"]);
-                    //初层端部停止时间前（ms）
-                    tx.executeSql(str,[15,"200"]);
-                    //初层端部停止时间后（ms）
-                    tx.executeSql(str,[16,"200"]);
-                    //初层堆高MAX
-                    tx.executeSql(str,[17,"7.0"]);
-                    //初层接近-前
-                    tx.executeSql(str,[18,"2.0"]);
-                    //初层接近-后
-                    tx.executeSql(str,[19,"2.0"]);
-                    //初层分开最大摆动宽度
-                    tx.executeSql(str,[20,"20.0"]);
-                    //初层摆动宽度间隔
-                    tx.executeSql(str,[21,"100.0"]);
-                    //初层分开结束/开始比
-                    tx.executeSql(str,[22,"1.0"]);
-                    //初层焊接电压
-                    tx.executeSql(str,[23,"0"]);
-
-                    //第二层电流前侧
-                    tx.executeSql(str,[24,"290"]);
-                    //第二层电流中间
-                    tx.executeSql(str,[25,"290"]);
-                    //第二层电流后侧
-                    tx.executeSql(str,[26,"290"]);
-                    //第二层端部停止时间前（ms）
-                    tx.executeSql(str,[27,"100"]);
-                    //第二层端部停止时间后（ms）
-                    tx.executeSql(str,[28,"100"]);
-                    //第二层堆高MAX
-                    tx.executeSql(str,[29,"5.0"]);
-                    //第二层接近-前
-                    tx.executeSql(str,[30,"1.0"]);
-                    //第二层接近-后
-                    tx.executeSql(str,[31,"1.0"]);
-                    //第二层分开最大摆动宽度
-                    tx.executeSql(str,[32,"16.0"]);
-                    //第二层摆动宽度间隔
-                    tx.executeSql(str,[33,"5.0"]);
-                    //第二层分开结束/开始比
-                    tx.executeSql(str,[34,"0.85"]);
-                    //第二层焊接电压
-                    tx.executeSql(str,[35,"0"]);
-
-                    //中间层电流前侧
-                    tx.executeSql(str,[36,"290"]);
-                    //中间层电流中间
-                    tx.executeSql(str,[37,"290"]);
-                    //中间层电流后侧
-                    tx.executeSql(str,[38,"290"]);
-                    //中间层端部停止时间前（ms）
-                    tx.executeSql(str,[39,"100"]);
-                    //中间层端部停止时间后（ms）
-                    tx.executeSql(str,[40,"100"]);
-                    //中间层堆高MAX
-                    tx.executeSql(str,[41,"4.0"]);
-                    //中间层接近-前
-                    tx.executeSql(str,[42,"2.0"]);
-                    //中间层接近-后
-                    tx.executeSql(str,[43,"2.0"]);
-                    //中间层分开最大摆动宽度
-                    tx.executeSql(str,[44,"14.0"]);
-                    //中间层摆动宽度间隔
-                    tx.executeSql(str,[45,"5.0"]);
-                    //中间层分开结束/开始比
-                    tx.executeSql(str,[46,"1.0"]);
-                    //中间层焊接电压
-                    tx.executeSql(str,[47,"0"]);
-
-                    //表面层电流前侧
-                    tx.executeSql(str,[48,"280"]);
-                    //表面层电流中间
-                    tx.executeSql(str,[49,"280"]);
-                    //表面层电流后侧
-                    tx.executeSql(str,[50,"280"]);
-                    //表面层端部停止时间前（ms）
-                    tx.executeSql(str,[51,"100"]);
-                    //表面层端部停止时间后（ms）
-                    tx.executeSql(str,[52,"100"]);
-                    //表面层堆高MAX
-                    tx.executeSql(str,[53,"4.0"]);
-                    //表面层接近-前
-                    tx.executeSql(str,[54,"2.0"]);
-                    //表面层接近-后
-                    tx.executeSql(str,[55,"2.0"]);
-                    //表面层分开最大摆动宽度
-                    tx.executeSql(str,[56,"16.0"]);
-                    //表面层摆动宽度间隔
-                    tx.executeSql(str,[57,"5.0"]);
-                    //表面层分开结束/开始比
-                    tx.executeSql(str,[58,"1.0"]);
-                    //表面层焊接电压
-                    tx.executeSql(str,[59,"0"]);
-
-                    //表面层余高层数
-                    tx.executeSql(str,[60,"0"]);
-                    //表面层分开方向 0 反方向 1标准
-                    tx.executeSql(str,[61,"0"]);
-                    //表面层起弧位置  00代表收弧位置
-                    tx.executeSql(str,[62,"0"]);
-                    //开始位置坐标X（mm）
-                    tx.executeSql(str,[63,"4.0"]);
-                    //开始位置坐标Y（mm）
-                    tx.executeSql(str,[64,"0.0"]);
-                    //开始位置坐标z（mm）
-                    tx.executeSql(str,[65,"-3.0"]);
-                    //表面层收弧动作 0 单程 1往返
-                    tx.executeSql(str,[66,"0"]);
-                    //表面层返回步骤距离
-                    tx.executeSql(str,[67,"5.0"]);
-
-                    //立板余高层电流前侧
-                    tx.executeSql(str,[68,"0"]);
-                    //立板余高层电流中间
-                    tx.executeSql(str,[69,"0"]);
-                    //立板余高层电流后侧
-                    tx.executeSql(str,[70,"0"]);
-                    //立板余高层端部停止时间前（ms）
-                    tx.executeSql(str,[71,"0"]);
-                    //立板余高层端部停止时间后（ms）
-                    tx.executeSql(str,[72,"0"]);
-                    //立板余高层堆高MAX
-                    tx.executeSql(str,[73,"0"]);
-                    //立板余高层接近-前
-                    tx.executeSql(str,[74,"0"]);
-                    //立板余高层接近-后
-                    tx.executeSql(str,[75,"0"]);
-                    //立板余高层分开最大摆动宽度
-                    tx.executeSql(str,[76,"0"]);
-                    //立板余高层摆动宽度间隔
-                    tx.executeSql(str,[77,"0"]);
-                    //立板余高层分开结束/开始比
-                    tx.executeSql(str,[78,"0"]);
-                    //立板余高层焊接电压
-                    tx.executeSql(str,[79,"0"]);
-                    //立板余高层MAX焊接速度
-                    tx.executeSql(str,[80,"0"]);
-
-                    /***************************************************焊接规范列表**********************************************/
-                }
-                else{
-                    console.log("Skip Create "+tableName+" Table .");}
-            })
-        }else
-            return -1;
-    }
-    function createLimited3Table(tableName){
-        if(typeof(tableName)==="string"){
-            var str="CREATE TABLE IF NOT EXISTS ";
-            str+=tableName;
-            str+="(id INT NOT NULL PRIMARY KEY,value TEXT)"
-            var table;
-            dataBase.transaction( function(tx) {
-                tx.executeSql(str);
-                table = tx.executeSql("select * from "+tableName);
-                str="insert into "
-                str+=tableName;
-                str+=" values(?,?)"
-                if(table.rows.length === 0){
-                    /***************************************************焊接规范限制**********************************************/
-                    //初层陶衬垫电流前侧
-                    tx.executeSql(str,[0,"0"]);
-                    //初层陶衬垫电流中间
-                    tx.executeSql(str,[1,"0"]);
-                    //初层陶衬垫电流后侧
-                    tx.executeSql(str,[2,"0"]);
-                    //初层陶衬垫端部停止时间前（ms）
-                    tx.executeSql(str,[3,"0"]);
-                    //初层陶衬垫端部停止时间后（ms）
-                    tx.executeSql(str,[4,"0"]);
-                    //初层陶衬垫堆高MAX
-                    tx.executeSql(str,[5,"0"]);
-                    //初层陶衬垫接近-前
-                    tx.executeSql(str,[6,"0"]);
-                    //初层陶衬垫接近-后
-                    tx.executeSql(str,[7,"0"]);
-                    //初层陶衬垫分开最大摆动宽度
-                    tx.executeSql(str,[8,"0"]);
-                    //初层陶衬垫摆动宽度间隔
-                    tx.executeSql(str,[9,"0"]);
-                    //初层陶衬垫分开结束/开始比
-                    tx.executeSql(str,[10,"0"]);
-                    //初层陶衬垫焊接电压  0代表自动设定
-                    tx.executeSql(str,[11,"0"]);
-
-                    //初层电流前侧
-                    tx.executeSql(str,[12,"300"]);
-                    //初层电流中间
-                    tx.executeSql(str,[13,"300"]);
-                    //初层电流后侧
-                    tx.executeSql(str,[14,"270"]);
-                    //初层端部停止时间前（ms）
-                    tx.executeSql(str,[15,"0"]);
-                    //初层端部停止时间后（ms）
-                    tx.executeSql(str,[16,"0"]);
-                    //初层堆高MAX
-                    tx.executeSql(str,[17,"8.1"]);
-                    //初层接近-前
-                    tx.executeSql(str,[18,"1.5"]);
-                    //初层接近-后
-                    tx.executeSql(str,[19,"5.0"]);
-                    //初层分开最大摆动宽度
-                    tx.executeSql(str,[20,"20.0"]);
-                    //初层摆动宽度间隔
-                    tx.executeSql(str,[21,"100.0"]);
-                    //初层分开结束/开始比
-                    tx.executeSql(str,[22,"1.0"]);
-                    //初层焊接电压
-                    tx.executeSql(str,[23,"0"]);
-
-                    //第二层电流前侧
-                    tx.executeSql(str,[24,"290"]);
-                    //第二层电流中间
-                    tx.executeSql(str,[25,"290"]);
-                    //第二层电流后侧
-                    tx.executeSql(str,[26,"290"]);
-                    //第二层端部停止时间前（ms）
-                    tx.executeSql(str,[27,"100"]);
-                    //第二层端部停止时间后（ms）
-                    tx.executeSql(str,[28,"100"]);
-                    //第二层堆高MAX
-                    tx.executeSql(str,[29,"5.0"]);
-                    //第二层接近-前
-                    tx.executeSql(str,[30,"1.0"]);
-                    //第二层接近-后
-                    tx.executeSql(str,[31,"1.0"]);
-                    //第二层分开最大摆动宽度
-                    tx.executeSql(str,[32,"16.0"]);
-                    //第二层摆动宽度间隔
-                    tx.executeSql(str,[33,"5.0"]);
-                    //第二层分开结束/开始比
-                    tx.executeSql(str,[34,"0.85"]);
-                    //第二层焊接电压
-                    tx.executeSql(str,[35,"0"]);
-
-                    //中间层电流前侧
-                    tx.executeSql(str,[36,"290"]);
-                    //中间层电流中间
-                    tx.executeSql(str,[37,"290"]);
-                    //中间层电流后侧
-                    tx.executeSql(str,[38,"290"]);
-                    //中间层端部停止时间前（ms）
-                    tx.executeSql(str,[39,"100"]);
-                    //中间层端部停止时间后（ms）
-                    tx.executeSql(str,[40,"100"]);
-                    //中间层堆高MAX
-                    tx.executeSql(str,[41,"4.0"]);
-                    //中间层接近-前
-                    tx.executeSql(str,[42,"2.0"]);
-                    //中间层接近-后
-                    tx.executeSql(str,[43,"2.0"]);
-                    //中间层分开最大摆动宽度
-                    tx.executeSql(str,[44,"14.0"]);
-                    //中间层摆动宽度间隔
-                    tx.executeSql(str,[45,"5.0"]);
-                    //中间层分开结束/开始比
-                    tx.executeSql(str,[46,"1.0"]);
-                    //中间层焊接电压
-                    tx.executeSql(str,[47,"0"]);
-
-                    //表面层电流前侧
-                    tx.executeSql(str,[48,"280"]);
-                    //表面层电流中间
-                    tx.executeSql(str,[49,"280"]);
-                    //表面层电流后侧
-                    tx.executeSql(str,[50,"280"]);
-                    //表面层端部停止时间前（ms）
-                    tx.executeSql(str,[51,"100"]);
-                    //表面层端部停止时间后（ms）
-                    tx.executeSql(str,[52,"100"]);
-                    //表面层堆高MAX
-                    tx.executeSql(str,[53,"4.0"]);
-                    //表面层接近-前
-                    tx.executeSql(str,[54,"2.0"]);
-                    //表面层接近-后
-                    tx.executeSql(str,[55,"2.0"]);
-                    //表面层分开最大摆动宽度
-                    tx.executeSql(str,[56,"16.0"]);
-                    //表面层摆动宽度间隔
-                    tx.executeSql(str,[57,"5.0"]);
-                    //表面层分开结束/开始比
-                    tx.executeSql(str,[58,"1.0"]);
-                    //表面层焊接电压
-                    tx.executeSql(str,[59,"0"]);
-
-                    //表面层余高层数
-                    tx.executeSql(str,[60,"0"]);
-                    //表面层分开方向 0 反方向 1标准
-                    tx.executeSql(str,[61,"0"]);
-                    //表面层起弧位置  00代表收弧位置
-                    tx.executeSql(str,[62,"0"]);
-                    //开始位置坐标X（mm）
-                    tx.executeSql(str,[63,"4.0"]);
-                    //开始位置坐标Y（mm）
-                    tx.executeSql(str,[64,"0.0"]);
-                    //开始位置坐标z（mm）
-                    tx.executeSql(str,[65,"-3.0"]);
-                    //表面层收弧动作 0 单程 1往返
-                    tx.executeSql(str,[66,"0"]);
-                    //表面层返回步骤距离
-                    tx.executeSql(str,[67,"5.0"]);
-
-                    //立板余高层电流前侧
-                    tx.executeSql(str,[68,"0"]);
-                    //立板余高层电流中间
-                    tx.executeSql(str,[69,"0"]);
-                    //立板余高层电流后侧
-                    tx.executeSql(str,[70,"0"]);
-                    //立板余高层端部停止时间前（ms）
-                    tx.executeSql(str,[71,"0"]);
-                    //立板余高层端部停止时间后（ms）
-                    tx.executeSql(str,[72,"0"]);
-                    //立板余高层堆高MAX
-                    tx.executeSql(str,[73,"0"]);
-                    //立板余高层接近-前
-                    tx.executeSql(str,[74,"0"]);
-                    //立板余高层接近-后
-                    tx.executeSql(str,[75,"0"]);
-                    //立板余高层分开最大摆动宽度
-                    tx.executeSql(str,[76,"0"]);
-                    //立板余高层摆动宽度间隔
-                    tx.executeSql(str,[77,"0"]);
-                    //立板余高层分开结束/开始比
-                    tx.executeSql(str,[78,"0"]);
-                    //立板余高层焊接电压
-                    tx.executeSql(str,[79,"0"]);
-                    //立板余高层MAX焊接速度
-                    tx.executeSql(str,[80,"0"]);
-
-                }  else{
-                    console.log("Skip Create "+tableName+" Table .");}
-            })}
-        else
-            return -1;
-    }
-    function createLimited4Table(tableName){
-        if(typeof(tableName)==="string"){
-            var str="CREATE TABLE IF NOT EXISTS ";
-            str+=tableName;
-            str+="(id INT NOT NULL PRIMARY KEY,value TEXT)"
-            var table;
-            dataBase.transaction( function(tx) {
-                tx.executeSql(str);
-                table = tx.executeSql("select * from "+tableName);
-                str="insert into "
-                str+=tableName;
-                str+=" values(?,?)"
-                if(table.rows.length === 0){
-                    /***************************************************焊接规范限制**********************************************/
-                    //初层陶衬垫电流前侧
-                    tx.executeSql(str,[0,"0"]);
-                    //初层陶衬垫电流中间
-                    tx.executeSql(str,[1,"0"]);
-                    //初层陶衬垫电流后侧
-                    tx.executeSql(str,[2,"0"]);
-                    //初层陶衬垫端部停止时间前（ms）
-                    tx.executeSql(str,[3,"0"]);
-                    //初层陶衬垫端部停止时间后（ms）
-                    tx.executeSql(str,[4,"0"]);
-                    //初层陶衬垫堆高MAX
-                    tx.executeSql(str,[5,"0"]);
-                    //初层陶衬垫接近-前
-                    tx.executeSql(str,[6,"0"]);
-                    //初层陶衬垫接近-后
-                    tx.executeSql(str,[7,"0"]);
-                    //初层陶衬垫分开最大摆动宽度
-                    tx.executeSql(str,[8,"0"]);
-                    //初层陶衬垫摆动宽度间隔
-                    tx.executeSql(str,[9,"0"]);
-                    //初层陶衬垫分开结束/开始比
-                    tx.executeSql(str,[10,"0"]);
-                    //初层陶衬垫焊接电压  0代表自动设定
-                    tx.executeSql(str,[11,"0"]);
-
-                    //初层电流前侧
-                    tx.executeSql(str,[12,"300"]);
-                    //初层电流中间
-                    tx.executeSql(str,[13,"300"]);
-                    //初层电流后侧
-                    tx.executeSql(str,[14,"270"]);
-                    //初层端部停止时间前（ms）
-                    tx.executeSql(str,[15,"0"]);
-                    //初层端部停止时间后（ms）
-                    tx.executeSql(str,[16,"0"]);
-                    //初层堆高MAX
-                    tx.executeSql(str,[17,"8.1"]);
-                    //初层接近-前
-                    tx.executeSql(str,[18,"1.5"]);
-                    //初层接近-后
-                    tx.executeSql(str,[19,"5.0"]);
-                    //初层分开最大摆动宽度
-                    tx.executeSql(str,[20,"20.0"]);
-                    //初层摆动宽度间隔
-                    tx.executeSql(str,[21,"100.0"]);
-                    //初层分开结束/开始比
-                    tx.executeSql(str,[22,"1.0"]);
-                    //初层焊接电压
-                    tx.executeSql(str,[23,"0"]);
-
-                    //第二层电流前侧
-                    tx.executeSql(str,[24,"290"]);
-                    //第二层电流中间
-                    tx.executeSql(str,[25,"290"]);
-                    //第二层电流后侧
-                    tx.executeSql(str,[26,"290"]);
-                    //第二层端部停止时间前（ms）
-                    tx.executeSql(str,[27,"100"]);
-                    //第二层端部停止时间后（ms）
-                    tx.executeSql(str,[28,"100"]);
-                    //第二层堆高MAX
-                    tx.executeSql(str,[29,"5.0"]);
-                    //第二层接近-前
-                    tx.executeSql(str,[30,"1.0"]);
-                    //第二层接近-后
-                    tx.executeSql(str,[31,"1.0"]);
-                    //第二层分开最大摆动宽度
-                    tx.executeSql(str,[32,"16.0"]);
-                    //第二层摆动宽度间隔
-                    tx.executeSql(str,[33,"5.0"]);
-                    //第二层分开结束/开始比
-                    tx.executeSql(str,[34,"0.85"]);
-                    //第二层焊接电压
-                    tx.executeSql(str,[35,"0"]);
-
-                    //中间层电流前侧
-                    tx.executeSql(str,[36,"290"]);
-                    //中间层电流中间
-                    tx.executeSql(str,[37,"290"]);
-                    //中间层电流后侧
-                    tx.executeSql(str,[38,"290"]);
-                    //中间层端部停止时间前（ms）
-                    tx.executeSql(str,[39,"100"]);
-                    //中间层端部停止时间后（ms）
-                    tx.executeSql(str,[40,"100"]);
-                    //中间层堆高MAX
-                    tx.executeSql(str,[41,"4.0"]);
-                    //中间层接近-前
-                    tx.executeSql(str,[42,"2.0"]);
-                    //中间层接近-后
-                    tx.executeSql(str,[43,"2.0"]);
-                    //中间层分开最大摆动宽度
-                    tx.executeSql(str,[44,"14.0"]);
-                    //中间层摆动宽度间隔
-                    tx.executeSql(str,[45,"5.0"]);
-                    //中间层分开结束/开始比
-                    tx.executeSql(str,[46,"1.0"]);
-                    //中间层焊接电压
-                    tx.executeSql(str,[47,"0"]);
-
-                    //表面层电流前侧
-                    tx.executeSql(str,[48,"280"]);
-                    //表面层电流中间
-                    tx.executeSql(str,[49,"280"]);
-                    //表面层电流后侧
-                    tx.executeSql(str,[50,"280"]);
-                    //表面层端部停止时间前（ms）
-                    tx.executeSql(str,[51,"100"]);
-                    //表面层端部停止时间后（ms）
-                    tx.executeSql(str,[52,"100"]);
-                    //表面层堆高MAX
-                    tx.executeSql(str,[53,"4.0"]);
-                    //表面层接近-前
-                    tx.executeSql(str,[54,"2.0"]);
-                    //表面层接近-后
-                    tx.executeSql(str,[55,"2.0"]);
-                    //表面层分开最大摆动宽度
-                    tx.executeSql(str,[56,"16.0"]);
-                    //表面层摆动宽度间隔
-                    tx.executeSql(str,[57,"5.0"]);
-                    //表面层分开结束/开始比
-                    tx.executeSql(str,[58,"1.0"]);
-                    //表面层焊接电压
-                    tx.executeSql(str,[59,"0"]);
-
-                    //表面层余高层数
-                    tx.executeSql(str,[60,"0"]);
-                    //表面层分开方向 0 反方向 1标准
-                    tx.executeSql(str,[61,"0"]);
-                    //表面层起弧位置  00代表收弧位置
-                    tx.executeSql(str,[62,"0"]);
-                    //开始位置坐标X（mm）
-                    tx.executeSql(str,[63,"4.0"]);
-                    //开始位置坐标Y（mm）
-                    tx.executeSql(str,[64,"0.0"]);
-                    //开始位置坐标z（mm）
-                    tx.executeSql(str,[65,"-3.0"]);
-                    //表面层收弧动作 0 单程 1往返
-                    tx.executeSql(str,[66,"0"]);
-                    //表面层返回步骤距离
-                    tx.executeSql(str,[67,"5.0"]);
-
-                    //立板余高层电流前侧
-                    tx.executeSql(str,[68,"0"]);
-                    //立板余高层电流中间
-                    tx.executeSql(str,[69,"0"]);
-                    //立板余高层电流后侧
-                    tx.executeSql(str,[70,"0"]);
-                    //立板余高层端部停止时间前（ms）
-                    tx.executeSql(str,[71,"0"]);
-                    //立板余高层端部停止时间后（ms）
-                    tx.executeSql(str,[72,"0"]);
-                    //立板余高层堆高MAX
-                    tx.executeSql(str,[73,"0"]);
-                    //立板余高层接近-前
-                    tx.executeSql(str,[74,"0"]);
-                    //立板余高层接近-后
-                    tx.executeSql(str,[75,"0"]);
-                    //立板余高层分开最大摆动宽度
-                    tx.executeSql(str,[76,"0"]);
-                    //立板余高层摆动宽度间隔
-                    tx.executeSql(str,[77,"0"]);
-                    //立板余高层分开结束/开始比
-                    tx.executeSql(str,[78,"0"]);
-                    //立板余高层焊接电压
-                    tx.executeSql(str,[79,"0"]);
-                    //立板余高层MAX焊接速度
-                    tx.executeSql(str,[80,"0"]);
-                    /***************************************************焊接规范列表**********************************************/
-                } else{
-                    console.log("Skip Create "+tableName+" Table .");}
-            })}
-        else
-            return -1;
-    }
-    function createLimited5Table(tableName){
-        if(typeof(tableName)==="string"){
-            var str="CREATE TABLE IF NOT EXISTS ";
-            str+=tableName;
-            str+="(id INT NOT NULL PRIMARY KEY,value TEXT)"
-            var table;
-            dataBase.transaction( function(tx) {
-                tx.executeSql(str);
-                table = tx.executeSql("select * from "+tableName);
-                str="insert into "
-                str+=tableName;
-                str+=" values(?,?)"
-                if(table.rows.length === 0){
-                    //初层陶衬垫电流前侧
-                    tx.executeSql(str,[0,"230"]);
-                    //初层陶衬垫电流中间
-                    tx.executeSql(str,[1,"230"]);
-                    //初层陶衬垫电流后侧
-                    tx.executeSql(str,[2,"230"]);
-                    //初层陶衬垫端部停止时间前（ms）
-                    tx.executeSql(str,[3,"400"]);
-                    //初层陶衬垫端部停止时间后（ms）
-                    tx.executeSql(str,[4,"400"]);
-                    //初层陶衬垫堆高MAX
-                    tx.executeSql(str,[5,"9.0"]);
-                    //初层陶衬垫接近-前
-                    tx.executeSql(str,[6,"2.0"]);
-                    //初层陶衬垫接近-后
-                    tx.executeSql(str,[7,"2.0"]);
-                    //初层陶衬垫分开最大摆动宽度
-                    tx.executeSql(str,[8,"20.0"]);
-                    //初层陶衬垫摆动宽度间隔
-                    tx.executeSql(str,[9,"100.0"]);
-                    //初层陶衬垫分开结束/开始比
-                    tx.executeSql(str,[10,"0.85"]);
-                    //初层陶衬垫焊接电压  0代表自动设定
-                    tx.executeSql(str,[11,"0"]);
-
-
-                    //初层电流前侧
-                    tx.executeSql(str,[12,"300"]);
-                    //初层电流中间
-                    tx.executeSql(str,[13,"300"]);
-                    //初层电流后侧
-                    tx.executeSql(str,[14,"300"]);
-                    //初层端部停止时间前（ms）
-                    tx.executeSql(str,[15,"500"]);
-                    //初层端部停止时间后（ms）
-                    tx.executeSql(str,[16,"0"]);
-                    //初层堆高MAX
-                    tx.executeSql(str,[17,"7.0"]);
-                    //初层接近-前
-                    tx.executeSql(str,[18,"1.0"]);
-                    //初层接近-后
-                    tx.executeSql(str,[19,"2.0"]);
-                    //初层分开最大摆动宽度
-                    tx.executeSql(str,[20,"20.0"]);
-                    //初层摆动宽度间隔
-                    tx.executeSql(str,[21,"100.0"]);
-                    //初层分开结束/开始比
-                    tx.executeSql(str,[22,"1.0"]);
-                    //初层焊接电压
-                    tx.executeSql(str,[23,"0"]);
-
-                    //第二层电流前侧
-                    tx.executeSql(str,[24,"290"]);
-                    //第二层电流中间
-                    tx.executeSql(str,[25,"290"]);
-                    //第二层电流后侧
-                    tx.executeSql(str,[26,"290"]);
-                    //第二层端部停止时间前（ms）
-                    tx.executeSql(str,[27,"100"]);
-                    //第二层端部停止时间后（ms）
-                    tx.executeSql(str,[28,"100"]);
-                    //第二层堆高MAX
-                    tx.executeSql(str,[29,"5.0"]);
-                    //第二层接近-前
-                    tx.executeSql(str,[30,"1.0"]);
-                    //第二层接近-后
-                    tx.executeSql(str,[31,"2.0"]);
-                    //第二层分开最大摆动宽度
-                    tx.executeSql(str,[32,"16.0"]);
-                    //第二层摆动宽度间隔
-                    tx.executeSql(str,[33,"5.0"]);
-                    //第二层分开结束/开始比
-                    tx.executeSql(str,[34,"0.85"]);
-                    //第二层焊接电压
-                    tx.executeSql(str,[35,"0"]);
-
-                    //中间层电流前侧
-                    tx.executeSql(str,[36,"290"]);
-                    //中间层电流中间
-                    tx.executeSql(str,[37,"290"]);
-                    //中间层电流后侧
-                    tx.executeSql(str,[38,"290"]);
-                    //中间层端部停止时间前（ms）
-                    tx.executeSql(str,[39,"100"]);
-                    //中间层端部停止时间后（ms）
-                    tx.executeSql(str,[40,"100"]);
-                    //中间层堆高MAX
-                    tx.executeSql(str,[41,"5.0"]);
-                    //中间层接近-前
-                    tx.executeSql(str,[42,"1.0"]);
-                    //中间层接近-后
-                    tx.executeSql(str,[43,"2.0"]);
-                    //中间层分开最大摆动宽度
-                    tx.executeSql(str,[44,"16.0"]);
-                    //中间层摆动宽度间隔
-                    tx.executeSql(str,[45,"5.0"]);
-                    //中间层分开结束/开始比
-                    tx.executeSql(str,[46,"0.85"]);
-                    //中间层焊接电压
-                    tx.executeSql(str,[47,"0"]);
-
-                    //表面层电流前侧
-                    tx.executeSql(str,[48,"280"]);
-                    //表面层电流中间
-                    tx.executeSql(str,[49,"280"]);
-                    //表面层电流后侧
-                    tx.executeSql(str,[50,"280"]);
-                    //表面层端部停止时间前（ms）
-                    tx.executeSql(str,[51,"0"]);
-                    //表面层端部停止时间后（ms）
-                    tx.executeSql(str,[52,"0"]);
-                    //表面层堆高MAX
-                    tx.executeSql(str,[53,"4.0"]);
-                    //表面层接近-前
-                    tx.executeSql(str,[54,"2.0"]);
-                    //表面层接近-后
-                    tx.executeSql(str,[55,"2.0"]);
-                    //表面层分开最大摆动宽度
-                    tx.executeSql(str,[56,"11.0"]);
-                    //表面层摆动宽度间隔
-                    tx.executeSql(str,[57,"5.0"]);
-                    //表面层分开结束/开始比
-                    tx.executeSql(str,[58,"1.0"]);
-                    //表面层焊接电压
-                    tx.executeSql(str,[59,"0"]);
-
-                    //表面层余高层数
-                    tx.executeSql(str,[60,"0"]);
-                    //表面层分开方向 0 反方向 1标准
-                    tx.executeSql(str,[61,"0"]);
-                    //表面层起弧位置  00代表收弧位置
-                    tx.executeSql(str,[62,"0"]);
-                    //开始位置坐标X（mm）
-                    tx.executeSql(str,[63,"4.0"]);
-                    //开始位置坐标Y（mm）
-                    tx.executeSql(str,[64,"0.0"]);
-                    //开始位置坐标z（mm）
-                    tx.executeSql(str,[65,"-3.0"]);
-                    //表面层收弧动作 0 单程 1往返
-                    tx.executeSql(str,[66,"0"]);
-                    //表面层返回步骤距离
-                    tx.executeSql(str,[67,"5.0"]);
-
-                    //立板余高层电流前侧
-                    tx.executeSql(str,[68,"250"]);
-                    //立板余高层电流中间
-                    tx.executeSql(str,[69,"250"]);
-                    //立板余高层电流后侧
-                    tx.executeSql(str,[70,"250"]);
-                    //立板余高层端部停止时间前（ms）
-                    tx.executeSql(str,[71,"0.0"]);
-                    //立板余高层端部停止时间后（ms）
-                    tx.executeSql(str,[72,"0.0"]);
-                    //立板余高层堆高MAX
-                    tx.executeSql(str,[73,"5.0"]);
-                    //立板余高层接近-前
-                    tx.executeSql(str,[74,"2.0"]);
-                    //立板余高层接近-后
-                    tx.executeSql(str,[75,"15.0"]);
-                    //立板余高层分开最大摆动宽度
-                    tx.executeSql(str,[76,"10.0"]);
-                    //立板余高层摆动宽度间隔
-                    tx.executeSql(str,[77,"5.0"]);
-                    //立板余高层分开结束/开始比
-                    tx.executeSql(str,[78,"1.0"]);
-                    //立板余高层焊接电压
-                    tx.executeSql(str,[79,"0"]);
-                    //立板余高层MAX焊接速度
-                    tx.executeSql(str,[80,"500.0"]);
-                }else{
-                    console.log("Skip Create "+tableName+" Table .");}
-            })}
-        else
-            return -1;
-    }
-    function createLimited6Table(tableName){
-        if(typeof(tableName)==="string"){
-            var str="CREATE TABLE IF NOT EXISTS ";
-            str+=tableName;
-            str+="(id INT NOT NULL PRIMARY KEY,value TEXT)"
-            var table;
-            dataBase.transaction( function(tx) {
-                tx.executeSql(str);
-                table = tx.executeSql("select * from "+tableName);
-                str="insert into "
-                str+=tableName;
-                str+=" values(?,?)"
-                if(table.rows.length === 0){
-                    //初层陶衬垫电流前侧
-                    tx.executeSql(str,[0,"230"]);
-                    //初层陶衬垫电流中间
-                    tx.executeSql(str,[1,"230"]);
-                    //初层陶衬垫电流后侧
-                    tx.executeSql(str,[2,"230"]);
-                    //初层陶衬垫端部停止时间前（ms）
-                    tx.executeSql(str,[3,"500"]);
-                    //初层陶衬垫端部停止时间后（ms）
-                    tx.executeSql(str,[4,"500"]);
-                    //初层陶衬垫堆高MAX
-                    tx.executeSql(str,[5,"8.5"]);
-                    //初层陶衬垫接近-前
-                    tx.executeSql(str,[6,"2.0"]);
-                    //初层陶衬垫接近-后
-                    tx.executeSql(str,[7,"2.5"]);
-                    //初层陶衬垫分开最大摆动宽度
-                    tx.executeSql(str,[8,"20.0"]);
-                    //初层陶衬垫摆动宽度间隔
-                    tx.executeSql(str,[9,"100.0"]);
-                    //初层陶衬垫分开结束/开始比
-                    tx.executeSql(str,[10,"0.85"]);
-                    //初层陶衬垫焊接电压  0代表自动设定
-                    tx.executeSql(str,[11,"28"]);
-
-                    //初层电流前侧
-                    tx.executeSql(str,[12,"300"]);
-                    //初层电流中间
-                    tx.executeSql(str,[13,"300"]);
-                    //初层电流后侧
-                    tx.executeSql(str,[14,"300"]);
-                    //初层端部停止时间前（ms）
-                    tx.executeSql(str,[15,"200"]);
-                    //初层端部停止时间后（ms）
-                    tx.executeSql(str,[16,"200"]);
-                    //初层堆高MAX
-                    tx.executeSql(str,[17,"7.0"]);
-                    //初层接近-前
-                    tx.executeSql(str,[18,"2.0"]);
-                    //初层接近-后
-                    tx.executeSql(str,[19,"2.0"]);
-                    //初层分开最大摆动宽度
-                    tx.executeSql(str,[20,"20.0"]);
-                    //初层摆动宽度间隔
-                    tx.executeSql(str,[21,"100.0"]);
-                    //初层分开结束/开始比
-                    tx.executeSql(str,[22,"1.0"]);
-                    //初层焊接电压
-                    tx.executeSql(str,[23,"0"]);
-
-                    //第二层电流前侧
-                    tx.executeSql(str,[24,"290"]);
-                    //第二层电流中间
-                    tx.executeSql(str,[25,"290"]);
-                    //第二层电流后侧
-                    tx.executeSql(str,[26,"290"]);
-                    //第二层端部停止时间前（ms）
-                    tx.executeSql(str,[27,"100"]);
-                    //第二层端部停止时间后（ms）
-                    tx.executeSql(str,[28,"100"]);
-                    //第二层堆高MAX
-                    tx.executeSql(str,[29,"5.0"]);
-                    //第二层接近-前
-                    tx.executeSql(str,[30,"1.0"]);
-                    //第二层接近-后
-                    tx.executeSql(str,[31,"1.0"]);
-                    //第二层分开最大摆动宽度
-                    tx.executeSql(str,[32,"16.0"]);
-                    //第二层摆动宽度间隔
-                    tx.executeSql(str,[33,"5.0"]);
-                    //第二层分开结束/开始比
-                    tx.executeSql(str,[34,"0.85"]);
-                    //第二层焊接电压
-                    tx.executeSql(str,[35,"0"]);
-
-                    //中间层电流前侧
-                    tx.executeSql(str,[36,"290"]);
-                    //中间层电流中间
-                    tx.executeSql(str,[37,"290"]);
-                    //中间层电流后侧
-                    tx.executeSql(str,[38,"290"]);
-                    //中间层端部停止时间前（ms）
-                    tx.executeSql(str,[39,"100"]);
-                    //中间层端部停止时间后（ms）
-                    tx.executeSql(str,[40,"100"]);
-                    //中间层堆高MAX
-                    tx.executeSql(str,[41,"5.0"]);
-                    //中间层接近-前
-                    tx.executeSql(str,[42,"1.0"]);
-                    //中间层接近-后
-                    tx.executeSql(str,[43,"1.0"]);
-                    //中间层分开最大摆动宽度
-                    tx.executeSql(str,[44,"16.0"]);
-                    //中间层摆动宽度间隔
-                    tx.executeSql(str,[45,"5.0"]);
-                    //中间层分开结束/开始比
-                    tx.executeSql(str,[46,"0.85"]);
-                    //中间层焊接电压
-                    tx.executeSql(str,[47,"0"]);
-
-                    //表面层电流前侧
-                    tx.executeSql(str,[48,"280"]);
-                    //表面层电流中间
-                    tx.executeSql(str,[49,"280"]);
-                    //表面层电流后侧
-                    tx.executeSql(str,[50,"280"]);
-                    //表面层端部停止时间前（ms）
-                    tx.executeSql(str,[51,"100"]);
-                    //表面层端部停止时间后（ms）
-                    tx.executeSql(str,[52,"100"]);
-                    //表面层堆高MAX
-                    tx.executeSql(str,[53,"4.0"]);
-                    //表面层接近-前
-                    tx.executeSql(str,[54,"2.0"]);
-                    //表面层接近-后
-                    tx.executeSql(str,[55,"2.0"]);
-                    //表面层分开最大摆动宽度
-                    tx.executeSql(str,[56,"16.0"]);
-                    //表面层摆动宽度间隔
-                    tx.executeSql(str,[57,"5.0"]);
-                    //表面层分开结束/开始比
-                    tx.executeSql(str,[58,"1.0"]);
-                    //表面层焊接电压
-                    tx.executeSql(str,[59,"0"]);
-
-                    //表面层余高层数
-                    tx.executeSql(str,[60,"0"]);
-                    //表面层分开方向 0 反方向 1标准
-                    tx.executeSql(str,[61,"0"]);
-                    //表面层起弧位置  00代表收弧位置
-                    tx.executeSql(str,[62,"0"]);
-                    //开始位置坐标X（mm）
-                    tx.executeSql(str,[63,"4.0"]);
-                    //开始位置坐标Y（mm）
-                    tx.executeSql(str,[64,"0.0"]);
-                    //开始位置坐标z（mm）
-                    tx.executeSql(str,[65,"-3.0"]);
-                    //表面层收弧动作 0 单程 1往返
-                    tx.executeSql(str,[66,"0"]);
-                    //表面层返回步骤距离
-                    tx.executeSql(str,[67,"5.0"]);
-
-                    //立板余高层电流前侧
-                    tx.executeSql(str,[68,"0"]);
-                    //立板余高层电流中间
-                    tx.executeSql(str,[69,"0"]);
-                    //立板余高层电流后侧
-                    tx.executeSql(str,[70,"0"]);
-                    //立板余高层端部停止时间前（ms）
-                    tx.executeSql(str,[71,"0"]);
-                    //立板余高层端部停止时间后（ms）
-                    tx.executeSql(str,[72,"0"]);
-                    //立板余高层堆高MAX
-                    tx.executeSql(str,[73,"0"]);
-                    //立板余高层接近-前
-                    tx.executeSql(str,[74,"0"]);
-                    //立板余高层接近-后
-                    tx.executeSql(str,[75,"0"]);
-                    //立板余高层分开最大摆动宽度
-                    tx.executeSql(str,[76,"0"]);
-                    //立板余高层摆动宽度间隔
-                    tx.executeSql(str,[77,"0"]);
-                    //立板余高层分开结束/开始比
-                    tx.executeSql(str,[78,"0"]);
-                    //立板余高层焊接电压
-                    tx.executeSql(str,[79,"0"]);
-                    //立板余高层MAX焊接速度
-                    tx.executeSql(str,[80,"0"]);
-
-                }else{
-                    console.log("Skip Create "+tableName+" Table .");}
-            })}
-        else
-            return -1;
-    }
-    function createLimited7Table(tableName){
-        if(typeof(tableName)==="string"){
-            var str="CREATE TABLE IF NOT EXISTS ";
-            str+=tableName;
-            str+="(id INT NOT NULL PRIMARY KEY,value TEXT)"
-            var table;
-            dataBase.transaction( function(tx) {
-                tx.executeSql(str);
-                table = tx.executeSql("select * from "+tableName);
-                str="insert into "
-                str+=tableName;
-                str+=" values(?,?)"
-                if(table.rows.length === 0){
-                    //初层陶衬垫电流前侧
-                    tx.executeSql(str,[0,"230"]);
-                    //初层陶衬垫电流中间
-                    tx.executeSql(str,[1,"230"]);
-                    //初层陶衬垫电流后侧
-                    tx.executeSql(str,[2,"230"]);
-                    //初层陶衬垫端部停止时间前（ms）
-                    tx.executeSql(str,[3,"400"]);
-                    //初层陶衬垫端部停止时间后（ms）
-                    tx.executeSql(str,[4,"400"]);
-                    //初层陶衬垫堆高MAX
-                    tx.executeSql(str,[5,"9.0"]);
-                    //初层陶衬垫接近-前
-                    tx.executeSql(str,[6,"2.0"]);
-                    //初层陶衬垫接近-后
-                    tx.executeSql(str,[7,"2.0"]);
-                    //初层陶衬垫分开最大摆动宽度
-                    tx.executeSql(str,[8,"20.0"]);
-                    //初层陶衬垫摆动宽度间隔
-                    tx.executeSql(str,[9,"100.0"]);
-                    //初层陶衬垫分开结束/开始比
-                    tx.executeSql(str,[10,"0.85"]);
-                    //初层陶衬垫焊接电压  0代表自动设定
-                    tx.executeSql(str,[11,"28"]);
-
-                    //初层电流前侧
-                    tx.executeSql(str,[12,"300"]);
-                    //初层电流中间
-                    tx.executeSql(str,[13,"300"]);
-                    //初层电流后侧
-                    tx.executeSql(str,[14,"300"]);
-                    //初层端部停止时间前（ms）
-                    tx.executeSql(str,[15,"200"]);
-                    //初层端部停止时间后（ms）
-                    tx.executeSql(str,[16,"200"]);
-                    //初层堆高MAX
-                    tx.executeSql(str,[17,"7.0"]);
-                    //初层接近-前
-                    tx.executeSql(str,[18,"2.0"]);
-                    //初层接近-后
-                    tx.executeSql(str,[19,"2.0"]);
-                    //初层分开最大摆动宽度
-                    tx.executeSql(str,[20,"20.0"]);
-                    //初层摆动宽度间隔
-                    tx.executeSql(str,[21,"100.0"]);
-                    //初层分开结束/开始比
-                    tx.executeSql(str,[22,"1.0"]);
-                    //初层焊接电压
-                    tx.executeSql(str,[23,"0"]);
-
-                    //第二层电流前侧
-                    tx.executeSql(str,[24,"290"]);
-                    //第二层电流中间
-                    tx.executeSql(str,[25,"290"]);
-                    //第二层电流后侧
-                    tx.executeSql(str,[26,"290"]);
-                    //第二层端部停止时间前（ms）
-                    tx.executeSql(str,[27,"100"]);
-                    //第二层端部停止时间后（ms）
-                    tx.executeSql(str,[28,"100"]);
-                    //第二层堆高MAX
-                    tx.executeSql(str,[29,"5.0"]);
-                    //第二层接近-前
-                    tx.executeSql(str,[30,"1.0"]);
-                    //第二层接近-后
-                    tx.executeSql(str,[31,"1.0"]);
-                    //第二层分开最大摆动宽度
-                    tx.executeSql(str,[32,"16.0"]);
-                    //第二层摆动宽度间隔
-                    tx.executeSql(str,[33,"5.0"]);
-                    //第二层分开结束/开始比
-                    tx.executeSql(str,[34,"0.85"]);
-                    //第二层焊接电压
-                    tx.executeSql(str,[35,"0"]);
-
-                    //中间层电流前侧
-                    tx.executeSql(str,[36,"290"]);
-                    //中间层电流中间
-                    tx.executeSql(str,[37,"290"]);
-                    //中间层电流后侧
-                    tx.executeSql(str,[38,"290"]);
-                    //中间层端部停止时间前（ms）
-                    tx.executeSql(str,[39,"100"]);
-                    //中间层端部停止时间后（ms）
-                    tx.executeSql(str,[40,"100"]);
-                    //中间层堆高MAX
-                    tx.executeSql(str,[41,"4.0"]);
-                    //中间层接近-前
-                    tx.executeSql(str,[42,"2.0"]);
-                    //中间层接近-后
-                    tx.executeSql(str,[43,"2.0"]);
-                    //中间层分开最大摆动宽度
-                    tx.executeSql(str,[44,"14.0"]);
-                    //中间层摆动宽度间隔
-                    tx.executeSql(str,[45,"5.0"]);
-                    //中间层分开结束/开始比
-                    tx.executeSql(str,[46,"1.0"]);
-                    //中间层焊接电压
-                    tx.executeSql(str,[47,"0"]);
-
-                    //表面层电流前侧
-                    tx.executeSql(str,[48,"280"]);
-                    //表面层电流中间
-                    tx.executeSql(str,[49,"280"]);
-                    //表面层电流后侧
-                    tx.executeSql(str,[50,"280"]);
-                    //表面层端部停止时间前（ms）
-                    tx.executeSql(str,[51,"100"]);
-                    //表面层端部停止时间后（ms）
-                    tx.executeSql(str,[52,"100"]);
-                    //表面层堆高MAX
-                    tx.executeSql(str,[53,"4.0"]);
-                    //表面层接近-前
-                    tx.executeSql(str,[54,"2.0"]);
-                    //表面层接近-后
-                    tx.executeSql(str,[55,"2.0"]);
-                    //表面层分开最大摆动宽度
-                    tx.executeSql(str,[56,"16.0"]);
-                    //表面层摆动宽度间隔
-                    tx.executeSql(str,[57,"5.0"]);
-                    //表面层分开结束/开始比
-                    tx.executeSql(str,[58,"1.0"]);
-                    //表面层焊接电压
-                    tx.executeSql(str,[59,"0"]);
-
-                    //表面层余高层数
-                    tx.executeSql(str,[60,"0"]);
-                    //表面层分开方向 0 反方向 1标准
-                    tx.executeSql(str,[61,"0"]);
-                    //表面层起弧位置  00代表收弧位置
-                    tx.executeSql(str,[62,"0"]);
-                    //开始位置坐标X（mm）
-                    tx.executeSql(str,[63,"4.0"]);
-                    //开始位置坐标Y（mm）
-                    tx.executeSql(str,[64,"0.0"]);
-                    //开始位置坐标z（mm）
-                    tx.executeSql(str,[65,"-3.0"]);
-                    //表面层收弧动作 0 单程 1往返
-                    tx.executeSql(str,[66,"0"]);
-                    //表面层返回步骤距离
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[67,"5.0"]);
-
-                    //立板余高层电流前侧
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[68,"0"]);
-                    //立板余高层电流中间
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[69,"0"]);
-                    //立板余高层电流后侧
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[70,"0"]);
-                    //立板余高层端部停止时间前（ms）
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[71,"0"]);
-                    //立板余高层端部停止时间后（ms）
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[72,"0"]);
-                    //立板余高层堆高MAX
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[73,"0"]);
-                    //立板余高层接近-前
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[74,"0"]);
-                    //立板余高层接近-后
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[75,"0"]);
-                    //立板余高层分开最大摆动宽度
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[76,"0"]);
-                    //立板余高层摆动宽度间隔
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[77,"0"]);
-                    //立板余高层分开结束/开始比
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[78,"0"]);
-                    //立板余高层焊接电压
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[79,"0"]);
-                    //立板余高层MAX焊接速度
-                    tx.executeSql('insert into 立焊V型坡口平对接限制条件 values(?,?)',[80,"0"]);
-
-                }else{
-                    console.log("Skip Create "+tableName+" Table .");}
-            })}
-        else
-            return -1;
-    }
-    function createLimited8Table(tableName){
-        if(typeof(tableName)==="string"){
-            var str="CREATE TABLE IF NOT EXISTS ";
-            str+=tableName;
-            str+="(id INT NOT NULL PRIMARY KEY,value TEXT)"
-            var table;
-            dataBase.transaction( function(tx) {
-                tx.executeSql(str);
-                table = tx.executeSql("select * from "+tableName);
-                str="insert into "
-                str+=tableName;
-                str+=" values(?,?)"
-                if(table.rows.length === 0){
-                    /***************************************************焊接规范限制**********************************************/
-                    //初层陶衬垫电流前侧
-                    tx.executeSql(str,[0,"0"]);
-                    //初层陶衬垫电流中间
-                    tx.executeSql(str,[1,"0"]);
-                    //初层陶衬垫电流后侧
-                    tx.executeSql(str,[2,"0"]);
-                    //初层陶衬垫端部停止时间前（ms）
-                    tx.executeSql(str,[3,"0"]);
-                    //初层陶衬垫端部停止时间后（ms）
-                    tx.executeSql(str,[4,"0"]);
-                    //初层陶衬垫堆高MAX
-                    tx.executeSql(str,[5,"0"]);
-                    //初层陶衬垫接近-前
-                    tx.executeSql(str,[6,"0"]);
-                    //初层陶衬垫接近-后
-                    tx.executeSql(str,[7,"0"]);
-                    //初层陶衬垫分开最大摆动宽度
-                    tx.executeSql(str,[8,"0"]);
-                    //初层陶衬垫摆动宽度间隔
-                    tx.executeSql(str,[9,"0"]);
-                    //初层陶衬垫分开结束/开始比
-                    tx.executeSql(str,[10,"0"]);
-                    //初层陶衬垫焊接电压  0代表自动设定
-                    tx.executeSql(str,[11,"0"]);
-
-                    //初层电流前侧
-                    tx.executeSql(str,[12,"300"]);
-                    //初层电流中间
-                    tx.executeSql(str,[13,"300"]);
-                    //初层电流后侧
-                    tx.executeSql(str,[14,"300"]);
-                    //初层端部停止时间前（ms）
-                    tx.executeSql(str,[15,"0"]);
-                    //初层端部停止时间后（ms）
-                    tx.executeSql(str,[16,"0"]);
-                    //初层堆高MAX
-                    tx.executeSql(str,[17,"6.5"]);
-                    //初层接近-前
-                    tx.executeSql(str,[18,"23.0"]);
-                    //初层接近-后
-                    tx.executeSql(str,[19,"27.0"]);
-                    //初层分开最大摆动宽度
-                    tx.executeSql(str,[20,"8.0"]);
-                    //初层摆动宽度间隔
-                    tx.executeSql(str,[21,"15.0"]);
-                    //初层分开结束/开始比
-                    tx.executeSql(str,[22,"1.0"]);
-                    //初层焊接电压
-                    tx.executeSql(str,[23,"0"]);
-
-                    //第二层电流前侧
-                    tx.executeSql(str,[24,"280"]);
-                    //第二层电流中间
-                    tx.executeSql(str,[25,"280"]);
-                    //第二层电流后侧
-                    tx.executeSql(str,[26,"280"]);
-                    //第二层端部停止时间前（ms）
-                    tx.executeSql(str,[27,"0"]);
-                    //第二层端部停止时间后（ms）
-                    tx.executeSql(str,[28,"0"]);
-                    //第二层堆高MAX
-                    tx.executeSql(str,[29,"5.5"]);
-                    //第二层接近-前
-                    tx.executeSql(str,[30,"3.0"]);
-                    //第二层接近-后
-                    tx.executeSql(str,[31,"3.0"]);
-                    //第二层分开最大摆动宽度
-                    tx.executeSql(str,[32,"7.0"]);
-                    //第二层摆动宽度间隔
-                    tx.executeSql(str,[33,"20.0"]);
-                    //第二层分开结束/开始比
-                    tx.executeSql(str,[34,"1.0"]);
-                    //第二层焊接电压
-                    tx.executeSql(str,[35,"0"]);
-
-                    //中间层电流前侧
-                    tx.executeSql(str,[36,"280"]);
-                    //中间层电流中间
-                    tx.executeSql(str,[37,"280"]);
-                    //中间层电流后侧
-                    tx.executeSql(str,[38,"280"]);
-                    //中间层端部停止时间前（ms）
-                    tx.executeSql(str,[39,"0"]);
-                    //中间层端部停止时间后（ms）
-                    tx.executeSql(str,[40,"0"]);
-                    //中间层堆高MAX
-                    tx.executeSql(str,[41,"5.0"]);
-                    //中间层接近-前
-                    tx.executeSql(str,[42,"3.0"]);
-                    //中间层接近-后
-                    tx.executeSql(str,[43,"3.0"]);
-                    //中间层分开最大摆动宽度
-                    tx.executeSql(str,[44,"7.3"]);
-                    //中间层摆动宽度间隔
-                    tx.executeSql(str,[45,"15.0"]);
-                    //中间层分开结束/开始比
-                    tx.executeSql(str,[46,"1.0"]);
-                    //中间层焊接电压
-                    tx.executeSql(str,[47,"0"]);
-
-                    //表面层电流前侧
-                    tx.executeSql(str,[48,"250"]);
-                    //表面层电流中间
-                    tx.executeSql(str,[49,"250"]);
-                    //表面层电流后侧
-                    tx.executeSql(str,[50,"250"]);
-                    //表面层端部停止时间前（ms）
-                    tx.executeSql(str,[51,"0"]);
-                    //表面层端部停止时间后（ms）
-                    tx.executeSql(str,[52,"0"]);
-                    //表面层堆高MAX
-                    tx.executeSql(str,[53,"4.5"]);
-                    //表面层接近-前
-                    tx.executeSql(str,[54,"3.0"]);
-                    //表面层接近-后
-                    tx.executeSql(str,[55,"3.0"]);
-                    //表面层分开最大摆动宽度
-                    tx.executeSql(str,[56,"6.0"]);
-                    //表面层摆动宽度间隔
-                    tx.executeSql(str,[57,"15.0"]);
-                    //表面层分开结束/开始比
-                    tx.executeSql(str,[58,"1.0"]);
-                    //表面层焊接电压
-                    tx.executeSql(str,[59,"0"]);
-
-                    //表面层余高层数
-                    tx.executeSql(str,[60,"0"]);
-                    //表面层分开方向 0 反方向 1标准
-                    tx.executeSql(str,[61,"0"]);
-                    //表面层起弧位置  00代表收弧位置
-                    tx.executeSql(str,[62,"0"]);
-                    //开始位置坐标X（mm）
-                    tx.executeSql(str,[63,"4.0"]);
-                    //开始位置坐标Y（mm）
-                    tx.executeSql(str,[64,"0.0"]);
-                    //开始位置坐标z（mm）
-                    tx.executeSql(str,[65,"-3.0"]);
-                    //表面层收弧动作 0 单程 1往返
-                    tx.executeSql(str,[66,"0"]);
-                    //表面层返回步骤距离
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[67,"5.0"]);
-
-                    //立板余高层电流前侧
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[68,"0"]);
-                    //立板余高层电流中间
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[69,"0"]);
-                    //立板余高层电流后侧
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[70,"0"]);
-                    //立板余高层端部停止时间前（ms）
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[71,"0"]);
-                    //立板余高层端部停止时间后（ms）
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[72,"0"]);
-                    //立板余高层堆高MAX
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[73,"0"]);
-                    //立板余高层接近-前
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[74,"0"]);
-                    //立板余高层接近-后
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[75,"0"]);
-                    //立板余高层分开最大摆动宽度
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[76,"0"]);
-                    //立板余高层摆动宽度间隔
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[77,"0"]);
-                    //立板余高层分开结束/开始比
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[78,"0"]);
-                    //立板余高层焊接电压
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[79,"0"]);
-                    //立板余高层MAX焊接速度
-                    tx.executeSql('insert into 水平角焊限制条件 values(?,?)',[80,"0"]);
-
-                }else{
-                    console.log("Skip Create "+tableName+" Table .");}
-            })}
-        else
-            return -1;
-    }
-    function createLimitedTable(grooveName,tableName){
-        if(typeof(grooveName)==="string"){
-            switch(grooveName){
-            case grooveStyleName[0]:createLimited0Table(tableName);break;
-            case grooveStyleName[1]:createLimited1Table(tableName);break;
-            case grooveStyleName[2]:createLimited2Table(tableName);break;
-            case grooveStyleName[3]:createLimited3Table(tableName);break;
-            case grooveStyleName[4]:createLimited4Table(tableName);break;
-            case grooveStyleName[5]:createLimited5Table(tableName);break;
-            case grooveStyleName[6]:createLimited6Table(tableName);break;
-            case grooveStyleName[7]:createLimited7Table(tableName);break;
-            case grooveStyleName[8]:createLimited8Table(tableName);break;
-            }
-        }else
-            return -1;
+    function createLimitedTable(){
+        createLimited0Table();
+        createLimited1Table();
+        createLimited2Table();
+        createLimited3Table();
+        createLimited4Table();
+        createLimited5Table();
+        createLimited6Table();
+        createLimited7Table();
+        createLimited8Table();
     }
 }

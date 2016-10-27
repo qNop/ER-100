@@ -17,36 +17,27 @@ View {
     opacity: enabled ? 1 : 0.6
     elevation:0
     backgroundColor: "white"
-    onVisibleChanged:{
-        if(visible){
-            rect1.color="white"
-            pop.close();
-        }
-    }
-    Timer{
-        id:time
-        interval: 400
-        /*****************此处要添加东西************************/
-    }
 
     MouseArea{
         id:ink
         anchors.fill: parent
         enabled: iconButton.enabled
-        onPressed:{ iconButton.elevation=0;
-            iconButton.clicked()
+        onPressed:{
             pop.open(iconButton,input,0,input.verticalSpacing);
-            rect1.color=Theme.accentColor
+            iconButton.clicked()
         }
-        onReleased: {iconButton.elevation=1;
+        onReleased: {
             if(pop.visible){
-                rect1.color="white"
                 pop.close();
             }
         }
-        onCanceled: {iconButton.elevation=1;
+        onCanceled: {
             if(pop.visible){
-                rect1.color="white"
+                pop.close();
+            }
+        }
+        onExited: {
+            if(pop.visible){
                 pop.close();
             }
         }
@@ -54,7 +45,7 @@ View {
     Rectangle {
         id: rect1
         anchors.fill: parent
-        color:"white"
+        color:ink.pressed&&pop.visible?Theme.accentColor:"white"
         radius: parent.radius
         antialiasing: parent.rotation || radius > 0 ? true : false
         clip: true
@@ -64,15 +55,14 @@ View {
         anchors.centerIn: parent
         size:Units.dp(32)
         visible: source!==null
-        color: Theme.lightDark(rect1.color,"black",Theme.dark.iconColor)
+        color:ink.pressed&&pop.visible?"white":"black"
     }
     Label{
         id:label
         anchors.centerIn: parent
-        color: Theme.lightDark(rect1.color,"black",Theme.dark.textColor)
+        color:ink.pressed&&pop.visible?"white":"black"
         visible: text!==null
     }
-
 }
 
 

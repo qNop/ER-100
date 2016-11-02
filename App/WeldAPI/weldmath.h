@@ -7,11 +7,11 @@
 #include <QStringList>
 #include <QtCore>
 #include <QtGlobal>
-#include <gloabldefine.h>
-#include <verticalmath.h>
-#include <flatmath.h>
-#include <horizontalmath.h>
-
+#include "gloabldefine.h"
+#include "verticalmath.h"
+#include "flatmath.h"
+#include "horizontalmath.h"
+#include "filletmath.h"
 
 class WeldMath:public QObject
 {
@@ -33,6 +33,8 @@ private:
     flatMath  flat;
 
     horizontalMath horizontal;
+
+    filletMath fillet;
 
     int grooveValue;
 

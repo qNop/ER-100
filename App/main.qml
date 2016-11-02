@@ -8,7 +8,6 @@ import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
 import QtQuick.LocalStorage 2.0
 import QtQuick.Controls 1.4
-//import WeldSys.SysInfor 1.0
 import QtQuick.Window 2.2
 
 /*应用程序窗口*/
@@ -109,7 +108,7 @@ Material.ApplicationWindow{
             var dateTime= new Date().toLocaleString(Qt.locale(app.local),"MMMdd ddd-h:mm")
             var timeD =dateTime.split("-");
             date.name=timeD[0]
-             time.name=timeD[1]
+            time.name=timeD[1]
             if(sysStatus=="未登录态"){
                 switch(AppConfig.leds){
                 case "start":AppConfig.setleds("stop");break;
@@ -137,12 +136,33 @@ Material.ApplicationWindow{
     onCurrentGrooveChanged: {
         console.log(objectName+" currentGroove "+currentGroove)
         ERModbus.setmodbusFrame(["W","90","1",currentGroove.toString()])
-        var result=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
-        if(result){
-            currentGrooveName=result
+        var res=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
+        //更新焊接规范名称
+        if((typeof(res)==="string")&&(res!=="")){
+            currentGrooveName=res;
+            AppConfig.setcurrentGroove(currentGroove);
+            WeldMath.setGroove(currentGroove);
+            //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
+            res =Material.UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
+            if((res!==-1)&&(typeof(res)==="object")){
+                //清除焊接规范表格
+                weldTable.clear();
+                weldRulesName=res[0].Rules;
+                //获取新的焊接规范表
+                res=Material.UserData.getTableJson(weldRulesName)
+                if((res!==-1)&&(typeof(res)==="object")){
+                    for(var i=0;i<res.length;i++){
+                        weldTable.append(res[i]);
+                    }
+                }else{
+                    snackBar.open("获取焊接规范表格错误！")
+                }
+            }else
+                snackBar.open("获取焊接规范名称错误！")
+
+        }else{
+            snackBar.open("获取坡口名称错误！")
         }
-        AppConfig.setcurrentGroove(currentGroove);
-        WeldMath.setGroove(currentGroove);
     }
     /*初始化Tabpage*/
     initialPage: Material.TabbedPage {
@@ -327,8 +347,20 @@ Material.ApplicationWindow{
                     visible: page0SelectedIndex===1}
                 WeldCondition{
                     id:weldConditionPage
-                    condition: app.weldConditionModel
-                    visible: page0SelectedIndex===2}
+
+                    visible: page0SelectedIndex===2
+                    Connections{
+                        target: limitedConditionPage
+                        onChangeGasError:
+                            weldConditionPage.changeGroupCurrent(weldConditionPage.oldCondition[weldConditionPage.selectedIndex]);
+                        onChangeWireTypeError:
+                            weldConditionPage.changeGroupCurrent(weldConditionPage.oldCondition[weldConditionPage.selectedIndex]);
+                        onChangeWireDError:
+                            weldConditionPage.changeGroupCurrent(weldConditionPage.oldCondition[weldConditionPage.selectedIndex]);
+                        onChangePulseError:
+                            weldConditionPage.changeGroupCurrent(weldConditionPage.oldCondition[weldConditionPage.selectedIndex]);
+                    }
+                }
                 GrooveCheck{
                     id:grooveCheckPage
                     visible: page0SelectedIndex===3
@@ -369,9 +401,15 @@ Material.ApplicationWindow{
                 LimitedCondition{
                     id:limitedConditionPage
                     visible: (page0SelectedIndex===4)&&(app.superUser)
-                    currentGrooveName:app.currentGrooveName+"限制条件"
                     limitedRulesName: app.weldRulesName.replace("焊接规范","限制条件")
                     message: snackBar
+                    Connections{
+                        target: weldConditionPage
+                        onChangeGas:{ limitedConditionPage.gas=value;}
+                        onChangePulse:{ limitedConditionPage.pulse=value;}
+                        onChangeWireD:{ limitedConditionPage.wireD=value;}
+                        onChangeWireType: {limitedConditionPage.wireType=value;}
+                    }
                 }
             }
         }
@@ -388,10 +426,18 @@ Material.ApplicationWindow{
                     message:snackBar
                     weldTableEx: app.superUser
                     currentGrooveName: app.currentGrooveName
-                    currentGroove:app.currentGroove
-                    onWeldRulesNameChanged: {
-                        weldAnalysePage.weldRulesName=weldRulesName.replace("焊接规范","过程分析");
-                        app.weldRulesName=weldRulesName;
+                    weldRulesName: app.weldRulesName
+                    onUpdateWeldRulesName: {
+                        app.weldRulesName=str;
+                        weldTable.clear()
+                        var res=Material.UserData.getTableJson(str)
+                        if(res!==-1){
+                            for(var i=0;i<res.length;i++){
+                                weldTable.append(res[i]);
+                            }
+                            weldTableIndex=0;
+                            selectIndex(0);
+                        }
                     }
                     onWeldTableIndexChanged: {
                         app.weldTableIndex=weldTableIndex;
@@ -429,6 +475,7 @@ Material.ApplicationWindow{
                     status: app.sysStatus
                     //获取weldDataModel数据
                     weldDataModel: weldTable
+                    weldRulesName: app.weldRulesName.replace("焊接规范","过程分析");
                 }
             }
         }
@@ -616,7 +663,7 @@ Material.ApplicationWindow{
                     //发送握手信号
                     ERModbus.setmodbusFrame(["R","0","3"]);
                 }else  if((frame[1]==="200")&&(sysStatus==="焊接端部暂停态")){
-                      console.log(frame);
+                    console.log(frame);
                     if((frame[2]!==weldTableIndex.toString())&&(!weldFix)){
                         if(frame[2]!=="99"){
                             //当前焊道号与实际焊道号不符 更换当前焊道
@@ -667,6 +714,8 @@ Material.ApplicationWindow{
                         AppConfig.setdateTime(frame.slice(2,8));
                     }
                     readTime=true;
+                }else if(frame[1]==="500"){
+
                 }
             }
         }
@@ -792,7 +841,6 @@ Material.ApplicationWindow{
                             initialListModel.remove(0,1);}
                     initialListModel.insert(0,{"ID":Number(i+1),"C1":errorName[i],"C2":errorTime })
                     errorHistroy.insert(0,{"ID":String(errorHistroy.count+1),"C1":String(i+1),"C2":"发生","C4":errorName[i],"C3":app.currentUser,"C5": errorTime})
-
                 }else{
                     for(var j=0;j<initialListModel.count;j++){
                         //如果列表里面有则移除 解除错误
@@ -1197,10 +1245,10 @@ Material.ApplicationWindow{
     Component.onCompleted: {
         ERModbus.setmodbusFrame(["R","510","6"]);
         /*打开数据库*/
-        //Material.UserData.openDatabase();
         var res = Material.UserData.getTableJson("AccountTable");
+        var i;
         if(res!==-1){
-            for(var i=0;i<res.length;i++){
+            for( i=0;i<res.length;i++){
                 if(i<accountmodel.count)
                     accountmodel.set(i,res[i]);
                 else
@@ -1210,13 +1258,11 @@ Material.ApplicationWindow{
         changeuser.show();
         teachModel.length=0;
         teachModel=Material.UserData.getValueFromFuncOfTable("TeachCondition","","");
-        weldConditionModel.length=0;
-        weldConditionModel=Material.UserData.getValueFromFuncOfTable("WeldCondition","","");
         //创建错误历史记录
         Material.UserData.createTable("SysErrorHistroy","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT");
-        var res=Material.UserData.getTableJson("SysErrorHistroy","","")
+        res=Material.UserData.getTableJson("SysErrorHistroy","","")
         if(res!==-1){
-            for(var i=res.length-1;i>=0;i--)
+            for( i=res.length-1;i>=0;i--)
                 errorHistroy.append(res[i])
         }
         var time=Material.UserData.getSysTime();

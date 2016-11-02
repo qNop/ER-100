@@ -25,18 +25,14 @@ FocusScope{
     property Item message
     property string status:"空闲态"
     property alias weldTableIndex: tableView.currentRow
-
     property alias model: tableView.model
-
-    property int currentGroove: 0
     //上次焊接规范名称
     property string weldRulesName;
     property bool weldTableEx
     property string currentGrooveName
-
-    property var rulesList;
     //外部更新数据
     signal updateModel(string str,var data);
+    signal updateWeldRulesName(string str);
 
     property var weldCondtion: [
         "        NO.          ",
@@ -65,20 +61,6 @@ FocusScope{
         return -1;
     }
 
-    onCurrentGrooveNameChanged: {
-        var res=getLastRulesName();
-        console.log(objectName+" currentGrooveName "+res)
-        if(res!==-1){
-            weldRulesName=res;
-            updateModel("Clear",{})
-            res=UserData.getTableJson(weldRulesName)
-            if(res!==-1){
-                for(var i=0;i<res.length;i++){
-                    updateModel("Append",res[i])
-                }
-            }
-        }
-    }
     //当前页面关闭 则 关闭当前页面内 对话框
     onStatusChanged: {
         if(status==="坡口检测完成态"){
@@ -285,14 +267,7 @@ FocusScope{
         onAccepted: {
             if(typeof(open.name)==="string")
             {
-                weldRulesName=open.name
-                updateModel("CLear",{})
-                var res=UserData.getTableJson(open.name)
-                if(res!==-1){
-                    for(var i=0;i<res.length;i++){
-                        updateModel("Append",res[i])
-                    }
-                }
+                updateWeldRulesName(open.name)
             }
         }
         onRejected: {
@@ -351,7 +326,7 @@ FocusScope{
         onAccepted: {
             //更新标题
             var title=newFileTextField.text.toString();
-            weldRulesName=title+"焊接规范";
+            updateWeldRulesName(title+"焊接规范");
             //获取系统时间
             var time=UserData.getSysTime();
             var user=AppConfig.currentUserName
@@ -381,7 +356,7 @@ FocusScope{
             height:Units.dp(48)
             Label{
                 id:label
-                text:"确认删除\n"+weldRulesName+"坡口参数！"
+                text:"确认删除\n"+weldRulesName+"！"
                 style: "menu"
             }
         }
@@ -393,18 +368,12 @@ FocusScope{
 
             //删除过程分析列表
             UserData.deleteTable(weldRulesName.replace("焊接规范","过程分析"))
-
+            //清除次列表
             UserData.clearTable(currentGrooveName+"次列表","Rules",weldRulesName);
             //获取最新的数据表格
             var res=getLastRulesName();
             if(res!==-1){
-                weldRulesName=res;
-                var listModel=UserData.getTableJson(weldRulesName);
-                updateModel("Clear",{});
-                if(listModel!==-1)
-                    for(var i=0;i<listModel.length;i++){
-                        updateModel("Append",listModel[i])
-                    }
+                updateWeldRulesName(res)
             }
         }
     }

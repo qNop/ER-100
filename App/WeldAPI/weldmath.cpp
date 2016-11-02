@@ -11,6 +11,7 @@ WeldMath::WeldMath()
     flat.meltingCoefficientValue=100;
     vertical.meltingCoefficientValue=105;
     horizontal.meltingCoefficientValue=100;
+    fillet.meltingCoefficientValue=0.98;
 }
 
 void WeldMath::setReinforcement(int value){
@@ -23,7 +24,7 @@ void WeldMath::setReinforcement(int value){
     case 5: break;
     case 6: break;
     case 7: vertical.reinforcementValue=value; break;
-    case 8: break;
+    case 8: fillet.reinforcementValue=value;break;
     default:
         break;
     }
@@ -39,7 +40,7 @@ void WeldMath::setMeltingCoefficient(int value){
     case 5: break;
     case 6: break;
     case 7: vertical.meltingCoefficientValue=value; break;
-    case 8: break;
+    case 8: fillet.meltingCoefficientValue=value;break;
     default:
         break;
     }
@@ -61,7 +62,7 @@ void WeldMath::setGrooveRules(QStringList value){
     case 5: break;
     case 6: break;
     case 7:vertical.setGrooveRules(value); break;
-    case 8: break;
+    case 8: fillet.setGrooveRules(value);break;
     default:
         break;
     }
@@ -77,7 +78,7 @@ void WeldMath::setGas(int value){
     case 5: break;
     case 6: break;
     case 7:vertical.gasValue=value; break;
-    case 8: break;
+    case 8:fillet.gasValue=value;break;
     default:
         break;
     }
@@ -92,7 +93,7 @@ void WeldMath::setPulse(int value){
     case 5: break;
     case 6: break;
     case 7:vertical.pulseValue=value; break;
-    case 8: break;
+    case 8:fillet.pulseValue=value;break;
     default:
         break;
     }
@@ -108,7 +109,7 @@ void WeldMath::setWireType(int value){
     case 5: break;
     case 6: break;
     case 7: vertical.wireTypeValue=value; break;
-    case 8: break;
+    case 8: fillet.wireTypeValue=value;break;
     default:
         break;
     }
@@ -123,7 +124,7 @@ void WeldMath::setWireD(int value){
     case 5: break;
     case 6: break;
     case 7: vertical.wireDValue=value; break;
-    case 8: break;
+    case 8: fillet.wireDValue=value;break;
     default:
         break;
     }

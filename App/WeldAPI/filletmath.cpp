@@ -1,26 +1,26 @@
-#include "horizontalmath.h"
+#include "filletmath.h"
 #define ENABLE_SOLVE_FIRST                              1
 
-horizontalMath::horizontalMath()
+filletMath::filletMath()
 {
 
 }
-horizontalMath::~horizontalMath(){
+filletMath::~filletMath(){
 
 }
 
 //打底层函数计算
-void horizontalMath::firstFloorFunc(){
+void filletMath::firstFloorFunc(){
     QStringList value;
     h=bottomFloor->height;
     float current=solveI(bottomFloor,0,1);
     //计算填充面积
-    float s=((h-p)*(h-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*h)*bottomFloor->fillCoefficient;
+    float s=(h*h*(grooveAngel1Tan+grooveAngel2Tan)/2)*bottomFloor->fillCoefficient;
     //求取摆宽宽 摆宽为 填充高度的1/2位置
-    float swingLength=qMax(float(0),(h/2-p))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
+    float swingLength=h/2*(grooveAngel1Tan+grooveAngel2Tan);
     //保留一位整数 小数位为偶数
-    //16.10.27改成下行语句。float swingLengthOne=float(qRound((swingLength-bottomFloor->swingLeftLength-bottomFloor->swingRightLength)*5))/5;
-    float swingLengthOne=qMax(float(qRound((swingLength-bottomFloor->swingLeftLength-bottomFloor->swingRightLength)*5))/5,qMin(swingLength,float(1)));//避免出现负数
+    float swingLengthOne;
+    swingLengthOne=qMax(float(qRound((swingLength-bottomFloor->swingLeftLength-bottomFloor->swingRightLength)*5))/5,qMin(swingLength,float(1)));//避免出现负数
     //计算摆动频率
     int swingHz=getSwingHz(qCeil(swingLengthOne),0,bottomFloor->totalStayTime);
     //计算电压
@@ -52,22 +52,21 @@ void horizontalMath::firstFloorFunc(){
     //重新计算s
     s=((meltingCoefficientValue*weldWireSquare*feedSpeed)/(weldSpeed*100))/bottomFloor->fillCoefficient;
     float aa=(grooveAngel1Tan+grooveAngel2Tan)/2;
-    float bb=rootGap-p*(grooveAngel1Tan+grooveAngel2Tan);
-    float cc=(p*p)*(grooveAngel1Tan+grooveAngel2Tan)/2-s;
+    float bb=0;
+    float cc=-s;
     //重新计算h
     h=(qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);
     //重新计算 摆动范围据坡口左右侧壁的距离 为了精确计算 X偏移
-    float reSwingLeftLength= ((qMax(float(0),(h/2-p))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-swingLengthOne)*(bottomFloor->swingLeftLength))/(bottomFloor->swingLeftLength+bottomFloor->swingRightLength);
+    float reSwingLeftLength= ((h/2*(grooveAngel1Tan+grooveAngel2Tan)-swingLengthOne)*(bottomFloor->swingLeftLength))/(bottomFloor->swingLeftLength+bottomFloor->swingRightLength);
     //中线偏移
     //float weldLineY=float(qRound(10h/2))/10;
     float weldLineY=0;
     weldLineYUesd=float(qRound(10*h))/10;
     //中线偏移X 取一位小数
-    float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne/2-qMax(float(0),h/2-p)*grooveAngel1Tan-rootGap/2-qMax(float(0),(h/2-p))*gunAngelTan)))/10;
-    //16.10.27增加下行语句。
-    if (weldLineX<-(rootGap/2+weldLineY*grooveAngel1Tan)){
-		weldLineX=-(rootGap/2+float(qFloor(10*weldLineY*grooveAngel1Tan))/10);
-		}
+    float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne/2-h/2*grooveAngel1Tan-h/2*gunAngelTan)))/10;
+    if (weldLineX<-weldLineY*grooveAngel1Tan){
+		weldLineX=-float(qFloor(10*weldLineY*grooveAngel1Tan))/10;
+	}
     //循环迭代层面积
     sUsed=s;
     //循环迭代层高
@@ -82,7 +81,7 @@ void horizontalMath::firstFloorFunc(){
     emit weldRulesChanged(value);
 }
 //计算第二层
-void horizontalMath::FloorFunc(FloorCondition *pF){
+void filletMath::FloorFunc(FloorCondition *pF){
     int i,j;
     float s,swingLength,aa,bb,cc,weldLineY,weldLineX,swingLengthOne,swingHz,reSwingLeftLength;
     int weldNum;
@@ -92,8 +91,8 @@ void horizontalMath::FloorFunc(FloorCondition *pF){
         //层数+1
         floorNum+=1;
         h=pF->height;
-        s=((hUsed+h-p)*(hUsed+h-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*(hUsed+h)-sUsed)*pF->fillCoefficient;
-        swingLength=(hUsed+h/2-p)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
+        s=((hUsed+h)*(hUsed+h)*(grooveAngel1Tan+grooveAngel2Tan)/2-sUsed)*pF->fillCoefficient;
+        swingLength=(hUsed+h/2)*(grooveAngel1Tan+grooveAngel2Tan);
         weldNum=qCeil((swingLength)/(pF->maxSwingLength));
         //获取每一道填充
         float weldFill[weldNum];
@@ -157,12 +156,12 @@ void horizontalMath::FloorFunc(FloorCondition *pF){
             s+=weldFill[j];
         }
         aa=(grooveAngel1Tan+grooveAngel2Tan)/2;
-        bb=rootGap+(hUsed-p)*(grooveAngel1Tan+grooveAngel2Tan);
-        cc=(hUsed-p)*(hUsed-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*hUsed-sUsed-s;
+        bb=hUsed*(grooveAngel1Tan+grooveAngel2Tan);
+        cc=hUsed*hUsed*(grooveAngel1Tan+grooveAngel2Tan)/2-sUsed-s;
         //重新计算h
         h=(qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);
         //重新计算
-        reSwingLeftLength= (((hUsed+h/2-p)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-qMax(1,weldNum-1)*swingLengthOne)*(pF->swingLeftLength))/(pF->swingLeftLength+pF->swingRightLength);
+        reSwingLeftLength= (((hUsed+h/2)*(grooveAngel1Tan+grooveAngel2Tan)-qMax(1,weldNum-1)*swingLengthOne)*(pF->swingLeftLength))/(pF->swingLeftLength+pF->swingRightLength);
         //中线偏移Y
         weldLineY=weldLineYUesd ;//+ float(qRound(10*h/2))/10;
         //迭代中线偏移Y
@@ -172,17 +171,18 @@ void horizontalMath::FloorFunc(FloorCondition *pF){
             //焊道数增加
             currentWeldNum++;
             //中线偏移X 取一位小数
-            weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne*(j)-(hUsed+h/2-p)*grooveAngel1Tan-rootGap/2-h/2*gunAngelTan)))/10;
+            weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne*(j)-(hUsed+h/2)*grooveAngel1Tan-h/2*gunAngelTan)))/10;
              //焊接线位置不能离开坡口进入工件内
              float delte_lineX=0;
-			if ((j==0) && (weldLineX<-(rootGap/2+weldLineY*grooveAngel1Tan))){
-				delte_lineX=-(rootGap/2+float(qFloor(10*weldLineY*grooveAngel1Tan))/10)-weldLineX;
-				weldLineX=-(rootGap/2+float(qFloor(10*weldLineY*grooveAngel1Tan))/10);
+			if ((j==0) && (weldLineX<-weldLineY*grooveAngel1Tan)){
+				delte_lineX=-float(qFloor(10*weldLineY*grooveAngel1Tan))/10-weldLineX;
+				weldLineX=-float(qFloor(10*weldLineY*grooveAngel1Tan))/10;
 			}else if (j && (delte_lineX!=0)){
 				weldLineX=weldLineX+delte_lineX;
 			}
             if (j==(weldNum-1)){
-                weldLineX=float(qMin(weldLineX,weldLineY*grooveAngel2Tan+rootGap/2));
+            	////////////////float是不是可以不用加 
+                weldLineX=float(qMin(weldLineX,weldLineY*grooveAngel2Tan));
 			}
             //全部参数计算完成
             value.clear();
@@ -198,20 +198,19 @@ void horizontalMath::FloorFunc(FloorCondition *pF){
     }
 }
 
-void horizontalMath::topFloorFunc(){
+void filletMath::topFloorFunc(){
     /**计算盖面层***********************************************/
     int j;
     QStringList value;
-    float ba=1.5;
     float swingHz=0;
 
     floorNum+=1;
     h=grooveHeight+reinforcementValue-hUsed;
 
-    float s=((grooveHeight-p)*(grooveHeight-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*grooveHeight+
-            reinforcementValue*((grooveHeight-p)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap)-sUsed)*topFloor->fillCoefficient;
+    float s=(grooveHeight*grooveHeight*(grooveAngel1Tan+grooveAngel2Tan)/2+
+            reinforcementValue*grooveHeight*(grooveAngel1Tan+grooveAngel2Tan)-sUsed)*topFloor->fillCoefficient;
 
-    float swingLength=(hUsed+h/2-p)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
+    float swingLength=(hUsed+h/2)*(grooveAngel1Tan+grooveAngel2Tan);
 
     int weldNum=qCeil(swingLength/topFloor->maxSwingLength);
 
@@ -238,7 +237,7 @@ void horizontalMath::topFloorFunc(){
         topFloor->swingLeftLength=qMax(float(0),topFloor->swingLeftLength-1);
     }
     //横焊时不求摆动宽度，而是焊道宽度，仅做显示，所以不用求近似
-    float swingLengthOne=(swingLength+2*ba-topFloor->swingLeftLength-topFloor->swingRightLength)/qMax(1,weldNum-1);
+    float swingLengthOne=(swingLength-topFloor->swingLeftLength-topFloor->swingRightLength)/qMax(1,weldNum-1);
     s=0;
     //层内每一道的电流
     float weldCurrent[weldNum];
@@ -275,21 +274,21 @@ void horizontalMath::topFloorFunc(){
         //重新计算层面积
         s+=weldFill[j]/topFloor->fillCoefficient;
     }
-    h=grooveHeight-hUsed+(s+sUsed-((grooveHeight-p)*(grooveHeight-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*grooveHeight))/((grooveAngel1Tan+grooveAngel2Tan)*(grooveHeight-p)+rootGap);
+    h=grooveHeight-hUsed+(s+sUsed-grooveHeight*grooveHeight*(grooveAngel1Tan+grooveAngel2Tan)/2)/((grooveAngel1Tan+grooveAngel2Tan)*grooveHeight);
 	//中线偏移Y
     float  weldLineY=weldLineYUesd ;
     //迭代中线偏移Y
     weldLineYUesd=weldLineY+ float(qRound(10*h))/10;
     //重新计算
-    float  reSwingLeftLength= (((hUsed+h/2-p)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-qMax(1,weldNum-1)*swingLengthOne)*(topFloor->swingLeftLength))/(topFloor->swingLeftLength+topFloor->swingRightLength);
+    float  reSwingLeftLength= (((hUsed+h/2)*(grooveAngel1Tan+grooveAngel2Tan)-qMax(1,weldNum-1)*swingLengthOne)*(topFloor->swingLeftLength))/(topFloor->swingLeftLength+topFloor->swingRightLength);
     for(j=0;j<weldNum;j++){
         //中线偏移X 取一位小数        
-        float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne*(j)-(hUsed+h/2-p)*grooveAngel1Tan-rootGap/2-h/2*gunAngelTan)))/10;
+        float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne*(j)-(hUsed+h/2)*grooveAngel1Tan-h/2*gunAngelTan)))/10;
 		//焊接线位置不能离开坡口进入工件内
   		float delte_lineX=0;
-		if ((j==0) && (weldLineX<-(rootGap/2+weldLineY*grooveAngel1Tan))){
-			delte_lineX=-(rootGap/2+float(qFloor(10*weldLineY*grooveAngel1Tan))/10)-weldLineX;
-			weldLineX=-(rootGap/2+float(qFloor(10*weldLineY*grooveAngel1Tan))/10);
+		if ((j==0) && (weldLineX<-weldLineY*grooveAngel1Tan)){
+			delte_lineX=-float(qFloor(10*weldLineY*grooveAngel1Tan))/10-weldLineX;
+			weldLineX=-float(qFloor(10*weldLineY*grooveAngel1Tan))/10;
 		}else if (j && (delte_lineX!=0)){
 			weldLineX=weldLineX+delte_lineX;
 		}		
@@ -306,24 +305,32 @@ void horizontalMath::topFloorFunc(){
     }
 }
 
-int horizontalMath::weldMath(){
+int filletMath::weldMath(){
     //当前道号
     currentWeldNum=0;
     floorNum=1;
     QStringList value;
-    gunAngel=20;
+    // 机械结构决定焊枪不能调到坡口角平分线位置即45度，最大角度是43度，所以这里的焊枪倾角为2度 
+    gunAngel=2;
     gunAngelTan=qTan(gunAngel*PI/180);
     float current=solveI(bottomFloor,0,1);
-    bottomFloor->height=bottomFloor->maxHeight;
+    //水平角焊情况下，当焊脚尺寸不是很大时，分层不易实现良好焊接效果，因此焊接一道 
+    if ((grooveHeight+reinforcementValue)<=7.5){
+    	bottomFloor->height=grooveHeight+reinforcementValue;
+    }else{
+    	bottomFloor->height=bottomFloor->maxHeight;
+    }
     //角度变量
+    grooveAngel1+=45;//立板为角度1，与机头Y轴平行时是0度。底板为角度2，与机头摆动轴平行时是0度。 
+	grooveAngel2+=45; 
     grooveAngel1Tan=qTan(grooveAngel1*PI/180);
     grooveAngel2Tan=qTan(grooveAngel2*PI/180);
     //焊丝橫截面积
     weldWireSquare=(wireDValue==4?1.2*1.2:1.6*1.6)*PI/4;
-    bottomFloor->fillCoefficient=0.9;
+    bottomFloor->fillCoefficient=1;
     secondFloor->fillCoefficient=1;
     fillFloor->fillCoefficient=1;
-    topFloor->fillCoefficient=0.95;
+    topFloor->fillCoefficient=1;
     //起弧z位置
     startArcz=0;
     //状态为successed
@@ -356,11 +363,9 @@ int horizontalMath::weldMath(){
     //顶层最小填充量
     topFloor->minFillMetal=(meltingCoefficientValue*weldWireSquare*
                            getFeedSpeed(topFloor->current_middle))/(topFloor->maxWeldSpeed*100);
-
-
     /************************计算打底层*********************************************************/
     //计算填充面积
-    float s=((bottomFloor->height-p)*(bottomFloor->height-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*bottomFloor->height)*bottomFloor->fillCoefficient;
+    float s=(bottomFloor->height*bottomFloor->height*(grooveAngel1Tan+grooveAngel2Tan)/2)*bottomFloor->fillCoefficient;
     //打底填充面积不可小于单道最小面积
     if (s<bottomFloor->minFillMetal){
     	s=bottomFloor->minFillMetal;
@@ -369,15 +374,14 @@ int horizontalMath::weldMath(){
     	s=bottomFloor->maxFillMetal;
     }
     float aa=(grooveAngel1Tan+grooveAngel2Tan)/2;
-    float bb=rootGap-p*(grooveAngel1Tan+grooveAngel2Tan);
-    float cc=(p*p)*(grooveAngel1Tan+grooveAngel2Tan)/2-s/bottomFloor->fillCoefficient;
+    float bb=0;
+    float cc=-s/bottomFloor->fillCoefficient;
     bottomFloor->height=(qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);    
     //求取摆宽宽 摆宽为 填充高度的1/2位置
-    float swingLength=qMax(float(0),(bottomFloor->height/2-p))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
+    float swingLength=bottomFloor->height/2*(grooveAngel1Tan+grooveAngel2Tan);
     //保留一位整数 小数位为偶数
     float swingLengthOne;
-    //16.10.27改成下行语句。swingLengthOne=float(qRound((swingLength-bottomFloor->swingLeftLength-bottomFloor->swingRightLength)*5))/5;
-    swingLengthOne=qMax(float(qRound((swingLength-bottomFloor->swingLeftLength-bottomFloor->swingRightLength)*5))/5,qMin(swingLength,float(1)));//避免出现负数
+    swingLengthOne=qMax(float(qRound((swingLength-bottomFloor->swingLeftLength-bottomFloor->swingRightLength)*5))/5,qMin(swingLength,float(1)));//避免出现负数 
     //计算摆动频率
     int swingHz=getSwingHz(qCeil(swingLengthOne),0,bottomFloor->totalStayTime);
     //计算电压
@@ -403,21 +407,20 @@ int horizontalMath::weldMath(){
     //重新计算s
     s=((meltingCoefficientValue*weldWireSquare*feedSpeed)/(weldSpeed*100))/bottomFloor->fillCoefficient;
     aa=(grooveAngel1Tan+grooveAngel2Tan)/2;
-    bb=rootGap-p*(grooveAngel1Tan+grooveAngel2Tan);
-    cc=(p*p)*(grooveAngel1Tan+grooveAngel2Tan)/2-s;
+    bb=0;
+    cc=-s;
     //重新计算h
     bottomFloor->height=(qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);
     //重新计算 摆动范围据坡口左右侧壁的距离 为了精确计算 X偏移
-    float reSwingLeftLength= ((qMax(float(0),(bottomFloor->height/2-p))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-swingLengthOne)*(bottomFloor->swingLeftLength))/(bottomFloor->swingLeftLength+bottomFloor->swingRightLength);
+    float reSwingLeftLength= ((bottomFloor->height/2*(grooveAngel1Tan+grooveAngel2Tan)-swingLengthOne)*(bottomFloor->swingLeftLength))/(bottomFloor->swingLeftLength+bottomFloor->swingRightLength);
     //中线偏移
     //float weldLineY=float(qRound(10*h/2))/10;
     float weldLineY=0;
     //中线偏移X 取一位小数
-    float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne/2-qMax(float(0),bottomFloor->height/2-p)*grooveAngel1Tan-rootGap/2-qMax(float(0),(h/2-p))*gunAngelTan)))/10;
-    //16.10.27增加下行语句。
-    if (weldLineX<-(rootGap/2+weldLineY*grooveAngel1Tan)){
-		weldLineX=-(rootGap/2+float(qFloor(10*weldLineY*grooveAngel1Tan))/10);
-		}
+    float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne/2-bottomFloor->height/2*grooveAngel1Tan-bottomFloor->height/2*gunAngelTan)))/10;
+    if (weldLineX<-weldLineY*grooveAngel1Tan){
+		weldLineX=-float(qFloor(10*weldLineY*grooveAngel1Tan))/10;
+	}
 	currentWeldNum++;
     //循环迭代层面积
     sUsed=s;
@@ -434,7 +437,6 @@ int horizontalMath::weldMath(){
      <<QString::number(startArcz);
     emit weldRulesChanged(value);
     startArcz=0;
-
     /**********************************************************************
      * 计算层数
      ************************************************************************/
@@ -456,13 +458,13 @@ int horizontalMath::weldMath(){
     return res;
 }
 
-int  horizontalMath::getSwingHz(int swing,int floor,float stayTime){
+int  filletMath::getSwingHz(int swing,int floor,float stayTime){
     Q_UNUSED(floor);
     int swingHz=0;
     if(stayTime>0.61){
         status="停留时间不在范围内！";
     }else if(stayTime>=0.5){
-    	status="立焊时的频率数据，使用在平焊时没有进行验证！";
+    	status="立焊时的频率数据，使用在水平角焊时没有进行验证！";
         switch(swing){
         case 1:swingHz=64;break;
         case 2:swingHz=58;break;
@@ -486,7 +488,7 @@ int  horizontalMath::getSwingHz(int swing,int floor,float stayTime){
         default:swingHz=22;break;
         }
     }else if (stayTime>=0.3){
-    	status="平焊时的频率数据，使用在横焊时没有进行验证！";
+    	status="平焊时的频率数据，使用在水平角焊时没有进行验证！";
     	switch(swing){
 	    case 1:swingHz=70;break;
         case 2:swingHz=70;break;
@@ -510,7 +512,7 @@ int  horizontalMath::getSwingHz(int swing,int floor,float stayTime){
         default:swingHz=25;break;	
 	    }
     }else if(stayTime>=0.1){
-    	status="平焊时的频率数据，使用在横焊时没有进行验证！";
+    	status="平焊时的频率数据，使用在水平角焊时没有进行验证！";
     	switch(swing){
     	case 1:swingHz=100;break;
         case 2:swingHz=90;break;
@@ -537,21 +539,21 @@ int  horizontalMath::getSwingHz(int swing,int floor,float stayTime){
     	switch(swing){
     	case 1:swingHz=135;break;
         case 2:swingHz=115;break;
-        case 3:swingHz=95;break;
-        case 4:swingHz=80;break;
-        case 5:swingHz=70;break;
-        case 6:swingHz=65;break;
-        case 7:swingHz=60;break;
-        case 8:swingHz=55;break;
-        case 9:swingHz=50;break;
-        case 10:swingHz=50;break;
-        case 11:swingHz=45;break;
-        case 12:swingHz=45;break;
-        case 13:swingHz=40;break;
-        case 14:swingHz=40;break;
-        case 15:swingHz=40;break;
-        case 16:swingHz=35;break;
-        case 17:swingHz=35;break;
+        case 3:swingHz=110;break;
+        case 4:swingHz=100;break;
+        case 5:swingHz=90;break;
+        case 6:swingHz=80;break;
+        case 7:swingHz=70;break;
+        case 8:swingHz=65;break;
+        case 9:swingHz=60;break;
+        case 10:swingHz=60;break;
+        case 11:swingHz=55;break;
+        case 12:swingHz=50;break;
+        case 13:swingHz=50;break;
+        case 14:swingHz=45;break;
+        case 15:swingHz=45;break;
+        case 16:swingHz=40;break;
+        case 17:swingHz=40;break;
         case 18:swingHz=35;break;
         case 19:swingHz=30;break;
         default:swingHz=30;break;
@@ -562,11 +564,11 @@ int  horizontalMath::getSwingHz(int swing,int floor,float stayTime){
     return swingHz;
 }
 
-float horizontalMath::getVoltage(int current){
+float filletMath::getVoltage(int current){
     float voltage=18;
     if((gasValue)&&(pulseValue==0)&&(wireTypeValue==0)&&(wireDValue==4)){
         status="提示！测试时没有进行过MAG直流焊接实验，此处获得电压可能不准确。";
-		if (current<150){
+		if (current<190){
 	    	status="错误！电流过小，超出横焊常用范围，暂不支持此情况的电压规划。";
 	    }else{
     		voltage=14+0.05*current;
@@ -582,14 +584,14 @@ float horizontalMath::getVoltage(int current){
     }else if((gasValue==0)&&(pulseValue==0)&&(wireTypeValue==0)&&(wireDValue==4)){
     	if (current>=300){
 	    	voltage=14+0.05*current+2;
-	    }else if(current>250){
-    		voltage=14+0.05*current+1;
-    	}else if(current>200){
+	    //}else if(current>250){
+    		//voltage=14+0.05*current+1;
+    	}else if(current>=180){
 	    	voltage=14+0.05*current;
-	    }else if(current>150){
-    		voltage=14+0.05*current-1;
+	    //}else if(current>150){
+    		//voltage=14+0.05*current-1;
     	}else{
-	    	status="错误！电流过小，超出横焊常用范围，暂不支持此情况的电压规划。";
+	    	status="错误！电流过小，超出水平角焊常用范围，暂不支持此情况的电压规划。";
 	    }
     }else {
         return -1;
@@ -597,7 +599,7 @@ float horizontalMath::getVoltage(int current){
     return voltage;
 }
 
-int horizontalMath::getFeedSpeed(int current){
+int filletMath::getFeedSpeed(int current){
     int feedspeed;
     const int FeedSpeedNum[3][35]={
         {1240,1280,1320,1360,1400,1536,1673,1845,2027,2215,
@@ -629,7 +631,7 @@ int horizontalMath::getFeedSpeed(int current){
 }
 
 //求解 道面积 存储到pFill开始的内存里
-void horizontalMath::solveA(float *pFill,FloorCondition *p,int num,float s){
+void filletMath::solveA(float *pFill,FloorCondition *p,int num,float s){
     int j;
     for( j=0;j<num;j++){
         if(num==1)
@@ -640,7 +642,7 @@ void horizontalMath::solveA(float *pFill,FloorCondition *p,int num,float s){
             *(pFill+j)=*(pFill+j-1)*p->k;
     }
 }
-int horizontalMath::solveI(FloorCondition *pI, int num,int total){
+int filletMath::solveI(FloorCondition *pI, int num,int total){
     if(total==1){
         pI->current=pI->current_middle;
     }else if(num==0){
@@ -655,7 +657,7 @@ int horizontalMath::solveI(FloorCondition *pI, int num,int total){
     return pI->current;
 }
 //分层
-int horizontalMath::solveN(float *pH){
+int filletMath::solveN(float *pH){
     float tempH,tempHav;
     int fillFloor_MaxNum=0;
     int fillFloor_MinNum=0;
@@ -774,7 +776,7 @@ int horizontalMath::solveN(float *pH){
     qDebug()<<bottomFloor->height<<secondFloor->height<<fillFloor->height<<topFloor->height;
     return res;
 }
-void horizontalMath::setGrooveRules(QStringList value){
+void filletMath::setGrooveRules(QStringList value){
     //数组有效
     if(value.count()){
         grooveHeight=value.at(0).toFloat();

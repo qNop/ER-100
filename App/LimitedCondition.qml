@@ -21,36 +21,74 @@ FocusScope {
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
 
     property Item message
-    property string currentGrooveName
     property string limitedRulesName
     property var repeaterModel: ["电流前侧","电流中间","电流后侧","端部停止时间前(s)","端部停止时间后(s)","层高Min","层高Max","接近前","接近后","最大摆宽","摆动间隔","分开结束比","焊接电压","焊接速度min","焊接速度Min","层填充系数"]
     property alias selectedIndex: tableView.currentRow
+    //脉冲有无
+    property int pulse:255
+    //焊丝种类
+    property int wireType:255
+    //焊丝直径
+    property int wireD:255
+    //气体
+    property int gas:255
 
-    //规则改变时重新加载限制条件
-    onLimitedRulesNameChanged:{
+    signal changeGasError()
+    signal changeWireDError()
+    signal changeWireTypeError()
+    signal changePulseError()
+
+    function getTableData(index,type){
         if((limitedRulesName!=="")&&(typeof(limitedRulesName)==="string")){
             console.log(objectName+"limitedRulesName"+limitedRulesName)
-            var res=UserData.getLimitedTableJson(limitedRulesName,"4")
+            var res=UserData.getLimitedTableJson(limitedRulesName,index)
             if((typeof(res)==="object")&&(res.length)){
                 for(var i=0;i<res.length;i++){
                     //删除object 里面C11属性
                     delete res[i].C11
-               //     console.log(res[i].ID+res[i].C1+res[i].C2+res[i].C3+res[i].C4+res[i].C5+res[i].C6+res[i].C7+res[i].C8+res[i].C9+res[i].C10);
                     limitedTable.set(i,res[i])
                 }
                 WeldMath.setLimited(lmitedMath());
                 tableView.headerTitle=limitedRulesName;
             }else{
+                if(typeof(type)==="number")
+                {
+                    switch(type){
+                    case 0: changeGasError();break;
+                    case 1: changePulseError();break;
+                    case 2: changeWireTypeError();break;
+                    case 3: changeWireDError();break;
+                    }
+                }
                 message.open(limitedRulesName+"数据不存在！")
             }
         }
     }
+    function makeNum(){
+        var num=gas;
+        num<<=1;
+        num|=pulse;
+        num<<=3;
+        num|=wireType;
+        num<<=4;
+        num|=wireD;
+        console.log(num&0x100,num&0x080,num&0x040,num&0x020,num&0x010,num&0x008,num&0x004,num&0x002,num&0x001)
+        return String(num)
+    }
+
+    onGasChanged:{getTableData(makeNum(),0);console.log(root.objectName+"gas value="+gas)}
+    onPulseChanged: {getTableData(makeNum(),1);console.log(root.objectName+"pulse value="+pulse);}
+    onWireTypeChanged:{ getTableData(makeNum(),2);console.log(root.objectName+"WireType value="+wireType);}
+    onWireDChanged: {getTableData(makeNum(),3);console.log(root.objectName+"WireD value="+wireD);}
+
+    //规则改变时重新加载限制条件
+    onLimitedRulesNameChanged:getTableData(makeNum(),4);
 
     function lmitedMath(){
         var resArray=new Array();
         var temp;
         for(var i=0;i<limitedTable.count;i++){
-           var res=limitedTable.get(i);
+            var res=limitedTable.get(i);
             if((typeof(res.C1)==="string")&&(res.C1!=="")){
                 temp=res.C1.split("/")
                 resArray.push(temp[0])
@@ -133,12 +171,12 @@ FocusScope {
             Action{iconName:"awesome/folder_open_o";name:"打开";enabled:false;
             },
             Action{iconName:"awesome/save";name:"保存";
-                onTriggered: { if(typeof(currentGrooveName)==="string"){
+                onTriggered: { if(typeof(limitedRulesName)==="string"){
                         //清空数据表格
-                        UserData.clearTable(currentGrooveName.replace("焊接规范","限制条件"),"","")
+                        UserData.clearTable(limitedRulesName,"","")
                         //数据表格重新插入数据
                         for(var i=0;i<tableView.table.rowCount;i++){
-                            UserData.insertTable(currentGrooveName.replace("焊接规范","限制条件"),"(?,?,?,?,?,?,?,?,?,?,?)",[
+                            UserData.insertTable(limitedRulesName,"(?,?,?,?,?,?,?,?,?,?,?)",[
                                                      limitedTable.get(i).ID,limitedTable.get(i).C1,limitedTable.get(i).C2,limitedTable.get(i).C3,limitedTable.get(i).C4,
                                                      limitedTable.get(i).C5,limitedTable.get(i).C6,limitedTable.get(i).C7,limitedTable.get(i).C8,limitedTable.get(i).C9])
                         }
@@ -190,14 +228,75 @@ FocusScope {
                                 {   "C1":editData[0]+"/"+editData[1]+"/"+editData[2],"C2":editData[3]+"/"+editData[4],
                                     "C3":editData[5]+"/"+editData[6],"C4":editData[7]+"/"+editData[8],
                                     "C5":editData[9],"C6":editData[10],
-                                    "C7":editData[11],"C8":editData[12],"C9":editData[13]+"/"+editData[14]})}
+                                    "C7":editData[11],"C8":editData[12],"C9":editData[13]+"/"+editData[14],"C10":editData[15]})}
         onOpened: {
             //复制数据到 editData
             var Index=selectedIndex;
+            var temp;
             if(Index>=0){
-                var res=lmitedMath();
-                for(var i=0;i<res.length;i++){
-                    columnRepeater.itemAt(i).text=res[i];
+                var res=limitedTable.get(Index);
+                if((typeof(res.C1)==="string")&&(res.C1!=="")){
+                    temp=res.C1.split("/")
+                    editData[0]=columnRepeater.itemAt(0).text=temp[0]
+                    editData[1]=columnRepeater.itemAt(1).text=temp[1]
+                    editData[2]=columnRepeater.itemAt(2).text=temp[2]
+                }else{
+                    editData[0]=columnRepeater.itemAt(0).text="0"
+                    editData[1]=columnRepeater.itemAt(1).text="0"
+                    editData[2]=columnRepeater.itemAt(2).text="0"
+                }
+                if((typeof(res.C2)==="string")&&(res.C2!=="")){
+                    temp=res.C2.split("/")
+                    editData[3]=columnRepeater.itemAt(3).text=temp[0]
+                    editData[4]=columnRepeater.itemAt(4).text=temp[1]
+                }else{
+                    editData[3]=columnRepeater.itemAt(3).text="0"
+                    editData[4]=columnRepeater.itemAt(4).text="0"
+                }
+                if((typeof(res.C3)==="string")&&(res.C3!=="")){
+                    temp=res.C3.split("/")
+                    editData[5]=columnRepeater.itemAt(5).text=temp[0]
+                    editData[6]=columnRepeater.itemAt(6).text=temp[1]}
+                else{
+                    editData[5]=columnRepeater.itemAt(5).text="0"
+                    editData[6]=columnRepeater.itemAt(6).text="0"
+                }
+                if((typeof(res.C4)==="string")&&(res.C4!=="")){
+                    temp=res.C4.split("/")
+                    editData[7]=columnRepeater.itemAt(7).text=temp[0]
+                    editData[8]=columnRepeater.itemAt(8).text=temp[1]
+                } else{
+                    editData[7]=columnRepeater.itemAt(7).text="0"
+                    editData[8]=columnRepeater.itemAt(8).text="0"
+                }
+                if((typeof(res.C5)==="string")&&(res.C5!==""))
+                    editData[9]=columnRepeater.itemAt(9).text=res.C5
+                else
+                    editData[9]=columnRepeater.itemAt(9).text="0";
+                if((typeof(res.C6)==="string")&&(res.C6!==""))
+                    editData[10]=columnRepeater.itemAt(10).text=res.C6
+                else
+                    editData[10]=columnRepeater.itemAt(10).text="0";
+                if((typeof(res.C7)==="string")&&(res.C7!==""))
+                    editData[11]=columnRepeater.itemAt(11).text=res.C7
+                else
+                    editData[11]=columnRepeater.itemAt(11).text="0";
+                if((typeof(res.C8)==="string")&&(res.C8!==""))
+                    editData[12]=columnRepeater.itemAt(12).text=res.C8
+                else
+                    editData[12]=columnRepeater.itemAt(12).text="0";
+                if((typeof(res.C9)==="string")&&(res.C9!=="")){
+                    temp=res.C9.split("/")
+                    editData[13]=columnRepeater.itemAt(13).text=temp[0]
+                    editData[14]=columnRepeater.itemAt(14).text=temp[1]
+                }else{
+                    editData[13]=columnRepeater.itemAt(13).text="0"
+                    editData[14]=columnRepeater.itemAt(14).text="0"
+                }
+                if((typeof(res.C10)==="string")&&(res.C10!=="")){
+                    editData[15]=columnRepeater.itemAt(15).text=res.C10
+                }else{
+                    editData[15]=columnRepeater.itemAt(15).text="0"
                 }
             }else{
                 message.open("请选择要编辑的行！");

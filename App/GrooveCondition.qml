@@ -12,10 +12,15 @@ FocusScope {
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "GrooveCondition"
-    anchors.fill: parent
+    anchors{
+        left:parent.left
+        top:parent.top
+        bottom: parent.bottom
+        leftMargin:visible?0:Material.Units.dp(250)
+    }
+    width:parent.width
+    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
 
-    //坡口数据库英文名称
-    //  property var grooveNameList: ["flatweldsinglebevelgroovet","flatweldsinglebevelgroove","flatweldvgroove","horizontalweldsinglebevelgroovet","horizontalweldsinglebevelgroove","verticalweldsinglebevelgroovet","verticalweldsinglebevelgroove","verticalweldvgroove","flatfillet"]
     property var weldDirList: ["平焊","横焊","立焊","水平角焊"]
     property var grooveStyleList: ["单边V形坡口","V形坡口"]
     property var weldConnectList: ["T形接头","对接接头"]
@@ -26,10 +31,10 @@ FocusScope {
     property int grooveNum;
 
     property var grooveStyleName: [
-        qsTr( "平焊单边V形坡口T接头"), qsTr( "平焊单边V形坡口平对接"),  qsTr("平焊V形坡口平对接"),
-        qsTr("横焊单边V形坡口T接头"), qsTr( "横焊单边V形坡口平对接"),
-        qsTr("立焊单边V形坡口T接头"),  qsTr("立焊单边V形坡口平对接"), qsTr("立焊V形坡口平对接"),
-        qsTr("水平角焊")  ]
+         "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接",  "平焊V形坡口平对接",
+        "横焊单边V形坡口T接头",  "横焊单边V形坡口平对接",
+        "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接",
+        "水平角焊" ]
     //前两位代表焊接位置 1位代表坡口形式 1位代表街头样式 2位代表衬垫种类
     property int currentGroove
 
@@ -76,8 +81,6 @@ FocusScope {
             ListItem.Subtitled{
                 id:weldDir
                 text:qsTr("焊接位置:");
-                leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                Behavior on leftMargin{NumberAnimation { duration: 200 }}
                 height: Material.Units.dp(48)
                 KeyNavigation.down:grooveStyle.visible?grooveStyle:bottomStyle
                 Keys.onPressed: {
@@ -113,8 +116,6 @@ FocusScope {
             ListItem.Subtitled{
                 id:grooveStyle
                 text:qsTr("坡口形式:");
-                leftMargin: visible ? Material.Units.dp(48): Material.Units.dp(250) ;
-                Behavior on leftMargin{NumberAnimation { duration: 200 }}
                 height: Material.Units.dp(48)
                 KeyNavigation.up: weldDir
                 KeyNavigation.down:weldConnect.visible?weldConnect:bottomStyle
@@ -164,8 +165,6 @@ FocusScope {
             ListItem.Subtitled{
                 id:weldConnect
                 text:qsTr("接头形式:");
-                leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                Behavior on leftMargin{NumberAnimation { duration: 200 }}
                 height: Material.Units.dp(48)
                 KeyNavigation.up: grooveStyle
                 KeyNavigation.down:bottomStyle
@@ -214,8 +213,6 @@ FocusScope {
             ListItem.Subtitled{
                 id:bottomStyle
                 text:qsTr("背部有无衬垫:");
-                leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                Behavior on leftMargin{NumberAnimation { duration: 200 }}
                 height: Material.Units.dp(48)
                 KeyNavigation.up: weldConnect.visible?weldConnect:weldDir
                 Keys.onPressed: {

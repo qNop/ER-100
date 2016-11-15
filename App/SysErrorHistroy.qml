@@ -9,27 +9,35 @@ import QtQuick.Controls 1.3 as Controls
 
 Item {
     id:root
-    anchors.fill: parent
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "SysErrorHistroy"
     anchors{
         left:parent.left
-        right:parent.right
         top:parent.top
         bottom: parent.bottom
         leftMargin:visible?0:Units.dp(250)
     }
+   width:parent.width
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
     signal remove
     signal removeall
 
-    property alias model:tableCard.model
-    property alias seletedIndex: tableCard.currentRow
+    property alias model:tableView.model
+    property alias seletedIndex: tableView.currentRow
 
     property string status: ""
+    onVisibleChanged: {
+        if(visible){
+            tableView.table.__listView.forceActiveFocus();
+            if((tableView.table.selection.count===0)&&(tableView.model.count!==0)&&(tableView.currentRow===-1)){
+                tableView.currentRow=0;
+                tableView.table.selection.select(0);
+            }
+        }
+    }
 
     TableCard{
-        id:tableCard
+        id:tableView
         headerTitle:"系统错误历史信息"
         tableRowCount:7
         footerText:"总计："+table.rowCount+"条错误信息"

@@ -8,10 +8,14 @@ WeldMath::WeldMath()
     connect(&flat,SIGNAL(weldRulesChanged(QStringList )),this,SLOT(setWeldRules(QStringList )));
     connect(&horizontal,SIGNAL(weldRulesChanged(QStringList )),this,SLOT(setWeldRules(QStringList )));
     connect(&vertical,SIGNAL(weldRulesChanged(QStringList )),this,SLOT(setWeldRules(QStringList )));
-    flat.meltingCoefficientValue=100;
+    flat.meltingCoefficientValue=105;
     vertical.meltingCoefficientValue=105;
     horizontal.meltingCoefficientValue=100;
     fillet.meltingCoefficientValue=0.98;
+    flat.p=0;
+    vertical.p=0;
+    horizontal.p=0;
+    fillet.p=0;
 }
 
 void WeldMath::setReinforcement(int value){
@@ -132,6 +136,60 @@ void WeldMath::setWireD(int value){
 
 void WeldMath::setGroove(int value){
     grooveValue=value;
+}
+
+int WeldMath::getFeedSpeed(int current){
+    int res=0;
+    switch (grooveValue) {
+    case 0: break;
+    case 1: break;
+    case 2: res=flat.getFeedSpeed(current); break;
+    case 3: break;
+    case 4: res=horizontal.getFeedSpeed(current); break;
+    case 5: break;
+    case 6: break;
+    case 7:res=vertical.getFeedSpeed(current);break;
+    case 8: res=fillet.getFeedSpeed(current); break;
+    default:
+        break;
+    }
+    return  res;
+}
+
+float WeldMath::getWeldArea(int current, float weldSpeed,float k,float met){
+    float res=0;
+    switch (grooveValue) {
+    case 0: break;
+    case 1: break;
+    case 2: flat.weldWireSquare=(flat.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4; res=met*(flat.getFeedSpeed(current)*flat.weldWireSquare)/(weldSpeed*10)/k; break;
+    case 3: break;
+    case 4: horizontal.weldWireSquare=(horizontal.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4; res=met*(horizontal.getFeedSpeed(current)*horizontal.weldWireSquare)/(weldSpeed*10)/k;break;
+    case 5: break;
+    case 6: break;
+    case 7: vertical.weldWireSquare=(vertical.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4; res=(vertical.getFeedSpeed(current)*vertical.weldWireSquare)/(weldSpeed*10)/k;break;
+    case 8: fillet.weldWireSquare=(fillet.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4; res=(fillet.getFeedSpeed(current)*fillet.weldWireSquare)/(weldSpeed*10)/k; break;
+    default:
+        break;
+    }
+    return  res;
+}
+
+float WeldMath::getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed){
+    float res=0;
+    switch (grooveValue) {
+    case 0: break;
+    case 1: break;
+    case 2: flat.getSwingSpeed(swing,swingLeftStayTime,swingRightStayTime,weldSpeed,maxSpeed); break;
+    case 3: break;
+    case 4: break;
+    case 5: break;
+    case 6: break;
+    case 7: break;
+    case 8:break;
+    default:
+        break;
+    }
+    return  res;
 }
 
 void WeldMath::setLimited(QStringList value){

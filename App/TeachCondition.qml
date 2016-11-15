@@ -14,7 +14,14 @@ FocusScope {
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "TeachCondition"
-    anchors.fill: parent
+    anchors{
+        left:parent.left
+        top:parent.top
+        bottom: parent.bottom
+        leftMargin:visible?0:Material.Units.dp(250)
+    }
+   width:parent.width
+    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
     property var repeaterModel:[0,0,0,300,2,-10,-10]
     property var listName: [qsTr("示教模式:"),qsTr("始终端检测:"),qsTr("示教第一点位置:"),qsTr("示教点数:"),qsTr("焊接长度:"),qsTr("坡口检测点左:"),qsTr("坡口检测点右:")]
     property var teachmodemodel: ["自动","半自动","手动"];
@@ -54,8 +61,6 @@ FocusScope {
                 ListItem.Subtitled{
                     id:teachmode
                     text:qsTr("示教模式:");
-                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     selected: focus;
                     KeyNavigation.down:startendcheck.visible?startendcheck:teachfirstpoint
@@ -106,8 +111,6 @@ FocusScope {
                 ListItem.Subtitled{
                     id:startendcheck
                     text:qsTr("焊接起始、终端检测:");
-                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: teachmode
                     KeyNavigation.down: teachfirstpoint
@@ -152,8 +155,6 @@ FocusScope {
                 ListItem.Subtitled{
                     id:teachfirstpoint
                     text:qsTr("示教第一点位置:");
-                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     selected: focus;
                     KeyNavigation.up: startendcheck
@@ -202,8 +203,6 @@ FocusScope {
                 ListItem.Subtitled{
                     id:teachpointnum
                     text:qsTr("示教点数:");
-                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: teachfirstpoint
                     KeyNavigation.down: teachfirstpointtimelength.visible?teachfirstpointtimelength:groovecheckpointleftlength
@@ -245,8 +244,6 @@ FocusScope {
                     id:teachfirstpointtimelength
                     text:qsTr("焊接长度:");
                     visible: teachpointnumlabel.text == 1;
-                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: teachpointnum
                     KeyNavigation.down: groovecheckpointleftlength.visible?groovecheckpointleftlength:groovecheckpointleftlength
@@ -288,8 +285,6 @@ FocusScope {
                     id:groovecheckpointleftlength
                     text:qsTr("坡口检测点左:");
                     visible:AppConfig.currentUserType=="SuperUser";
-                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: teachfirstpointtimelength.visible?teachfirstpointtimelength:teachpointnum
                     KeyNavigation.down: groovecheckpointrightlength
@@ -331,8 +326,6 @@ FocusScope {
                     id:groovecheckpointrightlength
                     text:qsTr("坡口检测点右:");
                     visible:AppConfig.currentUserType=="SuperUser";
-                    leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                    Behavior on leftMargin{NumberAnimation { duration: 200 }}
                     height: Material.Units.dp(44)
                     KeyNavigation.up: groovecheckpointleftlength.visible?groovecheckpointleftlength:null
                     onClicked:forceActiveFocus();

@@ -9,21 +9,30 @@ import QtQuick.Controls 1.2 as Controls
 
 Item {
     id:root
-    anchors.fill: parent
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "UserAccount"
     anchors{
         left:parent.left
-        right:parent.right
         top:parent.top
         bottom: parent.bottom
         leftMargin:visible?0:Units.dp(250)
     }
-    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InQuad }}
+   width:parent.width
+    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
+
     property alias weldTableCurrentRow: tableView.currentRow
     property alias model: tableView.model
     property bool superUser: AppConfig.currentUserType==="超级用户"
     signal userUpdate();
+    onVisibleChanged: {
+        if(visible){
+            tableView.table.__listView.forceActiveFocus();
+            if((tableView.table.selection.count===0)&&(tableView.model.count!==0)&&(tableView.currentRow===-1)){
+                tableView.currentRow=0;
+                tableView.table.selection.select(0);
+            }
+        }
+    }
     TableCard{
         id:tableView
         footerText:  "只有超级用户拥有添加、编辑、移除用户的权限。"

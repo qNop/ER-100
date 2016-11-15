@@ -11,13 +11,13 @@ FocusScope{
     objectName: "WeldLine"
     anchors{
         left:parent.left
-        right:parent.right
         top:parent.top
         bottom: parent.bottom
         leftMargin:visible?0:Units.dp(250)
     }
+   width:parent.width
+    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
 
-       Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InQuad }}
     //当前层数
     property int floorNum:0
     //当前道数

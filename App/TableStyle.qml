@@ -7,6 +7,7 @@ import QtQuick.Controls.Styles 1.2
 
 TableViewStyle{
     //corner commpent 指 两个横纵滚动条之间的 部件
+    id:root
     corner: Item{visible: false}
     //decrementControl 指滚动条 减 箭头 部件
     decrementControl:Item{visible: false}
@@ -67,5 +68,6 @@ TableViewStyle{
         height: Material.Units.dp(48);
         color: styleData.selected ?  Material.Palette.colors["grey"]["400"] : "white"
         Material.ThinDivider{anchors.bottom: parent.bottom}
+
     }
 }

@@ -17,15 +17,14 @@ FocusScope{
     objectName: "GrooveCheck"
     anchors{
         left:parent.left
-        right:parent.right
         top:parent.top
         bottom: parent.bottom
         leftMargin:visible?0:Units.dp(250)
     }
-
+   width:parent.width
+    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
     property Item message
     property string helpText;
-    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
     //坡口列表名称
     property string grooveName
     //当前坡口名称
@@ -40,8 +39,9 @@ FocusScope{
 
     property var grooveRules: ["           No.       ", "板    厚δ(mm)","板厚差e(mm)","间    隙b(mm)","角  度β1(deg)","角  度β2(deg)","中心线X(mm)","中心线Y(mm)","中心线Z(mm)"]
 
-    ListModel{id:pasteModel}
-
+    ListModel{id:pasteModel
+        ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:""}
+    }
     signal changedCurrentGroove(string name)
     //外部更新数据
     signal updateModel(string str,var data);
@@ -54,6 +54,20 @@ FocusScope{
         else
             message.open("索引超过条目上限或索引无效！")
     }
+    function checkUndefined(value){
+        return typeof(value)==="undefined"?"":value
+    }
+
+    onVisibleChanged: {
+        if(visible){
+            tableView.table.__listView.forceActiveFocus();
+            if((tableView.table.selection.count===0)&&(tableView.model.count!==0)&&(tableView.currentRow===-1)){
+                tableView.currentRow=0;
+                tableView.table.selection.select(0);
+            }
+        }
+    }
+
     onCurrentGrooveNameChanged: {
         if(currentGrooveName!==""){
             //清空坡口数据
@@ -88,15 +102,15 @@ FocusScope{
                         for(var i=0;i<tableView.table.rowCount;i++){
                             //插入新的数据
                             UserData.insertTable(currentGrooveName,"(?,?,?,?,?,?,?,?,?)",[
-                                                     model.get(i).ID,
-                                                     model.get(i).C1,
-                                                     model.get(i).C2,
-                                                     model.get(i).C3,
-                                                     model.get(i).C4,
-                                                     model.get(i).C5,
-                                                     model.get(i).C6,
-                                                     model.get(i).C7,
-                                                     model.get(i).C8])}
+                                                     checkUndefined(model.get(i).ID),
+                                                     checkUndefined(model.get(i).C1),
+                                                     checkUndefined(model.get(i).C2),
+                                                     checkUndefined(model.get(i).C3),
+                                                     checkUndefined(model.get(i).C4),
+                                                     checkUndefined(model.get(i).C5),
+                                                     checkUndefined(model.get(i).C6),
+                                                     checkUndefined(model.get(i).C7),
+                                                     checkUndefined(model.get(i).C8)])}
                         //更新数据库保存时间
                         UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"EditTime",UserData.getSysTime())
                         //更新数据库保存
@@ -106,7 +120,6 @@ FocusScope{
                         message.open("坡口名称格式不是字符串！")
                     }
                 }},
-
             Action{iconName:"awesome/trash_o";name:"删除";enabled: grooveName===currentGrooveName?false:true
                 onTriggered: remove.show();}
         ]
@@ -153,14 +166,14 @@ FocusScope{
                 onTriggered:{
                     if(grooveTableIndex>-1){
                         WeldMath.setGrooveRules([
-                                                    model.get(0).C1,
-                                                    model.get(0).C2,
-                                                    model.get(0).C3,
-                                                    model.get(0).C4,
-                                                    model.get(0).C5,
-                                                    model.get(0).C6,
-                                                    model.get(0).C7,
-                                                    model.get(0).C8
+                                                    checkUndefined(model.get(0).C1),
+                                                    checkUndefined(model.get(0).C2),
+                                                    checkUndefined(model.get(0).C3),
+                                                    checkUndefined(model.get(0).C4),
+                                                    checkUndefined(model.get(0).C5),
+                                                    checkUndefined(model.get(0).C6),
+                                                    checkUndefined(model.get(0).C7),
+                                                    checkUndefined(model.get(0).C8)
                                                 ]);
                         message.open("生成焊接规范。");
                     }else {
@@ -170,20 +183,19 @@ FocusScope{
             },
             Action{iconName: "av/fast_forward";  name:"移至中线";enabled:root.actionEnable
                 onTriggered: {
-
+                    message.open("暂不支持移至中线命令！")
                 }
             }
         ]
-
         tableData:[
             Controls.TableViewColumn{  role:"C1"; title: "板厚 δ\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{  role:"C2"; title: "板厚差 e\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{  role:"C3"; title: "间隙 b\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{  role:"C4"; title: "角度 β1\n  (deg)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{  role:"C5"; title: "角度 β2\n  (deg)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-            Controls.TableViewColumn{  role:"C6"; title: "中心线 \n X(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-            Controls.TableViewColumn{  role:"C7"; title: "中心线 \n Y(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-            Controls.TableViewColumn{  role:"C8"; title: "中心线 \n Z(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+            Controls.TableViewColumn{  role:"C6"; title: "中心线 \n X(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:true},
+            Controls.TableViewColumn{  role:"C7"; title: "中心线 \n Y(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:true},
+            Controls.TableViewColumn{  role:"C8"; title: "中心线 \n Z(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:true}
         ]
     }
     Dialog{
@@ -282,7 +294,6 @@ FocusScope{
                 }
                 //删除次列表
                 UserData.deleteTable(currentGrooveName+"次列表")
-
                 //获取最新列表
                 var name=UserData.getLastGrooveName(grooveName+"列表","EditTime")
                 console.log("delete table name "+name)
@@ -451,16 +462,16 @@ FocusScope{
             //复制数据到 editData
             var Index=grooveTableIndex;
             if(Index>=0){
-                columnRepeater.itemAt(0).text=model.get(Index).ID;
-                columnRepeater.itemAt(1).text=model.get(Index).C1;
-                columnRepeater.itemAt(2).text=model.get(Index).C2;
-                columnRepeater.itemAt(3).text=model.get(Index).C3;
-                columnRepeater.itemAt(4).text=model.get(Index).C4;
-                columnRepeater.itemAt(5).text=model.get(Index).C5;
-                columnRepeater.itemAt(6).text=model.get(Index).C6;
-                columnRepeater.itemAt(7).text=model.get(Index).C7;
-                columnRepeater.itemAt(8).text=model.get(Index).C8;
-                pasteModel.set(0,model.get(0));
+                columnRepeater.itemAt(0).text=checkUndefined(model.get(Index).ID);
+                columnRepeater.itemAt(1).text=checkUndefined(model.get(Index).C1);
+                columnRepeater.itemAt(2).text=checkUndefined(model.get(Index).C2);
+                columnRepeater.itemAt(3).text=checkUndefined(model.get(Index).C3);
+                columnRepeater.itemAt(4).text=checkUndefined(model.get(Index).C4);
+                columnRepeater.itemAt(5).text=checkUndefined(model.get(Index).C5);
+                columnRepeater.itemAt(6).text=checkUndefined(model.get(Index).C6);
+                columnRepeater.itemAt(7).text=checkUndefined(model.get(Index).C7);
+                columnRepeater.itemAt(8).text=checkUndefined(model.get(Index).C8);
+                pasteModel.set(0,model.get(Index));
             }else{
                 message.open("请选择要编辑的行！");
                 positiveButtonEnabled=false;
@@ -515,5 +526,6 @@ FocusScope{
             }
         ]
     }
+
 }
 

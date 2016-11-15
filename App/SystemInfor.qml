@@ -9,12 +9,12 @@ Item {
     objectName: "SystemInfor"
     anchors{
         left:parent.left
-        right:parent.right
         top:parent.top
         bottom: parent.bottom
         leftMargin:visible?0:Units.dp(250)
     }
-    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InQuad }}
+   width:parent.width
+    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
 
     property var inforName: ["系统版本号：","控制器版本号：","驱动器版本号：","操作盒版本号："]
     Card{

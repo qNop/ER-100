@@ -6,7 +6,7 @@
 #include <QStringList>
 #include <QtCore>
 #include <QtGlobal>
-#include <gloabldefine.h>
+#include "gloabldefine.h"
 
 class filletMath:public QObject
 {

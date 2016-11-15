@@ -39,10 +39,10 @@ void flatMath::firstFloorFunc(){
             weldSpeed=qRound(weldSpeed);
             // if()/***********************************************此处尚且存在争议未决。
             // status=""
-           if(current==0){
-               status="输入条件错误";
-               break;
-           }
+            if(current==0){
+                status="输入条件错误";
+                break;
+            }
         }
     }else if((s>=bottomFloor->maxFillMetal)||(weldSpeed<bottomFloor->minWeldSpeed)){
         weldSpeed=qCeil(weldSpeed);
@@ -79,7 +79,7 @@ void flatMath::firstFloorFunc(){
 }
 //计算第二层
 void flatMath::FloorFunc(FloorCondition *pF){
-    int i,j;
+    int i,j,k;
     float s,swingLength,aa,bb,cc,weldLineY,weldLineX,swingLengthOne,swingHz,reSwingLeftLength;
     int weldNum;
     QStringList value;
@@ -95,10 +95,22 @@ void flatMath::FloorFunc(FloorCondition *pF){
         //初始化数组
         solveA(&weldFill[0],pF,weldNum,s);
         //分道后面积过小，减少一条焊道，在一定程度上增大单道摆动宽度
-        if(weldFill[weldNum-1]<pF->minFillMetal){
-            if(weldNum>1){
-                weldNum-=1;
+        for(k=0;k<5;k++){
+            if(weldFill[0]>pF->maxFillMetal){
+                weldNum+=1;
                 solveA(&weldFill[0],pF,weldNum,s);
+            }else {
+                break;
+            }
+        }
+        for(k=0;k<5;k++){
+            if(weldFill[weldNum-1]<pF->minFillMetal){
+                if(weldNum>1){
+                    weldNum-=1;
+                    solveA(&weldFill[0],pF,weldNum,s);
+                }else{
+                    break;
+                }
             }
             //else //分道过小
             //return -1;
@@ -134,6 +146,7 @@ void flatMath::FloorFunc(FloorCondition *pF){
             }else{
                 weldTravelSpeed[j]=qRound(weldTravelSpeed[j]);
             }
+            getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,weldTravelSpeed[j],WAVE_MAX_SPEED);
             //重新计算焊道面积
             weldFill[j]=(meltingCoefficientValue*weldWireSquare*weldFeedSpeed[j])/(weldTravelSpeed[j]*100)/pF->fillCoefficient;
             //重新计算层面积
@@ -172,7 +185,7 @@ void flatMath::FloorFunc(FloorCondition *pF){
 
 void flatMath::topFloorFunc(){
     /**计算盖面层***********************************************/
-    int j;
+    int j,k;
     QStringList value;
     float ba=1.5;
 
@@ -191,11 +204,25 @@ void flatMath::topFloorFunc(){
     //初始化数组
     solveA(&weldFill[0],topFloor,weldNum,s);
     //分道后面积过小，减少一条焊道，在一定程度上增大单道摆动宽度
-    if(weldFill[0]<topFloor->minFillMetal){
-        if(weldNum>1){
-            weldNum-=1;
+    for( k=0;k<5;k++){
+        if(weldFill[0]>topFloor->maxFillMetal){
+            weldNum+=1;
             solveA(&weldFill[0],topFloor,weldNum,s);
+        }else {
+            break;
         }
+    }
+    for(k=0;k<5;k++){
+        if(weldFill[weldNum-1]<topFloor->minFillMetal){
+            if(weldNum>1){
+                weldNum-=1;
+                solveA(&weldFill[0],topFloor,weldNum,s);
+            }else{
+                break;
+            }
+        }
+        //else //分道过小
+        //return -1;
     }
     float swingLengthOne=float(qRound(5*(swingLength-(weldNum-1)*topFloor->weldSwingSpacing)/weldNum))/5;
     float swingHz=getSwingHz(qCeil(swingLengthOne),2,topFloor->totalStayTime);
@@ -230,6 +257,7 @@ void flatMath::topFloorFunc(){
         }else{
             weldTravelSpeed[j]=qRound(weldTravelSpeed[j]);
         }
+        getSwingSpeed(swingLengthOne/2,topFloor->swingLeftStayTime,topFloor->swingRightStayTime,weldTravelSpeed[j],WAVE_MAX_SPEED);
         //重新计算焊道面积
         weldFill[j]=(meltingCoefficientValue*weldWireSquare*weldFeedSpeed[j])/(weldTravelSpeed[j]*100);
         //重新计算层面积
@@ -275,31 +303,31 @@ int flatMath::weldMath(){
     status="Successed";
     //底层最大填充量
     bottomFloor->maxFillMetal=(meltingCoefficientValue*weldWireSquare*
-                              getFeedSpeed(bottomFloor->current_middle))/(bottomFloor->minWeldSpeed*100);
+                               getFeedSpeed(bottomFloor->current_middle))/(bottomFloor->minWeldSpeed*100);
     //底层最小填充量
     bottomFloor->minFillMetal=(meltingCoefficientValue*weldWireSquare*
-                              getFeedSpeed(bottomFloor->current_middle))/(bottomFloor->maxWeldSpeed*100);
+                               getFeedSpeed(bottomFloor->current_middle))/(bottomFloor->maxWeldSpeed*100);
 
     //第二层最大填充量
     secondFloor->maxFillMetal=(meltingCoefficientValue*weldWireSquare*
-                              getFeedSpeed(secondFloor->current_middle))/(secondFloor->minWeldSpeed*100);
+                               getFeedSpeed(secondFloor->current_middle))/(secondFloor->minWeldSpeed*100);
     //第二层最小填充量
     secondFloor->minFillMetal=(meltingCoefficientValue*weldWireSquare*
-                              getFeedSpeed(secondFloor->current_middle))/(secondFloor->maxWeldSpeed*100);
+                               getFeedSpeed(secondFloor->current_middle))/(secondFloor->maxWeldSpeed*100);
 
     //填充层最大填充量
     fillFloor->maxFillMetal=(meltingCoefficientValue*weldWireSquare*
-                            getFeedSpeed(fillFloor->current_middle))/(fillFloor->minWeldSpeed*100);
+                             getFeedSpeed(fillFloor->current_middle))/(fillFloor->minWeldSpeed*100);
     //填充层最小填充量
     fillFloor->minFillMetal=(meltingCoefficientValue*weldWireSquare*
-                            getFeedSpeed(fillFloor->current_middle))/(fillFloor->maxWeldSpeed*100);
+                             getFeedSpeed(fillFloor->current_middle))/(fillFloor->maxWeldSpeed*100);
 
     //顶层最大填充量
     topFloor->maxFillMetal=(meltingCoefficientValue*weldWireSquare*
-                           getFeedSpeed(topFloor->current_middle))/(topFloor->minWeldSpeed*100);
+                            getFeedSpeed(topFloor->current_middle))/(topFloor->minWeldSpeed*100);
     //顶层最小填充量
     topFloor->minFillMetal=(meltingCoefficientValue*weldWireSquare*
-                           getFeedSpeed(topFloor->current_middle))/(topFloor->maxWeldSpeed*100);
+                            getFeedSpeed(topFloor->current_middle))/(topFloor->maxWeldSpeed*100);
 
 
     /************************计算打底层*********************************************************/
@@ -395,6 +423,49 @@ int flatMath::weldMath(){
     value.append("Finish");
     emit weldRulesChanged(value);
     return res;
+}
+/*
+ * swing  摆动幅度  pf 当前层条件  weldSpeed 焊接速度
+ */
+
+float flatMath::getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed){
+    //定义总时间
+    float t;
+    //定义停留时间
+    float t_temp0 = ((swingLeftStayTime+swingRightStayTime)*1000)/4;
+    //定义加速度时间
+    float t_temp1=0;
+    //定义匀速时间
+    float t_temp2=0;
+    //定义摆动速度
+    float swingSpeed=0;
+    qDebug()<<"swing:"<<swing;
+    qDebug()<<"weldSpeed"<<weldSpeed;
+    //脉冲叠加数量
+    float S_MAX=swing*10*WAVE_CODE_NUM;
+    //求取到达最大速度的时间及路程
+    for(int i=0;;i++){
+        swingSpeed=WAVE_SPEED_START_STOP+WAVE_SPEED_ACCE_DECE*i;
+        if(swingSpeed>GET_WAVE_PULSE(maxSpeed)){
+            t_temp1+=10000/swingSpeed;
+            t_temp2=(S_MAX-(i+1)*10)*1000/swingSpeed;
+            qDebug()<<"swingSpeed"<<GET_WAVE_SPEED(swingSpeed)<<swingSpeed<<S_MAX<<swing;
+            //加速时间路程
+            break;
+        }
+        t_temp1+=10000/swingSpeed;
+        qDebug()<<"t_temp1="<<t_temp1;
+        if(((i+1)*10)>S_MAX){
+            //超过最大距离也没有达到最大速度退出
+            break;
+        }
+    }
+    //t_temp2 存在 则证明 匀速存在
+    t=((t_temp0+t_temp1+t_temp2)*4)/60000;
+    qDebug()<<"flatMath::getSwingSpeed::T"<<t<<" t_temp0"<<t_temp0<<" t_temp1"<<t_temp1<<" t_temp2"<<t_temp2;
+    qDebug()<<"flatMath::getSwingSpeed::Hz"<<1/(t);
+    qDebug()<<"flatMath::getSwingSpeed::A"<<t*weldSpeed;
+    return t;
 }
 
 int  flatMath::getSwingHz(int swing,int floor,float stayTime){
@@ -570,8 +641,11 @@ int  flatMath::getSwingHz(int swing,int floor,float stayTime){
     }else{
         status="停留时间不在范围内！";
     }
+
     return swingHz;
 }
+
+
 
 float flatMath::getVoltage(int current){
     float voltage=18;
@@ -592,7 +666,7 @@ float flatMath::getVoltage(int current){
         if (current<190){
             status="错误！电流过小，超出平焊常用范围，暂不支持此情况的电压规划。";
         }else{
-            voltage=14+0.05*current-1;
+            voltage=14+0.05*current+2;
         }
     }else {
         return -1;

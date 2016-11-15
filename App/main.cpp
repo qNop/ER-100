@@ -59,8 +59,9 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonType<WeldMath>("WeldSys.WeldMath",1,0,"WeldMath",WeldMathEngineProvider);
 
     QQmlApplicationEngine engine;
-    qDebug()<<engine.offlineStoragePath();
+
     engine.setOfflineStoragePath(".");
+     qDebug()<<engine.offlineStoragePath();
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     return app.exec();
 }

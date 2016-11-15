@@ -57,15 +57,16 @@ public slots:
     void setWireD(int value);
     void setLimited(QStringList value);
     void setGroove(int value);
+    //根据电流获取送丝速度
+    int getFeedSpeed(int current);
+     //根据电流电压行走速度获取道面积
+    float getWeldArea(int current,float weldSpeed,float k,float met);
+    //求摆动距离
+    float getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed);
 signals:
     void grooveRulesChanged(QStringList value);
     void weldRulesChanged(QStringList value);
-    void gasChanged(int value);
-    void pulseChanged(int value);
-    void wireTypeChanged(int value);
-    void wireDChanged(int value);
-    void limitedChanged(QStringList value);
-    void grooveChanged(int value);
+
 };
 
 #endif // WELDMATH_H

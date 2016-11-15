@@ -15,12 +15,12 @@ FocusScope{
     objectName: "WeldData"
     anchors{
         left:parent.left
-        right:parent.right
         top:parent.top
         bottom: parent.bottom
         leftMargin:visible?0:Units.dp(250)
     }
-    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InQuad }}
+   width:parent.width
+    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
 
     property Item message
     property string status:"空闲态"
@@ -47,7 +47,9 @@ FocusScope{
         "内   停  留 (s)  ",
         "外   停  留 (s)  ",
         "停  止 时 间(s)","层面积","道面积","起弧点X","起弧点Y","起弧点Z"]
-    ListModel{id:pasteModel}
+    ListModel{id:pasteModel;
+        ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:""}
+    }
 
     function getLastRulesName(){
         if((typeof(currentGrooveName)==="string")&&(currentGrooveName!=="")){
@@ -60,7 +62,6 @@ FocusScope{
         }
         return -1;
     }
-
     //当前页面关闭 则 关闭当前页面内 对话框
     onStatusChanged: {
         if(status==="坡口检测完成态"){
@@ -70,15 +71,26 @@ FocusScope{
     }
     function selectIndex(index){
         if((index<model.count)&&(index>-1)){
-            tableView.table.selection.clear();
+             tableView.table.selection.clear();
             tableView.table.selection.select(index);
         }
-        else
+        else{
             message.open("索引超过条目上限或索引无效！")
+        }
     }
+    onVisibleChanged: {
+        if(visible){
+            tableView.table.__listView.forceActiveFocus();
+            if((tableView.table.selection.count===0)&&(tableView.model.count!==0)&&(tableView.currentRow===-1)){
+                tableView.currentRow=0;
+                tableView.table.selection.select(0);
+            }
+        }
+    }
+
     TableCard{
         id:tableView
-        footerText:  "系统当前处于"+status.replace("态","状态。")
+        footerText:"系统当前处于"+status.replace("态","状态。")
         tableRowCount:7
         headerTitle: weldRulesName
         table.__listView.interactive: status!=="焊接态"
@@ -144,7 +156,6 @@ FocusScope{
                 onTriggered: {
                     if(weldTableIndex>=0){
                         updateModel("Set", pasteModel.get(0));
-                        selectIndex(weldTableIndex)
                         message.open("已粘帖。");}
                     else
                         message.open("请选择要粘帖的行！")
@@ -161,6 +172,7 @@ FocusScope{
             },
             Action{iconName:"awesome/calendar_o";name:"清空";
                 onTriggered: {
+                    weldTableIndex=-1;
                     updateModel("Clear",{});
                     message.open("已清空。");
                 }}
@@ -169,7 +181,7 @@ FocusScope{
                 onTriggered: {info.show();}
             }]
         funcMenu: [
-            Action{iconName:"awesome/send_o";
+            Action{iconName:"awesome/send_o";name:"下发规范"
                 onTriggered:{
                     if(weldTableIndex>-1){
                         var index= weldTableIndex
@@ -198,14 +210,16 @@ FocusScope{
                         message.open("请选择下发焊接规范。")
                     }
                 }
-                hoverAnimation:true;summary: "F4"
-                name:"下发规范"
-            }]
+            },
+            Action{iconName:"awesome/send_o";name:"计算道面积"
+                onTriggered: {weldArea.show()}
+            }
+        ]
         tableData:[
             Controls.TableViewColumn{role: "C1";title:"   焊接\n层道数";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{role: "C2";title: "电流\n  A";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
             Controls.TableViewColumn{role: "C3";title: "电压\n  V";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-            Controls.TableViewColumn{role: "C4";title: " 摆幅\n  mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
+            Controls.TableViewColumn{role: "C4";title: " 摆幅\n  mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: weldTableEx},
             Controls.TableViewColumn{role: "C5";title: "  摆频\n次/min";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
             Controls.TableViewColumn{role: "C6";title: "焊接速度\n cm/min";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
             Controls.TableViewColumn{role: "C7";title: "焊接线\n X mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
@@ -219,6 +233,7 @@ FocusScope{
             Controls.TableViewColumn{role: "C15";title: "起弧y";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
             Controls.TableViewColumn{role: "C16";title: "起弧z";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx}
         ]
+
     }
 
     Dialog{
@@ -503,7 +518,7 @@ FocusScope{
                 editcolumnRepeater.itemAt(14).text=model.get(index).C14;
                 editcolumnRepeater.itemAt(15).text=model.get(index).C15;
                 editcolumnRepeater.itemAt(16).text=model.get(index).C16;
-                pasteModel.set(0,model.get(0));
+                pasteModel.set(0,model.get(index));
             }
             else{
                 message.open("请选择要编辑的行！")
@@ -611,5 +626,67 @@ FocusScope{
             Label{text:"总计气体消耗量："+10}
         ]
     }
+    Dialog{
+        id:weldArea
+        title: qsTr("计算道面积")
+        negativeButtonText:qsTr("取消")
+        positiveButtonText:qsTr("确定")
+        property var current: 0
+        property var weldSpeed: 0
+        property var k: 0
+        property var met: 0
+        property var area: 0
+
+        signal changedArea();
+        onOpened: {
+            current=0;
+            weldSpeed=0;
+            k=0;
+            met=0;
+            area=0;
+        }
+        Row{
+            Repeater{
+                model:["焊接电流:","焊接速度:","层填充系数:","溶敷系数:","填充量:"]
+                delegate: Row{
+                    property alias text: textfield.text
+                    Label{anchors.bottom: parent.bottom;text:modelData}
+                    TextField{id:textfield
+                        horizontalAlignment:TextInput.AlignHCenter
+                        width: Units.dp(60)
+                        onTextChanged: {
+                            switch(index){
+                            case 0: weldArea.current=Number(text);break;
+                            case 1: weldArea.weldSpeed=Number(text);break;
+                            case 2: weldArea.k=Number(text);break;
+                            case 3: weldArea.met=Number(text);break;
+                            case 4: weldArea.area=Number(text);break;
+                            }
+                        }
+                    }
+                }
+            }
+            Button{
+                text:"计算"
+                onPressedChanged: {
+                    if(pressed){
+                        if(weldArea.weldSpeed){
+                           weldArea.area=WeldMath.getWeldArea(weldArea.current,weldArea.weldSpeed,weldArea.k,weldArea.met);
+                           // WeldMath.getWeldA(weldArea.current,weldArea.weldSpeed,weldArea.k,weldArea.met,weldArea.area)
+                            console.log("计算weldArea.area"+weldArea.area)
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+  Component.onCompleted: {
+      tableView.table.__listView.forceActiveFocus();
+      if((tableView.table.selection.count===0)&&(tableView.model.count!==0)&&(tableView.currentRow===-1)){
+          tableView.currentRow=0;
+          tableView.table.selection.select(0);
+      }
+  }
 }
 

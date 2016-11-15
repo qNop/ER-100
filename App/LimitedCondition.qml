@@ -13,11 +13,11 @@ FocusScope {
     objectName: "LimitedCondition"
     anchors{
         left:parent.left
-        right:parent.right
         top:parent.top
         bottom: parent.bottom
         leftMargin:visible?0:Units.dp(250)
     }
+    width:parent.width
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
 
     property Item message
@@ -37,6 +37,7 @@ FocusScope {
     signal changeWireDError()
     signal changeWireTypeError()
     signal changePulseError()
+    property int num: 0
 
     function getTableData(index,type){
         if((limitedRulesName!=="")&&(typeof(limitedRulesName)==="string")){
@@ -74,6 +75,16 @@ FocusScope {
         num|=wireD;
         console.log(num&0x100,num&0x080,num&0x040,num&0x020,num&0x010,num&0x008,num&0x004,num&0x002,num&0x001)
         return String(num)
+    }
+
+    onVisibleChanged: {
+        if(visible){
+            tableView.table.__listView.forceActiveFocus();
+            if((tableView.table.selection.count===0)&&(tableView.model.count!==0)&&(tableView.currentRow===-1)){
+                tableView.currentRow=0;
+                tableView.table.selection.select(0);
+            }
+        }
     }
 
     onGasChanged:{getTableData(makeNum(),0);console.log(root.objectName+"gas value="+gas)}
@@ -172,13 +183,14 @@ FocusScope {
             },
             Action{iconName:"awesome/save";name:"保存";
                 onTriggered: { if(typeof(limitedRulesName)==="string"){
+                        var C11=makeNum();
                         //清空数据表格
-                        UserData.clearTable(limitedRulesName,"","")
+                        UserData.clearTable(limitedRulesName,"C11",C11)
                         //数据表格重新插入数据
                         for(var i=0;i<tableView.table.rowCount;i++){
-                            UserData.insertTable(limitedRulesName,"(?,?,?,?,?,?,?,?,?,?,?)",[
+                            UserData.insertTable(limitedRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?)",[
                                                      limitedTable.get(i).ID,limitedTable.get(i).C1,limitedTable.get(i).C2,limitedTable.get(i).C3,limitedTable.get(i).C4,
-                                                     limitedTable.get(i).C5,limitedTable.get(i).C6,limitedTable.get(i).C7,limitedTable.get(i).C8,limitedTable.get(i).C9])
+                                                     limitedTable.get(i).C5,limitedTable.get(i).C6,limitedTable.get(i).C7,limitedTable.get(i).C8,limitedTable.get(i).C9,limitedTable.get(i).C10,C11])
                         }
                     }
                 }

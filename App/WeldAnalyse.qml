@@ -14,33 +14,32 @@ Item {
     objectName: "WeldAnalyse"
     anchors{
         left:parent.left
-        right:parent.right
         top:parent.top
         bottom: parent.bottom
         leftMargin:visible?0:Units.dp(250)
     }
-    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InQuad }}
-    property bool actionEnable:false
-    property var groovestyles: [
-        qsTr( "平焊单边V型坡口T接头"), qsTr( "平焊单边V型坡口平对接"),  qsTr("平焊V型坡口平对接"),
-        qsTr("横焊单边V型坡口T接头"), qsTr( "横焊单边V型坡口平对接"),
-        qsTr("立焊单边V型坡口T接头"),  qsTr("立焊单边V型坡口平对接"), qsTr("立焊V型坡口平对接"),
-        qsTr("水平角焊")  ]
-    property Item message
-    property var editData:["","","","","","","","","","","","","","",""]
-    property string status:"空闲态"
-    property alias weldTableCurrentRow: tableView.currentRow
-    property var weldDataModel
+   width:parent.width
+    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
 
+    property Item message
+    property string status:"空闲态"
+    property alias selectedIndex: tableView.currentRow
     //上次焊接规范名称
     property alias weldRulesName: tableView.headerTitle
-    property bool weldTableEx:AppConfig.currentUserType=="SuperUser"?true:false
     //焊缝长度
     property int weldLength: 0
-
-    //当前页面关闭 则 关闭当前页面内 对话框
-
-
+    //焊接模型
+    property ListModel weldTableModel;
+    onVisibleChanged: {
+        if(visible){
+            tableView.table.__listView.forceActiveFocus();
+            if((tableView.table.selection.count===0)&&(tableView.model.count!==0)&&(tableView.currentRow===-1)){
+                tableView.currentRow=0;
+                tableView.table.selection.select(0);
+            }
+        }
+    }
+    //
     TableCard{
         id:tableView
         footerText:"系统当前处于"+status.replace("态","状态。")

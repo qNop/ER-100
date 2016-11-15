@@ -6,7 +6,7 @@
 #include <QStringList>
 #include <QtCore>
 #include <QtGlobal>
-#include <gloabldefine.h>
+#include "gloabldefine.h"
 
 class flatMath:public QObject
 {
@@ -60,7 +60,7 @@ public:
     //脉冲 0 无脉冲 1 有脉冲
     bool pulseValue;
     //焊丝种类 0 碳钢实芯 1药芯
-    bool wireTypeValue;
+    int wireTypeValue;
     //计算数据状态
     QString status;
     //计算第一层
@@ -86,6 +86,8 @@ public:
 
     int grooveValue;
     void setGrooveRules(QStringList value);
+
+    float getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed);
 signals:
     void weldRulesChanged(QStringList value);
 };

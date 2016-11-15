@@ -97,9 +97,6 @@ AppConfig::AppConfig(){
     zSpeedValue=File->value("Z").toInt();
     swingSpeedValue=File->value("Swing").toInt();
     setbackLight(BacklightValue);
-    start_led=0;
-    ready_led=0;
-    stop_led=0;
 }
 AppConfig::~AppConfig(){
     qDebug()<<"AppConfig::REMOVE";
@@ -365,7 +362,9 @@ int AppConfig::zSpeed(){
 void AppConfig::setXSpeed(int value){
     xSpeedValue=value;
     File->setValue("X",value);
+    qDebug()<<"AppConfig::setXSpeed="<<value<<" Error "<<File->status();
 }
 int AppConfig::xSpeed(){
+    qDebug()<<"AppConfig::xSpeed="<<xSpeedValue;
     return xSpeedValue;
 }

@@ -50,8 +50,7 @@ HEADERS += \
 
 INCLUDEPATH +=libmodbus \
               libmodbus/src \
-              WeldAPI\
-              VirtualKeyboard
+              WeldAPI
 
 linux-g++{
    # DESTDIR = $$[QT_INSTALL_PLUGINS]/platforminputcontexts

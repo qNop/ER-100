@@ -140,7 +140,6 @@ Card{
         selectionMode:Controls.SelectionMode.SingleSelection
         Controls.ExclusiveGroup{  id:checkboxgroup }
         ThinDivider{anchors.bottom:tableview.bottom;color:Palette.colors["grey"]["500"]}
-
         Controls.TableViewColumn{
             id:firstColumnData
             role:"ID"

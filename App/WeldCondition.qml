@@ -13,7 +13,14 @@ Item{
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "WeldCondition"
-    anchors.fill: parent
+    anchors{
+        left:parent.left
+        top:parent.top
+        bottom: parent.bottom
+        leftMargin:visible?0:Material.Units.dp(250)
+    }
+   width:parent.width
+    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
 
     property var weldWireLengthModel:     ["10mm","15mm","20mm","25mm"];
     property var swingWayModel:                ["无","左方","右方","左右"];
@@ -29,11 +36,11 @@ Item{
 
     property var condition: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
 
-    property var oldCondition: condition
-
     property int selectedIndex:0
 
-    property var listName: ["焊丝伸出长度:","头部摇动方式:","焊丝种类:","机头放置侧:","焊丝直径:","保护气体:","焊接往返动作:","焊接脉冲状态:","电弧跟踪:","预期余高:","溶敷系数:","焊接电流偏置:","焊接电压偏置:","提前送气时间:","滞后送气时间","起弧停留时间:","收弧停留时间","起弧电流:","起弧电压:","收弧电流:","收弧电压:"]
+    property var listName: ["焊丝伸出长度:","头部摇动方式:","焊丝种类:","机头放置侧:","焊丝直径:","保护气体:","焊接往返动作:","焊接脉冲状态:","电弧跟踪:","预期余高:","溶敷系数:","焊接电流偏置:","焊接电压偏置:","提前送气时间:","滞后送气时间","起弧停留时间:","收弧停留时间","起弧电流:","起弧电压:","收弧电流:","收弧电压:"
+    ,"回烧电压补偿","回烧时间补偿1","回烧时间补偿2"
+    ]
 
     property var listValueName: [weldWireLengthModel,swingWayModel,weldWireModel,robotLayoutModel,weldWireDiameterModel,weldGasModel,returnWayModel,weldPowerModel,weldTrackModel]
 
@@ -57,10 +64,12 @@ Item{
         "设定焊接起弧电流。",
         "设定焊接起弧电压。",
         "设定焊接收弧电流。",
-        "设定焊接收弧电压。"]
+        "设定焊接收弧电压。",
+        "设定回烧时间中的输出电压微调整(和焊丝的上燃量有关)。",
+        "设定回烧时间的微调整(和焊丝的上燃量有关)。",
+        "设定回烧时间的微调整(和焊丝的上燃量有关)。",]
 
-    property var valueType: ["mm","%","A","V","S","S","S","S","A","V","A","V"]
-
+    property var valueType: ["mm","%","A","V","S","S","S","S","A","V","A","V","V","S","S"]
     //脉冲有无
     property int oldPulse:0
     //焊丝种类
@@ -86,7 +95,6 @@ Item{
         selectedIndex=index;
     }
     onChangeValue: {
-          root.oldCondition[selectedIndex]=root.condition[selectedIndex]
         root.condition[selectedIndex]=index;
         doWork(selectedIndex,true);
     }
@@ -143,6 +151,12 @@ Item{
         case 19:frame.push("138");frame.push("1");frame.push(String(num));break;
             //收弧电压
         case 20:frame.push("139");frame.push("1");frame.push(String(num*10));break;
+            //回烧电压补偿
+        case 21:frame.push("300");frame.push("1");frame.push(String(num));break;
+            //回烧时间补偿1
+        case 22:frame.push("301");frame.push("1");frame.push(String(num));break;
+            //回烧时间补偿2
+        case 23:frame.push("302");frame.push("1");frame.push(String(num));break;
         default:frame.length=0;break;
         }
         if(frame.length===4){
@@ -175,17 +189,13 @@ Item{
             }
         }else if(event.key===Qt.Key_Left){
             if((num>0)&&(selectedIndex<listValueName.length)){
-                   root.oldCondition[selectedIndex]=root.condition[selectedIndex]
                 num-=1;
-
                 root.condition[selectedIndex]=num;
                 changeGroupCurrent(num);
             }
         }else if(event.key===Qt.Key_Right){
             if((num<(listValueName[selectedIndex].length-1))&&(selectedIndex<listValueName.length)){
-                  root.oldCondition[selectedIndex]=root.condition[selectedIndex]
                 num+=1;
-
                 root.condition[selectedIndex]=num;
                 changeGroupCurrent(num);
             }
@@ -216,6 +226,12 @@ Item{
             case 10:num-=1; if(num<0)num=0;break;
                 //收弧电压
             case 11:num-=0.1;num=num.toFixed(1); if(num<0)num=0;break;
+                //回烧电压补偿
+            case 12:num-=1; if(num<-50)num=-50;break;
+                //回烧时间补偿
+            case 13:num-=1; if(num<-50)num=-50;break;
+                //回烧时间补偿
+            case 14:num-=1; if(num<-50)num=-50;break;
             }
             if(temp>=0){
                 root.condition[selectedIndex]=num;
@@ -248,6 +264,12 @@ Item{
             case 10:num+=1; if(num>300)num=300;break;
                 //收弧电压
             case 11:num+=0.1;num=num.toFixed(1); if(num>30)num=30;break;
+                //回烧电压补偿
+            case 12:num+=1;if(num>50)num=50;break;
+                //回烧时间补偿
+            case 13:num+=1;if(num>50)num=50;break;
+                //回烧时间补偿
+            case 14:num+=1;if(num>50)num=50;break;
             }
             if(temp>=0){
                 root.condition[selectedIndex]=num;
@@ -292,14 +314,11 @@ Item{
                 id:column
                 anchors{ left:parent.left;right:parent.right;top:parent.top}
                 Repeater{
-
                     model: listValueName.length
                     delegate:ListItem.Subtitled{
                         id:sub
                         property int subIndex:index
                         text:listName[index]
-                        leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                        Behavior on leftMargin{NumberAnimation { duration: 200 }}
                         height: Material.Units.dp(44)
                         selected: selectedIndex===index
                         onPressed: changeSelectedIndex(index)
@@ -319,7 +338,7 @@ Item{
                                 delegate:Material.RadioButton{
                                     text:modelData
                                     checked:index===root.condition[sub.subIndex]
-                                    onClicked:{ changeSelectedIndex(sub.subIndex);changeValue(index)}
+                                    onClicked:{changeSelectedIndex(sub.subIndex);changeValue(index)}
                                     exclusiveGroup: group
                                 }
                             }
@@ -332,8 +351,6 @@ Item{
                         id:downSub
                         property int num: listValueName.length+index
                         text:listName[num]
-                        leftMargin: visible ?Material.Units.dp(48): Material.Units.dp(250) ;
-                        Behavior on leftMargin{NumberAnimation { duration: 200 }}
                         height: Material.Units.dp(44)
                         selected: selectedIndex===num
                         onPressed: changeSelectedIndex(num)
@@ -390,7 +407,7 @@ Item{
         }
     }
     Component.onCompleted: {
-        oldCondition=condition=Material.UserData.getValueFromFuncOfTable("WeldCondition","","");
+      condition=Material.UserData.getValueFromFuncOfTable("WeldCondition","","");
         for(var i=0;i<listName.length;i++){
             doWork(i,false);
         }

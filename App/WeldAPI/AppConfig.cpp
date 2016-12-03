@@ -59,6 +59,13 @@ void Write_App_Config(QSettings *File){
     File->setValue("X","200");
     File->setValue("Y","200");
     File->setValue("Z","200");
+
+    File->setValue("SwingMoto","0");
+    File->setValue("XMoto","0");
+    File->setValue("YMoto","0");
+    File->setValue("ZMoto","0");
+
+    File->setValue("Bottom_Style","0");
 }
 /*
  **********************************************************************************获取配置ini指针
@@ -89,13 +96,17 @@ AppConfig::AppConfig(){
     Backgroundcolor = File->value("Theme_BackgroundColor").toString();
     BacklightValue = File->value("BackLight").toInt();
     CurrentGrooveValue = File->value("Current_Groove").toInt();
-    // BottomStyleValue=File->value("Bottom_Style").toInt();
+    BottomStyleValue=File->value("BottomStyle").toInt();
     //languageValue=File->value("Language").toString();
     //setlanguage(languageValue);
     xSpeedValue=File->value("X").toInt();
     ySpeedValue=File->value("Y").toInt();
     zSpeedValue=File->value("Z").toInt();
     swingSpeedValue=File->value("Swing").toInt();
+    swingMotoValue=File->value("SwingMoto").toBool();
+    xMotoValue=File->value("XMoto").toBool();
+     yMotoValue=File->value("YMoto").toBool();
+      zMotoValue=File->value("ZMoto").toBool();
     setbackLight(BacklightValue);
 }
 AppConfig::~AppConfig(){
@@ -104,6 +115,19 @@ AppConfig::~AppConfig(){
 /*
  ************************************************************************************屏幕宽度读写
  */
+
+void AppConfig::setbottomStyle(int value){
+    File->setValue("BottomStyle",value);
+    BottomStyleValue=value;
+    qDebug() <<"AppConfig::BottomStyle Changed";
+
+}
+
+int AppConfig::bottomStyle(){
+    qDebug() <<"Get AppConfig::BottomStyle";
+      return BottomStyleValue;
+}
+
 int AppConfig::screenWidth(){
     return Screen_Width;
 }
@@ -362,9 +386,36 @@ int AppConfig::zSpeed(){
 void AppConfig::setXSpeed(int value){
     xSpeedValue=value;
     File->setValue("X",value);
-    qDebug()<<"AppConfig::setXSpeed="<<value<<" Error "<<File->status();
 }
 int AppConfig::xSpeed(){
-    qDebug()<<"AppConfig::xSpeed="<<xSpeedValue;
     return xSpeedValue;
+}
+
+void AppConfig::setXMoto(bool value){
+    xMotoValue=value;
+    File->setValue("XMoto",value?"1":"0");
+}
+int AppConfig::xMoto(){
+    return xMotoValue;
+}
+void AppConfig::setYMoto(bool value){
+    yMotoValue=value;
+    File->setValue("YMoto",value?"1":"0");
+}
+int AppConfig::yMoto(){
+    return yMotoValue;
+}
+void AppConfig::setZMoto(bool value){
+    zMotoValue=value;
+    File->setValue("ZMoto",value?"1":"0");
+}
+int AppConfig::zMoto(){
+    return zMotoValue;
+}
+void AppConfig::setSwingMoto(bool value){
+    swingMotoValue=value;
+    File->setValue("SwingMoto",value?"1":"0");
+}
+int AppConfig::swingMoto(){
+    return swingMotoValue;
 }

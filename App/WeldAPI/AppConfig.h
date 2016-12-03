@@ -18,7 +18,6 @@ class AppConfig : public QObject
     Q_PROPERTY(QString currentUserPassword READ  currentUserPassword WRITE setcurrentUserPassword NOTIFY currentUserPasswordChanged)
     Q_PROPERTY(QString currentUserType READ  currentUserType WRITE setcurrentUserType NOTIFY currentUserTypeChanged)
     Q_PROPERTY(QString lastUser READ  lastUser WRITE setlastUser NOTIFY lastUserChanged)
-    //  Q_PROPERTY(QString localdatetime READ  localdatetime WRITE setlocaldatetime NOTIFY localdatetimeChanged)
     /*当前基础色彩*/
     Q_PROPERTY(QString themePrimaryColor READ  themePrimaryColor WRITE setthemePrimaryColor NOTIFY themePrimaryColorChanged )
     /*当前前景色彩*/
@@ -32,20 +31,25 @@ class AppConfig : public QObject
     /*系统led*/
     Q_PROPERTY(QString leds READ leds WRITE setleds)
     /*当前衬垫*/
- //   Q_PROPERTY(int bottomStyle READ  bottomStyle WRITE setbottomStyle NOTIFY bottomStyleChanged)
+    Q_PROPERTY(int bottomStyle READ  bottomStyle WRITE setbottomStyle NOTIFY bottomStyleChanged)
     /*修改当前时间*/
-     Q_PROPERTY(QStringList dateTime READ dateTime WRITE setdateTime NOTIFY dateTimeChanged)
+    Q_PROPERTY(QStringList dateTime READ dateTime WRITE setdateTime NOTIFY dateTimeChanged)
     /*设置本地化*/
-      Q_PROPERTY(QString language READ language WRITE setlanguage NOTIFY languageChanged)
+    Q_PROPERTY(QString language READ language WRITE setlanguage NOTIFY languageChanged)
     /*加载本地网络*/
-     Q_PROPERTY(bool loadNet READ loadNet WRITE setloadNet NOTIFY loadNetChanged)
+    Q_PROPERTY(bool loadNet READ loadNet WRITE setloadNet NOTIFY loadNetChanged)
     /*复制文件到backup文件夹下*/
-   // Q_PROPERTY(bool)
+    // Q_PROPERTY(bool)
     /*摇动电机点动速度*/
     Q_PROPERTY(int swingSpeed READ swingSpeed WRITE setSwingSpeed NOTIFY swingSpeedChanged)
     Q_PROPERTY(int xSpeed READ xSpeed WRITE setXSpeed NOTIFY xSpeedChanged)
     Q_PROPERTY(int ySpeed READ ySpeed WRITE setYSpeed NOTIFY ySpeedChanged)
     Q_PROPERTY(int zSpeed READ zSpeed WRITE setZSpeed NOTIFY zSpeedChanged)
+
+    Q_PROPERTY(int swingMoto READ swingMoto WRITE setSwingMoto NOTIFY swingMotoChanged)
+    Q_PROPERTY(int xMoto READ xMoto WRITE setXMoto NOTIFY xMotoChanged)
+    Q_PROPERTY(int yMoto READ yMoto WRITE setYMoto NOTIFY yMotoChanged)
+    Q_PROPERTY(int zMoto READ zMoto WRITE setZMoto NOTIFY zMotoChanged)
 private:
     QSettings* File;
     QProcess *poc;
@@ -70,17 +74,24 @@ private:
     int ySpeedValue;
     int zSpeedValue;
     int swingSpeedValue;
+    int BottomStyleValue;
+    int ptr_func_led;
     bool start_led;
     bool ready_led;
     bool stop_led;
-    int ptr_func_led;
+
+    bool swingMotoValue;
+    bool xMotoValue;
+    bool yMotoValue;
+    bool zMotoValue;
+
 public:
     AppConfig();
     ~AppConfig();
 
     QString leds();
     int currentGroove(); // 当前坡口
- //   int bottomStyle();
+    int bottomStyle();
     QString currentUserName();  // 当前用户名称
     QString currentUserPassword();//当前用户密码
     QString currentUserType();     //当前用户类型
@@ -98,8 +109,13 @@ public:
     int ySpeed();
     int zSpeed();
     int swingSpeed();
+    int swingMoto();
+    int xMoto();
+    int yMoto();
+    int zMoto();
+
 public slots:
-//    void setbottomStyle(int value);
+    void setbottomStyle(int value);
     void setbackLight(int value);
     void setthemeBackgroundColor(QString color);
     void setthemeAccentColor(QString color);
@@ -120,12 +136,16 @@ public slots:
     void setYSpeed(int value);
     void setZSpeed(int value);
     void setSwingSpeed(int value);
+    void setSwingMoto(bool value);
+    void setXMoto(bool value);
+    void setYMoto(bool value);
+    void setZMoto(bool value);
 signals:
     void xSpeedChanged();
     void ySpeedChanged();
     void zSpeedChanged();
     void swingSpeedChanged();
- //   void bottomStyleChanged(int value);
+    void bottomStyleChanged(int value);
     void screenWidthChanged(int width);
     void screenHeightChanged(int hight);
     void currentUserNameChanged(QString username);
@@ -141,6 +161,10 @@ signals:
     void dateTimeChanged();
     void languageChanged(QString str);
     void loadNetChanged();
+    void swingMotoChanged(bool value);
+    void xMotoChanged(bool value);
+    void yMotoChanged(bool value);
+    void zMotoChanged(bool value);
 };
 
 #endif // AppCONFIG_H

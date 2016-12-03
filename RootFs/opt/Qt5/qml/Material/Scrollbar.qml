@@ -16,6 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 import QtQuick 2.4
+import Material 0.1
 
 /*!
    \qmltype Scrollbar
@@ -105,7 +106,7 @@ Item {
         property int end: Math.min(length,
                                    length * (contentStart + targetLength)/contentLength)
 
-        color: "black"//theme.foreground
+        color: Theme.accentColor
         opacity: 0.3
         radius: thickness/2
         width: Math.max(orientation == Qt.Horizontal ? end - start : 0, thickness)

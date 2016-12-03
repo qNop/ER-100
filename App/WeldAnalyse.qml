@@ -30,15 +30,6 @@ Item {
     property int weldLength: 0
     //焊接模型
     property ListModel weldTableModel;
-    onVisibleChanged: {
-        if(visible){
-            tableView.table.__listView.forceActiveFocus();
-            if((tableView.table.selection.count===0)&&(tableView.model.count!==0)&&(tableView.currentRow===-1)){
-                tableView.currentRow=0;
-                tableView.table.selection.select(0);
-            }
-        }
-    }
     //
     TableCard{
         id:tableView

@@ -15,9 +15,9 @@ void horizontalMath::firstFloorFunc(){
     h=bottomFloor->height;
     float current=solveI(bottomFloor,0,1);
     //计算填充面积
-    float s=((h-p)*(h-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*h)*bottomFloor->fillCoefficient;
+    float s=((h-rootFace)*(h-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*h)*bottomFloor->fillCoefficient;
     //求取摆宽宽 摆宽为 填充高度的1/2位置
-    float swingLength=qMax(float(0),(h/2-p))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
+    float swingLength=qMax(float(0),(h/2-rootFace))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
     //保留一位整数 小数位为偶数
     //16.10.27改成下行语句。float swingLengthOne=float(qRound((swingLength-bottomFloor->swingLeftLength-bottomFloor->swingRightLength)*5))/5;
     float swingLengthOne=qMax(float(qRound((swingLength-bottomFloor->swingLeftLength-bottomFloor->swingRightLength)*5))/5,qMin(swingLength,float(1)));//避免出现负数
@@ -52,18 +52,18 @@ void horizontalMath::firstFloorFunc(){
     //重新计算s
     s=((meltingCoefficientValue*weldWireSquare*feedSpeed)/(weldSpeed*100))/bottomFloor->fillCoefficient;
     float aa=(grooveAngel1Tan+grooveAngel2Tan)/2;
-    float bb=rootGap-p*(grooveAngel1Tan+grooveAngel2Tan);
-    float cc=(p*p)*(grooveAngel1Tan+grooveAngel2Tan)/2-s;
+    float bb=rootGap-rootFace*(grooveAngel1Tan+grooveAngel2Tan);
+    float cc=(rootFace*rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2-s;
     //重新计算h
     h=(qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);
     //重新计算 摆动范围据坡口左右侧壁的距离 为了精确计算 X偏移
-    float reSwingLeftLength= ((qMax(float(0),(h/2-p))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-swingLengthOne)*(bottomFloor->swingLeftLength))/(bottomFloor->swingLeftLength+bottomFloor->swingRightLength);
+    float reSwingLeftLength= ((qMax(float(0),(h/2-rootFace))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-swingLengthOne)*(bottomFloor->swingLeftLength))/(bottomFloor->swingLeftLength+bottomFloor->swingRightLength);
     //中线偏移
     //float weldLineY=float(qRound(10h/2))/10;
     float weldLineY=0;
     weldLineYUesd=float(qRound(10*h))/10;
     //中线偏移X 取一位小数
-    float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne/2-qMax(float(0),h/2-p)*grooveAngel1Tan-rootGap/2-qMax(float(0),(h/2-p))*gunAngelTan)))/10;
+    float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne/2-qMax(float(0),h/2-rootFace)*grooveAngel1Tan-rootGap/2-qMax(float(0),(h/2-rootFace))*gunAngelTan)))/10;
     //16.10.27增加下行语句。
     if (weldLineX<-(rootGap/2+weldLineY*grooveAngel1Tan)){
 		weldLineX=-(rootGap/2+float(qFloor(10*weldLineY*grooveAngel1Tan))/10);
@@ -92,8 +92,8 @@ void horizontalMath::FloorFunc(FloorCondition *pF){
         //层数+1
         floorNum+=1;
         h=pF->height;
-        s=((hUsed+h-p)*(hUsed+h-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*(hUsed+h)-sUsed)*pF->fillCoefficient;
-        swingLength=(hUsed+h/2-p)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
+        s=((hUsed+h-rootFace)*(hUsed+h-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*(hUsed+h)-sUsed)*pF->fillCoefficient;
+        swingLength=(hUsed+h/2-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
         weldNum=qCeil((swingLength)/(pF->maxSwingLength));
         //获取每一道填充
         float weldFill[weldNum];
@@ -157,12 +157,12 @@ void horizontalMath::FloorFunc(FloorCondition *pF){
             s+=weldFill[j];
         }
         aa=(grooveAngel1Tan+grooveAngel2Tan)/2;
-        bb=rootGap+(hUsed-p)*(grooveAngel1Tan+grooveAngel2Tan);
-        cc=(hUsed-p)*(hUsed-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*hUsed-sUsed-s;
+        bb=rootGap+(hUsed-rootFace)*(grooveAngel1Tan+grooveAngel2Tan);
+        cc=(hUsed-rootFace)*(hUsed-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*hUsed-sUsed-s;
         //重新计算h
         h=(qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);
         //重新计算
-        reSwingLeftLength= (((hUsed+h/2-p)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-qMax(1,weldNum-1)*swingLengthOne)*(pF->swingLeftLength))/(pF->swingLeftLength+pF->swingRightLength);
+        reSwingLeftLength= (((hUsed+h/2-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-qMax(1,weldNum-1)*swingLengthOne)*(pF->swingLeftLength))/(pF->swingLeftLength+pF->swingRightLength);
         //中线偏移Y
         weldLineY=weldLineYUesd ;//+ float(qRound(10*h/2))/10;
         //迭代中线偏移Y
@@ -172,7 +172,7 @@ void horizontalMath::FloorFunc(FloorCondition *pF){
             //焊道数增加
             currentWeldNum++;
             //中线偏移X 取一位小数
-            weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne*(j)-(hUsed+h/2-p)*grooveAngel1Tan-rootGap/2-h/2*gunAngelTan)))/10;
+            weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne*(j)-(hUsed+h/2-rootFace)*grooveAngel1Tan-rootGap/2-h/2*gunAngelTan)))/10;
              //焊接线位置不能离开坡口进入工件内
              float delte_lineX=0;
 			if ((j==0) && (weldLineX<-(rootGap/2+weldLineY*grooveAngel1Tan))){
@@ -208,10 +208,10 @@ void horizontalMath::topFloorFunc(){
     floorNum+=1;
     h=grooveHeight+reinforcementValue-hUsed;
 
-    float s=((grooveHeight-p)*(grooveHeight-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*grooveHeight+
-            reinforcementValue*((grooveHeight-p)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap)-sUsed)*topFloor->fillCoefficient;
+    float s=((grooveHeight-rootFace)*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*grooveHeight+
+            reinforcementValue*((grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap)-sUsed)*topFloor->fillCoefficient;
 
-    float swingLength=(hUsed+h/2-p)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
+    float swingLength=(hUsed+h/2-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
 
     int weldNum=qCeil(swingLength/topFloor->maxSwingLength);
 
@@ -275,16 +275,16 @@ void horizontalMath::topFloorFunc(){
         //重新计算层面积
         s+=weldFill[j]/topFloor->fillCoefficient;
     }
-    h=grooveHeight-hUsed+(s+sUsed-((grooveHeight-p)*(grooveHeight-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*grooveHeight))/((grooveAngel1Tan+grooveAngel2Tan)*(grooveHeight-p)+rootGap);
+    h=grooveHeight-hUsed+(s+sUsed-((grooveHeight-rootFace)*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*grooveHeight))/((grooveAngel1Tan+grooveAngel2Tan)*(grooveHeight-rootFace)+rootGap);
 	//中线偏移Y
     float  weldLineY=weldLineYUesd ;
     //迭代中线偏移Y
     weldLineYUesd=weldLineY+ float(qRound(10*h))/10;
     //重新计算
-    float  reSwingLeftLength= (((hUsed+h/2-p)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-qMax(1,weldNum-1)*swingLengthOne)*(topFloor->swingLeftLength))/(topFloor->swingLeftLength+topFloor->swingRightLength);
+    float  reSwingLeftLength= (((hUsed+h/2-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-qMax(1,weldNum-1)*swingLengthOne)*(topFloor->swingLeftLength))/(topFloor->swingLeftLength+topFloor->swingRightLength);
     for(j=0;j<weldNum;j++){
         //中线偏移X 取一位小数        
-        float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne*(j)-(hUsed+h/2-p)*grooveAngel1Tan-rootGap/2-h/2*gunAngelTan)))/10;
+        float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne*(j)-(hUsed+h/2-rootFace)*grooveAngel1Tan-rootGap/2-h/2*gunAngelTan)))/10;
 		//焊接线位置不能离开坡口进入工件内
   		float delte_lineX=0;
 		if ((j==0) && (weldLineX<-(rootGap/2+weldLineY*grooveAngel1Tan))){
@@ -360,7 +360,7 @@ int horizontalMath::weldMath(){
 
     /************************计算打底层*********************************************************/
     //计算填充面积
-    float s=((bottomFloor->height-p)*(bottomFloor->height-p)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*bottomFloor->height)*bottomFloor->fillCoefficient;
+    float s=((bottomFloor->height-rootFace)*(bottomFloor->height-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*bottomFloor->height)*bottomFloor->fillCoefficient;
     //打底填充面积不可小于单道最小面积
     if (s<bottomFloor->minFillMetal){
     	s=bottomFloor->minFillMetal;
@@ -369,11 +369,11 @@ int horizontalMath::weldMath(){
     	s=bottomFloor->maxFillMetal;
     }
     float aa=(grooveAngel1Tan+grooveAngel2Tan)/2;
-    float bb=rootGap-p*(grooveAngel1Tan+grooveAngel2Tan);
-    float cc=(p*p)*(grooveAngel1Tan+grooveAngel2Tan)/2-s/bottomFloor->fillCoefficient;
+    float bb=rootGap-rootFace*(grooveAngel1Tan+grooveAngel2Tan);
+    float cc=(rootFace*rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2-s/bottomFloor->fillCoefficient;
     bottomFloor->height=(qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);    
     //求取摆宽宽 摆宽为 填充高度的1/2位置
-    float swingLength=qMax(float(0),(bottomFloor->height/2-p))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
+    float swingLength=qMax(float(0),(bottomFloor->height/2-rootFace))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
     //保留一位整数 小数位为偶数
     float swingLengthOne;
     //16.10.27改成下行语句。swingLengthOne=float(qRound((swingLength-bottomFloor->swingLeftLength-bottomFloor->swingRightLength)*5))/5;
@@ -403,17 +403,17 @@ int horizontalMath::weldMath(){
     //重新计算s
     s=((meltingCoefficientValue*weldWireSquare*feedSpeed)/(weldSpeed*100))/bottomFloor->fillCoefficient;
     aa=(grooveAngel1Tan+grooveAngel2Tan)/2;
-    bb=rootGap-p*(grooveAngel1Tan+grooveAngel2Tan);
-    cc=(p*p)*(grooveAngel1Tan+grooveAngel2Tan)/2-s;
+    bb=rootGap-rootFace*(grooveAngel1Tan+grooveAngel2Tan);
+    cc=(rootFace*rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2-s;
     //重新计算h
     bottomFloor->height=(qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);
     //重新计算 摆动范围据坡口左右侧壁的距离 为了精确计算 X偏移
-    float reSwingLeftLength= ((qMax(float(0),(bottomFloor->height/2-p))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-swingLengthOne)*(bottomFloor->swingLeftLength))/(bottomFloor->swingLeftLength+bottomFloor->swingRightLength);
+    float reSwingLeftLength= ((qMax(float(0),(bottomFloor->height/2-rootFace))*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-swingLengthOne)*(bottomFloor->swingLeftLength))/(bottomFloor->swingLeftLength+bottomFloor->swingRightLength);
     //中线偏移
     //float weldLineY=float(qRound(10*h/2))/10;
     float weldLineY=0;
     //中线偏移X 取一位小数
-    float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne/2-qMax(float(0),bottomFloor->height/2-p)*grooveAngel1Tan-rootGap/2-qMax(float(0),(h/2-p))*gunAngelTan)))/10;
+    float weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne/2-qMax(float(0),bottomFloor->height/2-rootFace)*grooveAngel1Tan-rootGap/2-qMax(float(0),(h/2-rootFace))*gunAngelTan)))/10;
     //16.10.27增加下行语句。
     if (weldLineX<-(rootGap/2+weldLineY*grooveAngel1Tan)){
 		weldLineX=-(rootGap/2+float(qFloor(10*weldLineY*grooveAngel1Tan))/10);
@@ -616,7 +616,7 @@ int horizontalMath::getFeedSpeed(int current){
         //MAG D 实芯 1.2
         feedspeed=0;
     }else if((gasValue>0)&&(pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
-        //MAG P 实芯 1.2
+        //MAG rootFace 实芯 1.2
         feedspeed=1;
     }else if((gasValue==0)&&(pulseValue==0)&&(wireTypeValue==0)&&(wireDValue==4)){
         //CO2 D 实芯 1.2
@@ -629,15 +629,15 @@ int horizontalMath::getFeedSpeed(int current){
 }
 
 //求解 道面积 存储到pFill开始的内存里
-void horizontalMath::solveA(float *pFill,FloorCondition *p,int num,float s){
+void horizontalMath::solveA(float *pFill,FloorCondition *rootFace,int num,float s){
     int j;
     for( j=0;j<num;j++){
         if(num==1)
             *pFill=s;
         else if(j<(num-1))
-            *(pFill+j)=s/(num-1+p->k);
+            *(pFill+j)=s/(num-1+rootFace->k);
         else if(j==(num-1))
-            *(pFill+j)=*(pFill+j-1)*p->k;
+            *(pFill+j)=*(pFill+j-1)*rootFace->k;
     }
 }
 int horizontalMath::solveI(FloorCondition *pI, int num,int total){
@@ -783,8 +783,6 @@ void horizontalMath::setGrooveRules(QStringList value){
         grooveAngel2=value.at(3).toFloat();
         float temp=value.at(4).toFloat();
         grooveAngel1=-temp;
-        qDebug()<<grooveAngel1<<grooveAngel2;
-        pulseValue=0;
     }
     value.clear();
     value.append("Clear");

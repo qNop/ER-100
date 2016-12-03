@@ -3,6 +3,7 @@ import Material 0.1 as Material
 import Material.Extras 0.1 as JS
 import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
+import WeldSys.WeldMath 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as Controls
 import QtQuick.LocalStorage 2.0
@@ -20,6 +21,8 @@ FocusScope {
     }
     width:parent.width
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
+    //改变陶瓷衬垫
+    signal changeCeramicBack(int value)
 
     property var weldDirList: ["平焊","横焊","立焊","水平角焊"]
     property var grooveStyleList: ["单边V形坡口","V形坡口"]
@@ -239,10 +242,15 @@ FocusScope {
                             exclusiveGroup: bottomStylegroup
                             canToggle: false
                             onClicked:{
-                                if(enabled)
+                                if(enabled){
                                     currentGroove= ( currentGroove&0xFFFFFFCF)|(index<<4 );
+                                    ERModbus.setmodbusFrame(["W","91","1",String(index)]);
+                                     WeldMath.setCeramicBack(index);
+                                    AppConfig.bottomStyle=index;
+                                    console.log(["W","91","1",String(index)]);
+                                }
                                 bottomStyle.forceActiveFocus()}
-                            enabled: {
+                            enabled:true /*{
                                 if((weldDirGroup.current.text==="横焊")&&(index===1)){
                                     return false;
                                 }else if((grooveStyleGroup.current.text==="单边V形坡口")&&(index===1)){
@@ -251,7 +259,7 @@ FocusScope {
                                     return false;
                                 }else
                                     return true;
-                            }
+                            }*/
                             checked: ( currentGroove & 0x00000030 ) === (index<<4) ? true : false
                         }
                     }

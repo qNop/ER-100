@@ -34,9 +34,9 @@
         <file>TableCard.qml</file>
         <file>MyList.qml</file>
         <file>SysErrorHistroy.qml</file>
-        <file>DoModbus.js</file>
         <file>SysTime.qml</file>
         <file>UserAccount.qml</file>
         <file>WeldData.qml</file>
+        <file>MyTextFieldDialog.qml</file>
     </qresource>
 </RCC>

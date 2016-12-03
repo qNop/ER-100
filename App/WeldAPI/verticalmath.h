@@ -27,6 +27,10 @@ public:
     FloorCondition *fillFloor;
     //盖面层限制条件
     FloorCondition *topFloor;
+    //陶瓷衬垫
+    int ceramicBack;
+    //坡口侧 非口侧
+    int grooveDirValue;
     //根部间隙
     float rootGap;
     //板厚
@@ -46,7 +50,7 @@ public:
     //焊丝直径
     int wireDValue;
     //顿边
-    float p;
+    float rootFace;
     //函数 用打底后剩余高度  填充层最大高度 盖面高度 余高 求中间层的填充层数 填充层平均层高 盖面层高
     void getRulesOfFill();
     //函数 有 电流求送丝速度
@@ -70,9 +74,9 @@ public:
     //计算盖面层
     void topFloorFunc();
     //求解A
-    void solveA(float *pFill,FloorCondition *p,int num,float s);
+    void solveA(float *pFill,FloorCondition *rootFace,int num,float s);
     //选取道电流
-    int solveI(FloorCondition *p,int num,int total);
+    int solveI(FloorCondition *rootFace,int num,int total);
     //求层数 输入参数 h剩余层高 各层层高上下限, 输出参数 层数/层高 打底层高是否需要修改的标记
     int solveN(float *pH);
     //每层层高变量

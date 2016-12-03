@@ -42,7 +42,7 @@ FocusScope {
         ListElement { letter: "u"; firstSymbol: "7"; }
         ListElement { letter: "i"; firstSymbol: "8"; }
         ListElement { letter: "o"; firstSymbol: "9"; }
-        ListElement { letter: "p"; firstSymbol: "0"; }
+        ListElement { letter: "rootFace"; firstSymbol: "0"; }
     }
     ListModel {
         id:second

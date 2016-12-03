@@ -11,20 +11,29 @@ import QtQuick.Layouts 1.1
 Card{
     id:root
     objectName: "TableCard"
-    anchors{left:parent.left;right:parent.right;top:parent.top;margins: Units.dp(12)}
-    height: title.height+tableview.height+footerItem.height
+    anchors{
+        left:parent.left;
+        top:parent.top;
+        leftMargin:visible?Units.dp(12):Units.dp(250)
+        topMargin: Units.dp(12)
+
+    }
+    width:parent.width-2*Units.dp(12);
+
+    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InOutQuad }}
+    height: title.height+tableView.height+footerItem.height
     elevation: 2
 
     property alias firstColumn: firstColumnData
 
     property string headerTitle: "header"
     property string footerText: "footer"
-    property alias table: tableview
-    property alias tableData: tableview.data
+    property alias table: tableView
+    property alias tableData: tableView.data
     property int tableRowCount: 0
-    property alias model: tableview.model
-    property alias currentRow: tableview.currentRow
-    property alias __listview: tableview.__listView
+    property alias model: tableView.model
+    property alias currentRow: tableView.currentRow
+    property alias __listview: tableView.__listView
 
     property alias header: title
     property alias footer: footerItem
@@ -65,6 +74,16 @@ Card{
             }
         }
     ]
+
+    onActiveFocusChanged: {
+        if(activeFocus){
+            __listview.forceActiveFocus();
+            if((tableView.currentRow===-1)&&(tableView.rowCount)){
+                tableView.currentRow=0;
+                tableView.selection.select(0);
+            }
+        }
+    }
 
     Item{
         id:title
@@ -126,7 +145,7 @@ Card{
         }
     }
     Controls.TableView{
-        id:tableview
+        id:tableView
         anchors{left:parent.left;leftMargin: Units.dp(5);right:parent.right;rightMargin: Units.dp(5);top:title.visible?title.bottom:parent.top}
         height:tableRowCount*Units.dp(48)+Units.dp(56)
         sortIndicatorVisible:true
@@ -134,12 +153,12 @@ Card{
         alternatingRowColors:false
         //显示表头
         headerVisible:true
-        //Tableview样式
+        //tableView样式
         style:TableStyle{}
         //选择模式 单选
         selectionMode:Controls.SelectionMode.SingleSelection
         Controls.ExclusiveGroup{  id:checkboxgroup }
-        ThinDivider{anchors.bottom:tableview.bottom;color:Palette.colors["grey"]["500"]}
+        ThinDivider{anchors.bottom:tableView.bottom;color:Palette.colors["grey"]["500"]}
         Controls.TableViewColumn{
             id:firstColumnData
             role:"ID"
@@ -172,7 +191,7 @@ Card{
             }
         }
         __listView.add:Transition{
-            NumberAnimation { properties: "x"; from:tableview.width-100;duration: 200 }
+            NumberAnimation { properties: "x"; from:tableView.width-100;duration: 200 }
         }
         __listView.removeDisplaced:Transition{
             NumberAnimation { properties: "y";duration: 200 }
@@ -180,7 +199,7 @@ Card{
     }
     Item{
         id:footerItem
-        anchors{top:tableview.bottom;left:parent.left;right:parent.right;}
+        anchors{top:tableView.bottom;left:parent.left;right:parent.right;}
         height: Units.dp(47)
         Label{
             id:footerLabel
@@ -234,21 +253,21 @@ Card{
             event.accepted=true;
             break;
         case Qt.Key_Down:
-            if(tableview.currentRow<(tableview.rowCount-1))
-                tableview.__incrementCurrentIndex();
+            if(tableView.currentRow<(tableView.rowCount-1))
+                tableView.__incrementCurrentIndex();
             event.accept=true;
             break;
         case Qt.Key_Up:
-            if(tableview.currentRow>0)
-                tableview.__decrementCurrentIndex();
+            if(tableView.currentRow>0)
+                tableView.__decrementCurrentIndex();
             event.accept=true;
             break;
         case Qt.Key_Right:
-            tableview.__horizontalScrollBar.value +=Units.dp(70);
+            tableView.__horizontalScrollBar.value +=Units.dp(70);
             event.accept=true;
             break;
         case Qt.Key_Left:
-            tableview.__horizontalScrollBar.value -=Units.dp(70);
+            tableView.__horizontalScrollBar.value -=Units.dp(70);
             event.accept=true;
             break;
         }

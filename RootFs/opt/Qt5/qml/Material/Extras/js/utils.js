@@ -46,7 +46,6 @@ function findRoot(obj) {
 
 function findRootChild(obj, objectName) {
     obj = findRoot(obj);
-
     var childs = new Array(0);
     childs.push(obj);
     while (childs.length > 0) {

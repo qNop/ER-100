@@ -31,7 +31,7 @@ MouseArea {
 
     clip: true
     hoverEnabled: false
-    z: 2
+    //z: 2
 
     property int startRadius: circular ? width/10 : width/6
     property int endRadius

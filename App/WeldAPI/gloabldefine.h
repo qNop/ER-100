@@ -1,6 +1,9 @@
 #ifndef GLOABLDEFINE
 #define GLOABLDEFINE
 
+#include <QtCore>
+#include <QtGlobal>
+
 /***********************************************************************/
 
 #define EROBOWELDSYS_DIR                                             ""
@@ -69,11 +72,15 @@
 #define  WAVE_SPEED_START_STOP      400        //步进电机起始停止脉冲频率			————120mm/min
 #define  WAVE_SPEED_ACCE_DECE       350        //步进电机加减速（每10个脉冲）
 
-#define WAVE_CODE_NUM  20   //20个脉冲对应0.1mm
-#define WAVE_MAX_SPEED  2400   //2400mm/min
-#define GET_WAVE_PULSE(X)  (X/6)*WAVE_CODE_NUM   //最高转速对应的脉冲频率
+#define WAVE_CODE_NUM                    20   //20个脉冲对应0.1mm
+#define WAVE_MAX_SPEED                    2300   //2400mm/min
+#define GET_WAVE_PULSE(X)                                       (X/6)*WAVE_CODE_NUM   //最高转速对应的脉冲频率
 
-#define GET_WAVE_SPEED(X)  (X/WAVE_CODE_NUM)*6     //通过脉冲数求速度
+#define GET_WAVE_SPEED(X)                                       (X/WAVE_CODE_NUM)*6     //通过脉冲数求速度
+
+#define GET_CERAMICBACK_R(WIDTH,DEEP)             (WIDTH*WIDTH+4*DEEP*DEEP)/(8*DEEP)
+
+#define GET_CERAMICBACK_AREA(WIDTH,DEEP)   qAsin(WIDTH/(2*GET_CERAMICBACK_R(WIDTH,DEEP)))*GET_CERAMICBACK_R(WIDTH,DEEP)*GET_CERAMICBACK_R(WIDTH,DEEP)-WIDTH*(GET_CERAMICBACK_R(WIDTH,DEEP)-DEEP)/2  //qAsin 得到的是弧度 弧度*R为弧长 弧长*R/2为扇形面积。
 
 struct FloorCondition
 {       //电流
@@ -122,6 +129,8 @@ struct FloorCondition
     float minWeldSpeed;
     //填充系数
     float fillCoefficient;
+    //NAME
+    QString name;
 };
 
 

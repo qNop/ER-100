@@ -27,6 +27,10 @@ FocusScope {
     property var teachmodemodel: ["自动","半自动","手动"];
     property var startendcheckmodel:["自动","手动"]
     property var teachfisrtpointmodel: ["左方","右方"];
+    //当前选中行
+    property int selectedIndex:0
+
+    signal changeSelectedIndex(int value);
 
     QuickControls.ExclusiveGroup { id: teachmodegroup; onCurrentChanged:
             ERModbus.setmodbusFrame(["W","100","1",current.text ==="自动"?"0":current.text ==="半自动"?"1":"2"]) }
@@ -34,6 +38,7 @@ FocusScope {
             ERModbus.setmodbusFrame(["W","101","1",current.text ==="自动"?"0":"1"]) }
     QuickControls.ExclusiveGroup { id: teachfisrtpointgroup;onCurrentChanged:
             ERModbus.setmodbusFrame(["W","102","1",current.text ==="左方"?"0":"1"]) }
+
 
     //页面不可见的时候保存数据
     Material.Card{
@@ -63,7 +68,6 @@ FocusScope {
                     text:qsTr("示教模式:");
                     height: Material.Units.dp(44)
                     selected: focus;
-                    KeyNavigation.down:startendcheck.visible?startendcheck:teachfirstpoint
                     Keys.onPressed: {
                         switch(event.key){
                         case Qt.Key_Right:
@@ -243,7 +247,7 @@ FocusScope {
                 ListItem.Subtitled{
                     id:teachfirstpointtimelength
                     text:qsTr("焊接长度:");
-                    visible: teachpointnumlabel.text == 1;
+                    visible: teachpointnumlabel.text === 1;
                     height: Material.Units.dp(44)
                     KeyNavigation.up: teachpointnum
                     KeyNavigation.down: groovecheckpointleftlength.visible?groovecheckpointleftlength:groovecheckpointleftlength
@@ -284,7 +288,7 @@ FocusScope {
                 ListItem.Subtitled{
                     id:groovecheckpointleftlength
                     text:qsTr("坡口检测点左:");
-                    visible:AppConfig.currentUserType=="SuperUser";
+                    visible:AppConfig.currentUserType==="超级用户";
                     height: Material.Units.dp(44)
                     KeyNavigation.up: teachfirstpointtimelength.visible?teachfirstpointtimelength:teachpointnum
                     KeyNavigation.down: groovecheckpointrightlength
@@ -293,14 +297,14 @@ FocusScope {
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
-                        case Qt.Key_Plus:
+                        case Qt.Key_VolumeUp:
                             res=Number(groovecheckpointleftlengthlabel.text)+1;
                             if(res>1000) res=1000;
                             groovecheckpointleftlengthlabel.text=res;
                             Material.UserData.setValueFromFuncOfTable(root.objectName,5,res);
                             event.accepted = true;
                             break;
-                        case Qt.Key_Minus:
+                        case Qt.Key_VolumeDown:
                             if(res<-1000) res=-1000;
                             res=Number(groovecheckpointleftlengthlabel.text)-1;
                             groovecheckpointleftlengthlabel.text=res;
@@ -325,21 +329,21 @@ FocusScope {
                 ListItem.Subtitled{
                     id:groovecheckpointrightlength
                     text:qsTr("坡口检测点右:");
-                    visible:AppConfig.currentUserType=="SuperUser";
+                    visible:AppConfig.currentUserType==="超级用户";
                     height: Material.Units.dp(44)
                     KeyNavigation.up: groovecheckpointleftlength.visible?groovecheckpointleftlength:null
                     onClicked:forceActiveFocus();
                     Keys.onPressed: {
                         var res;
                         switch(event.key){
-                        case Qt.Key_Plus:
+                        case Qt.Key_VolumeUp:
                             res=Number(groovecheckpointrightlengthlabel.text)+1;
                             if(res>1000) res=1000;
                             groovecheckpointrightlengthlabel.text=res;
                             Material.UserData.setValueFromFuncOfTable(root.objectName,6,res);
                             event.accepted = true;
                             break;
-                        case Qt.Key_Minus:
+                        case Qt.Key_VolumeDown:
                             if(res<-1000) res=-1000;
                             res=Number(groovecheckpointrightlengthlabel.text)-1;
                             groovecheckpointrightlengthlabel.text=res;

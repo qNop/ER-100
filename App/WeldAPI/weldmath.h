@@ -19,6 +19,7 @@ class WeldMath:public QObject
 public:
     WeldMath();
 private:
+    FloorCondition bottomFloor0;
     //打底层限制条件
     FloorCondition bottomFloor;
     //第二层限制条件
@@ -55,7 +56,13 @@ public slots:
     void setWireType(int value);
     //设置焊丝直径
     void setWireD(int value);
+    //设置陶瓷衬垫形式(int value)
+    void setCeramicBack(int value);
+    //设置坡口侧非坡口侧  陶瓷衬垫起弧时必须在坡口侧
+    void setGrooveDir(bool value);
+    //设置限制条件
     void setLimited(QStringList value);
+    //设置坡口
     void setGroove(int value);
     //根据电流获取送丝速度
     int getFeedSpeed(int current);
@@ -63,6 +70,8 @@ public slots:
     float getWeldArea(int current,float weldSpeed,float k,float met);
     //求摆动距离
     float getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed);
+    //求填充高度
+    float getWeldHeight(float deep,float bottomWidth,float leftAngel,float rightAngel,int current,float weldSpeed,float k,float met);
 signals:
     void grooveRulesChanged(QStringList value);
     void weldRulesChanged(QStringList value);

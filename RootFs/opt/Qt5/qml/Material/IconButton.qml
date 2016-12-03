@@ -59,7 +59,7 @@ Item {
 
         z: 0
 
-        onClicked: {
+        onPressed: {
             iconButton.clicked()
         }
     }

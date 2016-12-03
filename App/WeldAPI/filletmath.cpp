@@ -618,7 +618,7 @@ int filletMath::getFeedSpeed(int current){
         //MAG D 实芯 1.2
         feedspeed=0;
     }else if((gasValue>0)&&(pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
-        //MAG P 实芯 1.2
+        //MAG rootFace 实芯 1.2
         feedspeed=1;
     }else if((gasValue==0)&&(pulseValue==0)&&(wireTypeValue==0)&&(wireDValue==4)){
         //CO2 D 实芯 1.2
@@ -631,15 +631,15 @@ int filletMath::getFeedSpeed(int current){
 }
 
 //求解 道面积 存储到pFill开始的内存里
-void filletMath::solveA(float *pFill,FloorCondition *p,int num,float s){
+void filletMath::solveA(float *pFill,FloorCondition *rootFace,int num,float s){
     int j;
     for( j=0;j<num;j++){
         if(num==1)
             *pFill=s;
         else if(j<(num-1))
-            *(pFill+j)=s/(num-1+p->k);
+            *(pFill+j)=s/(num-1+rootFace->k);
         else if(j==(num-1))
-            *(pFill+j)=*(pFill+j-1)*p->k;
+            *(pFill+j)=*(pFill+j-1)*rootFace->k;
     }
 }
 int filletMath::solveI(FloorCondition *pI, int num,int total){

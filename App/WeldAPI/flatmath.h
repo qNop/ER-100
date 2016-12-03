@@ -27,6 +27,14 @@ public:
     FloorCondition *fillFloor;
     //盖面层限制条件
     FloorCondition *topFloor;
+    //陶瓷衬垫
+    int ceramicBack;
+    //陶瓷衬垫 深度
+    float ceramicBackDeep;
+    //陶瓷衬垫 宽度
+    float ceramicBackWidth;
+    //坡口侧0 非口侧1
+    int grooveDirValue;
     //根部间隙
     float rootGap;
     //板厚
@@ -45,6 +53,8 @@ public:
     float weldWireSquare;
     //焊丝直径
     int wireDValue;
+    //分道控制 左右分开调节
+    bool controlWeld;
     //顿边
     float p;
     //函数 用打底后剩余高度  填充层最大高度 盖面高度 余高 求中间层的填充层数 填充层平均层高 盖面层高
@@ -66,26 +76,25 @@ public:
     //计算第一层
     void firstFloorFunc();
     //计算填充层
-    void FloorFunc(FloorCondition *pF);
+//    void FloorFunc(FloorCondition *pF);
     //计算盖面层
-    void topFloorFunc();
+//    void topFloorFunc();
     //求解A
     void solveA(float *pFill,FloorCondition *p,int num,float s);
     //选取道电流
     int solveI(FloorCondition *p,int num,int total);
     //求层数 输入参数 h剩余层高 各层层高上下限, 输出参数 层数/层高 打底层高是否需要修改的标记
-    int solveN(float *pH);
+    int solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,float *startArcZ,int *currentFloor,int *currentWeldNum);
+    //计算每层的最大最小填充量
+    int getFillMetal(FloorCondition *pF);
+    //计算 分道
+    int getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *weldLineYUesd,float *startArcZ,int *currentFloor,int *currentWeldNum);
+    int getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed, float *weldTravelSpeed,float *weldFill,float *s,int count,int weldNum,int weldFloor,QString *status,float swingLengthOne);
     //每层层高变量
-    float h;
-    float sUsed;
-    float hUsed;
-    float startArcz;
-    int currentWeldNum;
-    int floorNum;
-    float weldLineYUesd;
+  //  float h;
 
     int grooveValue;
-    void setGrooveRules(QStringList value);
+    int setGrooveRules(QStringList value);
 
     float getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed);
 signals:

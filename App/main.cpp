@@ -18,29 +18,29 @@ QObject* ERModbusEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
-    ERModbus *p=new ERModbus();
-    return p;
+    ERModbus *rootFace=new ERModbus();
+    return rootFace;
 }
 QObject* AppConfigEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
-    AppConfig *p=new AppConfig();
-    return p;
+    AppConfig *rootFace=new AppConfig();
+    return rootFace;
 }
 QObject* SysInforEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
-    SysInfor *p=new SysInfor();
-    return p;
+    SysInfor *rootFace=new SysInfor();
+    return rootFace;
 }
 QObject* WeldMathEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
-    WeldMath *p=new WeldMath();
-    return p;
+    WeldMath *rootFace=new WeldMath();
+    return rootFace;
 }
 
 int main(int argc, char *argv[])

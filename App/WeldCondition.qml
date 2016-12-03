@@ -19,7 +19,7 @@ Item{
         bottom: parent.bottom
         leftMargin:visible?0:Material.Units.dp(250)
     }
-   width:parent.width
+    width:parent.width
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
 
     property var weldWireLengthModel:     ["10mm","15mm","20mm","25mm"];
@@ -39,7 +39,7 @@ Item{
     property int selectedIndex:0
 
     property var listName: ["焊丝伸出长度:","头部摇动方式:","焊丝种类:","机头放置侧:","焊丝直径:","保护气体:","焊接往返动作:","焊接脉冲状态:","电弧跟踪:","预期余高:","溶敷系数:","焊接电流偏置:","焊接电压偏置:","提前送气时间:","滞后送气时间","起弧停留时间:","收弧停留时间","起弧电流:","起弧电压:","收弧电流:","收弧电压:"
-    ,"回烧电压补偿","回烧时间补偿1","回烧时间补偿2"
+        ,"回烧电压补偿","回烧时间补偿1","回烧时间补偿2"
     ]
 
     property var listValueName: [weldWireLengthModel,swingWayModel,weldWireModel,robotLayoutModel,weldWireDiameterModel,weldGasModel,returnWayModel,weldPowerModel,weldTrackModel]
@@ -90,6 +90,8 @@ Item{
     signal changeWireD(int value)
     signal changeWireType(int value)
     signal changePulse(int value)
+    signal changeReinforcement(int value)
+    signal changeMeltingCoefficient(int value)
 
     onChangeSelectedIndex: {
         selectedIndex=index;
@@ -116,21 +118,21 @@ Item{
             // 焊丝种类
         case 2:frame.push("126");frame.push("1");frame.push(num ===0?"0":"4");changeWireType(num===0?0:4);WeldMath.setWireType(num===0?0:4);break;
             //机头放置侧
-        case 3:frame.push("122");frame.push("1");frame.push(String(num));break;
+        case 3:frame.push("122");frame.push("1");frame.push(String(num));WeldMath.setGrooveDir(num?true:false);break;
             //焊丝直径
         case 4:frame.push("123");frame.push("1");frame.push(num ===0?"4":"6");changeWireD(num===0?4:6);WeldMath.setWireD(num===0?4:6);break;
             //保护气体
-        case 5:frame.push("124");frame.push("1");frame.push(String(num ));changeGas(num);WeldMath.setGas(num);break;;break;
+        case 5:frame.push("124");frame.push("1");frame.push(String(num ));changeGas(num);WeldMath.setGas(num);break;
             //往返动作
         case 6:frame.push("125");frame.push("1");frame.push(String(num ));break;
             //电源特性
-        case 7:frame.push("119");frame.push("1");frame.push(String(num ));changePulse(num);WeldMath.setPulse(num);break;
+        case 7:frame.push("119");frame.push("1");frame.push(String(num ));changePulse(num); WeldMath.setPulse(num);break;
             //电弧跟踪
         case 8:frame.push("127");frame.push("1");frame.push(String(num));break;
             //预期余高
-        case 9:WeldMath.setReinforcement(num);break;
+        case 9:changeReinforcement(num);WeldMath.setReinforcement(num);break;
             //溶敷系数
-        case 10:WeldMath.setMeltingCoefficient(num);break;
+        case 10:changeMeltingCoefficient(num); WeldMath.setMeltingCoefficient(num);break;
             //焊接电流偏置
         case 11:frame.push("128");frame.push("1");frame.push(String(num));break;
             //焊接电压偏置
@@ -170,12 +172,7 @@ Item{
         //清空
         frame.length=0;
     }
-    Timer{
-        id:keyTime;repeat: false;interval: 300;running: false;
-        onTriggered:{
-            //  按键长按触发
-        }
-    }
+
     Keys.onPressed: {
         var temp;
         var num=Number(root.condition[selectedIndex]);
@@ -336,9 +333,17 @@ Item{
                                 id:re
                                 model:sub.subIndex<listValueName.length?listValueName[sub.subIndex]:listName.length
                                 delegate:Material.RadioButton{
+                                    canToggle: false
                                     text:modelData
                                     checked:index===root.condition[sub.subIndex]
-                                    onClicked:{changeSelectedIndex(sub.subIndex);changeValue(index)}
+                                    onClicked:{
+                                        //改变选择行
+                                        changeSelectedIndex(sub.subIndex);
+                                        //改变选择数据
+                                        changeValue(index);
+                                        //改变选择控件状态
+                                        changeGroupCurrent(index);
+                                        }
                                     exclusiveGroup: group
                                 }
                             }
@@ -364,7 +369,11 @@ Item{
                         secondaryItem:Row{
                             spacing: Material.Units.dp(16)
                             anchors.verticalCenter: parent.verticalCenter
-                            Material.Label{id:valueLabel;text: root.condition[downSub.num];}
+                            Material.Label{id:valueLabel;
+                                text:String(root.condition[downSub.num]).search(".")?Number(root.condition[downSub.num]).toFixed(1):
+                                                                                      root.condition[downSub.num];
+                            onTextChanged: console.log(text)
+                            }
                             Material.Label{ text:valueType[index] }
                         }
                     }
@@ -372,6 +381,7 @@ Item{
             }
         }
         Material.Scrollbar {id:scrollbar;flickableItem:flickable ;
+
             onMovingChanged: {scrollbar.hide.stop();scrollbar.show.start();}
             Component.onCompleted:{scrollbar.hide.stop();scrollbar.show.start();}
         }
@@ -407,7 +417,7 @@ Item{
         }
     }
     Component.onCompleted: {
-      condition=Material.UserData.getValueFromFuncOfTable("WeldCondition","","");
+        condition=Material.UserData.getValueFromFuncOfTable("WeldCondition","","");
         for(var i=0;i<listName.length;i++){
             doWork(i,false);
         }

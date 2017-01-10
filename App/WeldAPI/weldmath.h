@@ -38,7 +38,6 @@ private:
     filletMath fillet;
 
     int grooveValue;
-
 public slots:
     //设置余高
     void setReinforcement(int value);
@@ -75,7 +74,7 @@ public slots:
 signals:
     void grooveRulesChanged(QStringList value);
     void weldRulesChanged(QStringList value);
-
+    void updateWeldMathChanged();
 };
 
 #endif // WELDMATH_H

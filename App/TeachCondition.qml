@@ -27,6 +27,8 @@ FocusScope {
     property var teachmodemodel: ["自动","半自动","手动"];
     property var startendcheckmodel:["自动","手动"]
     property var teachfisrtpointmodel: ["左方","右方"];
+    property var fixmodel:["打开","关闭"]
+
     //当前选中行
     property int selectedIndex:0
 
@@ -38,7 +40,6 @@ FocusScope {
             ERModbus.setmodbusFrame(["W","101","1",current.text ==="自动"?"0":"1"]) }
     QuickControls.ExclusiveGroup { id: teachfisrtpointgroup;onCurrentChanged:
             ERModbus.setmodbusFrame(["W","102","1",current.text ==="左方"?"0":"1"]) }
-
 
     //页面不可见的时候保存数据
     Material.Card{

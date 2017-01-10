@@ -161,6 +161,11 @@ TableCard{
                 onTriggered: {
                     message.open("暂不支持移至中线命令！")
                 }
+            },
+            Action{iconName: "av/fast_forward";  name:"补正参数";
+                onTriggered: {
+                    message.open("暂不支持移至中线命令！")
+                }
             }
         ]
         tableData:[

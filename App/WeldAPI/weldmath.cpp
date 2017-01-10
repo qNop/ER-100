@@ -62,12 +62,13 @@ void WeldMath::setGrooveRules(QStringList value){
     case 0:
     case 1:
     case 2:
+        emit  updateWeldMathChanged();
         flat.bottomFloor=flat.ceramicBack==1?&bottomFloor0:&bottomFloor;
         //如果发生计算错误则 抛出错误 提示。
         if(flat.setGrooveRules(value)==-1){
             value.clear();
             value<<flat.status;
-            emit weldRulesChanged(value) ;
+            emit weldRulesChanged(value);
         }
         break;
     case 3:
@@ -254,119 +255,121 @@ float WeldMath::getWeldHeight(float deep,float bottomWidth, float leftAngel, flo
 }
 
 void WeldMath::setLimited(QStringList value){
-    qDebug()<<"WeldMath::setLimited value "<<value;
-    bottomFloor0.name="ceramicBackFloor";
-    bottomFloor0.current_left=value.at(BOTTOM_0+CURRENT-1).toFloat();
-    bottomFloor0.current_middle=value.at(BOTTOM_0+CURRENT).toFloat();
-    bottomFloor0.current_right=value.at(BOTTOM_0+CURRENT+1).toFloat();
-    bottomFloor0.maxHeight=value.at(BOTTOM_0+MAX_HEIGHT).toFloat();
-    bottomFloor0.minHeight=value.at(BOTTOM_0+MIN_HEIGHT).toFloat();
-    bottomFloor0.k=value.at(BOTTOM_0+K).toFloat();
-    bottomFloor0.maxSwingLength=value.at(BOTTOM_0+MAX_SWING_LENGTH).toFloat();
-    bottomFloor0.swingLeftLength=value.at(BOTTOM_0+SWING_LEFT_LENGTH).toFloat();
-    bottomFloor0.swingRightLength=value.at(BOTTOM_0+SWING_RIGHT_LENGTH).toFloat();
-    bottomFloor0.swingLeftStayTime=value.at(BOTTOM_0+SWING_LEFT_STAYTIME).toFloat();
-    bottomFloor0.swingRightStayTime=value.at(BOTTOM_0+SWING_RIGHT_STAYTIME).toFloat();
-    bottomFloor0.totalStayTime=bottomFloor0.swingLeftStayTime+bottomFloor0.swingRightStayTime;
-    bottomFloor0.totalStayTime=float(qRound(10*bottomFloor0.totalStayTime))/10;
-    bottomFloor0.weldSwingSpacing=value.at(BOTTOM_0+SWING_SPACING).toFloat();
-    bottomFloor0.maxWeldSpeed=value.at(BOTTOM_0+MAX_SPEED).toFloat();
-    bottomFloor0.minWeldSpeed=value.at(BOTTOM_0+MIN_SPEED).toFloat();
-    bottomFloor0.fillCoefficient=value.at(BOTTOM_0+FILL_COE).toFloat();
-    bottomFloor0.current=bottomFloor0.current_left;
-    //底层限制条件 选取电流中间侧
-    bottomFloor.name="bottomFloor";
-    bottomFloor.current_left=value.at(BOTTOM_1+CURRENT-1).toFloat();
-    bottomFloor.current_middle=value.at(BOTTOM_1+CURRENT).toFloat();
-    bottomFloor.current_right=value.at(BOTTOM_1+CURRENT+1).toFloat();
-    bottomFloor.maxHeight=value.at(BOTTOM_1+MAX_HEIGHT).toFloat();
-    bottomFloor.minHeight=value.at(BOTTOM_1+MIN_HEIGHT).toFloat();
-    bottomFloor.k=value.at(BOTTOM_1+K).toFloat();
-    bottomFloor.maxSwingLength=value.at(BOTTOM_1+MAX_SWING_LENGTH).toFloat();
-    bottomFloor.swingLeftLength=value.at(BOTTOM_1+SWING_LEFT_LENGTH).toFloat();
-    bottomFloor.swingRightLength=value.at(BOTTOM_1+SWING_RIGHT_LENGTH).toFloat();
-    bottomFloor.swingLeftStayTime=value.at(BOTTOM_1+SWING_LEFT_STAYTIME).toFloat();
-    bottomFloor.swingRightStayTime=value.at(BOTTOM_1+SWING_RIGHT_STAYTIME).toFloat();
-    bottomFloor.totalStayTime=bottomFloor.swingLeftStayTime+bottomFloor.swingRightStayTime;
-    bottomFloor.totalStayTime=float(qRound(10*bottomFloor.totalStayTime))/10;
-    bottomFloor.weldSwingSpacing=value.at(BOTTOM_1+SWING_SPACING).toFloat();
-    bottomFloor.maxWeldSpeed=value.at(BOTTOM_1+MAX_SPEED).toFloat();
-    bottomFloor.minWeldSpeed=value.at(BOTTOM_1+MIN_SPEED).toFloat();
-    bottomFloor.fillCoefficient=value.at(BOTTOM_1+FILL_COE).toFloat();
-    bottomFloor.current=bottomFloor.current_left;
-    //第二层限制条件
-    secondFloor.name="secondFloor";
-    secondFloor.current_left=value.at(SECOND+CURRENT-1).toFloat();
-    secondFloor.current_middle=value.at(SECOND+CURRENT).toFloat();
-    secondFloor.current_right=value.at(SECOND+CURRENT+1).toFloat();
-    secondFloor.maxHeight=value.at(SECOND+MAX_HEIGHT).toFloat();
-    secondFloor.minHeight=value.at(SECOND+MIN_HEIGHT).toFloat();
-    secondFloor.k=value.at(SECOND+K).toFloat();
-    secondFloor.maxSwingLength=value.at(SECOND+MAX_SWING_LENGTH).toFloat();
-    secondFloor.swingLeftLength=value.at(SECOND+SWING_LEFT_LENGTH).toFloat();
-    secondFloor.swingRightLength=value.at(SECOND+SWING_RIGHT_LENGTH).toFloat();
-    secondFloor.swingLeftStayTime=value.at(SECOND+SWING_LEFT_STAYTIME).toFloat();
-    secondFloor.swingRightStayTime=value.at(SECOND+SWING_RIGHT_STAYTIME).toFloat();
-    secondFloor.totalStayTime=secondFloor.swingLeftStayTime+secondFloor.swingRightStayTime;
-    secondFloor.totalStayTime=float(qRound(10*secondFloor.totalStayTime));
-    secondFloor.totalStayTime=secondFloor.totalStayTime/10;
-    secondFloor.weldSwingSpacing=value.at(SECOND+SWING_SPACING).toFloat();
-    secondFloor.fillCoefficient=value.at(SECOND+FILL_COE).toFloat();;
-    secondFloor.current=secondFloor.current_left;
-    secondFloor.maxWeldSpeed=value.at(SECOND+MAX_SPEED).toFloat();
-    secondFloor.minWeldSpeed=value.at(SECOND+MIN_SPEED).toFloat();
-    //填充层限制条件
-    fillFloor.name="fillFloor";
-    fillFloor.current_left=value.at(FILL+CURRENT-1).toFloat();
-    fillFloor.current_middle=value.at(FILL+CURRENT).toFloat();
-    fillFloor.current_right=value.at(FILL+CURRENT+1).toFloat();
-    fillFloor.maxHeight=value.at(FILL+MAX_HEIGHT).toFloat();
-    fillFloor.minHeight=value.at(FILL+MIN_HEIGHT).toFloat();
-    fillFloor.k=value.at(FILL+K).toFloat();
-    fillFloor.maxSwingLength=value.at(FILL+MAX_SWING_LENGTH).toFloat();
-    fillFloor.swingLeftLength=value.at(FILL+SWING_LEFT_LENGTH).toFloat();
-    fillFloor.swingRightLength=value.at(FILL+SWING_RIGHT_LENGTH).toFloat();
-    fillFloor.swingLeftStayTime=value.at(FILL+SWING_LEFT_STAYTIME).toFloat();
-    fillFloor.swingRightStayTime=value.at(FILL+SWING_RIGHT_STAYTIME).toFloat();
-    fillFloor.totalStayTime=fillFloor.swingLeftStayTime+fillFloor.swingRightStayTime;
-    fillFloor.totalStayTime=float(qRound(fillFloor.totalStayTime*10))/10;
-    fillFloor.weldSwingSpacing=value.at(FILL+SWING_SPACING).toFloat();
-    fillFloor.fillCoefficient=value.at(FILL+FILL_COE).toFloat();;
-    fillFloor.current= fillFloor.current_left;
-    fillFloor.maxWeldSpeed=value.at(FILL+MAX_SPEED).toFloat();
-    fillFloor.minWeldSpeed=value.at(FILL+MIN_SPEED).toFloat();
-    //表层限制条件
-    topFloor.name="topFloor";
-    topFloor.current_left=value.at(TOP+CURRENT-1).toFloat();
-    topFloor.current_middle=value.at(TOP+CURRENT).toFloat();
-    topFloor.current_right=value.at(TOP+CURRENT+1).toFloat();
-    topFloor.maxHeight=value.at(TOP+MAX_HEIGHT).toFloat();
-    topFloor.minHeight=value.at(TOP+MIN_HEIGHT).toFloat();
-    topFloor.k=value.at(TOP+K).toFloat();
-    topFloor.maxSwingLength=value.at(TOP+MAX_SWING_LENGTH).toFloat();
-    topFloor.swingLeftLength=value.at(TOP+SWING_LEFT_LENGTH).toFloat();
-    topFloor.swingRightLength=value.at(TOP+SWING_RIGHT_LENGTH).toFloat();
-    topFloor.swingLeftStayTime=value.at(TOP+SWING_LEFT_STAYTIME).toFloat();
-    topFloor.swingRightStayTime=value.at(TOP+SWING_RIGHT_STAYTIME).toFloat();
-    topFloor.totalStayTime=topFloor.swingLeftStayTime+topFloor.swingRightStayTime;
+    qDebug()<<"WeldMath::setLimited value "<<value<<value.length();
+    if(value.length()>=80){
+        bottomFloor0.name="ceramicBackFloor";
+        bottomFloor0.current_left=value.at(BOTTOM_0+CURRENT-1).toFloat();
+        bottomFloor0.current_middle=value.at(BOTTOM_0+CURRENT).toFloat();
+        bottomFloor0.current_right=value.at(BOTTOM_0+CURRENT+1).toFloat();
+        bottomFloor0.maxHeight=value.at(BOTTOM_0+MAX_HEIGHT).toFloat();
+        bottomFloor0.minHeight=value.at(BOTTOM_0+MIN_HEIGHT).toFloat();
+        bottomFloor0.k=value.at(BOTTOM_0+K).toFloat();
+        bottomFloor0.maxSwingLength=value.at(BOTTOM_0+MAX_SWING_LENGTH).toFloat();
+        bottomFloor0.swingLeftLength=value.at(BOTTOM_0+SWING_LEFT_LENGTH).toFloat();
+        bottomFloor0.swingRightLength=value.at(BOTTOM_0+SWING_RIGHT_LENGTH).toFloat();
+        bottomFloor0.swingLeftStayTime=value.at(BOTTOM_0+SWING_LEFT_STAYTIME).toFloat();
+        bottomFloor0.swingRightStayTime=value.at(BOTTOM_0+SWING_RIGHT_STAYTIME).toFloat();
+        bottomFloor0.totalStayTime=bottomFloor0.swingLeftStayTime+bottomFloor0.swingRightStayTime;
+        bottomFloor0.totalStayTime=float(qRound(10*bottomFloor0.totalStayTime))/10;
+        bottomFloor0.weldSwingSpacing=value.at(BOTTOM_0+SWING_SPACING).toFloat();
+        bottomFloor0.maxWeldSpeed=value.at(BOTTOM_0+MAX_SPEED).toFloat();
+        bottomFloor0.minWeldSpeed=value.at(BOTTOM_0+MIN_SPEED).toFloat();
+        bottomFloor0.fillCoefficient=value.at(BOTTOM_0+FILL_COE).toFloat();
+        bottomFloor0.current=bottomFloor0.current_left;
+        //底层限制条件 选取电流中间侧
+        bottomFloor.name="bottomFloor";
+        bottomFloor.current_left=value.at(BOTTOM_1+CURRENT-1).toFloat();
+        bottomFloor.current_middle=value.at(BOTTOM_1+CURRENT).toFloat();
+        bottomFloor.current_right=value.at(BOTTOM_1+CURRENT+1).toFloat();
+        bottomFloor.maxHeight=value.at(BOTTOM_1+MAX_HEIGHT).toFloat();
+        bottomFloor.minHeight=value.at(BOTTOM_1+MIN_HEIGHT).toFloat();
+        bottomFloor.k=value.at(BOTTOM_1+K).toFloat();
+        bottomFloor.maxSwingLength=value.at(BOTTOM_1+MAX_SWING_LENGTH).toFloat();
+        bottomFloor.swingLeftLength=value.at(BOTTOM_1+SWING_LEFT_LENGTH).toFloat();
+        bottomFloor.swingRightLength=value.at(BOTTOM_1+SWING_RIGHT_LENGTH).toFloat();
+        bottomFloor.swingLeftStayTime=value.at(BOTTOM_1+SWING_LEFT_STAYTIME).toFloat();
+        bottomFloor.swingRightStayTime=value.at(BOTTOM_1+SWING_RIGHT_STAYTIME).toFloat();
+        bottomFloor.totalStayTime=bottomFloor.swingLeftStayTime+bottomFloor.swingRightStayTime;
+        bottomFloor.totalStayTime=float(qRound(10*bottomFloor.totalStayTime))/10;
+        bottomFloor.weldSwingSpacing=value.at(BOTTOM_1+SWING_SPACING).toFloat();
+        bottomFloor.maxWeldSpeed=value.at(BOTTOM_1+MAX_SPEED).toFloat();
+        bottomFloor.minWeldSpeed=value.at(BOTTOM_1+MIN_SPEED).toFloat();
+        bottomFloor.fillCoefficient=value.at(BOTTOM_1+FILL_COE).toFloat();
+        bottomFloor.current=bottomFloor.current_left;
+        //第二层限制条件
+        secondFloor.name="secondFloor";
+        secondFloor.current_left=value.at(SECOND+CURRENT-1).toFloat();
+        secondFloor.current_middle=value.at(SECOND+CURRENT).toFloat();
+        secondFloor.current_right=value.at(SECOND+CURRENT+1).toFloat();
+        secondFloor.maxHeight=value.at(SECOND+MAX_HEIGHT).toFloat();
+        secondFloor.minHeight=value.at(SECOND+MIN_HEIGHT).toFloat();
+        secondFloor.k=value.at(SECOND+K).toFloat();
+        secondFloor.maxSwingLength=value.at(SECOND+MAX_SWING_LENGTH).toFloat();
+        secondFloor.swingLeftLength=value.at(SECOND+SWING_LEFT_LENGTH).toFloat();
+        secondFloor.swingRightLength=value.at(SECOND+SWING_RIGHT_LENGTH).toFloat();
+        secondFloor.swingLeftStayTime=value.at(SECOND+SWING_LEFT_STAYTIME).toFloat();
+        secondFloor.swingRightStayTime=value.at(SECOND+SWING_RIGHT_STAYTIME).toFloat();
+        secondFloor.totalStayTime=secondFloor.swingLeftStayTime+secondFloor.swingRightStayTime;
+        secondFloor.totalStayTime=float(qRound(10*secondFloor.totalStayTime));
+        secondFloor.totalStayTime=secondFloor.totalStayTime/10;
+        secondFloor.weldSwingSpacing=value.at(SECOND+SWING_SPACING).toFloat();
+        secondFloor.fillCoefficient=value.at(SECOND+FILL_COE).toFloat();;
+        secondFloor.current=secondFloor.current_left;
+        secondFloor.maxWeldSpeed=value.at(SECOND+MAX_SPEED).toFloat();
+        secondFloor.minWeldSpeed=value.at(SECOND+MIN_SPEED).toFloat();
+        //填充层限制条件
+        fillFloor.name="fillFloor";
+        fillFloor.current_left=value.at(FILL+CURRENT-1).toFloat();
+        fillFloor.current_middle=value.at(FILL+CURRENT).toFloat();
+        fillFloor.current_right=value.at(FILL+CURRENT+1).toFloat();
+        fillFloor.maxHeight=value.at(FILL+MAX_HEIGHT).toFloat();
+        fillFloor.minHeight=value.at(FILL+MIN_HEIGHT).toFloat();
+        fillFloor.k=value.at(FILL+K).toFloat();
+        fillFloor.maxSwingLength=value.at(FILL+MAX_SWING_LENGTH).toFloat();
+        fillFloor.swingLeftLength=value.at(FILL+SWING_LEFT_LENGTH).toFloat();
+        fillFloor.swingRightLength=value.at(FILL+SWING_RIGHT_LENGTH).toFloat();
+        fillFloor.swingLeftStayTime=value.at(FILL+SWING_LEFT_STAYTIME).toFloat();
+        fillFloor.swingRightStayTime=value.at(FILL+SWING_RIGHT_STAYTIME).toFloat();
+        fillFloor.totalStayTime=fillFloor.swingLeftStayTime+fillFloor.swingRightStayTime;
+        fillFloor.totalStayTime=float(qRound(fillFloor.totalStayTime*10))/10;
+        fillFloor.weldSwingSpacing=value.at(FILL+SWING_SPACING).toFloat();
+        fillFloor.fillCoefficient=value.at(FILL+FILL_COE).toFloat();;
+        fillFloor.current= fillFloor.current_left;
+        fillFloor.maxWeldSpeed=value.at(FILL+MAX_SPEED).toFloat();
+        fillFloor.minWeldSpeed=value.at(FILL+MIN_SPEED).toFloat();
+        //表层限制条件
+        topFloor.name="topFloor";
+        topFloor.current_left=value.at(TOP+CURRENT-1).toFloat();
+        topFloor.current_middle=value.at(TOP+CURRENT).toFloat();
+        topFloor.current_right=value.at(TOP+CURRENT+1).toFloat();
+        topFloor.maxHeight=value.at(TOP+MAX_HEIGHT).toFloat();
+        topFloor.minHeight=value.at(TOP+MIN_HEIGHT).toFloat();
+        topFloor.k=value.at(TOP+K).toFloat();
+        topFloor.maxSwingLength=value.at(TOP+MAX_SWING_LENGTH).toFloat();
+        topFloor.swingLeftLength=value.at(TOP+SWING_LEFT_LENGTH).toFloat();
+        topFloor.swingRightLength=value.at(TOP+SWING_RIGHT_LENGTH).toFloat();
+        topFloor.swingLeftStayTime=value.at(TOP+SWING_LEFT_STAYTIME).toFloat();
+        topFloor.swingRightStayTime=value.at(TOP+SWING_RIGHT_STAYTIME).toFloat();
+        topFloor.totalStayTime=topFloor.swingLeftStayTime+topFloor.swingRightStayTime;
 
-    topFloor.totalStayTime=float(qRound(topFloor.totalStayTime*10))/10;
-    topFloor.weldSwingSpacing=value.at(TOP+SWING_SPACING).toFloat();
-    topFloor.fillCoefficient=value.at(TOP+FILL_COE).toFloat();;
-    topFloor.maxWeldSpeed=value.at(TOP+MAX_SPEED).toFloat();
-    topFloor.minWeldSpeed=value.at(TOP+MIN_SPEED).toFloat();
+        topFloor.totalStayTime=float(qRound(topFloor.totalStayTime*10))/10;
+        topFloor.weldSwingSpacing=value.at(TOP+SWING_SPACING).toFloat();
+        topFloor.fillCoefficient=value.at(TOP+FILL_COE).toFloat();;
+        topFloor.maxWeldSpeed=value.at(TOP+MAX_SPEED).toFloat();
+        topFloor.minWeldSpeed=value.at(TOP+MIN_SPEED).toFloat();
 
-    switch (grooveValue) {
-    case 0:flat.bottomFloor=flat.ceramicBack==1?&bottomFloor0:&bottomFloor;flat.secondFloor=&secondFloor;flat.fillFloor=&fillFloor;flat.topFloor=&topFloor; break;
-    case 1: flat.bottomFloor=flat.ceramicBack==1?&bottomFloor0:&bottomFloor;flat.secondFloor=&secondFloor;flat.fillFloor=&fillFloor;flat.topFloor=&topFloor; break;
-    case 2:flat.bottomFloor=flat.ceramicBack==1?&bottomFloor0:&bottomFloor;flat.secondFloor=&secondFloor;flat.fillFloor=&fillFloor;flat.topFloor=&topFloor; break;
-    case 3:horizontal.bottomFloor=horizontal.ceramicBack==1?&bottomFloor0:&bottomFloor;horizontal.secondFloor=&secondFloor;horizontal.fillFloor=&fillFloor;horizontal.topFloor=&topFloor;  break;
-    case 4: horizontal.bottomFloor=horizontal.ceramicBack==1?&bottomFloor0:&bottomFloor;horizontal.secondFloor=&secondFloor;horizontal.fillFloor=&fillFloor;horizontal.topFloor=&topFloor; break;
-    case 5: vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
-    case 6: vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
-    case 7:vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
-    case 8: vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
-    default:
-        break;
+        switch (grooveValue) {
+        case 0:flat.bottomFloor=flat.ceramicBack==1?&bottomFloor0:&bottomFloor;flat.secondFloor=&secondFloor;flat.fillFloor=&fillFloor;flat.topFloor=&topFloor; break;
+        case 1:flat.bottomFloor=flat.ceramicBack==1?&bottomFloor0:&bottomFloor;flat.secondFloor=&secondFloor;flat.fillFloor=&fillFloor;flat.topFloor=&topFloor; break;
+        case 2:flat.bottomFloor=flat.ceramicBack==1?&bottomFloor0:&bottomFloor;flat.secondFloor=&secondFloor;flat.fillFloor=&fillFloor;flat.topFloor=&topFloor; break;
+        case 3:horizontal.bottomFloor=horizontal.ceramicBack==1?&bottomFloor0:&bottomFloor;horizontal.secondFloor=&secondFloor;horizontal.fillFloor=&fillFloor;horizontal.topFloor=&topFloor;  break;
+        case 4:horizontal.bottomFloor=horizontal.ceramicBack==1?&bottomFloor0:&bottomFloor;horizontal.secondFloor=&secondFloor;horizontal.fillFloor=&fillFloor;horizontal.topFloor=&topFloor; break;
+        case 5:vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
+        case 6:vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
+        case 7:vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
+        case 8:vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
+        default:
+            break;
+        }
     }
 }

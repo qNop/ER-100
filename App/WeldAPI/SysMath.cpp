@@ -1,10 +1,10 @@
-#include "flatmath.h"
+#include "SysMath.h"
 
-flatMath::flatMath()
+SysMath::SysMath()
 {
 
 }
-flatMath::~flatMath(){
+SysMath::~SysMath(){
 
 }
 
@@ -32,8 +32,9 @@ float getFloorHeight(FloorCondition *pF,float leftAngel,float rightAngel,float h
     return (qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);
 }
 
-int flatMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,float *s,int count,int weldNum,int weldFloor,QString *status,float swingLengthOne){
+int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,float *s,int count,int weldNum,int weldFloor,QString *status,float swingLengthOne){
     int temp;
+    float swingHz;
     QString str="计算第"+QString::number(weldFloor)+"层第"+QString::number(weldNum)+"道时，";
     //获取电流
     temp=solveI(pF,count,weldNum);
@@ -47,7 +48,23 @@ int flatMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,
     temp=getFeedSpeed(*weldCurrent);
     if(temp==-1){*status=str+"焊接电流过小或此焊接条件下焊接电流不存在导致送丝速度不能获取。";return -1;}
     else *weldFeedSpeed=temp;
-    *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill);//(meltingCoefficientValue*weldWireSquare**weldFeedSpeed)/(*weldFill*100);
+    //获取焊速 立焊从此处获取焊速 现有摆速才能求取填充量才能计算 焊接速度
+    if(weldDirName=="立焊"){
+        //焊速必须有数 否则无法进入 求摆速函数
+        *weldTravelSpeed=100;
+        temp=getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,*weldTravelSpeed,WAVE_MAX_VERTICAL_SPEED,&swingHz);
+        //判断返回数据
+        if(temp==-1){
+            QString tempStr=*status;
+            tempStr.insert(0,str);
+            *status=tempStr;
+            return -1;
+        }
+        else
+            *swingSpeed= temp;
+        *weldTravelSpeed=GET_VERTICAL_TRAVERLSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,swingHz,pF->swingLeftStayTime+pF->swingRightStayTime);
+    }else
+        *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill);
     if(*weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
     //保证焊接速度不大于最大焊接速度 否则减小电流
     if(*weldTravelSpeed>pF->maxWeldSpeed){
@@ -62,7 +79,10 @@ int flatMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,
             temp=getFeedSpeed(*weldCurrent);
             if(temp==-1){*status=str+"焊接电流过小或此焊接条件下焊接电流不存在导致送丝速度不能获取。";return -1;}
             else *weldFeedSpeed=temp;
-            *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill);//(meltingCoefficientValue*weldWireSquare**weldFeedSpeed)/(*weldFill*100);
+            if(weldDirName=="立焊")
+                *weldTravelSpeed=GET_VERTICAL_TRAVERLSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,swingHz,pF->totalStayTime);
+            else
+                *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill);
             if(*weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
         }
         *weldTravelSpeed=qRound(*weldTravelSpeed);
@@ -72,24 +92,30 @@ int flatMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,
         *weldTravelSpeed=qRound(*weldTravelSpeed);
     }
     if(*weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
-
-    temp=getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,*weldTravelSpeed,WAVE_MAX_SPEED);
-    if(temp==-1){
-        QString tempStr=*status;
-        tempStr.insert(0,str);
-        *status=tempStr;
-        return -1;
+    //获取摆动速度 非立焊在这里获取摆动速度 因为摆速要受到 焊速制约。
+    if(weldDirName!="立焊"){
+        temp=getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,*weldTravelSpeed,WAVE_MAX_SPEED,&swingHz);
+        //判断返回数据
+        if(temp==-1){
+            QString tempStr=*status;
+            tempStr.insert(0,str);
+            *status=tempStr;
+            return -1;
+        }
+        else
+            *swingSpeed= temp;
     }
+    //重新计算焊道面积 立焊需要单独算焊道
+    if(weldDirName!="立焊")
+        *weldFill=GET_WELDFILL_AREA(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldTravelSpeed,pF->fillCoefficient);
     else
-        *swingSpeed= temp;
-    //重新计算焊道面积
-    *weldFill=GET_WELDFILL_AREA(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldTravelSpeed,pF->fillCoefficient);//(meltingCoefficientValue*weldWireSquare**weldFeedSpeed)/(*weldTravelSpeed*100)/pF->fillCoefficient;
+        *weldFill=GET_VERTICAL_WELDFILL_AREA(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldTravelSpeed,pF->fillCoefficient,swingHz,pF->totalStayTime);
     //重新计算层面积
     *s+=*weldFill;
     return 1;
 }
 
-int flatMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *weldLineYUesd,float *startArcZ,int *currentFloor,int *currentWeldNum){
+int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *weldLineYUesd,float *startArcZ,int *currentFloor,int *currentWeldNum){
     float s,swingLength,weldLineY,weldLineX,swingLengthOne,reSwingLeftLength,startArcX,startArcY;
     int weldNum,i;
     QString str="计算第"+QString::number(*currentFloor)+"层时，";
@@ -110,44 +136,24 @@ int flatMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *w
     }
     //计算h/2处摆宽
     swingLength=(*hused+pF->height/2-p)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-pF->swingLeftLength-pF->swingRightLength;
-    //保留一位整数 小数位为偶数
-    //swingLengthOne=float(qRound(swingLength*5))/5;
     //计算分多少道
     weldNum=qCeil((swingLength+pF->weldSwingSpacing)/(pF->maxSwingLength+pF->weldSwingSpacing));
     //创建 weldnum  的数组 必须要加3 否则 数组溢出
     float *weldFill=new float[weldNum];
     //初始化数组
     solveA(weldFill,pF,weldNum,s);
-    // for(i=0;i<3;i++){
     if(*weldFill>pF->maxFillMetal){
         weldNum+=1;
         //数组发生改变则 相应的也要发生改变 防止数组越界；
         weldFill=array(weldFill,weldNum);
         solveA(weldFill,pF,weldNum,s);
-    }//else {
-    //       break;
-    //    }
-    // }
-    // if(i==3){
-    //    status=str+"分道超过最大允许填充面积！";
-    //    return -1;
-    // }
-    //for(i=0;i<3;i++){
+    }
     if(*(weldFill+weldNum-1)<pF->minFillMetal){
         if(weldNum>1){
             weldNum-=1;
             weldFill=array(weldFill,weldNum);
             solveA(weldFill,pF,weldNum,s);
-        }}//else{
-    //  break;
-    // }
-    //   }else
-    //        break;
-    //    }
-    //   if(i==3){
-    //       status=str+"分道超过最小允许填充面积！";
-    //     return -1;
-    //  }
+        }}
     //计算单道摆宽
     swingLengthOne=float(qRound(5*(swingLength-(weldNum-1)*pF->weldSwingSpacing)/weldNum))/5;
     //层内每一道的电流
@@ -253,7 +259,9 @@ int flatMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *w
     return 1;
 }
 
-int flatMath::getFillMetal(FloorCondition *pF){
+int SysMath::getFillMetal(FloorCondition *pF){
+    float swingHz;
+    float *weldTravelSpeed=100;
     //焊丝橫截面积
     weldWireSquare=(wireDValue==4?1.2*1.2:1.6*1.6)*PI/4;
     if((pF->current_middle+CURRENT_COUNT_PLUAS)>CURRENT_MAX){
@@ -263,8 +271,19 @@ int flatMath::getFillMetal(FloorCondition *pF){
     //获取送丝速度
     int feedSpeed=getFeedSpeed(pF->current);
     if(feedSpeed!=-1){
-        //底层最小填充量  ***是否有问题  最小填充量是否应该用最小电流来计算
-        pF->maxFillMetal=(meltingCoefficientValue*weldWireSquare*feedSpeed)/(pF->minWeldSpeed*100);
+        if(weldDirName=="立焊"){
+            //求最小摆频 最大摆宽/2
+            temp=getSwingSpeed(pF->maxSwingLength/2,pF->swingLeftStayTime,pF->swingRightStayTime,*weldTravelSpeed,WAVE_MAX_VERTICAL_SPEED,&swingHz);
+            //判断返回数据
+            if(temp==-1){
+                QString tempStr=*status;
+                tempStr.insert(0,str);
+                *status=tempStr;
+                return -1;
+            }
+            pF->maxFillMetal=(meltingCoefficientValue*weldWireSquare*feedSpeed*60)/(pF->minWeldSpeed*100*swingHz*(pF->totalStayTime));
+        }else
+            pF->maxFillMetal=(meltingCoefficientValue*weldWireSquare*feedSpeed)/(pF->minWeldSpeed*100);
     }else{
         status=((pF->name=="bottomFloor")||(pF->name=="ceramicBackFloor"))?"打底层":pF->name=="secondFloor"?"第二层":pF->name=="fillFloor"?"填充层":"盖面层";
         status+="计算最大填充量时获取送丝速度错误！";
@@ -276,8 +295,19 @@ int flatMath::getFillMetal(FloorCondition *pF){
         pF->current=pF->current_middle-CURRENT_COUNT_DEC;
     feedSpeed=getFeedSpeed(pF->current);
     if(feedSpeed!=-1){
-        //底层最小填充量  ***是否有问题  最小填充量是否应该用最小电流来计算
-        pF->minFillMetal=(meltingCoefficientValue*weldWireSquare*feedSpeed)/(pF->maxWeldSpeed*100);
+        if(weldDirName=="立焊"){
+            //求最大摆频 最小摆宽/2
+            temp=getSwingSpeed(1/2,pF->swingLeftStayTime,pF->swingRightStayTime,*weldTravelSpeed,WAVE_MAX_VERTICAL_SPEED,&swingHz);
+            //判断返回数据
+            if(temp==-1){
+                QString tempStr=*status;
+                tempStr.insert(0,str);
+                *status=tempStr;
+                return -1;
+            }
+            pF->minFillMetal=(meltingCoefficientValue*weldWireSquare*feedSpeed*60)/(pF->minWeldSpeed*100*swingHz*pF->totalStayTime);
+        }else
+            pF->minFillMetal=(meltingCoefficientValue*weldWireSquare*feedSpeed)/(pF->maxWeldSpeed*100);
     }else{
         status=pF->name+"层计算最小填充量时获取送丝速度错误！";
         return -1;
@@ -285,7 +315,7 @@ int flatMath::getFillMetal(FloorCondition *pF){
     return 1;
 }
 
-int flatMath::weldMath(){
+int SysMath::weldMath(){
     int i;
     float sUsed=0;
     float hUsed=0;
@@ -333,13 +363,14 @@ int flatMath::weldMath(){
     emit weldRulesChanged(value);
     return 1;
 }
+
 /*
  * swing  摆动幅度  pf 当前层条件  weldSpeed 焊接速度
  */
-float flatMath::getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed){
+float SysMath::getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed,float *swingHz){
     //定义摆动间隔
     float A;
-    //定义总时间  单位分钟
+    //定义总时间
     float t;
     //定义停留时间
     float t_temp0 = ((swingLeftStayTime+swingRightStayTime)*1000)/4;
@@ -372,16 +403,20 @@ float flatMath::getSwingSpeed(float swing,float swingLeftStayTime,float swingRig
             t_temp1+=10000/swingSpeed;
             if(((i+1)*10)>S_MAX){
                 //超过最大距离也没有达到最大速度退出返回当前速度
+                t=((t_temp0+t_temp1+t_temp2)*4)/60000;
+                *swingHz=1/t;
+                qDebug()<<"SysMath::getSwingSpeed::Hz"<<1/(t);
                 return GET_WAVE_SPEED(swingSpeed);
             }
         }
         //t_temp2 存在 则证明 匀速存在
         t=((t_temp0+t_temp1+t_temp2)*4)/60000;
+        *swingHz=1/t;
         A=t*weldSpeed;
-        qDebug()<<"flatMath::getSwingSpeed::T"<<t<<" t_temp0"<<t_temp0<<" t_temp1"<<t_temp1<<" t_temp2"<<t_temp2;
-        qDebug()<<"flatMath::getSwingSpeed::Hz"<<1/(t);
-        //qDebug()<<"flatMath::getSwingSpeed::A"<<A;
-        if(((A<3.5)&&(swingLeftStayTime!=0)&&(swingRightStayTime!=0))||((A<2.5)&&(swingLeftStayTime==0)&&(swingRightStayTime==0))){
+        // qDebug()<<"SysMath::getSwingSpeed::T"<<t<<" t_temp0"<<t_temp0<<" t_temp1"<<t_temp1<<" t_temp2"<<t_temp2;
+        qDebug()<<"SysMath::getSwingSpeed::Hz"<<1/(t);
+        //qDebug()<<"SysMath::getSwingSpeed::A"<<A;
+        if((((A<3.5)&&(swingLeftStayTime!=0)&&(swingRightStayTime!=0))||((A<2.5)&&(swingLeftStayTime==0)&&(swingRightStayTime==0)))&&(weldDirName!="立焊")){
             maxSpeed-=100;
             //最大值 不能小于1200
             if(maxSpeed<WAVE_MIN_SPEED){
@@ -393,7 +428,7 @@ float flatMath::getSwingSpeed(float swing,float swingLeftStayTime,float swingRig
     }
 }
 
-float flatMath::getVoltage(int current){
+float SysMath::getVoltage(int current){
     float voltage=18;
     if((gasValue)&&(!pulseValue==0)&&(wireTypeValue==0)&&(wireDValue==4)){
         if (current<CURRENT_MIN){
@@ -426,7 +461,7 @@ float flatMath::getVoltage(int current){
     return voltage;
 }
 
-int flatMath::getFeedSpeed(int current){
+int SysMath::getFeedSpeed(int current){
     int feedspeed;
     const int FeedSpeedNum[4][35]={
         {1240,1280,1320,1360,1400,1536,1673,1845,2027,2215,
@@ -464,7 +499,7 @@ int flatMath::getFeedSpeed(int current){
 }
 
 //求解 道面积 存储到pFill开始的内存里
-void flatMath::solveA(float *pFill,FloorCondition *p,int num,float s){
+void SysMath::solveA(float *pFill,FloorCondition *p,int num,float s){
     int j;
     for( j=0;j<num;j++){
         if(num==1)
@@ -486,7 +521,7 @@ void flatMath::solveA(float *pFill,FloorCondition *p,int num,float s){
         }
     }
 }
-int flatMath::solveI(FloorCondition *pI, int num,int total){
+int SysMath::solveI(FloorCondition *pI, int num,int total){
     if(total==1){
         pI->current=pI->current_middle;
     }else if(num==0){
@@ -502,7 +537,7 @@ int flatMath::solveI(FloorCondition *pI, int num,int total){
     return pI->current;
 }
 //分层
-int flatMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,float *startArcZ,int *currentFloor,int *currentWeldNum){
+int SysMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,float *startArcZ,int *currentFloor,int *currentWeldNum){
     float tempH,tempHav;
     int fillFloor_MaxNum=0;
     int fillFloor_MinNum=0;
@@ -632,7 +667,7 @@ int flatMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,fl
     qDebug()<<bottomFloor->height<<secondFloor->height<<fillFloor->height<<topFloor->height;
     return res;
 }
-int flatMath::setGrooveRules(QStringList value){
+int SysMath::setGrooveRules(QStringList value){
     //数组有效
     if(value.count()){
         grooveHeight=value.at(0).toFloat();

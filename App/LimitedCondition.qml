@@ -32,6 +32,7 @@ TableCard {
     signal changeWireDError()
     signal changeWireTypeError()
     signal changePulseError()
+
     property int num: 0
 
     function getTableData(index,type){
@@ -60,24 +61,10 @@ TableCard {
             }
         }
     }
-    function makeNum(){
-        var num=gas;
-        num<<=1;
-        num|=pulse;
-        num<<=3;
-        num|=wireType;
-        num<<=4;
-        num|=wireD;
-        return String(num)
-    }
 
-    onGasChanged:{getTableData(makeNum(),0);console.log(root.objectName+"gas value="+gas)}
-    onPulseChanged: {getTableData(makeNum(),1);console.log(root.objectName+"pulse value="+pulse);}
-    onWireTypeChanged:{ getTableData(makeNum(),2);console.log(root.objectName+"WireType value="+wireType);}
-    onWireDChanged: {getTableData(makeNum(),3);console.log(root.objectName+"WireD value="+wireD);}
-
+    onNumChanged: {getTableData(num,4);}
     //规则改变时重新加载限制条件
-    onLimitedRulesNameChanged:getTableData(makeNum(),4);
+    onLimitedRulesNameChanged:getTableData(num,4);
 
     function limitedMath(start,end){
         var resArray=new Array();
@@ -165,7 +152,7 @@ TableCard {
         },
         Action{iconName:"awesome/save";name:"保存";
             onTriggered: { if(typeof(limitedRulesName)==="string"){
-                    var C11=makeNum();
+                    var C11=num;
                     //清空数据表格
                     UserData.clearTable(limitedRulesName,"C11",C11)
                     //数据表格重新插入数据

@@ -13,8 +13,8 @@ TableViewStyle{
     decrementControl:Item{visible: false}
     //handle 滚动条滑块儿
     handle:Rectangle{
-        implicitWidth: !styleData.horizontal ? 5:Math.round(TextSingleton.implicitHeight) + 1
-        implicitHeight: styleData.horizontal ? 5:Math.round(TextSingleton.implicitHeight) + 1
+        implicitWidth: !styleData.horizontal ? 5:Math.round(5) + 1
+        implicitHeight: styleData.horizontal ? 5:Math.round(5) + 1
         width: !styleData.horizontal && transientScrollBars ? 5 : parent.width-10
         height: styleData.horizontal && transientScrollBars ? 5 : parent.height- 4
         color: Material.Theme.accentColor//Material.Palette.colors["grey"]["400"]
@@ -29,8 +29,8 @@ TableViewStyle{
     scrollBarBackground:Rectangle{
         property bool sticky: false
         property bool hovered: styleData.hovered
-        implicitWidth: !styleData.horizontal ? 5:Math.round(TextSingleton.implicitHeight) + 1
-        implicitHeight: styleData.horizontal ? 5:Math.round(TextSingleton.implicitHeight) + 1
+        implicitWidth: !styleData.horizontal ? 5:Math.round(5) + 1
+        implicitHeight: styleData.horizontal ? 5:Math.round(5) + 1
         clip: true
         opacity: transientScrollBars ? 0.0 : 1.0
         visible: !Settings.hasTouchScreen && (!transientScrollBars || sticky)
@@ -68,6 +68,5 @@ TableViewStyle{
         height: Material.Units.dp(48);
         color: styleData.selected ?  Material.Palette.colors["grey"]["400"] : "white"
         Material.ThinDivider{anchors.bottom: parent.bottom}
-
     }
 }

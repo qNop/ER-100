@@ -38,5 +38,6 @@
         <file>UserAccount.qml</file>
         <file>WeldData.qml</file>
         <file>MyTextFieldDialog.qml</file>
+        <file>MotoDialog.qml</file>
     </qresource>
 </RCC>

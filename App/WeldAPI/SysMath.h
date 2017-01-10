@@ -1,5 +1,5 @@
-#ifndef FLATMATH_H
-#define FLATMATH_H
+#ifndef SYSMATH_H
+#define SYSMATH_H
 #include <QObject>
 #include <QString>
 #include <QDebug>
@@ -8,13 +8,19 @@
 #include <QtGlobal>
 #include "gloabldefine.h"
 
-class flatMath:public QObject
+class SysMath:public QObject
 {
     Q_OBJECT
 public:
-    flatMath();
-    ~flatMath();
+    SysMath();
+    ~SysMath();
     int weldMath();
+    //焊接位置  平焊 立焊 横焊 水平角焊
+    QString weldDirName;
+    //接头形式 T接头 平对接
+    QString weldConnectName;
+    //坡口形式 V形坡口 单边V形坡口
+    QString GrooveStyleName;
     //余高
     int reinforcementValue;
     //溶敷系数 *100
@@ -57,28 +63,19 @@ public:
     bool controlWeld;
     //顿边
     float p;
-    //函数 用打底后剩余高度  填充层最大高度 盖面高度 余高 求中间层的填充层数 填充层平均层高 盖面层高
-    void getRulesOfFill();
-    //函数 有 电流求送丝速度
-    int getFeedSpeed(int current);
-    //函数 有电流求电压
-    float getVoltage(int current);
-    // 函数 有摆幅求摆频
-    //int getSwingHz(int swing,int floor,float stayTime);
     //气体 0co2 1混合气
     bool gasValue;
     //脉冲 0 无脉冲 1 有脉冲
     bool pulseValue;
     //焊丝种类 0 碳钢实芯 1药芯
     int wireTypeValue;
+        int grooveValue;
     //计算数据状态
     QString status;
-    //计算第一层
-  //  void firstFloorFunc();
-    //计算填充层
-//    void FloorFunc(FloorCondition *pF);
-    //计算盖面层
-//    void topFloorFunc();
+    //函数 有 电流求送丝速度
+    int getFeedSpeed(int current);
+    //函数 有电流求电压
+    float getVoltage(int current);
     //求解A
     void solveA(float *pFill,FloorCondition *p,int num,float s);
     //选取道电流
@@ -90,15 +87,11 @@ public:
     //计算 分道
     int getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *weldLineYUesd,float *startArcZ,int *currentFloor,int *currentWeldNum);
     int getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed, float *weldTravelSpeed,float *weldFill,float *s,int count,int weldNum,int weldFloor,QString *status,float swingLengthOne);
-    //每层层高变量
-  //  float h;
-
-    int grooveValue;
     int setGrooveRules(QStringList value);
-
-    float getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed);
+    //获取横焊和平焊的 摆动频率
+    float getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed,float *swingHz);
 signals:
     void weldRulesChanged(QStringList value);
 };
 
-#endif // FLATMATH_H
+#endif // MATH_H

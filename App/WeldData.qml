@@ -181,7 +181,7 @@ TableCard{
                                              model.get(index).C8*10,
                                              model.get(index).C9*10,
                                              model.get(index).C10*10,
-                                             model.get(index).C11==="连续"?"0":"1",
+                                             model.get(index).C11==="永久"?"0":model.get(index).C11,
                                                                           model.get(index).C12*10,//层面积
                                                                           model.get(index).C13*10,//单道面积
                                                                           model.get(index).C14*10,//起弧位置偏移
@@ -204,7 +204,7 @@ TableCard{
         Controls.TableViewColumn{role: "C2";title: "电流\n  A";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C3";title: "电压\n  V";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C4";title: " 摆幅\n  mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: weldTableEx},
-        Controls.TableViewColumn{role: "C5";title: " 摆速\n cm/min";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
+        Controls.TableViewColumn{role: "C5";title: "   摆速   \nmm/min";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: weldTableEx},
         Controls.TableViewColumn{role: "C6";title: "焊接速度\n cm/min";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C7";title: "焊接线\n X mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C8";title: "焊接线\n Y mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},

@@ -17,10 +17,6 @@ PopupBase {
     overlayLayer: "dialogOverlayLayer"
     overlayColor: Qt.rgba(0, 0, 0, 0.3)
 
-    width:interWidth
-
-    property bool leftMode: true;
-
     anchors{
         left:leftMode ? parent.left :undefined
         right:leftMode ? undefined:parent.right
@@ -32,6 +28,12 @@ PopupBase {
             NumberAnimation { duration: 200 }
         }
     }
+
+    width:interWidth
+
+    visible: showing
+
+    property bool leftMode: true;
 
     property int interWidth: Math.min(parent.width - Units.gu(1), Units.gu(7))
 

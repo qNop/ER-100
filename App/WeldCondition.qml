@@ -39,8 +39,7 @@ Item{
     property int selectedIndex:0
 
     property var listName: ["焊丝伸出长度:","头部摇动方式:","焊丝种类:","机头放置侧:","焊丝直径:","保护气体:","焊接往返动作:","焊接脉冲状态:","电弧跟踪:","预期余高:","溶敷系数:","焊接电流偏置:","焊接电压偏置:","提前送气时间:","滞后送气时间","起弧停留时间:","收弧停留时间","起弧电流:","起弧电压:","收弧电流:","收弧电压:"
-        ,"回烧电压补偿","回烧时间补偿1","回烧时间补偿2"
-    ]
+        ,"收弧回退距离","收弧回退速度","收弧回退停留时间","回烧电压补偿","回烧时间补偿1","回烧时间补偿2"]
 
     property var listValueName: [weldWireLengthModel,swingWayModel,weldWireModel,robotLayoutModel,weldWireDiameterModel,weldGasModel,returnWayModel,weldPowerModel,weldTrackModel]
 
@@ -65,11 +64,13 @@ Item{
         "设定焊接起弧电压。",
         "设定焊接收弧电流。",
         "设定焊接收弧电压。",
+        "设定焊接收弧回退距离。",
+        "设定焊接收弧回退速度。",
+        "设定焊接收弧回退停留时间。",
         "设定回烧时间中的输出电压微调整(和焊丝的上燃量有关)。",
         "设定回烧时间的微调整(和焊丝的上燃量有关)。",
-        "设定回烧时间的微调整(和焊丝的上燃量有关)。",]
-
-    property var valueType: ["mm","%","A","V","S","S","S","S","A","V","A","V","V","S","S"]
+        "设定回烧时间的微调整(和焊丝的上燃量有关)。"]
+    property var valueType: ["mm","%","A","V","S","S","S","S","A","V","A","V","mm","cm/min","S","","",""]
     //脉冲有无
     property int oldPulse:0
     //焊丝种类
@@ -81,17 +82,31 @@ Item{
 
     signal changeSelectedIndex(int index)
     signal changeValue(int index)
-    signal changeGroupCurrent(int index)
-    signal changeValueText(var value)
+    //flag 作用于区别是否下发参数
+    signal changeGroupCurrent(int index,bool flag)
+    signal changeValueText(double value,bool flag)
 
     signal doWork(int index,bool flag)
 
-    signal changeGas(int value)
-    signal changeWireD(int value)
-    signal changeWireType(int value)
-    signal changePulse(int value)
-    signal changeReinforcement(int value)
-    signal changeMeltingCoefficient(int value)
+    signal changeNum(int value)
+
+    function makeNum(){
+        //保护气体
+        var num=root.condition[5];
+        num<<=1;
+        //电源特性
+        num|=root.condition[7];
+        num<<=3;
+        //焊丝种类
+        num|=root.condition[2]===0?0:4;
+        num<<=4;
+        //焊丝直径
+        num|=root.condition[4]===0?4:6;
+        console.log("make num "+String(num))
+        //发射信号
+        changeNum(num)
+        return String(num)
+    }
 
     onChangeSelectedIndex: {
         selectedIndex=index;
@@ -101,13 +116,15 @@ Item{
         doWork(selectedIndex,true);
     }
     onChangeGroupCurrent: {
-        doWork(selectedIndex,true);
+        if(!flag)
+            doWork(selectedIndex,true);
     }
     onChangeValueText: {
-        doWork(selectedIndex,true);
+        if(!flag)
+            doWork(selectedIndex,true);
     }
     onDoWork: {
-        var frame=new Array();
+        var frame=new Array(0);
         frame.push("W");
         var num=Number(root.condition[index]);
         switch(index){
@@ -116,23 +133,38 @@ Item{
             //头部摆动方式
         case 1:frame.push("121");frame.push("1");frame.push(String(num));break;
             // 焊丝种类
-        case 2:frame.push("126");frame.push("1");frame.push(num ===0?"0":"4");changeWireType(num===0?0:4);WeldMath.setWireType(num===0?0:4);break;
+        case 2:frame.push("126");frame.push("1");frame.push(num ===0?"0":"4");
+            if(flag)
+                makeNum();
+            break;
             //机头放置侧
-        case 3:frame.push("122");frame.push("1");frame.push(String(num));WeldMath.setGrooveDir(num?true:false);break;
+        case 3:frame.push("122");frame.push("1");frame.push(String(num));
+            break;
             //焊丝直径
-        case 4:frame.push("123");frame.push("1");frame.push(num ===0?"4":"6");changeWireD(num===0?4:6);WeldMath.setWireD(num===0?4:6);break;
+        case 4:frame.push("123");frame.push("1");frame.push(num ===0?"4":"6");
+            if(flag)
+                makeNum();
+            break;
             //保护气体
-        case 5:frame.push("124");frame.push("1");frame.push(String(num ));changeGas(num);WeldMath.setGas(num);break;
+        case 5:frame.push("124");frame.push("1");frame.push(String(num ));
+            if(flag)
+                makeNum();
+            break;
             //往返动作
         case 6:frame.push("125");frame.push("1");frame.push(String(num ));break;
             //电源特性
-        case 7:frame.push("119");frame.push("1");frame.push(String(num ));changePulse(num); WeldMath.setPulse(num);break;
+        case 7:frame.push("119");frame.push("1");frame.push(String(num ));
+            if(flag)
+                makeNum();
+            break;
             //电弧跟踪
         case 8:frame.push("127");frame.push("1");frame.push(String(num));break;
             //预期余高
-        case 9:changeReinforcement(num);WeldMath.setReinforcement(num);break;
+        case 9:
+            break;
             //溶敷系数
-        case 10:changeMeltingCoefficient(num); WeldMath.setMeltingCoefficient(num);break;
+        case 10:
+            break;
             //焊接电流偏置
         case 11:frame.push("128");frame.push("1");frame.push(String(num));break;
             //焊接电压偏置
@@ -153,31 +185,45 @@ Item{
         case 19:frame.push("138");frame.push("1");frame.push(String(num));break;
             //收弧电压
         case 20:frame.push("139");frame.push("1");frame.push(String(num*10));break;
+            //收弧回退距离
+        case 21:frame.push("303");frame.push("1");frame.push(String(num*10));break;
+            //收弧回退速度
+        case 22:frame.push("304");frame.push("1");frame.push(String(num*10));break;
+            //收弧回退时间
+        case 23:frame.push("305");frame.push("1");frame.push(String(num*10));break;
             //回烧电压补偿
-        case 21:frame.push("300");frame.push("1");frame.push(String(num));break;
+        case 24:frame.push("300");frame.push("1");frame.push(String(num));break;
             //回烧时间补偿1
-        case 22:frame.push("301");frame.push("1");frame.push(String(num));break;
+        case 25:frame.push("301");frame.push("1");frame.push(String(num));break;
             //回烧时间补偿2
-        case 23:frame.push("302");frame.push("1");frame.push(String(num));break;
+        case 26:frame.push("302");frame.push("1");frame.push(String(num));break;
         default:frame.length=0;break;
         }
         if(frame.length===4){
+            //下发规范
             ERModbus.setmodbusFrame(frame)
         }
         if(flag){
             //存储数据
             Material.UserData.setValueFromFuncOfTable(root.objectName,index,num)
         }
-        console.log(frame)
         //清空
         frame.length=0;
     }
-
+    //按键释放阶段写入或下发参数
+    Keys.onReleased: {
+        if((event.key===Qt.Key_Left)||(event.key===Qt.Key_Right)){
+            changeGroupCurrent(root.condition[selectedIndex],event.isAutoRepeat);
+        }else if((event.key===Qt.Key_VolumeDown)||(event.key===Qt.Key_VolumeUp)){
+            changeValueText(root.condition[selectedIndex],event.isAutoRepeat);
+        }
+        event.accpet=true;
+    }
     Keys.onPressed: {
         var temp;
         var num=Number(root.condition[selectedIndex]);
         if(event.key===Qt.Key_Down){
-            if(selectedIndex<listName.length){
+            if(selectedIndex<(listName.length-1)){
                 selectedIndex++;
             }
         }else if(event.key===Qt.Key_Up){
@@ -188,13 +234,15 @@ Item{
             if((num>0)&&(selectedIndex<listValueName.length)){
                 num-=1;
                 root.condition[selectedIndex]=num;
-                changeGroupCurrent(num);
+                //变更显示但是不变更数据
+                changeGroupCurrent(num,true);
             }
         }else if(event.key===Qt.Key_Right){
             if((num<(listValueName[selectedIndex].length-1))&&(selectedIndex<listValueName.length)){
                 num+=1;
                 root.condition[selectedIndex]=num;
-                changeGroupCurrent(num);
+                //变更显示但是不变更数据
+                changeGroupCurrent(num,true);
             }
         }else if(event.key===Qt.Key_VolumeDown){
             temp=selectedIndex-listValueName.length;
@@ -223,16 +271,23 @@ Item{
             case 10:num-=1; if(num<0)num=0;break;
                 //收弧电压
             case 11:num-=0.1;num=num.toFixed(1); if(num<0)num=0;break;
+                //收弧回退距离
+            case 12:num-=1; if(num<0)num=0;break;
+                //收弧回退速度
+            case 13:num-=0.1;num=num.toFixed(1);if(num<0)num=0;break;
+                //收弧回退时间
+            case 14:num-=0.1;num=num.toFixed(1); if(num<0)num=0;break;
                 //回烧电压补偿
-            case 12:num-=1; if(num<-50)num=-50;break;
+            case 15:
                 //回烧时间补偿
-            case 13:num-=1; if(num<-50)num=-50;break;
+            case 16:
                 //回烧时间补偿
-            case 14:num-=1; if(num<-50)num=-50;break;
+            case 17:num-=1; if(num<-50)num=-50;break;
             }
             if(temp>=0){
                 root.condition[selectedIndex]=num;
-                changeValueText(num);
+                //变更显示但是不变更数据
+                changeValueText(num,true);
             }
         }else if(event.key===Qt.Key_VolumeUp){
             temp=selectedIndex-listValueName.length;
@@ -261,16 +316,23 @@ Item{
             case 10:num+=1; if(num>300)num=300;break;
                 //收弧电压
             case 11:num+=0.1;num=num.toFixed(1); if(num>30)num=30;break;
+                //收弧回退距离
+            case 12:num+=1; if(num>30)num=30;break;
+                //收弧回退速度
+            case 13:num+=0.1;num=num.toFixed(1);if(num>30)num=30;break;
+                //收弧回退时间
+            case 14:num+=0.1;num=num.toFixed(1);if(num>3)num=3;break;
                 //回烧电压补偿
-            case 12:num+=1;if(num>50)num=50;break;
+            case 15:
                 //回烧时间补偿
-            case 13:num+=1;if(num>50)num=50;break;
+            case 16:
                 //回烧时间补偿
-            case 14:num+=1;if(num>50)num=50;break;
+            case 17:num+=1;if(num>50)num=50;break;
             }
             if(temp>=0){
                 root.condition[selectedIndex]=num;
-                changeValueText(num);
+                //变更显示但是不变更数据
+                changeValueText(num,true);
             }
         }
         event.accpet=true;
@@ -343,7 +405,7 @@ Item{
                                         changeValue(index);
                                         //改变选择控件状态
                                         changeGroupCurrent(index);
-                                        }
+                                    }
                                     exclusiveGroup: group
                                 }
                             }
@@ -362,17 +424,16 @@ Item{
                         Connections{
                             target: root
                             onChangeValueText:{
-                                if(downSub.selected)
-                                    valueLabel.text=value;
+                                if(downSub.selected){
+                                    valueLabel.text=String(value);
+                                }
                             }
                         }
                         secondaryItem:Row{
                             spacing: Material.Units.dp(16)
                             anchors.verticalCenter: parent.verticalCenter
                             Material.Label{id:valueLabel;
-                                text:String(root.condition[downSub.num]).search(".")?Number(root.condition[downSub.num]).toFixed(1):
-                                                                                      root.condition[downSub.num];
-                            onTextChanged: console.log(text)
+                                text:String(root.condition[downSub.num]);
                             }
                             Material.Label{ text:valueType[index] }
                         }
@@ -381,7 +442,6 @@ Item{
             }
         }
         Material.Scrollbar {id:scrollbar;flickableItem:flickable ;
-
             onMovingChanged: {scrollbar.hide.stop();scrollbar.show.start();}
             Component.onCompleted:{scrollbar.hide.stop();scrollbar.show.start();}
         }
@@ -421,5 +481,7 @@ Item{
         for(var i=0;i<listName.length;i++){
             doWork(i,false);
         }
+        //变更限制条件
+        makeNum();
     }
 }

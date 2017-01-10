@@ -10,6 +10,8 @@ Dialog{
     signal openText(int index,string text)
     signal changeFocus(int index)
     signal changeFocusIndex(int index)
+    signal keysonVolumeDown(int index)
+    signal keysonVolumeUp(int index)
 
     negativeButtonText:qsTr("取消")
     positiveButtonText:qsTr("确定")
@@ -30,6 +32,17 @@ Dialog{
             changeFocus(focusIndex);
         }
     }
+    Keys.onVolumeDownPressed: {
+        if(focusIndex<(repeaterModel.length-1)){
+            keysonVolumeDown(focusIndex);
+        }
+    }
+    Keys.onVolumeUpPressed: {
+        if(focusIndex<(repeaterModel.length-1)){
+            keysonVolumeUp(focusIndex);
+        }
+    }
+
     Column{
         Repeater{
             id:repeater
@@ -59,7 +72,6 @@ Dialog{
                             root.changeFocusIndex(index)
                         }
                     }
-
                     horizontalAlignment:TextInput.AlignHCenter
                     width: Units.dp(60)
                     inputMethodHints: Qt.ImhDigitsOnly

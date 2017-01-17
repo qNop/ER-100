@@ -8,7 +8,7 @@ flatMath::~flatMath(){
 
 }
 
-float *array(float *oldData,int num){
+float *arrayFlat(float *oldData,int num){
     int length=sizeof(oldData)/sizeof(oldData[0]);
     if(num>length){
         delete oldData;
@@ -19,7 +19,7 @@ float *array(float *oldData,int num){
 }
 
 //输入参数解析 hused 已经使用的高度 sused已经使用的面积 s当前层面积 p 顿边 rootGap 根部间隙
-float getFloorHeight(FloorCondition *pF,float leftAngel,float rightAngel,float hused,float sused,float *s,float p,float rootGap){
+float getFlatFloorHeight(FloorCondition *pF,float leftAngel,float rightAngel,float hused,float sused,float *s,float p,float rootGap){
     if(pF->name=="ceramicBackFloor"){
         //陶瓷衬垫 的面积计算
         *s-=GET_CERAMICBACK_AREA(rootGap,1.5);
@@ -122,7 +122,7 @@ int flatMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *w
     if(*weldFill>pF->maxFillMetal){
         weldNum+=1;
         //数组发生改变则 相应的也要发生改变 防止数组越界；
-        weldFill=array(weldFill,weldNum);
+        weldFill=arrayFlat(weldFill,weldNum);
         solveA(weldFill,pF,weldNum,s);
     }//else {
     //       break;
@@ -136,7 +136,7 @@ int flatMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *w
     if(*(weldFill+weldNum-1)<pF->minFillMetal){
         if(weldNum>1){
             weldNum-=1;
-            weldFill=array(weldFill,weldNum);
+            weldFill=arrayFlat(weldFill,weldNum);
             solveA(weldFill,pF,weldNum,s);
         }}//else{
     //  break;
@@ -175,7 +175,7 @@ int flatMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *w
         }
     }
     //重新计算层高
-    pF->height=getFloorHeight(pF,grooveAngel1,grooveAngel2,*hused,*sused,&s,p,rootGap);
+    pF->height=getFlatFloorHeight(pF,grooveAngel1,grooveAngel2,*hused,*sused,&s,p,rootGap);
     //中线偏移Y
     weldLineY=*weldLineYUesd;
     //迭代中线偏移Y

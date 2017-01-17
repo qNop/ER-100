@@ -18,29 +18,29 @@ QObject* ERModbusEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
-    ERModbus *rootFace=new ERModbus();
-    return rootFace;
+    ERModbus *p=new ERModbus();
+    return p;
 }
 QObject* AppConfigEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
-    AppConfig *rootFace=new AppConfig();
-    return rootFace;
+    AppConfig *p=new AppConfig();
+    return p;
 }
 QObject* SysInforEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
-    SysInfor *rootFace=new SysInfor();
-    return rootFace;
+    SysInfor *p=new SysInfor();
+    return p;
 }
 QObject* WeldMathEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
-    WeldMath *rootFace=new WeldMath();
-    return rootFace;
+    WeldMath *p=new WeldMath();
+    return p;
 }
 
 int main(int argc, char *argv[])
@@ -49,11 +49,10 @@ int main(int argc, char *argv[])
     qputenv("QT_IM_MODULE", QByteArray("Virtualkeyboard"));
     //显示插件调试信息
    // qputenv("QT_DEBUG_PLUGINS", QByteArray("1"));
-   // AppConfig.language();
-   // QLocale.setDefault();
+    // AppConfig.language();
+    // QLocale.setDefault();
     QApplication app(argc, argv);
-
-  //  qmlRegisterSingletonType<SysInfor>("WeldSys.SysInfor",1,0,"SysInfor",SysInforEngineProvider);
+    //qmlRegisterSingletonType<SysInfor>("WeldSys.SysInfor",1,0,"SysInfor",SysInforEngineProvider);
     qmlRegisterSingletonType<AppConfig>("WeldSys.AppConfig",1,0,"AppConfig",AppConfigEngineProvider);
     qmlRegisterSingletonType<ERModbus>("WeldSys.ERModbus",1,0,"ERModbus",ERModbusEngineProvider);
     qmlRegisterSingletonType<WeldMath>("WeldSys.WeldMath",1,0,"WeldMath",WeldMathEngineProvider);
@@ -61,7 +60,7 @@ int main(int argc, char *argv[])
     QQmlApplicationEngine engine;
 
     engine.setOfflineStoragePath(".");
-     qDebug()<<engine.offlineStoragePath();
+    qDebug()<<engine.offlineStoragePath();
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     return app.exec();
 }

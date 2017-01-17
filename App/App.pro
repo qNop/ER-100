@@ -1,6 +1,6 @@
 TEMPLATE = app
 
-QT += qml quick core widgets sql serialport charts
+QT +=  quick sql serialport  widgets
 
 #CONFIG+=staticlib
 
@@ -12,11 +12,11 @@ SOURCES += main.cpp \
     WeldAPI/AppConfig.cpp \
     WeldAPI/SysInfor.cpp \
     WeldAPI/weldmath.cpp \
-    WeldAPI/verticalmath.cpp \
-    WeldAPI/flatmath.cpp \
-    WeldAPI/horizontalmath.cpp \
-    WeldAPI/filletmath.cpp \
-    #WeldAPI/SysMath.cpp
+   # WeldAPI/verticalmath.cpp \
+   #WeldAPI/flatmath.cpp \
+   # WeldAPI/horizontalmath.cpp \
+   #WeldAPI/filletmath.cpp \
+    WeldAPI/SysMath.cpp
 
 
 RESOURCES += \
@@ -44,11 +44,11 @@ HEADERS += \
     WeldAPI/AppConfig.h \
     WeldAPI/SysInfor.h \
     WeldAPI/weldmath.h \
-    WeldAPI/verticalmath.h \
-    WeldAPI/flatmath.h \
-    WeldAPI/horizontalmath.h \
-    WeldAPI/filletmath.h \
- #WeldAPI/SysMath.h
+    #WeldAPI/verticalmath.h \
+   # WeldAPI/flatmath.h \
+   # WeldAPI/horizontalmath.h \
+   # WeldAPI/filletmath.h \
+    WeldAPI/SysMath.h
 
 INCLUDEPATH +=libmodbus \
               libmodbus/src \

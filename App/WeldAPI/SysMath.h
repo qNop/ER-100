@@ -21,6 +21,10 @@ public:
     QString weldConnectName;
     //坡口形式 V形坡口 单边V形坡口
     QString GrooveStyleName;
+    //最小电流
+    int currentMin;
+    //最大电流
+    int currentMax;
     //余高
     int reinforcementValue;
     //溶敷系数 *100
@@ -33,6 +37,8 @@ public:
     FloorCondition *fillFloor;
     //盖面层限制条件
     FloorCondition *topFloor;
+    //立板层限制条件
+    FloorCondition *overFloor;
     //陶瓷衬垫
     int ceramicBack;
     //陶瓷衬垫 深度
@@ -62,7 +68,7 @@ public:
     //分道控制 左右分开调节
     bool controlWeld;
     //顿边
-    float p;
+    float rootFace;
     //气体 0co2 1混合气
     bool gasValue;
     //脉冲 0 无脉冲 1 有脉冲

@@ -6,7 +6,6 @@
         <file>SystemInfor.qml</file>
         <file>InputPanel.qml</file>
         <file>TableStyle.qml</file>
-        <file>WeldLine.qml</file>
         <file>../Pic/横焊单边V形坡口T接头.png</file>
         <file>../Pic/横焊单边V形坡口平对接.png</file>
         <file>../Pic/立焊V形坡口平对接.png</file>
@@ -29,7 +28,6 @@
         <file>Table.qml</file>
         <file>LimitedCondition.qml</file>
         <file>MenuDropdown.qml</file>
-        <file>../Pic/公司照片.jpg</file>
         <file>MyNavigationDrawer.qml</file>
         <file>TableCard.qml</file>
         <file>MyList.qml</file>
@@ -39,5 +37,7 @@
         <file>WeldData.qml</file>
         <file>MyTextFieldDialog.qml</file>
         <file>MotoDialog.qml</file>
+        <file>MyConditionView.qml</file>
+        <file>../Pic/logo.png</file>
     </qresource>
 </RCC>

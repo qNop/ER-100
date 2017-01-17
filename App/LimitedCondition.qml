@@ -15,18 +15,26 @@ TableCard {
     ListModel{id:pasteModel;
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:""}
     }
-
+    property bool superUser
     property Item message
     property string limitedRulesName
-    property var nameModel: ["电流前侧","电流中间","电流后侧","端部停止时间前(s)","端部停止时间后(s)","层高Min","层高Max","接近前","接近后","最大摆宽","摆动间隔","分开结束比","焊接电压","焊接速度Min","焊接速度Max","层填充系数"]
-    //脉冲有无
-    property int pulse:255
-    //焊丝种类
-    property int wireType:255
-    //焊丝直径
-    property int wireD:255
-    //气体
-    property int gas:255
+    property var nameModel: [
+        "坡口侧          电流       (A)",
+        "中间              电流       (A)",
+        "非坡口侧      电流       (A)",
+        "坡口侧      停留时间   (s)",
+        "非坡口侧  停留时间   (s)",
+        "层      高      Min     (mm)",
+        "层      高      Max    (mm)",
+        "坡口侧    停留距离(mm)",
+        "非坡口侧停留距离(mm)",
+        "最    大    摆   宽     (mm)",
+        "摆    动    间   隔     (mm)",
+        "分    开    结   束  比   (%)",
+        "焊    接    电     压       (V)",
+        "焊接速度Min  (cm/min)",
+        "焊接速度Max (cm/min)",
+        "层    填    充   系   数 (%)"]
 
     signal changeGasError()
     signal changeWireDError()
@@ -39,6 +47,7 @@ TableCard {
         if((limitedRulesName!=="")&&(typeof(limitedRulesName)==="string")){
             console.log(objectName+"limitedRulesName"+limitedRulesName)
             var res=UserData.getLimitedTableJson(limitedRulesName,index)
+            limitedTable.clear();
             if((typeof(res)==="object")&&(res.length)){
                 for(var i=0;i<res.length;i++){
                     //删除object 里面C11属性
@@ -65,9 +74,41 @@ TableCard {
     onNumChanged: {getTableData(num,4);}
     //规则改变时重新加载限制条件
     onLimitedRulesNameChanged:getTableData(num,4);
+    //显示当前的页脚
+    onVisibleChanged: {
+        var str;
+        var temp=num;
+        if(visible){
+            if((temp&0x0f)===4){
+                str="焊丝直径为1.2mm/"
+            }else if((temp&0x0f)===6){
+                str="焊丝直径为1.6mm/"
+            }else
+                str="焊丝直径不存在/"
+            temp>>=4;
+            if((temp&0x07)===0){
+                str+="焊丝种类为实芯碳钢/"
+            }else if((temp&0x07)===4){
+                str+="焊丝种类为药芯碳钢/"
+            }else
+                str+="焊丝种类不存在/"
+            temp>>=3;
+            if((temp&0x01)===0){
+                str+="脉冲无/"
+            }else
+                str+="脉冲有/"
+            temp>>=1;
+            if((temp&0x01)===0){
+                str+="保护气体为CO2/代码"
+            }else
+                str+="保护气体为MAG/代码"
+            str+=String(num);
+            root.footerText=str;
+        }
+    }
 
     function limitedMath(start,end){
-        var resArray=new Array();
+        var resArray=new Array(0);
         var temp;
         for(var i=start;i<end;i++){
             var res=limitedTable.get(i);
@@ -134,15 +175,14 @@ TableCard {
             }else{
                 resArray.push("0")
             }
-
         }
         return resArray;
     }
 
     ListModel{id:limitedTable;}
 
-    firstColumn.title: "    层\\限制参数"
-    footerText:  "参数"
+    firstColumn.title: "限制条件\n      层"
+
     tableRowCount:7
     model:limitedTable
     fileMenu: [
@@ -181,19 +221,24 @@ TableCard {
     inforMenu: [ Action{iconName: "awesome/trash_o";  name:"详细信息" ;
         }]
     funcMenu: [ Action{iconName:"awesome/send_o";name:"更新算法";
-            onTriggered: {WeldMath.setLimited(limitedMath(0,limitedTable.count));}
+            onTriggered: {
+                if(WeldMath.setLimited(limitedMath(0,limitedTable.count)))
+                message.open("更新限制条件成功！")
+                else
+                message.open("限制条件数量不符。更新限制条件失败！")
+            }
         }]
     tableData:[
-        Controls.TableViewColumn{role: "C1";title:"焊接电流\n前/中/后";width:Units.dp(120);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-        Controls.TableViewColumn{role: "C2";title: "停留时间\n   前/后";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
-        Controls.TableViewColumn{role: "C3";title: "    层高    \nMin/Max";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
-        Controls.TableViewColumn{role: "C4";title: "接近坡口\n   前/后";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
-        Controls.TableViewColumn{role: "C5";title: "摆宽\nMax";width:Units.dp(50);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
-        Controls.TableViewColumn{role: "C6";title: "分道\n间隔";width:Units.dp(50);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
-        Controls.TableViewColumn{role: "C7";title: "结束开始\n      比";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-        Controls.TableViewColumn{role: "C8";title: "焊接\n电压";width:Units.dp(50);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-        Controls.TableViewColumn{role: "C9";title: "焊接速度\nMin/Max";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-        Controls.TableViewColumn{role: "C10";title:"  层填充 \n   系数";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+        Controls.TableViewColumn{role: "C1";title:"坡口/中/非坡口\n   焊接电流(A)";width:Units.dp(140);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+        Controls.TableViewColumn{role: "C2";title: "坡口/非坡口\n停留时间(s)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
+        Controls.TableViewColumn{role: "C4";title: "   坡口/非坡口\n停留距离(mm)";width:Units.dp(130);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
+        Controls.TableViewColumn{role: "C3";title: "层高Min/Max\n       (mm)";width:Units.dp(110);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
+        Controls.TableViewColumn{role: "C5";title: "摆宽Max\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
+        Controls.TableViewColumn{role: "C6";title: "分道间隔\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
+        Controls.TableViewColumn{role: "C7";title: "结束开始比\n       (%)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+        Controls.TableViewColumn{role: "C8";title: "焊接电压\n     (V)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+        Controls.TableViewColumn{role: "C10";title:"层填充系数\n       (%)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+        Controls.TableViewColumn{role: "C9";title: "焊接速度Min/Max\n        (cm/min)";width:Units.dp(160);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
     ]
 
     MyTextFieldDialog{

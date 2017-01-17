@@ -65,7 +65,12 @@ void Write_App_Config(QSettings *File){
     File->setValue("YMoto","0");
     File->setValue("ZMoto","0");
 
-    File->setValue("Bottom_Style","0");
+    File->setValue("BottomStyle","0");
+    File->setValue("BottomStyleWidth","8");
+    File->setValue("BottomStyleDeep","1.2");
+    File->setValue("ConnectSyle","0");
+    File->setValue("GrooveStyle","0");
+    File->setValue("WeldDir","0");
 }
 /*
  **********************************************************************************获取配置ini指针
@@ -80,6 +85,8 @@ QSettings *PfromQfile(){
     if(!IsExist){
         qDebug()<<"AppConfig::OPEN FILE FAILED .";
         Write_App_Config(path);
+    }else{
+        qDebug()<<"AppConfig::OPEN FILE OK .";
     }
     return(path);
 }
@@ -105,18 +112,22 @@ AppConfig::AppConfig(){
     swingSpeedValue=File->value("Swing").toInt();
     swingMotoValue=File->value("SwingMoto").toBool();
     xMotoValue=File->value("XMoto").toBool();
-     yMotoValue=File->value("YMoto").toBool();
-      zMotoValue=File->value("ZMoto").toBool();
+    yMotoValue=File->value("YMoto").toBool();
+    zMotoValue=File->value("ZMoto").toBool();
     setbackLight(BacklightValue);
+    connectStyleValue=File->value("ConnectStyle").toInt();
+    grooveStyleValue=File->value("GrooveStyle").toInt();
+    weldDirValue=File->value("WeldDir").toInt();
 }
 AppConfig::~AppConfig(){
+
     qDebug()<<"AppConfig::REMOVE";
 }
 /*
  ************************************************************************************屏幕宽度读写
  */
 
-void AppConfig::setbottomStyle(int value){
+void AppConfig::setBottomStyle(int value){
     File->setValue("BottomStyle",value);
     BottomStyleValue=value;
     qDebug() <<"AppConfig::BottomStyle Changed";
@@ -125,8 +136,33 @@ void AppConfig::setbottomStyle(int value){
 
 int AppConfig::bottomStyle(){
     qDebug() <<"Get AppConfig::BottomStyle";
-      return BottomStyleValue;
+    return BottomStyleValue;
 }
+
+void AppConfig::setBottomStyleDeep(int value){
+    File->setValue("BottomStyleDeep",value);
+    BottomStyleDeepValue=value;
+    qDebug() <<"AppConfig::BottomStyleDeep Changed";
+
+}
+
+int AppConfig::bottomStyleDeep(){
+    qDebug() <<"Get AppConfig::BottomStyle";
+    return BottomStyleDeepValue;
+}
+
+void AppConfig::setBottomStyleWidth(int value){
+    File->setValue("BottomStyleWidth",value);
+    BottomStyleWidthValue=value;
+    qDebug() <<"AppConfig::BottomStyleWidth Changed";
+
+}
+
+int AppConfig::bottomStyleWidth(){
+    qDebug() <<"Get AppConfig::BottomStyle";
+    return BottomStyleWidthValue;
+}
+
 
 int AppConfig::screenWidth(){
     return Screen_Width;
@@ -418,4 +454,29 @@ void AppConfig::setSwingMoto(bool value){
 }
 int AppConfig::swingMoto(){
     return swingMotoValue;
+}
+
+void AppConfig::setWeldDir(int value){
+    File->setValue("WeldDir",value);
+    weldDirValue=value;
+    qDebug() <<"AppConfig::WeldDir Changed";
+}
+int AppConfig::weldDir(){
+    return weldDirValue;
+}
+void AppConfig::setGrooveStyle(int value){
+    File->setValue("GrooveStyle",value);
+    grooveStyleValue=value;
+    qDebug() <<"AppConfig::GrooveStyle Changed";
+}
+int AppConfig::grooveStyle(){
+    return grooveStyleValue;
+}
+int AppConfig::connectStyle(){
+    return connectStyleValue;
+}
+void AppConfig::setConnectStyle(int value){
+    File->setValue("ConnectStyle",value);
+    connectStyleValue=value;
+    qDebug() <<"AppConfig::ConnectStyle Changed";
 }

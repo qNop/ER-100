@@ -66,7 +66,7 @@
 #define  SECOND                                      32
 #define  FILL                                             48
 #define  TOP                                             64
-#define  LAST                                            80
+#define  OVER                                           80
 
 #define  WAVE_SPEED_START_STOP      400        //步进电机起始停止脉冲频率			————120mm/min
 #define  WAVE_SPEED_ACCE_DECE       350        //步进电机加减速（每10个脉冲）
@@ -82,17 +82,18 @@
 #define GET_CERAMICBACK_AREA(WIDTH,DEEP)      qAsin(WIDTH/(2*GET_CERAMICBACK_R(WIDTH,DEEP)))*GET_CERAMICBACK_R(WIDTH,DEEP)*GET_CERAMICBACK_R(WIDTH,DEEP)-WIDTH*(GET_CERAMICBACK_R(WIDTH,DEEP)-DEEP)/2  //qAsin 得到的是弧度 弧度*R为弧长 弧长*R/2为扇形面积。
 
 #define ENABLE_SOLVE_FIRST                              1
-#define CURRENT_COUNT_DEC                            20
+#define CURRENT_COUNT_DEC                            30
 #define CURRENT_COUNT_PLUAS                        20
 #define CURRENT_MAX                                         300
 #define CURRENT_MIN                                         150
+#define CURRENT_P_MIN                                     100
 #define WAVE_MIN_SPEED                                   1200
 #define WAVE_MAX_VERTICAL_SPEED                 1500
 
 #define GET_TRAVELSPEED(COEFFICIENT,WIRE_D,FEEDSPEED,S)                                                               (COEFFICIENT*WIRE_D*FEEDSPEED)/(S*100)
 #define GET_WELDFILL_AREA(COEFFICIENT,WIRE_D,FEEDSPEED,TRAVELSPEED,FILL_COEFFICIENT)      (COEFFICIENT*WIRE_D*FEEDSPEED)/(TRAVELSPEED*100)/FILL_COEFFICIENT
 
-#define GET_VERTICAL_TRAVERLSPEED(COEFFICIENT,WIRE_D,FEEDSPEED,S,SWINGHZ,STAYTIME)   (COEFFICIENT*WIRE_D*FEEDSPEED)/(S*100)
+#define GET_VERTICAL_TRAVERLSPEED(COEFFICIENT,WIRE_D,FEEDSPEED,S,SWINGHZ,STAYTIME)   (COEFFICIENT*WIRE_D*FEEDSPEED*60)/(S*100*SWINGHZ*STAYTIME)
 #define GET_VERTICAL_WELDFILL_AREA(COEFFICIENT,WIRE_D,FEEDSPEED,TRAVELSPEED,FILL_COEFFICIENT,SWINGHZ,STAYTIME)      (COEFFICIENT*WIRE_D*60*FEEDSPEED)/(TRAVELSPEED*SWINGHZ*STAYTIME*100)/FILL_COEFFICIENT
 
 
@@ -105,6 +106,8 @@ struct FloorCondition
     int current_right;
     //电流中间侧
     int current_middle;
+    //电压
+    float voltage;
     //层高限制
     float maxHeight;
     //层高最小限制
@@ -134,9 +137,9 @@ struct FloorCondition
     //最小填充量
     float minFillMetal;
     //最大摆动频率
-    float maxSwingHz;
+  //  float maxSwingHz;
     //最小摆动频率
-    float minSwingHz;
+//    float minSwingHz;
     //最大焊接速度
     float maxWeldSpeed;
     //最小焊接速度

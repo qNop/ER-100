@@ -1,10 +1,15 @@
 [General]
 BackLight=25
-BottomStyle=1
+BottomStyle=2
+BottomStyleDeep=1.5
+BottomStyleWidth=10
+ConnectStyle=1
+ConnectSyle=0
 Current_Groove=1
 Current_User_Name=TKSW
 Current_User_PassWord=TKSW
 Current_User_Type=\x8d85\x7ea7\x7528\x6237
+GrooveStyle=1
 Language=EN
 Last_User=User
 Screen_Height=480
@@ -18,6 +23,7 @@ SwingMoto=1
 Theme_AccentColor=#e91e63
 Theme_BackgroundColor=white
 Theme_PrimaryColor=#ffeb3b
+WeldDir=0
 X=200
 XMoto=1
 Y=200

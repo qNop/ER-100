@@ -16,6 +16,8 @@ TableCard{
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "GrooveCheck"
 
+    property int currentGroove;
+
     property Item message
     property string helpText;
     //坡口列表名称
@@ -61,123 +63,123 @@ TableCard{
             update();
         }
     }
-        headerTitle: currentGrooveName+"坡口参数"
-        footerText:  status==="坡口检测态"?"系统当前处于"+status.replace("态","状态。高压输出！"):"系统当前处于"+status.replace("态","状态。")
-        tableRowCount:7
-        fileMenu: [
-            Action{iconName:"av/playlist_add";name:"新建";
-                onTriggered: {newFile.show()}},
-            //newFile.show();},
-            Action{iconName:"awesome/folder_open_o";name:"打开";
-                onTriggered: open.show();},
-            Action{iconName:"awesome/save";name:"保存";
-                onTriggered: {
-                    if(typeof(currentGrooveName)==="string"){
-                        //清除保存数据库
-                        UserData.clearTable(currentGrooveName,"","");
-                        for(var i=0;i<table.rowCount;i++){
-                            //插入新的数据
-                            UserData.insertTable(currentGrooveName,"(?,?,?,?,?,?,?,?,?)",[
-                                                     model.get(i).ID,
-                                                     model.get(i).C1,
-                                                     model.get(i).C2,
-                                                     model.get(i).C3,
-                                                     model.get(i).C4,
-                                                     model.get(i).C5,
-                                                     model.get(i).C6,
-                                                     model.get(i).C7,
-                                                     model.get(i).C8])}
-                        //更新数据库保存时间
-                        UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"EditTime",UserData.getSysTime())
-                        //更新数据库保存
-                        UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"Editor",AppConfig.currentUserName)
-                        message.open("坡口参数已保存。");
-                    }else{
-                        message.open("坡口名称格式不是字符串！")
-                    }
-                }},
-            Action{iconName:"awesome/trash_o";name:"删除";enabled: grooveName===currentGrooveName?false:true
-                onTriggered: remove.show();}
-        ]
-        editMenu:[
-            Action{iconName:"awesome/calendar_plus_o";onTriggered: add.show();name:"添加"},
-            Action{iconName:"awesome/edit";onTriggered: edit.show();name:"编辑";},
-            Action{iconName:"awesome/paste";name:"复制";
-                onTriggered: {
-                    if(currentRow>=0){
-                        pasteModel.set(0,model.get(currentRow));
-                        message.open("已复制。");}
-                    else{
-                        message.open("请选择要复制的行！")
-                    }
-                }},
-            Action{iconName:"awesome/copy"; name:"粘帖";
-                onTriggered: {
-                    if(currentRow>=0){
-                        updateModel("Set", pasteModel.get(0));
-                        selectIndex(currentRow)
-                        message.open("已粘帖。");}
-                    else
-                        message.open("请选择要粘帖的行！")
+    headerTitle: currentGrooveName+"坡口参数"
+    footerText:  status==="坡口检测态"?"系统当前处于"+status.replace("态","状态。高压输出！"):"系统当前处于"+status.replace("态","状态。")
+    tableRowCount:7
+    fileMenu: [
+        Action{iconName:"av/playlist_add";name:"新建";
+            onTriggered: {newFile.show()}},
+        //newFile.show();},
+        Action{iconName:"awesome/folder_open_o";name:"打开";
+            onTriggered: open.show();},
+        Action{iconName:"awesome/save";name:"保存";
+            onTriggered: {
+                if(typeof(currentGrooveName)==="string"){
+                    //清除保存数据库
+                    UserData.clearTable(currentGrooveName,"","");
+                    for(var i=0;i<table.rowCount;i++){
+                        //插入新的数据
+                        UserData.insertTable(currentGrooveName,"(?,?,?,?,?,?,?,?,?)",[
+                                                 model.get(i).ID,
+                                                 model.get(i).C1,
+                                                 model.get(i).C2,
+                                                 model.get(i).C3,
+                                                 model.get(i).C4,
+                                                 model.get(i).C5,
+                                                 model.get(i).C6,
+                                                 model.get(i).C7,
+                                                 model.get(i).C8])}
+                    //更新数据库保存时间
+                    UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"EditTime",UserData.getSysTime())
+                    //更新数据库保存
+                    UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"Editor",AppConfig.currentUserName)
+                    message.open("坡口参数已保存。");
+                }else{
+                    message.open("坡口名称格式不是字符串！")
                 }
-            },
-            Action{iconName: "awesome/calendar_times_o";  name:"移除" ;
-                onTriggered: {
-                    if(currentRow>=0){
-                        updateModel("Remove",{})
-                        message.open("已移除。");}
-                    else
-                        message.open("请选择要移除的行！")}
-            },
-            Action{iconName:"awesome/calendar_o";name:"清空";
-                onTriggered: {
-                    updateModel("Clear",{});
-                    message.open("已清空。");
-                }}
-        ]
-        inforMenu: [ Action{iconName: "awesome/sticky_note_o";  name:"移除";
-                onTriggered: {}}]
-        funcMenu: [
-            Action{iconName:"awesome/send_o";hoverAnimation:true;summary: "F4"; name:"生成规范";
-                onTriggered:{
-                    if(currentRow>-1){
-                        WeldMath.setGrooveRules([
-                                                    model.get(0).C1,
-                                                    model.get(0).C2,
-                                                    model.get(0).C3,
-                                                    model.get(0).C4,
-                                                    model.get(0).C5,
-                                                    model.get(0).C6,
-                                                    model.get(0).C7,
-                                                    model.get(0).C8
-                                                ]);
-                        message.open("生成焊接规范。");
-                    }else {
-                        message.open("请选择要生成规范的坡口信息。")
-                    }
+            }},
+        Action{iconName:"awesome/trash_o";name:"删除";enabled: grooveName===currentGrooveName?false:true
+            onTriggered: remove.show();}
+    ]
+    editMenu:[
+        Action{iconName:"awesome/calendar_plus_o";onTriggered: add.show();name:"添加"},
+        Action{iconName:"awesome/edit";onTriggered: edit.show();name:"编辑";},
+        Action{iconName:"awesome/paste";name:"复制";
+            onTriggered: {
+                if(currentRow>=0){
+                    pasteModel.set(0,model.get(currentRow));
+                    message.open("已复制。");}
+                else{
+                    message.open("请选择要复制的行！")
                 }
-            },
-            Action{iconName: "av/fast_forward";  name:"移至中线";
-                onTriggered: {
-                    message.open("暂不支持移至中线命令！")
-                }
-            },
-            Action{iconName: "av/fast_forward";  name:"补正参数";
-                onTriggered: {
-                    message.open("暂不支持移至中线命令！")
+            }},
+        Action{iconName:"awesome/copy"; name:"粘帖";
+            onTriggered: {
+                if(currentRow>=0){
+                    updateModel("Set", pasteModel.get(0));
+                    selectIndex(currentRow)
+                    message.open("已粘帖。");}
+                else
+                    message.open("请选择要粘帖的行！")
+            }
+        },
+        Action{iconName: "awesome/calendar_times_o";  name:"移除" ;
+            onTriggered: {
+                if(currentRow>=0){
+                    updateModel("Remove",{})
+                    message.open("已移除。");}
+                else
+                    message.open("请选择要移除的行！")}
+        },
+        Action{iconName:"awesome/calendar_o";name:"清空";
+            onTriggered: {
+                updateModel("Clear",{});
+                message.open("已清空。");
+            }}
+    ]
+    inforMenu: [ Action{iconName: "awesome/sticky_note_o";  name:"移除";
+            onTriggered: {}}]
+    funcMenu: [
+        Action{iconName:"awesome/send_o";hoverAnimation:true;summary: "F4"; name:"生成规范";
+            onTriggered:{
+                if(currentRow>-1){
+                    WeldMath.setGrooveRules([
+                                                model.get(0).C1,
+                                                model.get(0).C2,
+                                                model.get(0).C3,
+                                                model.get(0).C4,
+                                                model.get(0).C5,
+                                                model.get(0).C6,
+                                                model.get(0).C7,
+                                                model.get(0).C8
+                                            ]);
+                    message.open("生成焊接规范。");
+                }else {
+                    message.open("请选择要生成规范的坡口信息。")
                 }
             }
-        ]
-        tableData:[
-            Controls.TableViewColumn{  role:"C1"; title: "板厚 δ\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-            Controls.TableViewColumn{  role:"C2"; title: "板厚差 e\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-            Controls.TableViewColumn{  role:"C3"; title: "间隙 b\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-            Controls.TableViewColumn{  role:"C4"; title: "角度 β1\n  (deg)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-            Controls.TableViewColumn{  role:"C5"; title: "角度 β2\n  (deg)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-            Controls.TableViewColumn{  role:"C6"; title: "中心线 \n X(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:true},
-            Controls.TableViewColumn{  role:"C7"; title: "中心线 \n Y(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:true},
-            Controls.TableViewColumn{  role:"C8"; title: "中心线 \n Z(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:true}
-        ]
+        },
+        Action{iconName: "awesome/server";  name:"参数补正";
+            onTriggered: {
+                fix.show()
+            }
+        },
+        Action{iconName: "av/fast_forward";  name:"移至中线";
+            onTriggered: {
+                message.open("暂不支持移至中线命令！")
+            }
+        }
+    ]
+    tableData:[
+        Controls.TableViewColumn{  role:"C1"; title:currentGroove===8?"脚长 l\n (mm)": "板厚 δ\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+        Controls.TableViewColumn{  role:"C2"; title: "板厚差 e\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:currentGroove!==8?true:false},
+        Controls.TableViewColumn{  role:"C3"; title: "间隙 b\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:currentGroove!==8?true:false},
+        Controls.TableViewColumn{  role:"C4"; title: "角度 β1\n  (deg)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+        Controls.TableViewColumn{  role:"C5"; title: "角度 β2\n  (deg)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+        Controls.TableViewColumn{  role:"C6"; title: "中心线 \n X(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:true},
+        Controls.TableViewColumn{  role:"C7"; title: "中心线 \n Y(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:true},
+        Controls.TableViewColumn{  role:"C8"; title: "中心线 \n Z(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:true}
+    ]
     Dialog{
         id:open
         title:qsTr("打开坡口参数")
@@ -224,7 +226,7 @@ TableCard{
             if(typeof(open.name)==="string"){
                 //名称一样没有变化 则重新刷
                 if(open.name===currentGrooveName){
-                        root.update();
+                    root.update();
                 }else
                     changedCurrentGroove(open.name);
             }
@@ -432,7 +434,6 @@ TableCard{
             }
         ]
     }
-
     Dialog{
         id:edit
         title: qsTr("编辑坡口参数")
@@ -446,7 +447,7 @@ TableCard{
             //复制数据到 editData
             var Index=currentRow;
             if(Index>=0){
-                 pasteModel.set(0,model.get(Index));
+                pasteModel.set(0,model.get(Index));
                 columnRepeater.itemAt(0).text=model.get(Index).ID;
                 columnRepeater.itemAt(1).text=model.get(Index).C1;
                 columnRepeater.itemAt(2).text=model.get(Index).C2;
@@ -483,7 +484,6 @@ TableCard{
                         model:grooveRules
                         delegate:Row{
                             property alias text: textField.text
-
                             spacing: Units.dp(8)
                             Label{text:modelData;anchors.bottom: parent.bottom}
                             TextField{
@@ -494,17 +494,8 @@ TableCard{
                                 inputMethodHints: Qt.ImhDigitsOnly
                                 onTextChanged: {
                                     switch(index){
-                                    case 0:
-                                        if(isNaN(Number(text))===false)
-                                            pasteModel.setProperty(0,"ID",text);
-                                        else{
-                                            text=oldText;
-                                            message.open("请输入数字！");
-                                        }
-                                        break;
-                                    case 1:
-                                        pasteModel.setProperty(0,"C1",text);
-                                        break;
+                                    case 0:pasteModel.setProperty(0,"ID",text);break;
+                                    case 1:pasteModel.setProperty(0,"C1",text);break;
                                     case 2:pasteModel.setProperty(0,"C2",text);break;
                                     case 3:pasteModel.setProperty(0,"C3",text);break;
                                     case 4:pasteModel.setProperty(0,"C4",text);break;
@@ -513,8 +504,6 @@ TableCard{
                                     case 7:pasteModel.setProperty(0,"C7",text);break;
                                     case 8:pasteModel.setProperty(0,"C8",text);break;
                                     }
-                                    oldText=text;
-                                    console.log("oldtext"+oldText)
                                 }
                             }
                         }
@@ -523,6 +512,44 @@ TableCard{
             }
         ]
     }
-
+    Dialog{
+        id:fix
+        title: qsTr("坡口参数补正")
+        negativeButtonText:qsTr("取消")
+        positiveButtonText:qsTr("确定")
+        globalMouseAreaEnabled:false
+        property int selectedIndex: 0
+        signal changeFixSelectedIndex(int index)
+        onChangeFixSelectedIndex:{
+            fix.selectedIndex=index;
+        }
+        dialogContent:Repeater{
+            model:["板厚补正标志:","间隙补正标志:","间隙补正标志:"]
+            delegate: ListItem.Subtitled{
+                id:sub
+                property int subIndex: index
+                text:modelData
+                height:Units.dp(32)
+                selected: index===fix.selectedIndex
+                onPressed:fix.changeFixSelectedIndex(index)
+                secondaryItem: RowLayout{
+                    spacing: Units.dp(12)
+                    anchors.verticalCenter: parent.verticalCenter
+                    Switch{
+                        id:switchButton
+                        Layout.alignment: Qt.AlignVCenter
+                        onClicked: {
+                            fix.changeFixSelectedIndex(sub.subIndex)
+                        }
+                    }
+                    Label{
+                        text:switchButton.checked?"打开":"关闭"
+                        style: "button"
+                        Layout.alignment: Qt.AlignVCenter
+                    }
+                }
+            }
+        }
+    }
 }
 

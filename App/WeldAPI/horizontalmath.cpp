@@ -434,7 +434,6 @@ int horizontalMath::weldMath(){
      <<QString::number(startArcz);
     emit weldRulesChanged(value);
     startArcz=0;
-
     /**********************************************************************
      * 计算层数
      ************************************************************************/

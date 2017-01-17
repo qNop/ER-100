@@ -5,50 +5,16 @@
 //weldMath
 WeldMath::WeldMath()
 {
-    //meltingCoefficientValue=105;
-    connect(&flat,SIGNAL(weldRulesChanged(QStringList )),this,SLOT(setWeldRules(QStringList )));
-    connect(&horizontal,SIGNAL(weldRulesChanged(QStringList )),this,SLOT(setWeldRules(QStringList )));
-    connect(&vertical,SIGNAL(weldRulesChanged(QStringList )),this,SLOT(setWeldRules(QStringList )));
-    flat.meltingCoefficientValue=105;
-    vertical.meltingCoefficientValue=105;
-    horizontal.meltingCoefficientValue=100;
-    fillet.meltingCoefficientValue=0.98;
-    flat.p=0;
-    vertical.rootFace=0;
-    horizontal.rootFace=0;
-    fillet.rootFace=0;
+    connect(&sysMath,SIGNAL(weldRulesChanged(QStringList )),this,SLOT(setWeldRules(QStringList )));
+    sysMath.rootFace=0;
 }
 
 void WeldMath::setReinforcement(int value){
-    switch (grooveValue) {
-    case 0:
-    case 1:
-    case 2: flat.reinforcementValue=value; break;
-    case 3:
-    case 4: horizontal.reinforcementValue=value; break;
-    case 5:
-    case 6:
-    case 7: vertical.reinforcementValue=value; break;
-    case 8: fillet.reinforcementValue=value;break;
-    default:
-        break;
-    }
+    sysMath.reinforcementValue=value;
 }
 
 void WeldMath::setMeltingCoefficient(int value){
-    switch (grooveValue) {
-    case 0:
-    case 1:
-    case 2: flat.meltingCoefficientValue=value; break;
-    case 3:
-    case 4: horizontal.meltingCoefficientValue=value; break;
-    case 5:
-    case 6:
-    case 7: vertical.meltingCoefficientValue=value; break;
-    case 8: fillet.meltingCoefficientValue=value;break;
-    default:
-        break;
-    }
+    sysMath.meltingCoefficientValue=value;
 }
 
 void WeldMath::setWeldRules(QStringList value){
@@ -58,188 +24,81 @@ void WeldMath::setWeldRules(QStringList value){
 void WeldMath::setGrooveRules(QStringList value){
     qDebug()<<"WeldMath::setGrooveRules "<<value;
     //数组有效
-    switch (grooveValue) {
-    case 0:
-    case 1:
-    case 2:
-        emit  updateWeldMathChanged();
-        flat.bottomFloor=flat.ceramicBack==1?&bottomFloor0:&bottomFloor;
-        //如果发生计算错误则 抛出错误 提示。
-        if(flat.setGrooveRules(value)==-1){
-            value.clear();
-            value<<flat.status;
-            emit weldRulesChanged(value);
-        }
-        break;
-    case 3:
-    case 4:
-        horizontal.bottomFloor=horizontal.ceramicBack==1?&bottomFloor0:&bottomFloor;
-        horizontal.setGrooveRules(value); break;
-    case 5:
-    case 6:
-    case 7:
-        vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;
-        vertical.setGrooveRules(value); break;
-    case 8:
-        fillet.setGrooveRules(value);break;
-    default:
-        break;
+    //emit  updateWeldMathChanged();
+    //sysMath.bottomFloor=sysMath.ceramicBack==1?&bottomFloor0:&bottomFloor;
+    if(sysMath.setGrooveRules(value)==-1){
+        value.clear();
+        value<<sysMath.status;
+        emit weldRulesChanged(value);
     }
 }
 
 void WeldMath::setCeramicBack(int value){
     qDebug()<<"WeldMath::setCeramicBack"<<value;
-    //数组有效
-    switch (grooveValue) {
-    case 0:
-    case 1:
-    case 2:flat.ceramicBack=value; break;
-    case 3:
-    case 4: horizontal.ceramicBack=value; break;
-    case 5:
-    case 6:
-    case 7:vertical.ceramicBack=value; break;
-    case 8:break;
-    default:
-        break;
-    }
+    sysMath.ceramicBack=value;
 }
 
 void WeldMath::setGas(int value){
-    switch (grooveValue) {
-    case 0:
-    case 1:
-    case 2:flat.gasValue=value; break;
-    case 3:
-    case 4: horizontal.gasValue=value; break;
-    case 5:
-    case 6:
-    case 7:vertical.gasValue=value; break;
-    case 8:fillet.gasValue=value;break;
-    default:
-        break;
-    }
+    sysMath.gasValue=value;
 }
 void WeldMath::setPulse(int value){
-    switch (grooveValue) {
-    case 0:
-    case 1:
-    case 2:flat.pulseValue=value; break;
-    case 3:
-    case 4: horizontal.pulseValue=value; break;
-    case 5:
-    case 6:
-    case 7:vertical.pulseValue=value; break;
-    case 8:fillet.pulseValue=value;break;
-    default:
-        break;
-    }
+    sysMath.pulseValue=value;
 }
 
 void WeldMath::setWireType(int value){
-    switch (grooveValue) {
-    case 0:
-    case 1:
-    case 2: flat.wireTypeValue=value; break;
-    case 3:
-    case 4: horizontal.wireTypeValue=value; break;
-    case 5:
-    case 6:
-    case 7: vertical.wireTypeValue=value; break;
-    case 8: fillet.wireTypeValue=value;break;
-    default:
-        break;
-    }
+    sysMath.wireTypeValue=value;
 }
 
 void WeldMath::setWireD(int value){
-    switch (grooveValue) {
-    case 0:
-    case 1:
-    case 2: flat.wireDValue=value; break;
-    case 3:
-    case 4: horizontal.wireDValue=value; break;
-    case 5:
-    case 6:
-    case 7: vertical.wireDValue=value; break;
-    case 8: fillet.wireDValue=value;break;
-    default:
-        break;
-    }
+    sysMath.wireDValue=value;
 }
 
 void WeldMath::setGrooveDir(bool value){
-    switch (grooveValue) {
-    case 0:
-    case 1:
-    case 2: flat.grooveDirValue=value; break;
-    case 3:
-    case 4: horizontal.grooveDirValue=value; break;
-    case 5:
-    case 6:
-    case 7: vertical.grooveDirValue=value; break;
-    case 8: break;
-    default:
-        break;
+    sysMath.grooveDirValue=value;
+}
+/*
+     "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接",  "平焊V形坡口平对接",
+    "横焊单边V形坡口T接头",  "横焊单边V形坡口平对接",
+    "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接",
+    "水平角焊" ]
+    */
+void WeldMath::setGroove(int value){
+    grooveValue=value;
+    switch (value) {
+    case 0:sysMath.weldDirName="平焊";sysMath.weldConnectName="T接头";sysMath.GrooveStyleName="单边V形坡口";break;
+    case 1:sysMath.weldDirName="平焊";sysMath.weldConnectName="平对接";sysMath.GrooveStyleName="单边V形坡口";break;
+    case 2:sysMath.weldDirName="平焊";sysMath.weldConnectName="平对接";sysMath.GrooveStyleName="V形坡口";break;
+    case 3:sysMath.weldDirName="横焊";sysMath.weldConnectName="T接头";sysMath.GrooveStyleName="单边V形坡口";break;
+    case 4:sysMath.weldDirName="横焊";sysMath.weldConnectName="平对接";sysMath.GrooveStyleName="单边V形坡口";break;
+    case 5:sysMath.weldDirName="立焊";sysMath.weldConnectName="T接头";sysMath.GrooveStyleName="单边V形坡口";break;
+    case 6:sysMath.weldDirName="立焊";sysMath.weldConnectName="平对接";sysMath.GrooveStyleName="单边V形坡口";break;
+    case 7:sysMath.weldDirName="立焊";sysMath.weldConnectName="平对接";sysMath.GrooveStyleName="V形坡口";break;
+    case 8:sysMath.weldDirName="水平角焊";sysMath.weldConnectName="无";sysMath.GrooveStyleName="无";break;
     }
 }
 
-void WeldMath::setGroove(int value){
-    grooveValue=value;
+void WeldMath::setGrooveStyle(int value){
+        sysMath.GrooveStyleName=value?"V形坡口":"单边V形坡口";
+}
+void WeldMath::setWeldDir(int value){
+        sysMath.weldDirName=value==0?"平焊":value==1?"横焊":value==2?"立焊":"水平角焊";
+}
+void WeldMath::setConnectStyle(int value){
+        sysMath.weldConnectName=value?"平对接":"T接头";
 }
 
 int WeldMath::getFeedSpeed(int current){
-    int res=0;
-    switch (grooveValue) {
-    case 0:
-    case 1:
-    case 2: res=flat.getFeedSpeed(current); break;
-    case 3:
-    case 4: res=horizontal.getFeedSpeed(current); break;
-    case 5:
-    case 6:
-    case 7:res=vertical.getFeedSpeed(current);break;
-    case 8: res=fillet.getFeedSpeed(current); break;
-    default:
-        break;
-    }
-    return  res;
+    return  sysMath.getFeedSpeed(current);
 }
 
 float WeldMath::getWeldArea(int current, float weldSpeed,float k,float met){
     float res=0;
-    switch (grooveValue) {
-    case 0:
-    case 1:
-    case 2: flat.weldWireSquare=(flat.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4; res=met*(flat.getFeedSpeed(current)*flat.weldWireSquare)/(weldSpeed*10)/k; break;
-    case 3:
-    case 4: horizontal.weldWireSquare=(horizontal.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4; res=met*(horizontal.getFeedSpeed(current)*horizontal.weldWireSquare)/(weldSpeed*10)/k;break;
-    case 5:
-    case 6:
-    case 7: vertical.weldWireSquare=(vertical.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4; res=(vertical.getFeedSpeed(current)*vertical.weldWireSquare)/(weldSpeed*10)/k;break;
-    case 8: fillet.weldWireSquare=(fillet.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4; res=(fillet.getFeedSpeed(current)*fillet.weldWireSquare)/(weldSpeed*10)/k; break;
-    default:
-        break;
-    }
     return  res;
 }
 
 float WeldMath::getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed){
-    float res=0;
-    switch (grooveValue) {
-    case 0: break;
-    case 1: break;
-    case 2: flat.getSwingSpeed(swing,swingLeftStayTime,swingRightStayTime,weldSpeed*10,maxSpeed); break;
-    case 3: break;
-    case 4: break;
-    case 5: break;
-    case 6: break;
-    case 7: break;
-    case 8:break;
-    default:
-        break;
-    }
-    return  res;
+    float swingHz=0;
+    return  sysMath.getSwingSpeed(swing,swingLeftStayTime,swingRightStayTime,weldSpeed*10,maxSpeed,&swingHz);
 }
 //获取 高度 底面宽度 mm 角度0.1度且均为正值 电流A 行走速度cm/min ba 是底部矩形高度
 float WeldMath::getWeldHeight(float deep,float bottomWidth, float leftAngel, float rightAngel, int current, float weldSpeed, float k, float met)
@@ -254,7 +113,7 @@ float WeldMath::getWeldHeight(float deep,float bottomWidth, float leftAngel, flo
     return h;
 }
 
-void WeldMath::setLimited(QStringList value){
+bool WeldMath::setLimited(QStringList value){
     qDebug()<<"WeldMath::setLimited value "<<value<<value.length();
     if(value.length()>=80){
         bottomFloor0.name="ceramicBackFloor";
@@ -275,6 +134,7 @@ void WeldMath::setLimited(QStringList value){
         bottomFloor0.maxWeldSpeed=value.at(BOTTOM_0+MAX_SPEED).toFloat();
         bottomFloor0.minWeldSpeed=value.at(BOTTOM_0+MIN_SPEED).toFloat();
         bottomFloor0.fillCoefficient=value.at(BOTTOM_0+FILL_COE).toFloat();
+        bottomFloor0.voltage=value.at(BOTTOM_0+VOLTAGE).toFloat();
         bottomFloor0.current=bottomFloor0.current_left;
         //底层限制条件 选取电流中间侧
         bottomFloor.name="bottomFloor";
@@ -296,6 +156,7 @@ void WeldMath::setLimited(QStringList value){
         bottomFloor.minWeldSpeed=value.at(BOTTOM_1+MIN_SPEED).toFloat();
         bottomFloor.fillCoefficient=value.at(BOTTOM_1+FILL_COE).toFloat();
         bottomFloor.current=bottomFloor.current_left;
+        bottomFloor.voltage=value.at(BOTTOM_1+VOLTAGE).toFloat();
         //第二层限制条件
         secondFloor.name="secondFloor";
         secondFloor.current_left=value.at(SECOND+CURRENT-1).toFloat();
@@ -317,6 +178,7 @@ void WeldMath::setLimited(QStringList value){
         secondFloor.current=secondFloor.current_left;
         secondFloor.maxWeldSpeed=value.at(SECOND+MAX_SPEED).toFloat();
         secondFloor.minWeldSpeed=value.at(SECOND+MIN_SPEED).toFloat();
+        secondFloor.voltage=value.at(SECOND+VOLTAGE).toFloat();
         //填充层限制条件
         fillFloor.name="fillFloor";
         fillFloor.current_left=value.at(FILL+CURRENT-1).toFloat();
@@ -337,6 +199,7 @@ void WeldMath::setLimited(QStringList value){
         fillFloor.current= fillFloor.current_left;
         fillFloor.maxWeldSpeed=value.at(FILL+MAX_SPEED).toFloat();
         fillFloor.minWeldSpeed=value.at(FILL+MIN_SPEED).toFloat();
+        fillFloor.voltage=value.at(FILL+VOLTAGE).toFloat();
         //表层限制条件
         topFloor.name="topFloor";
         topFloor.current_left=value.at(TOP+CURRENT-1).toFloat();
@@ -351,25 +214,43 @@ void WeldMath::setLimited(QStringList value){
         topFloor.swingLeftStayTime=value.at(TOP+SWING_LEFT_STAYTIME).toFloat();
         topFloor.swingRightStayTime=value.at(TOP+SWING_RIGHT_STAYTIME).toFloat();
         topFloor.totalStayTime=topFloor.swingLeftStayTime+topFloor.swingRightStayTime;
-
         topFloor.totalStayTime=float(qRound(topFloor.totalStayTime*10))/10;
         topFloor.weldSwingSpacing=value.at(TOP+SWING_SPACING).toFloat();
         topFloor.fillCoefficient=value.at(TOP+FILL_COE).toFloat();;
         topFloor.maxWeldSpeed=value.at(TOP+MAX_SPEED).toFloat();
         topFloor.minWeldSpeed=value.at(TOP+MIN_SPEED).toFloat();
+        topFloor.voltage=value.at(TOP+VOLTAGE).toFloat();
 
-        switch (grooveValue) {
-        case 0:flat.bottomFloor=flat.ceramicBack==1?&bottomFloor0:&bottomFloor;flat.secondFloor=&secondFloor;flat.fillFloor=&fillFloor;flat.topFloor=&topFloor; break;
-        case 1:flat.bottomFloor=flat.ceramicBack==1?&bottomFloor0:&bottomFloor;flat.secondFloor=&secondFloor;flat.fillFloor=&fillFloor;flat.topFloor=&topFloor; break;
-        case 2:flat.bottomFloor=flat.ceramicBack==1?&bottomFloor0:&bottomFloor;flat.secondFloor=&secondFloor;flat.fillFloor=&fillFloor;flat.topFloor=&topFloor; break;
-        case 3:horizontal.bottomFloor=horizontal.ceramicBack==1?&bottomFloor0:&bottomFloor;horizontal.secondFloor=&secondFloor;horizontal.fillFloor=&fillFloor;horizontal.topFloor=&topFloor;  break;
-        case 4:horizontal.bottomFloor=horizontal.ceramicBack==1?&bottomFloor0:&bottomFloor;horizontal.secondFloor=&secondFloor;horizontal.fillFloor=&fillFloor;horizontal.topFloor=&topFloor; break;
-        case 5:vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
-        case 6:vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
-        case 7:vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
-        case 8:vertical.bottomFloor=vertical.ceramicBack==1?&bottomFloor0:&bottomFloor;vertical.secondFloor=&secondFloor;vertical.fillFloor=&fillFloor;vertical.topFloor=&topFloor; break;
-        default:
-            break;
+        if(value.length()>80){
+            //立板层限制条件
+            overFloor.name="overFloor";
+            overFloor.current_left=value.at(OVER+CURRENT-1).toFloat();
+            overFloor.current_middle=value.at(OVER+CURRENT).toFloat();
+            overFloor.current_right=value.at(OVER+CURRENT+1).toFloat();
+            overFloor.maxHeight=value.at(OVER+MAX_HEIGHT).toFloat();
+            overFloor.minHeight=value.at(OVER+MIN_HEIGHT).toFloat();
+            overFloor.k=value.at(OVER+K).toFloat();
+            overFloor.maxSwingLength=value.at(OVER+MAX_SWING_LENGTH).toFloat();
+            overFloor.swingLeftLength=value.at(OVER+SWING_LEFT_LENGTH).toFloat();
+            overFloor.swingRightLength=value.at(OVER+SWING_RIGHT_LENGTH).toFloat();
+            overFloor.swingLeftStayTime=value.at(OVER+SWING_LEFT_STAYTIME).toFloat();
+            overFloor.swingRightStayTime=value.at(OVER+SWING_RIGHT_STAYTIME).toFloat();
+            overFloor.totalStayTime=overFloor.swingLeftStayTime+overFloor.swingRightStayTime;
+
+            overFloor.totalStayTime=float(qRound(overFloor.totalStayTime*10))/10;
+            overFloor.weldSwingSpacing=value.at(OVER+SWING_SPACING).toFloat();
+            overFloor.fillCoefficient=value.at(OVER+FILL_COE).toFloat();;
+            overFloor.maxWeldSpeed=value.at(OVER+MAX_SPEED).toFloat();
+            overFloor.minWeldSpeed=value.at(OVER+MIN_SPEED).toFloat();
+            overFloor.voltage=value.at(OVER+VOLTAGE).toFloat();
+            sysMath.overFloor=&overFloor;
         }
-    }
+
+        sysMath.bottomFloor=sysMath.ceramicBack==1?&bottomFloor0:&bottomFloor;
+        sysMath.secondFloor=&secondFloor;
+        sysMath.fillFloor=&fillFloor;
+        sysMath.topFloor=&topFloor;
+    }else
+        return false;
+    return true;
 }

@@ -12,6 +12,7 @@
 #include "flatmath.h"
 #include "horizontalmath.h"
 #include "filletmath.h"
+#include "SysMath.h"
 
 class WeldMath:public QObject
 {
@@ -28,17 +29,19 @@ private:
     FloorCondition fillFloor;
     //盖面层限制条件
     FloorCondition topFloor;
+    //顶层限制条件
+    FloorCondition overFloor;
 
-    verticalMath vertical;
-
-    flatMath  flat;
-
-    horizontalMath horizontal;
-
-    filletMath fillet;
+    SysMath sysMath;
 
     int grooveValue;
 public slots:
+    //设置焊接位置
+    void setWeldDir(int value);
+    //设置坡口形式
+    void setGrooveStyle(int value);
+    //设置链接方式
+    void setConnectStyle(int value);
     //设置余高
     void setReinforcement(int value);
     //溶敷系数
@@ -60,7 +63,7 @@ public slots:
     //设置坡口侧非坡口侧  陶瓷衬垫起弧时必须在坡口侧
     void setGrooveDir(bool value);
     //设置限制条件
-    void setLimited(QStringList value);
+    bool setLimited(QStringList value);
     //设置坡口
     void setGroove(int value);
     //根据电流获取送丝速度

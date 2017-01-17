@@ -39,6 +39,7 @@ Dialog{
     }
     Keys.onVolumeUpPressed: {
         if(focusIndex<(repeaterModel.length-1)){
+
             keysonVolumeUp(focusIndex);
         }
     }

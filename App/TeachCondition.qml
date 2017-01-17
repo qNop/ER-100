@@ -7,402 +7,526 @@ import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as QuickControls
 import QtQuick.LocalStorage 2.0
 import QtQuick.Window 2.2
-/*
-  * 寄存器地址 100~120
-  */
-FocusScope {
+
+MyConditionView{
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "TeachCondition"
-    anchors{
-        left:parent.left
-        top:parent.top
-        bottom: parent.bottom
-        leftMargin:visible?0:Material.Units.dp(250)
-    }
-   width:parent.width
-    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
-    property var repeaterModel:[0,0,0,300,2,-10,-10]
-    property var listName: [qsTr("示教模式:"),qsTr("始终端检测:"),qsTr("示教第一点位置:"),qsTr("示教点数:"),qsTr("焊接长度:"),qsTr("坡口检测点左:"),qsTr("坡口检测点右:")]
-    property var teachmodemodel: ["自动","半自动","手动"];
-    property var startendcheckmodel:["自动","手动"]
+    condition: new Array(listName.length)
+    titleName: qsTr("示教条件");
+    property var teachmodemodel: ["全自动","半自动","手动"];
+    property var teachmodeEnable: [true,true,true]
+    property var startendcheckmodel:["自动","手动"];
+    property var startendcheckEnable: [true,true]
     property var teachfisrtpointmodel: ["左方","右方"];
-    property var fixmodel:["打开","关闭"]
-
-    //当前选中行
-    property int selectedIndex:0
-
-    signal changeSelectedIndex(int value);
-
-    QuickControls.ExclusiveGroup { id: teachmodegroup; onCurrentChanged:
-            ERModbus.setmodbusFrame(["W","100","1",current.text ==="自动"?"0":current.text ==="半自动"?"1":"2"]) }
-    QuickControls.ExclusiveGroup { id: startendcheckgroup;onCurrentChanged:
-            ERModbus.setmodbusFrame(["W","101","1",current.text ==="自动"?"0":"1"]) }
-    QuickControls.ExclusiveGroup { id: teachfisrtpointgroup;onCurrentChanged:
-            ERModbus.setmodbusFrame(["W","102","1",current.text ==="左方"?"0":"1"]) }
-
-    //页面不可见的时候保存数据
-    Material.Card{
-        anchors{ left:parent.left;right:parent.right;top:parent.top;bottom: descriptionCard.top;margins:Material.Units.dp(12)}
-        elevation: 2
-        Material.Label{
-            id:title
-            anchors.left: parent.left
-            anchors.leftMargin: Material.Units.dp(24)
-            height: Material.Units.dp(64)
-            verticalAlignment:Text.AlignVCenter
-            text:qsTr("示教条件");
-            style:"subheading"
-            color: Material.Theme.light.shade(0.87)
-        }
-        Flickable{
-            id:flickable
-            anchors{top:title.bottom;left:parent.left;right:parent.right;bottom:parent.bottom}
-            clip: true
-            contentHeight: column.height
-            Column{
-                id:column
-                anchors{ left:parent.left;right:parent.right;top:parent.top}
-                //示教模式设置
-                ListItem.Subtitled{
-                    id:teachmode
-                    text:qsTr("示教模式:");
-                    height: Material.Units.dp(44)
-                    selected: focus;
-                    Keys.onPressed: {
-                        switch(event.key){
-                        case Qt.Key_Right:
-                            if(teachmodegroup.current){
-                                switch(teachmodegroup.current.text){
-                                case "自动": teachmodegroup.current = teachmoderepeater.itemAt(1);
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,1);break;
-                                case "半自动": teachmodegroup.current = teachmoderepeater.itemAt(2);
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,2);break; }}
-                            event.accepted = true;
-                            break;
-                        case Qt.Key_Left:
-                            if(teachmodegroup.current){
-                                switch(teachmodegroup.current.text){
-                                case "手动": teachmodegroup.current = teachmoderepeater.itemAt(1);
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,1)
-                                    break;
-                                case "半自动": teachmodegroup.current = teachmoderepeater.itemAt(0);
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,0)
-                                    break; }}
-                            event.accepted = true;
-                            break;}}
-                    onClicked:forceActiveFocus();
-                    onSelectedChanged: {
-                        if(selected){descriptionlabel.text="选择全自动、半自动、或手动模式。"; }}
-                    secondaryItem:Row{
-                        anchors.verticalCenter: parent.verticalCenter
-                        Repeater{
-                            id:teachmoderepeater
-                            model:teachmodemodel
-                            delegate:Material.RadioButton{
-                                text:modelData
-                                exclusiveGroup: teachmodegroup
-                                checked: Number(root.repeaterModel[0]) ===index
-                                onClicked: {
-                                    teachmode.forceActiveFocus();
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,index)
-                                }
-                            }
-                        }
-                    }
-                    Component.onCompleted: {forceActiveFocus();}
+    property var teachfisrtpointEnable: [true,true]
+    listValueName:[teachmodemodel,startendcheckmodel,teachfisrtpointmodel]
+    listValueNameEnable: [teachmodeEnable,startendcheckEnable,teachfisrtpointEnable]
+    listName: [qsTr("示教模式"),qsTr("始终端检测"),qsTr("示教第一点位置"),qsTr("示教点数"),qsTr("焊接长度"),
+        qsTr("坡口检测点左"),qsTr("坡口检测点右")]
+    listDescription:[
+        "选择全自动、半自动、或手动模式。",
+        "设定焊接起始、终端的检测是自动或是手动。",
+        "设定第一点从左右哪边开始。",
+        "设定示教点数（1~30点任意）。",
+        "示教点数为1点时,设定至第二点的焊接距离。",
+        "设定左端部的延长、缩短量。",
+        "设定右端部的延长、缩短量。"
+    ]
+    valueType: ["点","mm","mm","mm"]
+    onChangeGroup: {
+        switch(selectedIndex){
+        case 0:
+            changeGroupCurrent(index,flag);
+            if(index===2){//手动
+                changeEnable(1,0,false)//始终端 手动
+                if(root.condition[1]===0){
+                    selectedIndex=1;
+                    changeGroupCurrent(1,false);
+                    selectedIndex=0;
+                    message.open("示教模式为手动时，始终端检测切换为手动。")
                 }
-                //始终端检测
-                ListItem.Subtitled{
-                    id:startendcheck
-                    text:qsTr("焊接起始、终端检测:");
-                    height: Material.Units.dp(44)
-                    KeyNavigation.up: teachmode
-                    KeyNavigation.down: teachfirstpoint
-                    onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text="设定焊接起始、终端的检测是自动或是手动。" :null;
-                    selected: focus;
-                    Keys.onPressed: {
-                        switch(event.key){
-                        case Qt.Key_Right:
-                            if(startendcheckgroup.current){
-                                if(startendcheckgroup.current.text==="自动" ){
-                                    startendcheckgroup.current = startendcheckrepeater.itemAt(1);
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,1,1);
-                                }
-                            }
-                            event.accepted = true;
-                            break;
-                        case Qt.Key_Left:
-                            if(startendcheckgroup.current){
-                                if(startendcheckgroup.current.text==="手动" ){
-                                    startendcheckgroup.current = startendcheckrepeater.itemAt(0);
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,1,0);
-                                }
-                            }
-                            event.accepted = true;
-                            break;}}
-                    secondaryItem:Row{
-                        anchors.verticalCenter: parent.verticalCenter
-                        Repeater{
-                            id:startendcheckrepeater
-                            model:startendcheckmodel
-                            delegate:Material.RadioButton{
-                                text:modelData
-                                checked: Number(root.repeaterModel[1]) ===index
-                                exclusiveGroup: startendcheckgroup
-                                onClicked: {startendcheck.forceActiveFocus()
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,1,index);
-                                }
-                            }}}
-                }
-                //示教第一点位置
-                ListItem.Subtitled{
-                    id:teachfirstpoint
-                    text:qsTr("示教第一点位置:");
-                    height: Material.Units.dp(44)
-                    selected: focus;
-                    KeyNavigation.up: startendcheck
-                    KeyNavigation.down: teachpointnum
-                    Keys.onPressed: {
-                        switch(event.key){
-                        case Qt.Key_Right:
-                            if(teachfisrtpointgroup.current){
-                                if(teachfisrtpointgroup.current.text==="左方" ){
-                                    teachfisrtpointgroup.current = teachfirstpointrepeater.itemAt(1);
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,2,1);
-                                }
-                            }
-                            event.accepted = true;
-                            break;
-                        case Qt.Key_Left:
-                            if(teachfisrtpointgroup.current){
-                                if(teachfisrtpointgroup.current.text==="右方" ){
-                                    teachfisrtpointgroup.current = teachfirstpointrepeater.itemAt(0);
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,2,0);
-                                }
-                            }
-                            event.accepted = true;
-                            break;
-                        }
-                    }
-                    onClicked:forceActiveFocus();
-                    onSelectedChanged: selected? descriptionlabel.text="设定第一点从左右哪边开始。" :null;
-                    secondaryItem:Row{
-                        anchors.verticalCenter: parent.verticalCenter
-                        Repeater{
-                            id:teachfirstpointrepeater
-                            model:teachfisrtpointmodel
-                            delegate:Material.RadioButton{
-                                text:modelData
-                                checked:  Number(root.repeaterModel[2] )===index
-                                exclusiveGroup: teachfisrtpointgroup
-                                onClicked:{
-                                    teachfirstpoint.forceActiveFocus();
-                                    Material.UserData.setValueFromFuncOfTable(root.objectName,2,index);}
-                            }
-                        }
-                    }
-                }
-                //示教点数
-                ListItem.Subtitled{
-                    id:teachpointnum
-                    text:qsTr("示教点数:");
-                    height: Material.Units.dp(44)
-                    KeyNavigation.up: teachfirstpoint
-                    KeyNavigation.down: teachfirstpointtimelength.visible?teachfirstpointtimelength:groovecheckpointleftlength
-                    selected: focus
-                    onSelectedChanged:selected? descriptionlabel.text="设定示教点数（1~10点任意）。" :null;
-                    onClicked:forceActiveFocus();
-                    Keys.onPressed: {
-                        var res;
-                        switch(event.key){
-                        case Qt.Key_VolumeUp:
-                            res= Number(teachpointnumlabel.text)+1
-                            if(res>30) res=30;
-                            teachpointnumlabel.text=res.toString();
-                            Material.UserData.setValueFromFuncOfTable(root.objectName,3,res);
-                            event.accepted = true;
-                            break;
-                        case Qt.Key_VolumeDown:
-                            res= Number(teachpointnumlabel.text)-1
-                            if(res<1) res=1;
-                            teachpointnumlabel.text=res.toString();
-                            Material.UserData.setValueFromFuncOfTable(root.objectName,3,res);
-                            event.accepted = true;
-                            break;
-                        }
-                    }
-                    secondaryItem:Row{
-                        spacing: Material.Units.dp(8)
-                        anchors.verticalCenter: parent.verticalCenter
-                        Material.Label{
-                            id: teachpointnumlabel
-                            text:root.repeaterModel[3]
-                            onTextChanged: ERModbus.setmodbusFrame(["W","103","1",text.toString()])
-                        }
-                        Material.Label{text:"点";}
-                    }
-                }
-                //示教1点时焊接长(mm)
-                ListItem.Subtitled{
-                    id:teachfirstpointtimelength
-                    text:qsTr("焊接长度:");
-                    visible: teachpointnumlabel.text === 1;
-                    height: Material.Units.dp(44)
-                    KeyNavigation.up: teachpointnum
-                    KeyNavigation.down: groovecheckpointleftlength.visible?groovecheckpointleftlength:groovecheckpointleftlength
-                    onSelectedChanged: selected? descriptionlabel.text="示教点数为1点时,设定至第二点的焊接距离。" :null;
-                    onClicked:forceActiveFocus();
-                    Keys.onPressed: {
-                        var res;
-                        switch(event.key){
-                        case Qt.Key_VolumeUp:
-                            res=Number(teachfirstpointtimelengthglabel.text)+2;
-                            if(res>10000) res=10000;
-                            teachfirstpointtimelengthglabel.text=res;
-                            Material.UserData.setValueFromFuncOfTable(root.objectName,4,res);
-                            event.accepted = true;
-                            break;
-                        case Qt.Key_VolumeDown:
-                            if(res<10) res=10;
-                            res=Number(teachfirstpointtimelengthglabel.text)-2;
-                            teachfirstpointtimelengthglabel.text=res;
-                            Material.UserData.setValueFromFuncOfTable(root.objectName,4,res);
-                            event.accepted = true;
-                            break;
-                        }
-                    }
-                    selected: focus
-                    secondaryItem:Row{
-                        spacing: Material.Units.dp(8)
-                        anchors.verticalCenter: parent.verticalCenter
-                        Material.Label{
-                            id: teachfirstpointtimelengthglabel
-                            text:root.repeaterModel[4]
-                            onTextChanged: ERModbus.setmodbusFrame(["W","104","1",text.toString()])
-                        }
-                        Material.Label{text:"(mm)";}
-                    }
-                }
-                //坡口检测点左(mm)
-                ListItem.Subtitled{
-                    id:groovecheckpointleftlength
-                    text:qsTr("坡口检测点左:");
-                    visible:AppConfig.currentUserType==="超级用户";
-                    height: Material.Units.dp(44)
-                    KeyNavigation.up: teachfirstpointtimelength.visible?teachfirstpointtimelength:teachpointnum
-                    KeyNavigation.down: groovecheckpointrightlength
-                    onSelectedChanged: selected? descriptionlabel.text="设定左端部的延长、缩短量。" :null;
-                    onClicked:forceActiveFocus();
-                    Keys.onPressed: {
-                        var res;
-                        switch(event.key){
-                        case Qt.Key_VolumeUp:
-                            res=Number(groovecheckpointleftlengthlabel.text)+1;
-                            if(res>1000) res=1000;
-                            groovecheckpointleftlengthlabel.text=res;
-                            Material.UserData.setValueFromFuncOfTable(root.objectName,5,res);
-                            event.accepted = true;
-                            break;
-                        case Qt.Key_VolumeDown:
-                            if(res<-1000) res=-1000;
-                            res=Number(groovecheckpointleftlengthlabel.text)-1;
-                            groovecheckpointleftlengthlabel.text=res;
-                            Material.UserData.setValueFromFuncOfTable(root.objectName,5,res);
-                            event.accepted = true;
-                            break;
-                        }
-                    }
-                    selected: focus
-                    secondaryItem:Row{
-                        spacing: Material.Units.dp(8)
-                        anchors.verticalCenter: parent.verticalCenter
-                        Material.Label{
-                            id: groovecheckpointleftlengthlabel
-                            text:root.repeaterModel[5]
-                            onTextChanged: ERModbus.setmodbusFrame(["W","105","1",text.toString()])
-                        }
-                        Material.Label{text:"(mm)";}
-                    }
-                }
-                //坡口检测点右(mm)
-                ListItem.Subtitled{
-                    id:groovecheckpointrightlength
-                    text:qsTr("坡口检测点右:");
-                    visible:AppConfig.currentUserType==="超级用户";
-                    height: Material.Units.dp(44)
-                    KeyNavigation.up: groovecheckpointleftlength.visible?groovecheckpointleftlength:null
-                    onClicked:forceActiveFocus();
-                    Keys.onPressed: {
-                        var res;
-                        switch(event.key){
-                        case Qt.Key_VolumeUp:
-                            res=Number(groovecheckpointrightlengthlabel.text)+1;
-                            if(res>1000) res=1000;
-                            groovecheckpointrightlengthlabel.text=res;
-                            Material.UserData.setValueFromFuncOfTable(root.objectName,6,res);
-                            event.accepted = true;
-                            break;
-                        case Qt.Key_VolumeDown:
-                            if(res<-1000) res=-1000;
-                            res=Number(groovecheckpointrightlengthlabel.text)-1;
-                            groovecheckpointrightlengthlabel.text=res;
-                            Material.UserData.setValueFromFuncOfTable(root.objectName,6,res);
-                            event.accepted = true;
-                            break;
-                        }
-                    }
-                    selected: focus
-                    onSelectedChanged: { if(selected){
-                            descriptionlabel.text="设定右端部的延长、缩短量。";
-                        }
-                    }
-                    secondaryItem:Row{
-                        spacing: Material.Units.dp(8)
-                        anchors.verticalCenter: parent.verticalCenter
-                        Material.Label{
-                            id: groovecheckpointrightlengthlabel
-                            text:root.repeaterModel[6]
-                            onTextChanged: ERModbus.setmodbusFrame(["W","106","1",text.toString()])
-                        }
-                        Material.Label{text:"(mm)";}
-                    }
-                }
-            }
-        }
-        Material.Scrollbar {id:scrollbar;flickableItem:flickable ;
-            onMovingChanged: {scrollbar.hide.stop();scrollbar.show.start();}
-            Component.onCompleted:{scrollbar.hide.stop();scrollbar.show.start();}
+            }else
+                changeEnable(1,0,true)
+            break;
+        default :
+            changeGroupCurrent(index,flag);break;
         }
     }
-    Material.Card{
-        id:descriptionCard
-        anchors{
-            left:parent.left
-            right:parent.right
-            bottom: parent.bottom
-            margins: Material.Units.dp(12)
+    onWork: {
+        var frame=new Array(0);
+        frame.push("W");
+        var num=Number(root.condition[index]);
+        switch(index){
+            //示教模式
+        case 0: frame.push("100");frame.push("1");frame.push(String(num));break;
+            //焊接始终端检测
+        case 1:frame.push("101");frame.push("1");frame.push(String(num));break;
+            // 示教第一点位置
+        case 2:frame.push("102");frame.push("1");frame.push(String(num));break;
+            //示教点数
+        case 3:frame.push("103");frame.push("1");frame.push(String(num));break;
+            //焊接长度
+        case 4:frame.push("104");frame.push("1");frame.push(String(num));break;
+            //坡口检测点左
+        case 5:frame.push("105");frame.push("1");frame.push(String(num));break;
+            //坡口检测点右
+        case 6:frame.push("106");frame.push("1");frame.push(String(num));break;
+
+        default:frame.length=0;break;
         }
-        elevation: 2
-        height:Material.Units.dp(110);
-        Column{
-            anchors.fill: parent
-            Material.Label{
-                id:descriptiontitle
-                anchors.left: parent.left
-                anchors.leftMargin: Material.Units.dp(24)
-                height: Material.Units.dp(64)
-                verticalAlignment:Text.AlignVCenter
-                text:qsTr("描述信息");
-                style:"subheading"
-                color: Material.Theme.light.shade(0.87)
-            }
-            Material.Label{
-                id:descriptionlabel
-                anchors.left: parent.left
-                anchors.leftMargin: Material.Units.dp(48)
-            }
+        if(frame.length===4){
+            //下发规范
+            ERModbus.setmodbusFrame(frame)
         }
+        if(flag){
+            //存储数据
+            Material.UserData.setValueFromFuncOfTable(root.objectName,index,num)
+        }
+        console.log(frame)
+        //清空
+        frame.length=0;
+    }
+    onKeyDec:{
+        var num=Number(root.condition[selectedIndex]);
+        switch(index){
+            //焊接长度
+        case 0:num-=1; if(num<0)num=0;break;
+            //示教点数
+        case 1:if(flag)num-=10;else num-=1; if(num<0)num=0;break;
+            //检测点左
+        case 2:if(flag)num-=10;else num-=1; if(num<-1000)num=-1000;break;
+            //检测点右
+        case 3:if(flag)num-=10;else num-=1;if(num<-1000)num=-1000;break;
+        }
+        if(index>=0){
+            //变更显示但是不变更数据
+            changeText(num,true);
+        }
+    }
+    onKeyInc:{
+        var num=Number(root.condition[selectedIndex]);
+        switch(index){
+            //焊接长度
+        case 0:num+=1; if(num>30)num=30;break;
+            //示教点数
+        case 1:if(flag)num+=10;else num+=1; if(num>10000)num=10000;break;
+            //检测点左
+        case 2:if(flag)num+=10;else num+=1; if(num>1000)num=1000;break;
+            //检测点右
+        case 3:if(flag)num+=10;else num+=1; if(num>1000)num=1000;break;
+        }
+        if(index>=0){
+            //变更显示但是不变更数据
+            changeText(num,true);
+        }
+    }
+    Component.onCompleted: {
+        condition=Material.UserData.getValueFromFuncOfTable(objectName,"","");
+        for(var i=0;i<listName.length;i++){
+            work(i,false);
+        }
+        if(root.condition[0]===2)
+            changeEnable(1,0,false)
     }
 }
+
+///*
+//  * 寄存器地址 100~120
+//  */
+//FocusScope {
+//    id:root
+//    /*名称必须要有方便 nav打开后寻找焦点*/
+//    objectName: "TeachCondition"
+//    anchors{
+//        left:parent.left
+//        top:parent.top
+//        bottom: parent.bottom
+//        leftMargin:visible?0:Material.Units.dp(250)
+//    }
+//   width:parent.width
+//    Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
+//    property var repeaterModel:[0,0,0,300,2,-10,-10]
+//    property var listName: [qsTr("示教模式:"),qsTr("始终端检测:"),qsTr("示教第一点位置:"),qsTr("示教点数:"),qsTr("焊接长度:"),qsTr("坡口检测点左:"),qsTr("坡口检测点右:")]
+//    property var teachmodemodel: ["自动","半自动","手动"];
+//    property var startendcheckmodel:["自动","手动"]
+//    property var teachfisrtpointmodel: ["左方","右方"];
+//    property var fixmodel:["打开","关闭"]
+
+//    //当前选中行
+//    property int selectedIndex:0
+
+//    signal changeSelectedIndex(int value);
+
+//    QuickControls.ExclusiveGroup { id: teachmodegroup; onCurrentChanged:
+//            ERModbus.setmodbusFrame(["W","100","1",current.text ==="自动"?"0":current.text ==="半自动"?"1":"2"]) }
+//    QuickControls.ExclusiveGroup { id: startendcheckgroup;onCurrentChanged:
+//            ERModbus.setmodbusFrame(["W","101","1",current.text ==="自动"?"0":"1"]) }
+//    QuickControls.ExclusiveGroup { id: teachfisrtpointgroup;onCurrentChanged:
+//            ERModbus.setmodbusFrame(["W","102","1",current.text ==="左方"?"0":"1"]) }
+
+//    //页面不可见的时候保存数据
+//    Material.Card{
+//        anchors{ left:parent.left;right:parent.right;top:parent.top;bottom: descriptionCard.top;margins:Material.Units.dp(12)}
+//        elevation: 2
+//        Material.Label{
+//            id:title
+//            anchors.left: parent.left
+//            anchors.leftMargin: Material.Units.dp(24)
+//            height: Material.Units.dp(64)
+//            verticalAlignment:Text.AlignVCenter
+//            text:qsTr("示教条件");
+//            style:"subheading"
+//            color: Material.Theme.light.shade(0.87)
+//        }
+//        Flickable{
+//            id:flickable
+//            anchors{top:title.bottom;left:parent.left;right:parent.right;bottom:parent.bottom}
+//            clip: true
+//            contentHeight: column.height
+//            Column{
+//                id:column
+//                anchors{ left:parent.left;right:parent.right;top:parent.top}
+//                //示教模式设置
+//                ListItem.Subtitled{
+//                    id:teachmode
+//                    text:qsTr("示教模式:");
+//                    height: Material.Units.dp(44)
+//                    selected: focus;
+//                    Keys.onPressed: {
+//                        switch(event.key){
+//                        case Qt.Key_Right:
+//                            if(teachmodegroup.current){
+//                                switch(teachmodegroup.current.text){
+//                                case "自动": teachmodegroup.current = teachmoderepeater.itemAt(1);
+//                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,1);break;
+//                                case "半自动": teachmodegroup.current = teachmoderepeater.itemAt(2);
+//                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,2);break; }}
+//                            event.accepted = true;
+//                            break;
+//                        case Qt.Key_Left:
+//                            if(teachmodegroup.current){
+//                                switch(teachmodegroup.current.text){
+//                                case "手动": teachmodegroup.current = teachmoderepeater.itemAt(1);
+//                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,1)
+//                                    break;
+//                                case "半自动": teachmodegroup.current = teachmoderepeater.itemAt(0);
+//                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,0)
+//                                    break; }}
+//                            event.accepted = true;
+//                            break;}}
+//                    onClicked:forceActiveFocus();
+//                    onSelectedChanged: {
+//                        if(selected){descriptionlabel.text="选择全自动、半自动、或手动模式。"; }}
+//                    secondaryItem:Row{
+//                        anchors.verticalCenter: parent.verticalCenter
+//                        Repeater{
+//                            id:teachmoderepeater
+//                            model:teachmodemodel
+//                            delegate:Material.RadioButton{
+//                                text:modelData
+//                                exclusiveGroup: teachmodegroup
+//                                checked: Number(root.repeaterModel[0]) ===index
+//                                onClicked: {
+//                                    teachmode.forceActiveFocus();
+//                                    Material.UserData.setValueFromFuncOfTable(root.objectName,0,index)
+//                                }
+//                            }
+//                        }
+//                    }
+//                    Component.onCompleted: {forceActiveFocus();}
+//                }
+//                //始终端检测
+//                ListItem.Subtitled{
+//                    id:startendcheck
+//                    text:qsTr("焊接起始、终端检测:");
+//                    height: Material.Units.dp(44)
+//                    KeyNavigation.up: teachmode
+//                    KeyNavigation.down: teachfirstpoint
+//                    onClicked:forceActiveFocus();
+//                    onSelectedChanged: selected? descriptionlabel.text="设定焊接起始、终端的检测是自动或是手动。" :null;
+//                    selected: focus;
+//                    Keys.onPressed: {
+//                        switch(event.key){
+//                        case Qt.Key_Right:
+//                            if(startendcheckgroup.current){
+//                                if(startendcheckgroup.current.text==="自动" ){
+//                                    startendcheckgroup.current = startendcheckrepeater.itemAt(1);
+//                                    Material.UserData.setValueFromFuncOfTable(root.objectName,1,1);
+//                                }
+//                            }
+//                            event.accepted = true;
+//                            break;
+//                        case Qt.Key_Left:
+//                            if(startendcheckgroup.current){
+//                                if(startendcheckgroup.current.text==="手动" ){
+//                                    startendcheckgroup.current = startendcheckrepeater.itemAt(0);
+//                                    Material.UserData.setValueFromFuncOfTable(root.objectName,1,0);
+//                                }
+//                            }
+//                            event.accepted = true;
+//                            break;}}
+//                    secondaryItem:Row{
+//                        anchors.verticalCenter: parent.verticalCenter
+//                        Repeater{
+//                            id:startendcheckrepeater
+//                            model:startendcheckmodel
+//                            delegate:Material.RadioButton{
+//                                text:modelData
+//                                checked: Number(root.repeaterModel[1]) ===index
+//                                exclusiveGroup: startendcheckgroup
+//                                onClicked: {startendcheck.forceActiveFocus()
+//                                    Material.UserData.setValueFromFuncOfTable(root.objectName,1,index);
+//                                }
+//                            }}}
+//                }
+//                //示教第一点位置
+//                ListItem.Subtitled{
+//                    id:teachfirstpoint
+//                    text:qsTr("示教第一点位置:");
+//                    height: Material.Units.dp(44)
+//                    selected: focus;
+//                    KeyNavigation.up: startendcheck
+//                    KeyNavigation.down: teachpointnum
+//                    Keys.onPressed: {
+//                        switch(event.key){
+//                        case Qt.Key_Right:
+//                            if(teachfisrtpointgroup.current){
+//                                if(teachfisrtpointgroup.current.text==="左方" ){
+//                                    teachfisrtpointgroup.current = teachfirstpointrepeater.itemAt(1);
+//                                    Material.UserData.setValueFromFuncOfTable(root.objectName,2,1);
+//                                }
+//                            }
+//                            event.accepted = true;
+//                            break;
+//                        case Qt.Key_Left:
+//                            if(teachfisrtpointgroup.current){
+//                                if(teachfisrtpointgroup.current.text==="右方" ){
+//                                    teachfisrtpointgroup.current = teachfirstpointrepeater.itemAt(0);
+//                                    Material.UserData.setValueFromFuncOfTable(root.objectName,2,0);
+//                                }
+//                            }
+//                            event.accepted = true;
+//                            break;
+//                        }
+//                    }
+//                    onClicked:forceActiveFocus();
+//                    onSelectedChanged: selected? descriptionlabel.text="设定第一点从左右哪边开始。" :null;
+//                    secondaryItem:Row{
+//                        anchors.verticalCenter: parent.verticalCenter
+//                        Repeater{
+//                            id:teachfirstpointrepeater
+//                            model:teachfisrtpointmodel
+//                            delegate:Material.RadioButton{
+//                                text:modelData
+//                                checked:  Number(root.repeaterModel[2] )===index
+//                                exclusiveGroup: teachfisrtpointgroup
+//                                onClicked:{
+//                                    teachfirstpoint.forceActiveFocus();
+//                                    Material.UserData.setValueFromFuncOfTable(root.objectName,2,index);}
+//                            }
+//                        }
+//                    }
+//                }
+//                //示教点数
+//                ListItem.Subtitled{
+//                    id:teachpointnum
+//                    text:qsTr("示教点数:");
+//                    height: Material.Units.dp(44)
+//                    KeyNavigation.up: teachfirstpoint
+//                    KeyNavigation.down: teachfirstpointtimelength.visible?teachfirstpointtimelength:groovecheckpointleftlength
+//                    selected: focus
+//                    onSelectedChanged:selected? descriptionlabel.text="设定示教点数（1~10点任意）。" :null;
+//                    onClicked:forceActiveFocus();
+//                    Keys.onPressed: {
+//                        var res;
+//                        switch(event.key){
+//                        case Qt.Key_VolumeUp:
+//                            res= Number(teachpointnumlabel.text)+1
+//                            if(res>30) res=30;
+//                            teachpointnumlabel.text=res.toString();
+//                            Material.UserData.setValueFromFuncOfTable(root.objectName,3,res);
+//                            event.accepted = true;
+//                            break;
+//                        case Qt.Key_VolumeDown:
+//                            res= Number(teachpointnumlabel.text)-1
+//                            if(res<1) res=1;
+//                            teachpointnumlabel.text=res.toString();
+//                            Material.UserData.setValueFromFuncOfTable(root.objectName,3,res);
+//                            event.accepted = true;
+//                            break;
+//                        }
+//                    }
+//                    secondaryItem:Row{
+//                        spacing: Material.Units.dp(8)
+//                        anchors.verticalCenter: parent.verticalCenter
+//                        Material.Label{
+//                            id: teachpointnumlabel
+//                            text:root.repeaterModel[3]
+//                            onTextChanged: ERModbus.setmodbusFrame(["W","103","1",text.toString()])
+//                        }
+//                        Material.Label{text:"点";}
+//                    }
+//                }
+//                //示教1点时焊接长(mm)
+//                ListItem.Subtitled{
+//                    id:teachfirstpointtimelength
+//                    text:qsTr("焊接长度:");
+//                    visible: teachpointnumlabel.text === 1;
+//                    height: Material.Units.dp(44)
+//                    KeyNavigation.up: teachpointnum
+//                    KeyNavigation.down: groovecheckpointleftlength.visible?groovecheckpointleftlength:groovecheckpointleftlength
+//                    onSelectedChanged: selected? descriptionlabel.text="示教点数为1点时,设定至第二点的焊接距离。" :null;
+//                    onClicked:forceActiveFocus();
+//                    Keys.onPressed: {
+//                        var res;
+//                        switch(event.key){
+//                        case Qt.Key_VolumeUp:
+//                            res=Number(teachfirstpointtimelengthglabel.text)+2;
+//                            if(res>10000) res=10000;
+//                            teachfirstpointtimelengthglabel.text=res;
+//                            Material.UserData.setValueFromFuncOfTable(root.objectName,4,res);
+//                            event.accepted = true;
+//                            break;
+//                        case Qt.Key_VolumeDown:
+//                            if(res<10) res=10;
+//                            res=Number(teachfirstpointtimelengthglabel.text)-2;
+//                            teachfirstpointtimelengthglabel.text=res;
+//                            Material.UserData.setValueFromFuncOfTable(root.objectName,4,res);
+//                            event.accepted = true;
+//                            break;
+//                        }
+//                    }
+//                    selected: focus
+//                    secondaryItem:Row{
+//                        spacing: Material.Units.dp(8)
+//                        anchors.verticalCenter: parent.verticalCenter
+//                        Material.Label{
+//                            id: teachfirstpointtimelengthglabel
+//                            text:root.repeaterModel[4]
+//                            onTextChanged: ERModbus.setmodbusFrame(["W","104","1",text.toString()])
+//                        }
+//                        Material.Label{text:"(mm)";}
+//                    }
+//                }
+//                //坡口检测点左(mm)
+//                ListItem.Subtitled{
+//                    id:groovecheckpointleftlength
+//                    text:qsTr("坡口检测点左:");
+//                    visible:AppConfig.currentUserType==="超级用户";
+//                    height: Material.Units.dp(44)
+//                    KeyNavigation.up: teachfirstpointtimelength.visible?teachfirstpointtimelength:teachpointnum
+//                    KeyNavigation.down: groovecheckpointrightlength
+//                    onSelectedChanged: selected? descriptionlabel.text="设定左端部的延长、缩短量。" :null;
+//                    onClicked:forceActiveFocus();
+//                    Keys.onPressed: {
+//                        var res;
+//                        switch(event.key){
+//                        case Qt.Key_VolumeUp:
+//                            res=Number(groovecheckpointleftlengthlabel.text)+1;
+//                            if(res>1000) res=1000;
+//                            groovecheckpointleftlengthlabel.text=res;
+//                            Material.UserData.setValueFromFuncOfTable(root.objectName,5,res);
+//                            event.accepted = true;
+//                            break;
+//                        case Qt.Key_VolumeDown:
+//                            if(res<-1000) res=-1000;
+//                            res=Number(groovecheckpointleftlengthlabel.text)-1;
+//                            groovecheckpointleftlengthlabel.text=res;
+//                            Material.UserData.setValueFromFuncOfTable(root.objectName,5,res);
+//                            event.accepted = true;
+//                            break;
+//                        }
+//                    }
+//                    selected: focus
+//                    secondaryItem:Row{
+//                        spacing: Material.Units.dp(8)
+//                        anchors.verticalCenter: parent.verticalCenter
+//                        Material.Label{
+//                            id: groovecheckpointleftlengthlabel
+//                            text:root.repeaterModel[5]
+//                            onTextChanged: ERModbus.setmodbusFrame(["W","105","1",text.toString()])
+//                        }
+//                        Material.Label{text:"(mm)";}
+//                    }
+//                }
+//                //坡口检测点右(mm)
+//                ListItem.Subtitled{
+//                    id:groovecheckpointrightlength
+//                    text:qsTr("坡口检测点右:");
+//                    visible:AppConfig.currentUserType==="超级用户";
+//                    height: Material.Units.dp(44)
+//                    KeyNavigation.up: groovecheckpointleftlength.visible?groovecheckpointleftlength:null
+//                    onClicked:forceActiveFocus();
+//                    Keys.onPressed: {
+//                        var res;
+//                        switch(event.key){
+//                        case Qt.Key_VolumeUp:
+//                            res=Number(groovecheckpointrightlengthlabel.text)+1;
+//                            if(res>1000) res=1000;
+//                            groovecheckpointrightlengthlabel.text=res;
+//                            Material.UserData.setValueFromFuncOfTable(root.objectName,6,res);
+//                            event.accepted = true;
+//                            break;
+//                        case Qt.Key_VolumeDown:
+//                            if(res<-1000) res=-1000;
+//                            res=Number(groovecheckpointrightlengthlabel.text)-1;
+//                            groovecheckpointrightlengthlabel.text=res;
+//                            Material.UserData.setValueFromFuncOfTable(root.objectName,6,res);
+//                            event.accepted = true;
+//                            break;
+//                        }
+//                    }
+//                    selected: focus
+//                    onSelectedChanged: { if(selected){
+//                            descriptionlabel.text="设定右端部的延长、缩短量。";
+//                        }
+//                    }
+//                    secondaryItem:Row{
+//                        spacing: Material.Units.dp(8)
+//                        anchors.verticalCenter: parent.verticalCenter
+//                        Material.Label{
+//                            id: groovecheckpointrightlengthlabel
+//                            text:root.repeaterModel[6]
+//                            onTextChanged: ERModbus.setmodbusFrame(["W","106","1",text.toString()])
+//                        }
+//                        Material.Label{text:"(mm)";}
+//                    }
+//                }
+//            }
+//        }
+//        Material.Scrollbar {id:scrollbar;flickableItem:flickable ;
+//            onMovingChanged: {scrollbar.hide.stop();scrollbar.show.start();}
+//            Component.onCompleted:{scrollbar.hide.stop();scrollbar.show.start();}
+//        }
+//    }
+//    Material.Card{
+//        id:descriptionCard
+//        anchors{
+//            left:parent.left
+//            right:parent.right
+//            bottom: parent.bottom
+//            margins: Material.Units.dp(12)
+//        }
+//        elevation: 2
+//        height:Material.Units.dp(110);
+//        Column{
+//            anchors.fill: parent
+//            Material.Label{
+//                id:descriptiontitle
+//                anchors.left: parent.left
+//                anchors.leftMargin: Material.Units.dp(24)
+//                height: Material.Units.dp(64)
+//                verticalAlignment:Text.AlignVCenter
+//                text:qsTr("描述信息");
+//                style:"subheading"
+//                color: Material.Theme.light.shade(0.87)
+//            }
+//            Material.Label{
+//                id:descriptionlabel
+//                anchors.left: parent.left
+//                anchors.leftMargin: Material.Units.dp(48)
+//            }
+//        }
+//    }
+//}

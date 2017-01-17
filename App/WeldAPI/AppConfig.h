@@ -31,7 +31,9 @@ class AppConfig : public QObject
     /*系统led*/
     Q_PROPERTY(QString leds READ leds WRITE setleds)
     /*当前衬垫*/
-    Q_PROPERTY(int bottomStyle READ  bottomStyle WRITE setbottomStyle NOTIFY bottomStyleChanged)
+    Q_PROPERTY(int bottomStyle READ  bottomStyle WRITE setBottomStyle NOTIFY bottomStyleChanged)
+    Q_PROPERTY(int bottomStyleWidth READ  bottomStyleWidth WRITE setBottomStyleWidth NOTIFY bottomStyleWidthChanged)
+    Q_PROPERTY(int bottomStyleDeep READ  bottomStyleDeep WRITE setBottomStyleDeep NOTIFY bottomStyleDeepChanged)
     /*修改当前时间*/
     Q_PROPERTY(QStringList dateTime READ dateTime WRITE setdateTime NOTIFY dateTimeChanged)
     /*设置本地化*/
@@ -50,6 +52,11 @@ class AppConfig : public QObject
     Q_PROPERTY(int xMoto READ xMoto WRITE setXMoto NOTIFY xMotoChanged)
     Q_PROPERTY(int yMoto READ yMoto WRITE setYMoto NOTIFY yMotoChanged)
     Q_PROPERTY(int zMoto READ zMoto WRITE setZMoto NOTIFY zMotoChanged)
+
+    Q_PROPERTY(int weldDir READ weldDir WRITE setWeldDir NOTIFY weldDirChanged)
+    Q_PROPERTY(int grooveStyle READ grooveStyle WRITE setGrooveStyle NOTIFY grooveStyleChanged)
+    Q_PROPERTY(int connectStyle READ connectStyle WRITE setConnectStyle NOTIFY connectStyleChanged)
+
 private:
     QSettings* File;
     QProcess *poc;
@@ -64,6 +71,11 @@ private:
     QString Primarycolor;
     QString Accentcolor;
     QString Backgroundcolor;
+
+    int weldDirValue;
+    int grooveStyleValue;
+    int connectStyleValue;
+
     int Screen_Width;
     int Screen_Height;
     int BacklightValue;
@@ -75,6 +87,9 @@ private:
     int zSpeedValue;
     int swingSpeedValue;
     int BottomStyleValue;
+    int BottomStyleWidthValue;
+    int BottomStyleDeepValue;
+
     int ptr_func_led;
     bool start_led;
     bool ready_led;
@@ -92,6 +107,8 @@ public:
     QString leds();
     int currentGroove(); // 当前坡口
     int bottomStyle();
+    int bottomStyleWidth();
+    int bottomStyleDeep();
     QString currentUserName();  // 当前用户名称
     QString currentUserPassword();//当前用户密码
     QString currentUserType();     //当前用户类型
@@ -113,9 +130,13 @@ public:
     int xMoto();
     int yMoto();
     int zMoto();
-
+    int weldDir();
+    int grooveStyle();
+    int connectStyle();
 public slots:
-    void setbottomStyle(int value);
+    void setBottomStyle(int value);
+    void setBottomStyleWidth(int value);
+    void setBottomStyleDeep(int value);
     void setbackLight(int value);
     void setthemeBackgroundColor(QString color);
     void setthemeAccentColor(QString color);
@@ -140,12 +161,18 @@ public slots:
     void setXMoto(bool value);
     void setYMoto(bool value);
     void setZMoto(bool value);
+    void setWeldDir(int value);
+    void setGrooveStyle(int value);
+    void setConnectStyle(int value);
+
 signals:
     void xSpeedChanged();
     void ySpeedChanged();
     void zSpeedChanged();
     void swingSpeedChanged();
     void bottomStyleChanged(int value);
+    void bottomStyleWidthChanged(int value);
+    void bottomStyleDeepChanged(int value);
     void screenWidthChanged(int width);
     void screenHeightChanged(int hight);
     void currentUserNameChanged(QString username);
@@ -165,6 +192,9 @@ signals:
     void xMotoChanged(bool value);
     void yMotoChanged(bool value);
     void zMotoChanged(bool value);
+    void weldDirChanged(int value);
+    void grooveStyleChanged(int value);
+    void connectStyleChanged(int value);
 };
 
 #endif // AppCONFIG_H

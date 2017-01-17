@@ -16,7 +16,7 @@ Material.ApplicationWindow{
     objectName: "App"
     visible: false
     /*主题默认颜色*/
-    theme { primaryColor: AppConfig.themePrimaryColor;accentColor: AppConfig.themeAccentColor;backgroundColor:AppConfig.themeBackgroundColor
+    theme {primaryColor: AppConfig.themePrimaryColor;accentColor: AppConfig.themeAccentColor;backgroundColor:AppConfig.themeBackgroundColor
         tabHighlightColor: AppConfig.themeAccentColor}
     //不需要解释
     property var grooveStyleName: [ "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接", "平焊V形坡口平对接","横焊单边V形坡口T接头",  "横焊单边V形坡口平对接", "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接","水平角焊"]
@@ -76,10 +76,6 @@ Material.ApplicationWindow{
     property bool loadInterNet: false
     /*焊接长度*/
     property int weldLength: 0
-    /*teach初始化数据*/
-    property var teachModel: [0,1,1,2,2,10,10,200,1,0,0,0]
-    /*WeldCondition初始化数据*/
-    property var weldConditionModel: [4,0,0,0,1,0,0,1,3,105,0,0,5,5,0.5,0.5,160,26,120,15,0,0,0,0,0,0,0,0]
     /*app加载完毕*/
     property bool completed:false
     /*当前用户名*/
@@ -88,6 +84,8 @@ Material.ApplicationWindow{
     property string  weldRulesName
 
     property bool superUser:AppConfig.currentUserType==="超级用户"?true:false
+
+    property bool readSet:false
     /*account*/
     ListModel{id:accountmodel;}
     //错误列表
@@ -102,6 +100,8 @@ Material.ApplicationWindow{
     signal changeWeldIndex(int index)
     //信号
     signal changeGrooveTableIndex(int index)
+    //signal
+    signal changeTeachSet(var value);
     /*更新时间定时器*/
     Timer{
         interval:1000;running:true;repeat: true;
@@ -110,39 +110,55 @@ Material.ApplicationWindow{
             var timeD =dateTime.split("-");
             date.name=timeD[0];
             time.name=timeD[1];
-            //    console.log("clear!!!!!!!!!!!!!!!")
-        }
-    }
-    Timer{
-        interval: 100;running: true;repeat: true;
-        onTriggered: {
-            //   console.log("100ms !")
         }
     }
     //该页面下1000ms问一次检测参数是否有效
-    Timer{ repeat: true;interval:sysStatus==="焊接态"?500:600;
+    Timer{ repeat: true;interval:sysStatus==="空闲态"?200:500;
         running:readTime
         onTriggered: {
             if(sysStatus==="坡口检测态")
                 ERModbus.setmodbusFrame(["R","150","10"])
             else if((sysStatus==="焊接端部暂停态")||(sysStatus==="焊接中间暂停态"))
                 ERModbus.setmodbusFrame(["R","200","1"]);
-            else if(sysStatus==="焊接态")
-                ERModbus.setmodbusFrame(["R","10","4"])
+            else if(sysStatus==="焊接态"){
+                //  ERModbus.setmodbusFrame(["R","10","4"])
+            }
             else if(sysStatus==="未登录态"){
             } else
-                ERModbus.setmodbusFrame(["R","0","5"]);
+                if(readSet)
+                    ERModbus.setmodbusFrame(["R","99","6"]) //读取设置规范
+                else
+                    ERModbus.setmodbusFrame(["R","0","5"]); //读取系统状态
+            readSet=!readSet;
         }
+    }
+    //计算坡口数据平均值
+    function getGrooveAverage(){
+        var i,j,temp;
+        var array=new Array(0);
+        //有多少有效示教点数
+        var count=grooveTable.count;
+        for(i=0;i<5;i++){
+            temp=0;
+            for(j=0;j<count;j++){
+                temp+=Number(i===0?grooveTable.get(j).C1:i===1?grooveTable.get(j).C2:i===2?grooveTable.get(j).C3:i===3?grooveTable.get(j).C4:grooveTable.get(j).C5);
+            }
+            temp/=j;
+            array.push(String(temp))
+        }
+        array.push(grooveTable.get(j).C6)
+        array.push(grooveTable.get(j).C7)
+        array.push(grooveTable.get(j).C8)
+        return array;
     }
 
     onCurrentGrooveChanged: {
         console.log(objectName+" currentGroove "+currentGroove)
-        ERModbus.setmodbusFrame(["W","90","1",currentGroove.toString()])
         var res=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
         //更新焊接规范名称
         if((typeof(res)==="string")&&(res!=="")){
             currentGrooveName=res;
-            AppConfig.setcurrentGroove(currentGroove);
+            //  AppConfig.setcurrentGroove(currentGroove);
             WeldMath.setGroove(currentGroove);
             //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
             res =Material.UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
@@ -170,7 +186,7 @@ Material.ApplicationWindow{
     initialPage: Material.TabbedPage {
         id: page
         /*标题*/
-        title:qsTr("全位置MAG焊接系统")
+        title:qsTr("轨道式智能焊接系统")
         /*最大action显示数量*/
         actionBar.maxActionCount: 6
         /*actions列表*/
@@ -217,7 +233,7 @@ Material.ApplicationWindow{
         ]
         backAction: navigationDrawer.action
         actionBar.tabBar{leftKeyline: 0;isLargeDevice: false;fullWidth:false}
-        Keys.onDigit1Pressed:  navigationDrawer.toggle();
+        Keys.onDigit1Pressed: {if(!event.isAutoRepeat)navigationDrawer.toggle();}
         Keys.onDigit2Pressed: {if((page.selectedTab!==0)&&preConditionTab.enabled)page.selectedTab=0;}
         Keys.onDigit3Pressed: {if((page.selectedTab!==1)&&weldAnalyseTab.enabled)page.selectedTab=1;}
         Keys.onDigit4Pressed: {if((page.selectedTab!==2)&&(systemInforTab.enabled))page.selectedTab=2;}
@@ -304,85 +320,60 @@ Material.ApplicationWindow{
                 GrooveCondition{
                     id:grooveConditionPage
                     visible: page.selectedTab===0&&page0SelectedIndex===0
+                    message: snackBar
                     onCurrentGrooveChanged:{
-                        console.log("grooveConditionPage"+currentGroove)
-                        switch(currentGroove&0x0000000F){
-                        case 0: grooveNum=0;  break;
-                        case 8: grooveNum=1;  break;
-                        case 12: grooveNum=2;  break;
-
-                        case 9: grooveNum=4; break;
-                        case 1: grooveNum=3;  break;
-
-                        case 2:   grooveNum=5;break;
-                        case 10: grooveNum=6;break;
-                        case 14: grooveNum=7;break;
-
-                        case 3:   grooveNum=8;  break;
-                        case 11: grooveNum=8;  break;
-                        case 7:   grooveNum=8;break;
-                        case 15: grooveNum=8;break;
-                        }
-                        app.currentGroove=grooveNum;
+                        app.currentGroove=currentGroove;
                     }
-                    Connections{
-                        target: WeldMath
-                        onUpdateWeldMathChanged:{
-                            WeldMath.setCeramicBack(AppConfig.bottomStyle);
-                        }
-                    }
-
-                    Component.onCompleted: {
-                        var res=AppConfig.currentGroove
-                        var value;
-                        switch(res){
-                        case 0: value=0;  break;
-                        case 1: value=8;  break;
-                        case 2: value=12;  break;
-
-                        case 4: value=9; break;
-                        case 3: value=1;  break;
-
-                        case 5: value=2;  break;
-                        case 7: value=14;  break;
-                        case 6: value=10;break;
-
-                        case 8:  value=3;  break;
-                        }
-                        res=AppConfig.bottomStyle;
-                        currentGroove=value|(res<<4);
-                        lastFocusedItem=grooveConditionPage}
                 }
                 TeachCondition{
                     id:teachConditionPage
-                    repeaterModel: app.teachModel
+                    message: snackBar
                     visible: page.selectedTab===0&&page0SelectedIndex===1
+                    Connections{
+                        target:app
+                        onChangeTeachSet:{
+                            console.log(value)
+                            var str="";
+                            for(var i=2;i<6;i++)
+                                if(Number(value[i])!==teachConditionPage.condition[i-1]){//始终端改变
+                                    page.selectedTab=0;
+                                    page0SelectedIndex=1;
+                                    lastFocusedItem=teachConditionPage;//聚焦lastFocusedItem
+                                    lastFocusedItem.forceActiveFocus();
+                                    teachConditionPage.selectedIndex=i-1;//切换选中栏
+                                    Material.UserData.setValueFromFuncOfTable(teachConditionPage.objectName,i-1,Number(value[i]))//存储数据
+                                    if(i<teachConditionPage.listValueName.length){
+                                        //只改变显示不下发数据不存储
+                                        teachConditionPage.changeGroupCurrent(Number(value[i]),true);
+                                        str= teachConditionPage.listName[i-1]+"切换为"+teachConditionPage.listValueName[i-1][Number(value[i])]+"。"
+                                    }else{
+                                        teachConditionPage.changeText(Number(value[i]),true);
+                                        str=teachConditionPage.listName[i-1]+"切换为"+value[i]+teachConditionPage.valueType[i-teachConditionPage.listValueName.length]
+                                    }
+                                    snackBar.open(str)
+                                }
+                        }
                     }
+                }
                 WeldCondition{
                     id:weldConditionPage
                     visible: page.selectedTab===0&&page0SelectedIndex===2
+                    message:snackBar
                     Connections{
-                        target: limitedConditionPage
-                        onChangeGasError:{}
-                        // weldConditionPage.changeGroupCurrent(weldConditionPage.oldCondition[weldConditionPage.selectedIndex]);
-                        onChangeWireTypeError:{
-                            //weldConditionPage.changeGroupCurrent(weldConditionPage.oldCondition[weldConditionPage.selectedIndex]);
-                            console.log(weldConditionPage.objectName+"onChangeWireTypeError")
-                        }onChangeWireDError:{}
-                        //weldConditionPage.changeGroupCurrent(weldConditionPage.oldCondition[weldConditionPage.selectedIndex]);
-                        onChangePulseError:{}
-                        //weldConditionPage.changeGroupCurrent(weldConditionPage.oldCondition[weldConditionPage.selectedIndex]);
-                    }
-                    Connections{
-                        target:WeldMath
-                        onUpdateWeldMathChanged:{
-                            WeldMath.setWireType(weldConditionPage.condition[2]===0?0:4);
-                            WeldMath.setGrooveDir(weldConditionPage.condition[3]);
-                            WeldMath.setWireD(weldConditionPage.condition[4]===0?4:6);
-                            WeldMath.setGas(weldConditionPage.condition[5]);
-                            WeldMath.setPulse(weldConditionPage.condition[7]);
-                            WeldMath.setMeltingCoefficient(weldConditionPage.condition[10]);
-                            WeldMath.setReinforcement(weldConditionPage.condition[9]);
+                        target:app
+                        onChangeTeachSet:{
+                            if(Number(value[0])!==weldConditionPage.condition[1]){//始终端改变
+                                page.selectedTab=0;
+                                page0SelectedIndex=2;
+                                lastFocusedItem=weldConditionPage;//聚焦lastFocusedItem
+                                lastFocusedItem.forceActiveFocus();
+                                weldConditionPage.selectedIndex=1;
+                                //只改变显示不下发数据不存储
+                                weldConditionPage.changeGroupCurrent(Number(value[0]),true);
+                                //存储数据
+                                Material.UserData.setValueFromFuncOfTable(teachConditionPage.objectName,1,Number(value[0]))
+                                snackBar.open(weldConditionPage.listName[1]+"切换为"+weldConditionPage.listValueName[1][Number(value[0])]+"。")
+                            }
                         }
                     }
                 }
@@ -394,6 +385,7 @@ Material.ApplicationWindow{
                     model:grooveTable
                     currentGrooveName:app.currentGrooveName
                     grooveName: app.grooveStyleName[currentGroove]
+                    currentGroove: app.currentGroove
                     //改变坡口名称
                     onChangedCurrentGroove: {
                         app.currentGrooveName=name;
@@ -426,6 +418,7 @@ Material.ApplicationWindow{
                 LimitedCondition{
                     id:limitedConditionPage
                     visible: page.selectedTab===0&&(page0SelectedIndex===4)&&(app.superUser)
+                    superUser:app.superUser
                     limitedRulesName: app.weldRulesName.replace("焊接规范","限制条件")
                     message: snackBar
                     Connections{
@@ -687,16 +680,7 @@ Material.ApplicationWindow{
                 else if((frame[1]==="104")&&(sysStatus=="坡口检测完成态")){
                     //如果坡口参数里面有数据 则进行计算数据
                     if(grooveTable.count!==0){
-                        WeldMath.setGrooveRules([
-                                                    grooveTable.get(0).C1,
-                                                    grooveTable.get(0).C2,
-                                                    grooveTable.get(0).C3,
-                                                    grooveTable.get(0).C4,
-                                                    grooveTable.get(0).C5,
-                                                    grooveTable.get(0).C6,
-                                                    grooveTable.get(0).C7,
-                                                    grooveTable.get(0).C8
-                                                ]);
+                        WeldMath.setGrooveRules(getGrooveAverage());
                     }
                 }else if((frame[1]==="10")&&(sysStatus==="焊接态")){
                     //记录焊接时间（焊接长度）
@@ -759,8 +743,8 @@ Material.ApplicationWindow{
                         AppConfig.setdateTime(frame.slice(2,8));
                     }
                     readTime=true;
-                }else if(frame[1]==="500"){
-
+                }else if(frame[1]==="99"){//读取设置
+                    changeTeachSet(frame.slice(2,8))
                 }
             }
         }
@@ -818,9 +802,9 @@ Material.ApplicationWindow{
         Material.ActionButton{
             id:error
             property int count: 0
-            iconName:  errorCode?"alert/warning":sysStatus==="空闲态"?"awesome/play":
-                                                                    sysStatus==="坡口检测态"?"awesome/flash":
-                                                                                         sysStatus==="焊接态"?"user/MAG":"awesome/pause"
+            iconName: errorCode?"alert/warning":sysStatus==="空闲态"?"awesome/play":
+                                                                   sysStatus==="坡口检测态"?"awesome/flash":
+                                                                                        sysStatus==="焊接态"?"user/MAG":"awesome/pause"
             anchors.right: robot.visible? robot.left:snackBar.left
             anchors.rightMargin: Material.Units.dp(16)
             anchors.verticalCenter: snackBar.verticalCenter
@@ -830,7 +814,6 @@ Material.ApplicationWindow{
                 count++;
                 if(pressed&&count>3){
                     count=4;
-                    console.log("error Action myErrorDialog.open")
                     myErrorDialog.open();
                 }
             }
@@ -867,7 +850,6 @@ Material.ApplicationWindow{
                 NumberAnimation { duration: 200 }
             }
         }
-
     }
     onErrorCodeChanged: {
         var MathError=errorCode;
@@ -1245,8 +1227,7 @@ Material.ApplicationWindow{
             }
         }
         changeuser.show();
-        teachModel.length=0;
-        teachModel=Material.UserData.getValueFromFuncOfTable("TeachCondition","","");
+
         //创建错误历史记录
         Material.UserData.createTable("SysErrorHistroy","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT");
         res=Material.UserData.getTableJson("SysErrorHistroy","","")

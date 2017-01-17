@@ -7,7 +7,7 @@ import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
 import QtQuick.Layouts 1.1
-import QtCharts 2.1
+//import QtCharts 2.1
 
 TableCard{
     id:root
@@ -35,8 +35,8 @@ TableCard{
         "焊速(cm/min) :",
         "焊接线X(mm) :",
         "焊接线Y(mm) :",
-        "内   停  留   (s):",
-        "外   停  留   (s):",
+        "前   停  留   (s):",
+        "后   停  留   (s):",
         "停  止 时 间(s):",
         "层       面     积:",
         "道       面     积:",
@@ -208,8 +208,8 @@ TableCard{
         Controls.TableViewColumn{role: "C6";title: "焊接速度\n cm/min";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C7";title: "焊接线\n X mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C8";title: "焊接线\n Y mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
-        Controls.TableViewColumn{role: "C9";title: "内停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
-        Controls.TableViewColumn{role: "C10";title: "外停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
+        Controls.TableViewColumn{role: "C9";title: "前停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
+        Controls.TableViewColumn{role: "C10";title: "后停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C11";title: "停止\n时间";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C12";title: "层面积";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
         Controls.TableViewColumn{role: "C13";title: "道面积";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
@@ -476,19 +476,19 @@ TableCard{
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
         globalMouseAreaEnabled:false
-        property int currentGroove : AppConfig.currentGroove
-        dialogContent: [
-            Label{text:"焊接位置："+String(AppConfig.currentGroove&0x00000003)},
-            Label{text:"坡口形式："+String(AppConfig.currentGroove&0x00000004)},
-            Label{text:"接头形式："+String(AppConfig.currentGroove&0x00000008)},
-            Label{text:"衬垫形式："+String(AppConfig.currentGroove&0x00000030)},
-            Label{text:"操作用户："+AppConfig.currentUserName},
-            Label{text:"用户类别："+AppConfig.currentUserType},
-            Label{text:"创建时间："+AppConfig.currentUserType},
-            Label{text:"编辑时间："+AppConfig.currentUserType},
-            Label{text:"总计焊接时间："+10},
-            Label{text:"总计气体消耗量："+10}
-        ]
+//        property int currentGroove : AppConfig.currentGroove
+//        dialogContent: [
+//            Label{text:"焊接位置："+String(AppConfig.currentGroove&0x00000003)},
+//            Label{text:"坡口形式："+String(AppConfig.currentGroove&0x00000004)},
+//            Label{text:"接头形式："+String(AppConfig.currentGroove&0x00000008)},
+//            Label{text:"衬垫形式："+String(AppConfig.currentGroove&0x00000030)},
+//            Label{text:"操作用户："+AppConfig.currentUserName},
+//            Label{text:"用户类别："+AppConfig.currentUserType},
+//            Label{text:"创建时间："+AppConfig.currentUserType},
+//            Label{text:"编辑时间："+AppConfig.currentUserType},
+//            Label{text:"总计焊接时间："+10},
+//            Label{text:"总计气体消耗量："+10}
+//        ]
     }
     Dialog{
         id:weldArea

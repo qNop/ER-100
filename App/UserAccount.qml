@@ -80,6 +80,7 @@ TableCard {
         id:dialog
         title: addOrEdit?qsTr("编辑用户信息"):qsTr("添加用户信息")
         property bool addOrEdit: true
+        isTextInput: true
         function openWith(flag){
             addOrEdit=flag;
             open();
@@ -92,7 +93,6 @@ TableCard {
             "所在班组：",
             "备        注：" ]
         onOpened: {
-
             if((currentRow>-1)||(!addOrEdit)){
                 //复制数据到 editData
                 var index=currentRow

@@ -11,7 +11,7 @@ Material.Dialog{
     objectName: "motoDialog"
     property var send:[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
     property var okName: ["设定     ","解除     ","启动     ","打开     "]
-    property var noName: ["未设定 ","无异常 ","停止     ","关闭     "]
+    property var noName: ["未设定 ","异常     ","停止     ","关闭     "]
     property int selectedMoto: 0
     property int oldSelectedIndex: 0
     property int selectedIndex: 0

@@ -34,7 +34,7 @@ PopupBase {
     objectName: "Dialog"
     overlayLayer: "dialogOverlayLayer"
 
-    overlayColor: Qt.rgba(0, 0, 0, 0.3)
+    overlayColor: Qt.rgba(0, 0, 0, 0.5)
     opacity: showing ? 1 : 0
     visible: opacity > 0
 
@@ -236,7 +236,7 @@ PopupBase {
 
                 width: parent.width
                 wrapMode: Text.Wrap
-                style: "title"
+                style: "dialog"
                 color: Theme.lightDark(titleview.backgroundColor,Theme.light.textColor,Theme.dark.textColor)
                 visible: title != ""
             }

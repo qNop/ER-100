@@ -16,7 +16,7 @@ public:
     ~SysMath();
     int weldMath();
     //焊接位置  平焊 立焊 横焊 水平角焊
-    QString weldDirName;
+    QString weldStyleName;
     //接头形式 T接头 平对接
     QString weldConnectName;
     //坡口形式 V形坡口 单边V形坡口

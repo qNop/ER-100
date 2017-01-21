@@ -64,24 +64,13 @@ void WeldMath::setGrooveDir(bool value){
     */
 void WeldMath::setGroove(int value){
     grooveValue=value;
-    switch (value) {
-    case 0:sysMath.weldDirName="平焊";sysMath.weldConnectName="T接头";sysMath.GrooveStyleName="单边V形坡口";break;
-    case 1:sysMath.weldDirName="平焊";sysMath.weldConnectName="平对接";sysMath.GrooveStyleName="单边V形坡口";break;
-    case 2:sysMath.weldDirName="平焊";sysMath.weldConnectName="平对接";sysMath.GrooveStyleName="V形坡口";break;
-    case 3:sysMath.weldDirName="横焊";sysMath.weldConnectName="T接头";sysMath.GrooveStyleName="单边V形坡口";break;
-    case 4:sysMath.weldDirName="横焊";sysMath.weldConnectName="平对接";sysMath.GrooveStyleName="单边V形坡口";break;
-    case 5:sysMath.weldDirName="立焊";sysMath.weldConnectName="T接头";sysMath.GrooveStyleName="单边V形坡口";break;
-    case 6:sysMath.weldDirName="立焊";sysMath.weldConnectName="平对接";sysMath.GrooveStyleName="单边V形坡口";break;
-    case 7:sysMath.weldDirName="立焊";sysMath.weldConnectName="平对接";sysMath.GrooveStyleName="V形坡口";break;
-    case 8:sysMath.weldDirName="水平角焊";sysMath.weldConnectName="无";sysMath.GrooveStyleName="无";break;
-    }
 }
 
 void WeldMath::setGrooveStyle(int value){
         sysMath.GrooveStyleName=value?"V形坡口":"单边V形坡口";
 }
-void WeldMath::setWeldDir(int value){
-        sysMath.weldDirName=value==0?"平焊":value==1?"横焊":value==2?"立焊":"水平角焊";
+void WeldMath::setWeldStyle(int value){
+        sysMath.weldStyleName=value==0?"平焊":value==1?"横焊":value==2?"立焊":"水平角焊";
 }
 void WeldMath::setConnectStyle(int value){
         sysMath.weldConnectName=value?"平对接":"T接头";
@@ -92,8 +81,7 @@ int WeldMath::getFeedSpeed(int current){
 }
 
 float WeldMath::getWeldArea(int current, float weldSpeed,float k,float met){
-    float res=0;
-    return  res;
+    return  GET_WELDFILL_AREA(met,sysMath.weldWireSquare,sysMath.getFeedSpeed(current),weldSpeed,k);
 }
 
 float WeldMath::getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed){

@@ -37,7 +37,7 @@ private:
     int grooveValue;
 public slots:
     //设置焊接位置
-    void setWeldDir(int value);
+    void setWeldStyle(int value);
     //设置坡口形式
     void setGrooveStyle(int value);
     //设置链接方式

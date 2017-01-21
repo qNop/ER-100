@@ -3,7 +3,6 @@ import Material 0.1
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.2 as Controls
 import QtQuick.Window 2.2
-import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
 import QtQuick.Layouts 1.1
@@ -159,6 +158,7 @@ Card{
         selectionMode:Controls.SelectionMode.SingleSelection
         Controls.ExclusiveGroup{  id:checkboxgroup }
         ThinDivider{anchors.bottom:tableView.bottom;color:Palette.colors["grey"]["500"]}
+
         Controls.TableViewColumn{
             id:firstColumnData
             role:"ID"

@@ -1,7 +1,6 @@
 import QtQuick 2.4
 import Material 0.1 as Material
 import Material.Extras 0.1 as JS
-import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
 import Material.ListItems 0.1 as ListItem
@@ -91,8 +90,14 @@ Item{
 
     //按键释放阶段写入或下发参数
     Keys.onReleased: {
+        var left=Number(root.condition[selectedIndex]-1);
+        var right=Number(root.condition[selectedIndex]+1);
+        if(left<0) left=0;
+        if(right>=listValueNameEnable[selectedIndex].length) right=listValueNameEnable[selectedIndex].length-1;
         if((event.key===Qt.Key_Left)||(event.key===Qt.Key_Right)){
-            if(selectedIndex<listValueName.length)
+            if((selectedIndex<listValueName.length)&&
+                    (listValueNameEnable[selectedIndex][
+                         event.key===Qt.Key_Left?left:right]))
                 changeGroup(root.condition[selectedIndex],event.isAutoRepeat);
         }else if((event.key===Qt.Key_VolumeDown)||(event.key===Qt.Key_VolumeUp)){
             if(selectedIndex>=(listValueName.length))

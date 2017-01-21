@@ -26,8 +26,9 @@ TableCard{
     signal updateWeldRulesName(string str);
 
     property var weldCondtion: [
-        "        NO.         :",
-        "层    /道      号 :",
+        "        NO.          :",
+        "层                号 :",
+        "道                号 :",
         "电      流  (A)    :",
         "电      压  (V)    :",
         "摆      幅(mm) :",
@@ -43,6 +44,20 @@ TableCard{
         "起    弧   点   X:",
         "起    弧   点   Y:",
         "起    弧   点   Z:"]
+    property var weldCondtion1: [
+        "        NO.          :",
+        "层                号 :",
+        "道                号 :",
+        "电      流  (A)    :",
+        "电      压  (V)    :",
+        "摆      幅(mm) :",
+        "摆速(cm/min) :",
+        "焊速(cm/min) :",
+        "焊接线X(mm) :",
+        "焊接线Y(mm) :",
+        "前   停  留   (s):",
+        "后   停  留   (s):",
+        "停  止 时 间(s):"]
     ListModel{id:pasteModel;
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:""}
     }
@@ -124,8 +139,12 @@ TableCard{
             onTriggered: remove.show();}
     ]
     editMenu:[
-        Action{iconName:"awesome/plus_square_o";onTriggered: add.show();name:"添加"},
-        Action{iconName:"awesome/edit";onTriggered: edit.show();name:"编辑";
+        Action{iconName:"awesome/plus_square_o";name:"添加"
+            onTriggered:{
+                myTextFieldDialog.title="添加焊接规范";
+                myTextFieldDialog.show();}},
+        Action{iconName:"awesome/edit";name:"编辑";onTriggered: {myTextFieldDialog.title="编辑焊接规范"
+                myTextFieldDialog.show()}
         },
         Action{iconName:"awesome/copy";name:"复制";
             onTriggered: {
@@ -374,101 +393,127 @@ TableCard{
             }
         }
     }
+
     MyTextFieldDialog{
-        id:add
-        title: qsTr("添加焊接规范")
-        repeaterModel: weldCondtion
+        id:myTextFieldDialog
+        // title: qsTr("编辑焊接规范")
+        repeaterModel: weldTableEx?weldCondtion:weldCondtion1
         onAccepted: {
-            updateModel("Append", pasteModel.get(0))
+            updateModel(myTextFieldDialog.title==="编辑焊接规范"?"Set":"Append",pasteModel.get(0))
         }
-        onOpened: {
-            for(var i=0;i<repeaterModel.length;i++){
-                openText(i,"0")
+        onKeysonVolumeDown: { //按键按下
+            var num;
+            switch(focusIndex){
+            case 0:
+                num=Number(pasteModel.get(0).ID);
+                num--;
+                if(num<=1)
+                    num=1;
+                else
+                    openText(0,String(num))
+                break;
+            case 2:
+                num=Number(pasteModel.get(0).C2);
+                num--;
+                if(num<=1)
+                    num=1;
+                else
+                    openText(2,String(num))
+                break;
+
+            }
+        }
+        onKeysonVolumeUp: {//按键按上
+            var num;
+            switch(focusIndex){
+            case 0:
+                num=Number(pasteModel.get(0).ID);
+                num++;
+                if(num>99)
+                    num=99;
+                else
+                    openText(0,String(num))
+                break;
+            case 2:
+                num=Number(pasteModel.get(0).C2);
+                num++;
+                if(num>300)
+                    num=300;
+                else
+                    openText(2,String(num))
+                break;
+
             }
         }
         onChangeText: {
+            var temp;
             switch(index){
             case 0:pasteModel.setProperty(0,"ID",text);break;
-            case 1:pasteModel.setProperty(0,"C1",text);break;
-            case 2:pasteModel.setProperty(0,"C2",text);break;
-            case 3:pasteModel.setProperty(0,"C3",text);break;
-            case 4:pasteModel.setProperty(0,"C4",text);break;
-            case 5:pasteModel.setProperty(0,"C5",text);break;
-            case 6:pasteModel.setProperty(0,"C6",text);break;
-            case 7:pasteModel.setProperty(0,"C7",text);break;
-            case 8:pasteModel.setProperty(0,"C8",text);break;
-            case 9:pasteModel.setProperty(0,"C9",text);break;
-            case 10:pasteModel.setProperty(0,"C10",text);break;
-            case 11:pasteModel.setProperty(0,"C11",text);break;
-            case 12:pasteModel.setProperty(0,"C12",text);break;
-            case 13:pasteModel.setProperty(0,"C13",text);break;
-            case 14:pasteModel.setProperty(0,"C14",text);break;
-            case 15:pasteModel.setProperty(0,"C15",text);break;
-            case 16:pasteModel.setProperty(0,"C16",text);break;
-            }
-        }
-
-    }
-    MyTextFieldDialog{
-        id:edit
-        title: qsTr("编辑焊接规范")
-        repeaterModel: weldCondtion
-        onAccepted: {
-            updateModel("Set",pasteModel.get(0))
-        }
-        onChangeText: {
-            switch(index){
-            case 0:pasteModel.setProperty(0,"ID",text);break;
-            case 1:pasteModel.setProperty(0,"C1",text);break;
-            case 2:pasteModel.setProperty(0,"C2",text);break;
-            case 3:pasteModel.setProperty(0,"C3",text);break;
-            case 4:pasteModel.setProperty(0,"C4",text);break;
-            case 5:pasteModel.setProperty(0,"C5",text);break;
-            case 6:pasteModel.setProperty(0,"C6",text);break;
-            case 7:pasteModel.setProperty(0,"C7",text);break;
-            case 8:pasteModel.setProperty(0,"C8",text);break;
-            case 9:pasteModel.setProperty(0,"C9",text);break;
-            case 10:pasteModel.setProperty(0,"C10",text);break;
-            case 11:pasteModel.setProperty(0,"C11",text);break;
-            case 12:pasteModel.setProperty(0,"C12",text);break;
-            case 13:pasteModel.setProperty(0,"C13",text);break;
-            case 14:pasteModel.setProperty(0,"C14",text);break;
-            case 15:pasteModel.setProperty(0,"C15",text);break;
-            case 16:pasteModel.setProperty(0,"C16",text);break;
+            case 1:temp=pasteModel.get(0).C1;
+                temp=temp.split("/");
+                pasteModel.setProperty(0,"C1",text+"/"+temp[1]);break;
+            case 2:temp=pasteModel.get(0).C1;
+                temp=temp.split("/");
+                pasteModel.setProperty(0,"C1",+temp[0]+"/"+text);break;
+            case 3:pasteModel.setProperty(0,"C2",text);break;
+            case 4:pasteModel.setProperty(0,"C3",text);break;
+            case 5:pasteModel.setProperty(0,"C4",text);break;
+            case 6:pasteModel.setProperty(0,"C5",text);break;
+            case 7:pasteModel.setProperty(0,"C6",text);break;
+            case 8:pasteModel.setProperty(0,"C7",text);break;
+            case 9:pasteModel.setProperty(0,"C8",text);break;
+            case 10:pasteModel.setProperty(0,"C9",text);break;
+            case 11:pasteModel.setProperty(0,"C10",text);break;
+            case 12:pasteModel.setProperty(0,"C11",text);break;
+            case 13:pasteModel.setProperty(0,"C12",text);break;
+            case 14:pasteModel.setProperty(0,"C13",text);break;
+            case 15:pasteModel.setProperty(0,"C14",text);break;
+            case 16:pasteModel.setProperty(0,"C15",text);break;
+            case 17:pasteModel.setProperty(0,"C16",text);break;
             }
         }
         onOpened: {
-            if(currentRow>-1){
-                //复制数据到 editData
-                var index=currentRow
-                var obj=model.get(index);
-                openText(0,model.get(index).ID);
-                openText(1,model.get(index).C1);
-                openText(2,model.get(index).C2);
-                openText(3,model.get(index).C3);
-                openText(4,model.get(index).C4);
-                openText(5,model.get(index).C5);
-                openText(6,model.get(index).C6);
-                openText(7,model.get(index).C7);
-                openText(8,model.get(index).C8);
-                openText(9,model.get(index).C9);
-                openText(10,model.get(index).C10);
-                openText(11,model.get(index).C11);
-                openText(12,model.get(index).C12);
-                openText(13,model.get(index).C13);
-                openText(14,model.get(index).C14);
-                openText(15,model.get(index).C15);
-                openText(16,model.get(index).C16);
-                pasteModel.set(0,model.get(index));
-                focusIndex=0;
-                changeFocus(focusIndex)
-            }
-            else{
-                message.open("请选择要编辑的行！")
-                positiveButtonEnabled=false;
+            if(title==="编辑焊接规范"){
+                if(currentRow>-1){
+                    //复制数据到 editData
+                    var index=currentRow
+                    var obj=model.get(index);
+                    openText(0,obj.ID);
+                    var temp=obj.C1;
+                    temp=temp.split("/")
+                    openText(1,temp[0])
+                    openText(2,temp[1]);
+                    openText(3,obj.C2);
+                    openText(4,obj.C3);
+                    openText(5,obj.C4);
+                    openText(6,obj.C5);
+                    openText(7,obj.C6);
+                    openText(8,obj.C7);
+                    openText(9,obj.C8);
+                    openText(10,obj.C9);
+                    openText(11,obj.C10);
+                    openText(12,obj.C11);
+                    if(weldTableEx){
+                        openText(13,obj.C12);
+                        openText(14,obj.C13);
+                        openText(15,obj.C14);
+                        openText(16,obj.C15);
+                        openText(17,obj.C16);
+                    }
+                    pasteModel.set(0,obj);
+                    focusIndex=0;
+                    changeFocus(focusIndex)
+                }
+                else{
+                    message.open("请选择要编辑的行！")
+                    positiveButtonEnabled=false;
+                }
+            }else{
+                for(var i=0;i<=weldCondtion.length;i++){
+                    openText(i,"0")
+                }
             }
         }
-
     }
     Dialog{
         id:info
@@ -476,19 +521,19 @@ TableCard{
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
         globalMouseAreaEnabled:false
-//        property int currentGroove : AppConfig.currentGroove
-//        dialogContent: [
-//            Label{text:"焊接位置："+String(AppConfig.currentGroove&0x00000003)},
-//            Label{text:"坡口形式："+String(AppConfig.currentGroove&0x00000004)},
-//            Label{text:"接头形式："+String(AppConfig.currentGroove&0x00000008)},
-//            Label{text:"衬垫形式："+String(AppConfig.currentGroove&0x00000030)},
-//            Label{text:"操作用户："+AppConfig.currentUserName},
-//            Label{text:"用户类别："+AppConfig.currentUserType},
-//            Label{text:"创建时间："+AppConfig.currentUserType},
-//            Label{text:"编辑时间："+AppConfig.currentUserType},
-//            Label{text:"总计焊接时间："+10},
-//            Label{text:"总计气体消耗量："+10}
-//        ]
+        //        property int currentGroove : AppConfig.currentGroove
+        //        dialogContent: [
+        //            Label{text:"焊接位置："+String(AppConfig.currentGroove&0x00000003)},
+        //            Label{text:"坡口形式："+String(AppConfig.currentGroove&0x00000004)},
+        //            Label{text:"接头形式："+String(AppConfig.currentGroove&0x00000008)},
+        //            Label{text:"衬垫形式："+String(AppConfig.currentGroove&0x00000030)},
+        //            Label{text:"操作用户："+AppConfig.currentUserName},
+        //            Label{text:"用户类别："+AppConfig.currentUserType},
+        //            Label{text:"创建时间："+AppConfig.currentUserType},
+        //            Label{text:"编辑时间："+AppConfig.currentUserType},
+        //            Label{text:"总计焊接时间："+10},
+        //            Label{text:"总计气体消耗量："+10}
+        //        ]
     }
     Dialog{
         id:weldArea
@@ -536,7 +581,6 @@ TableCard{
                     if(pressed){
                         if(weldArea.weldSpeed){
                             weldArea.area=WeldMath.getWeldArea(weldArea.current,weldArea.weldSpeed,weldArea.k,weldArea.met);
-                            // WeldMath.getWeldA(weldArea.current,weldArea.weldSpeed,weldArea.k,weldArea.met,weldArea.area)
                             console.log("计算weldArea.area"+weldArea.area)
                         }
                     }

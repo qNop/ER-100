@@ -34,7 +34,7 @@ Material.ApplicationWindow{
     property var sectionsIcon:[presetIcon,analyseIcon,inforIcon]
     property var sectionTitles: ["预置条件", "焊接分析", "系统信息"]
     property var tabiconname: ["action/settings_input_composite","awesome/tasks","awesome/windows"]
-    property var errorName: ["主控制器异常","CAN通讯异常","急停报警","摇动电机过热过流","摇动电机右限位","摇动电机左限位","摇动电机原点搜索","摇动电机堵转", "摆动电机过热过流","摆动电机内限位","摆动电机外限位","摆动电机原点搜索","摆动电机堵转", "上下电机过热过流","上下电机下限位","上下电机上限位","上下电机原点搜索","上下电机堵转", "行走电机过热过流","行走电机右限位","行走电机左限位","行走电机原点搜索","行走电机堵转","驱动器急停报警","手持盒通讯异常","示教器通讯异常","焊接电源通讯异常","焊接电源粘丝异常","焊接电源其他异常","未定义异常","未定义异常","未定义异常"]
+    property var errorName: ["主控制器异常","CAN通讯异常","急停报警","摇动电机过热过流","摇动电机右限位","摇动电机左限位","摇动电机原点搜索","摇动电机堵转", "摆动电机过热过流","摆动电机内限位","摆动电机外限位","摆动电机原点搜索","摆动电机堵转", "上下电机过热过流","上下电机下限位","上下电机上限位","上下电机原点搜索","上下电机堵转", "行走电机过热过流","行走电机右限位","行走电机左限位","行走电机原点搜索","行走电机堵转","驱动器急停报警","手持盒通讯异常","示教器通讯异常","焊接电源通讯异常","焊接电源粘丝异常","焊接电源其他异常","坡口参数表格内无数据","生成焊接规范异常","未定义异常"]
     property int  page0SelectedIndex:0
     property int  page1SelectedIndex:0
     property int  page2SelectedIndex:0
@@ -84,6 +84,10 @@ Material.ApplicationWindow{
     property string  weldRulesName
 
     property bool superUser:AppConfig.currentUserType==="超级用户"?true:false
+    //示教模式
+    property int teachModel: 0
+    //示教点数
+    property int teachPoint: 0
 
     property bool readSet:false
     /*account*/
@@ -120,12 +124,12 @@ Material.ApplicationWindow{
                 ERModbus.setmodbusFrame(["R","150","10"])
             else if((sysStatus==="焊接端部暂停态")||(sysStatus==="焊接中间暂停态"))
                 ERModbus.setmodbusFrame(["R","200","1"]);
-            else if(sysStatus==="焊接态"){
-                //  ERModbus.setmodbusFrame(["R","10","4"])
-            }
+            //            else if(sysStatus==="焊接态"){
+            //                //  ERModbus.setmodbusFrame(["R","10","4"])
+            //            }
             else if(sysStatus==="未登录态"){
             } else
-                if(readSet)
+                if((readSet)&&(sysStatus==="空闲态"))
                     ERModbus.setmodbusFrame(["R","99","6"]) //读取设置规范
                 else
                     ERModbus.setmodbusFrame(["R","0","5"]); //读取系统状态
@@ -138,20 +142,23 @@ Material.ApplicationWindow{
         var array=new Array(0);
         //有多少有效示教点数
         var count=grooveTable.count;
-        for(i=0;i<5;i++){
-            temp=0;
-            for(j=0;j<count;j++){
-                temp+=Number(i===0?grooveTable.get(j).C1:i===1?grooveTable.get(j).C2:i===2?grooveTable.get(j).C3:i===3?grooveTable.get(j).C4:grooveTable.get(j).C5);
+        if(count>0){
+            for(i=0;i<5;i++){
+                temp=0;
+                for(j=0;j<count;j++){
+                    temp+=Number(i===0?grooveTable.get(j).C1:i===1?grooveTable.get(j).C2:i===2?grooveTable.get(j).C3:i===3?grooveTable.get(j).C4:grooveTable.get(j).C5);
+                }
+                temp/=j;
+                array.push(String(temp))
             }
-            temp/=j;
-            array.push(String(temp))
-        }
-        array.push(grooveTable.get(j).C6)
-        array.push(grooveTable.get(j).C7)
-        array.push(grooveTable.get(j).C8)
-        return array;
+            array.push(grooveTable.get(j-1).C6)
+            array.push(grooveTable.get(j-1).C7)
+            array.push(grooveTable.get(j-1).C8)
+            console.log("grooveTable data is "+array)
+            return array;
+        }else
+            return -1;
     }
-
     onCurrentGrooveChanged: {
         console.log(objectName+" currentGroove "+currentGroove)
         var res=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
@@ -159,7 +166,7 @@ Material.ApplicationWindow{
         if((typeof(res)==="string")&&(res!=="")){
             currentGrooveName=res;
             //  AppConfig.setcurrentGroove(currentGroove);
-            WeldMath.setGroove(currentGroove);
+            //WeldMath.setGroove(currentGroove);
             //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
             res =Material.UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
             if((res!==-1)&&(typeof(res)==="object")){
@@ -329,10 +336,12 @@ Material.ApplicationWindow{
                     id:teachConditionPage
                     message: snackBar
                     visible: page.selectedTab===0&&page0SelectedIndex===1
+                    enabled: sysStatus!=="坡口检测态"
+                    onChangeTeachPoint: app.teachPoint=num;
+                    onChangeTeachModel: app.teachModel=model;
                     Connections{
                         target:app
                         onChangeTeachSet:{
-                            console.log(value)
                             var str="";
                             for(var i=2;i<6;i++)
                                 if(Number(value[i])!==teachConditionPage.condition[i-1]){//始终端改变
@@ -383,6 +392,8 @@ Material.ApplicationWindow{
                     status: app.sysStatus
                     message:snackBar
                     model:grooveTable
+                    //状态为坡口检测态时不能更改 数据表
+                    onStatusChanged: table.enabled=app.sysStatus!=="坡口检测态"?true:false
                     currentGrooveName:app.currentGrooveName
                     grooveName: app.grooveStyleName[currentGroove]
                     currentGroove: app.currentGroove
@@ -402,6 +413,12 @@ Material.ApplicationWindow{
                             currentRow-=1;
                             break;
                         default:message.open("操作焊接数据表格命令不支持！")
+                        }
+                    }
+                    Connections{
+                        target: teachConditionPage
+                        onChangeTeachModel:{
+                            grooveCheckPage.teachModel=model;
                         }
                     }
                     Connections{
@@ -490,22 +507,6 @@ Material.ApplicationWindow{
                         }
                     }
                 }
-                //                WeldAnalyse{
-                //                    id:weldAnalysePage
-                //                    visible: page.selectedTab===1&&page1SelectedIndex===1;
-                //                    message: snackBar
-                //                    status: app.sysStatus
-                //                    //获取weldDataModel数据
-                //                    weldTableModel: weldTable
-                //                    weldRulesName: app.weldRulesName.replace("焊接规范","过程分析");
-                //                    Connections{
-                //                        target: app
-                //                        onWeldTableIndexChanged:{
-                //                            console.log("weldAnalysePage selectedIndex = weldTableIndex ="+weldTableIndex)
-                //                            weldAnalysePage.selectedIndex=weldTableIndex;
-                //                        }
-                //                    }
-                //                }
             }
         }
         Material.Tab{
@@ -555,9 +556,12 @@ Material.ApplicationWindow{
             snackBar.open("焊接系统空闲！")
             //空闲态
             AppConfig.setleds("ready");
-            //切换页面
-            page.selectedTab=0;
-            app.page0SelectedIndex=0;
+            if(!myErrorDialog.showing){
+                //切换页面
+                page.selectedTab=0;
+                //
+                app.page0SelectedIndex=0;
+            }
         }else if(sysStatus=="坡口检测态"){
             //高压接触传感
             snackBar.open("坡口检测中，高压输出，请注意安全！")
@@ -567,8 +571,26 @@ Material.ApplicationWindow{
             page.selectedTab=0;
             //切小页面
             app.page0SelectedIndex=3;
-            //清除坡口数据
-            grooveTable.clear();
+            //全自动则清除
+            if(teachModel===0)
+                //清除坡口数据
+                grooveTable.clear();
+            else {//半自动 手动 检测数据表是否有效
+                if(grooveTable.count===0){
+                    //写入错误
+                    errorCode|=0x20000000;
+                    ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)]);
+                    console.log(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)])
+                }else{//根据示教点数 复制第一个数据表格内容创建 示教点数个 坡口参数
+                    if(grooveTable.count!==1)
+                        for(var i=1;i<grooveTable.count;i++)
+                            grooveTable.remove(i);
+                    for(i=1;i<app.teachPoint;i++){
+                        grooveTable.append(grooveTable.get(0))
+                        grooveTable.setProperty(i,"ID",String(i+1));
+                    }
+                }
+            }
         }else if(sysStatus=="坡口检测完成态"){
             //检测完成
             snackBar.open("坡口检测完成！正在计算相关焊接规范。")
@@ -633,45 +655,64 @@ Material.ApplicationWindow{
                 MathError<<=25;
                 errorCode=MathError;
             }else{
-                //  app.closeError();
                 //查询系统状态
                 if(frame[1]==="0"){
                     //获取系统状态
                     sysStatus=sysStatusList[Number(frame[2])];
                     //获取系统错误警报
+                    //                    MathError=Number(frame[6]);
+                    //                    console.log("MathError "+MathError);
+                    //                    MathError<<=16;
+                    //                    MathError|=Number(frame[5]);
+                    //                    console.log("MathError "+MathError);
+                    //                    MathError<<=16;
                     MathError=Number(frame[4]);
+
                     MathError<<=16;
                     MathError|=Number(frame[3]);
+
                     errorCode=MathError;
                 }
                 else if((frame[1]==="150")&&(sysStatus==="坡口检测态")){
                     //间隔跳示教点允许删除示教点操作尚未加入
                     console.log(frame);
-                    var currentID;
                     if(frame[2]!=="0"){
-                        currentID="true"
-                        //遍寻 ID有没有相等
-                        for(var i=0;i<grooveTable.count;i++){
-                            //ID相等则退出
-                            if(frame[2]===grooveTable.get(i).ID){
-                                currentID="false"
-                                break;
-                            }else {
-                                currentID="true"
+                        var num=Number(frame[2])-1;
+                        //如果当前选择行和 上传数据行不一至则更新数据
+                        if(num!==app.grooveTableIndex){
+                            if(teachModel===0)
+                                grooveTable.append({
+                                                       "ID":frame[2],
+                                                       "C1":(Number(frame[3])/10).toString(),
+                                                       "C2":(Number(frame[4])/10).toString(),
+                                                       "C3":(Number(frame[5])/10).toString(),
+                                                       "C4":(Number(frame[6])/10).toString(),
+                                                       "C5":(Number(frame[7])/10).toString(),
+                                                       "C6":String((Number(frame[8])|(Number(frame[9])<<16))/10),
+                                                       "C7":String(Number(frame[10])/10),
+                                                       "C8":String(Number(frame[11])/10)})
+                            else if(teachModel===1){
+                                console.log("teachModel === 1")
+                                grooveTable.setProperty(num,"ID",frame[2])
+                                if(AppConfig.fixHeight()){
+                                    console.log("fix height")
+                                    grooveTable.setProperty(num,"C1",(Number(frame[3])/10).toString())
+                                }
+                                if(AppConfig.fixGap()){
+                                    console.log("fix gap")
+                                    grooveTable.setProperty(num,"C3",(Number(frame[5])/10).toString())
+                                }
+                                if(AppConfig.fixAngel()){
+                                    console.log("fix angel")
+                                    grooveTable.setProperty(num,"C4",(Number(frame[6])/10).toString())
+                                    grooveTable.setProperty(num,"C5",(Number(frame[7])/10).toString())
+                                }
+                                grooveTable.setProperty(num,"C6",String((Number(frame[8])|(Number(frame[9])<<16))/10))
+                                grooveTable.setProperty(num,"C7",String(Number(frame[10])/10))
+                                grooveTable.setProperty(num,"C8",String(Number(frame[11])/10))
                             }
-                        }
-                        //遍寻之后表格内没有该ID 则插入该ID
-                        if(currentID==="true"){
-                            grooveTable.append({
-                                                   "ID":frame[2],
-                                                   "C1":(Number(frame[3])/10).toString(),
-                                                   "C2":(Number(frame[4])/10).toString(),
-                                                   "C3":(Number(frame[5])/10).toString(),
-                                                   "C4":(Number(frame[6])/10).toString(),
-                                                   "C5":(Number(frame[7])/10).toString(),
-                                                   "C6":String((Number(frame[8])|(Number(frame[9])<<16))/10),
-                                                   "C7":String(Number(frame[10])/10),
-                                                   "C8":String(Number(frame[11])/10)})
+                            else
+                                grooveTable.setProperty(num,"C3",(Number(frame[5])/10).toString())
                             changeGrooveTableIndex(Number(frame[2])-1);
                         }
                     }
@@ -680,15 +721,16 @@ Material.ApplicationWindow{
                 else if((frame[1]==="104")&&(sysStatus=="坡口检测完成态")){
                     //如果坡口参数里面有数据 则进行计算数据
                     if(grooveTable.count!==0){
-                        WeldMath.setGrooveRules(getGrooveAverage());
+                        var temp =getGrooveAverage();
+                        WeldMath.setGrooveRules(temp===-1?snackBar.open("坡口参数数据不存在！"):temp);
                     }
                 }else if((frame[1]==="10")&&(sysStatus==="焊接态")){
                     //记录焊接时间（焊接长度）
-                    console.log(frame)
+
                     //发送握手信号
-                    ERModbus.setmodbusFrame(["R","0","5"]);
+                    //ERModbus.setmodbusFrame(["R","0","5"]);
                 }else  if((frame[1]==="200")&&((sysStatus==="焊接端部暂停态")||(sysStatus==="焊接中间暂停态"))){
-                    console.log(frame);
+
                     if((frame[2]!==weldTableIndex.toString())&&(!weldFix)){
                         if(frame[2]!=="99"){
                             //当前焊道号与实际焊道号不符 更换当前焊道
@@ -700,7 +742,6 @@ Material.ApplicationWindow{
                         }else{
                             weldFix=true;
                         }
-                        console.log("Modbus Frame 200 weldTable.count "+weldTable.count+"weldTableIndex"+weldTableIndex)
                         //选择行数据有效
                         if((weldTableIndex<weldTable.count)&&(weldTableIndex>-1)){
                             //分离层/道
@@ -778,7 +819,10 @@ Material.ApplicationWindow{
                     showMathError("计算错误！");
             }else{
                 //输出错误
-                showMathError(value[0]);
+                //showMathError(value[0]);
+                //写入错误
+                errorCode|=0x40000000;
+                ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)]);
             }
         }
     }
@@ -836,6 +880,9 @@ Material.ApplicationWindow{
             property string status: "open"
             fullWidth:false
             duration:3000;
+            Component.onCompleted: {
+                console.log("snackBar Completed !")
+            }
         }
     }
     Material.OverlayLayer{
@@ -904,19 +951,26 @@ Material.ApplicationWindow{
         title: "系统错误"
         property alias errorModel:errorTable.model
         positiveButtonText: qsTr("错误历史信息");
+        //dismissOnTap: false
         onAccepted: {
-            page.selectedTab=2;
-            page2SelectedIndex=1;
+            if(errorCode&0x20000000){//坡口数据表中无数据
+                errorCode&=0xdfffffff;
+                ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)]);
+            }else if(errorCode&0x40000000){//错误生成焊接规范错误
+                errorCode&=0xbfffffff;
+                ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)]);
+            }else{
+                page.selectedTab=2;
+                page2SelectedIndex=1;
+            }
         }
         negativeButton.visible: false
         onOpened: {
             errorTable.__listView.currentIndex=0;
             errorTable.selection.clear();
             errorTable.selection.select(0);
-            console.log(objectName+" opend")
         }
-        onClosed: {console.log(objectName+"colosed")}
-        globalMouseAreaEnabled:true;
+        globalMouseAreaEnabled:false;
         Table{
             id:errorTable
             model:initialListModel

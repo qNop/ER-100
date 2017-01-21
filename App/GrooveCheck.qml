@@ -26,10 +26,12 @@ TableCard{
     property string currentGrooveName
     property string status:"空闲态"
 
-    property var grooveRules: ["           No.       ", "板    厚δ(mm)","板厚差e(mm)","间    隙b(mm)","角  度β1(deg)","角  度β2(deg)","中心线X(mm)","中心线Y(mm)","中心线Z(mm)"]
+    property var grooveRules: ["           No.       :", "板    厚δ(mm):","板厚差e(mm):","间    隙b(mm):","角  度β1(deg):","角  度β2(deg):"]//,"中心线X(mm)","中心线Y(mm)","中心线Z(mm)"]
+
+    property int teachModel
 
     ListModel{id:pasteModel
-        ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:""}
+        ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"0";C7:"0";C8:"0"}
     }
     signal changedCurrentGroove(string name)
     //外部更新数据
@@ -64,7 +66,7 @@ TableCard{
         }
     }
     headerTitle: currentGrooveName+"坡口参数"
-    footerText:  status==="坡口检测态"?"系统当前处于"+status.replace("态","状态。高压输出！"):"系统当前处于"+status.replace("态","状态。")
+    footerText:status==="坡口检测态"?"系统当前处于"+status.replace("态","状态。高压输出！"):"系统当前处于"+status.replace("态","状态。")
     tableRowCount:7
     fileMenu: [
         Action{iconName:"av/playlist_add";name:"新建";
@@ -102,8 +104,12 @@ TableCard{
             onTriggered: remove.show();}
     ]
     editMenu:[
-        Action{iconName:"awesome/calendar_plus_o";onTriggered: add.show();name:"添加"},
-        Action{iconName:"awesome/edit";onTriggered: edit.show();name:"编辑";},
+        Action{iconName:"awesome/calendar_plus_o";name:"添加";onTriggered:{
+                myTextFieldDialog.title="添加坡口参数";
+                myTextFieldDialog.show();}},
+        Action{iconName:"awesome/edit";name:"编辑";onTriggered:{
+                myTextFieldDialog.title="编辑坡口参数";
+                myTextFieldDialog.show();}},
         Action{iconName:"awesome/paste";name:"复制";
             onTriggered: {
                 if(currentRow>=0){
@@ -159,12 +165,12 @@ TableCard{
                 }
             }
         },
-        Action{iconName: "awesome/server";  name:"参数补正";
+        Action{iconName: "awesome/server";name:"参数补正";enabled:teachModel===1;
             onTriggered: {
                 fix.show()
             }
         },
-        Action{iconName: "av/fast_forward";  name:"移至中线";
+        Action{iconName: "av/fast_forward";name:"移至中线";
             onTriggered: {
                 message.open("暂不支持移至中线命令！")
             }
@@ -370,147 +376,53 @@ TableCard{
 
             }
         }}
-    Dialog{
-        id:add
-        title: qsTr("添加坡口参数")
-        negativeButtonText:qsTr("取消")
-        positiveButtonText:qsTr("确定")
-        globalMouseAreaEnabled:false
+    MyTextFieldDialog{
+        id:myTextFieldDialog
+        sourceComponent:Image{
+            id:addImage
+            source: "../Pic/坡口参数图.png"
+            sourceSize.width: Units.dp(350)
+        }
+        repeaterModel:grooveRules
         onAccepted: {
-            //只有一个空白行则插入新的行
-            updateModel("Append",pasteModel.get(0))}
-        onOpened: {
-            pasteModel.set(0,{"ID":"0", "C1":"0","C2":"0","C3":"0","C4":"0","C5":"0","C6":"0","C7":"0","C8":"0"})
-            for(var i=0;i<grooveRules.length;i++){
-                addColumnRepeater.itemAt(i).text="";
+            updateModel(myTextFieldDialog.title==="编辑坡口参数"?"Set":"Append",pasteModel.get(0))
+        }
+        onChangeText: {
+            switch(index){
+            case 0:pasteModel.setProperty(0,"ID",text);break;
+            case 1:pasteModel.setProperty(0,"C1",text);break;
+            case 2:pasteModel.setProperty(0,"C2",text);break;
+            case 3:pasteModel.setProperty(0,"C3",text);break;
+            case 4:pasteModel.setProperty(0,"C4",text);break;
+            case 5:pasteModel.setProperty(0,"C5",text);break;
             }
         }
-        dialogContent: [
-            Item{
-                width: Units.dp(540)
-                height:addColumn.height
-                Image{
-                    id:addImage
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    source: "../Pic/坡口参数图.png"
-                    sourceSize.width: Units.dp(350)
-                }
-                Column{
-                    id:addColumn
-                    anchors.top:parent.top
-                    anchors.left: addImage.right
-                    anchors.leftMargin: Units.dp(16)
-                    anchors.right: parent.right
-                    Repeater{
-                        id:addColumnRepeater
-                        model:grooveRules
-                        delegate:Row{
-                            property alias text: addTextField.text
-                            spacing: Units.dp(8)
-                            Label{text:modelData;anchors.bottom: parent.bottom}
-                            TextField{
-                                id:addTextField
-                                horizontalAlignment:TextInput.AlignHCenter
-                                width: Units.dp(60)
-                                inputMethodHints: Qt.ImhDigitsOnly
-                                onTextChanged: {
-                                    switch(index){
-                                    case 0:pasteModel.setProperty(0,"ID",text);break;
-                                    case 1:pasteModel.setProperty(0,"C1",text);break;
-                                    case 2:pasteModel.setProperty(0,"C2",text);break;
-                                    case 3:pasteModel.setProperty(0,"C3",text);break;
-                                    case 4:pasteModel.setProperty(0,"C4",text);break;
-                                    case 5:pasteModel.setProperty(0,"C5",text);break;
-                                    case 6:pasteModel.setProperty(0,"C6",text);break;
-                                    case 7:pasteModel.setProperty(0,"C7",text);break;
-                                    case 8:pasteModel.setProperty(0,"C8",text);break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        ]
-    }
-    Dialog{
-        id:edit
-        title: qsTr("编辑坡口参数")
-        negativeButtonText:qsTr("取消")
-        positiveButtonText:qsTr("确定")
-        globalMouseAreaEnabled:false
-        onAccepted: {
-            updateModel("Set",pasteModel.get(0))
-        }
         onOpened: {
-            //复制数据到 editData
-            var Index=currentRow;
-            if(Index>=0){
-                pasteModel.set(0,model.get(Index));
-                columnRepeater.itemAt(0).text=model.get(Index).ID;
-                columnRepeater.itemAt(1).text=model.get(Index).C1;
-                columnRepeater.itemAt(2).text=model.get(Index).C2;
-                columnRepeater.itemAt(3).text=model.get(Index).C3;
-                columnRepeater.itemAt(4).text=model.get(Index).C4;
-                columnRepeater.itemAt(5).text=model.get(Index).C5;
-                columnRepeater.itemAt(6).text=model.get(Index).C6;
-                columnRepeater.itemAt(7).text=model.get(Index).C7;
-                columnRepeater.itemAt(8).text=model.get(Index).C8;
+            if(title==="编辑坡口参数"){
+                if(currentRow>-1){
+                    //复制数据到 editData
+                    var index=currentRow
+                    var obj=model.get(index);
+                    openText(0,obj.ID);
+                    openText(1,obj.C1);
+                    openText(2,obj.C2);
+                    openText(3,obj.C3);
+                    openText(4,obj.C4);
+                    openText(5,obj.C5);
+                    pasteModel.set(0,obj);
+                    focusIndex=0;
+                    changeFocus(focusIndex)
+                }
+                else{
+                    message.open("请选择要编辑的行！")
+                    positiveButtonEnabled=false;
+                }
             }else{
-                message.open("请选择要编辑的行！");
-                positiveButtonEnabled=false;
+                for(var i=0;i<grooveRules.length;i++){
+                    openText(i,"0")
+                }
             }
         }
-        dialogContent: [
-            Item{
-                width: Units.dp(540)
-                height:column.height
-                Image{
-                    id:image
-                    anchors.left: parent.left
-                    anchors.verticalCenter: parent.verticalCenter
-                    source: "../Pic/坡口参数图.png"
-                    sourceSize.width: Units.dp(350)
-                }
-                Column{
-                    id:column
-                    anchors.top:parent.top
-                    anchors.left: image.right
-                    anchors.leftMargin: Units.dp(16)
-                    anchors.right: parent.right
-                    Repeater{
-                        id:columnRepeater
-                        model:grooveRules
-                        delegate:Row{
-                            property alias text: textField.text
-                            spacing: Units.dp(8)
-                            Label{text:modelData;anchors.bottom: parent.bottom}
-                            TextField{
-                                id:textField
-                                property string oldText:text
-                                horizontalAlignment:TextInput.AlignHCenter
-                                width: Units.dp(60)
-                                inputMethodHints: Qt.ImhDigitsOnly
-                                onTextChanged: {
-                                    switch(index){
-                                    case 0:pasteModel.setProperty(0,"ID",text);break;
-                                    case 1:pasteModel.setProperty(0,"C1",text);break;
-                                    case 2:pasteModel.setProperty(0,"C2",text);break;
-                                    case 3:pasteModel.setProperty(0,"C3",text);break;
-                                    case 4:pasteModel.setProperty(0,"C4",text);break;
-                                    case 5:pasteModel.setProperty(0,"C5",text);break;
-                                    case 6:pasteModel.setProperty(0,"C6",text);break;
-                                    case 7:pasteModel.setProperty(0,"C7",text);break;
-                                    case 8:pasteModel.setProperty(0,"C8",text);break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        ]
     }
     Dialog{
         id:fix
@@ -519,33 +431,73 @@ TableCard{
         positiveButtonText:qsTr("确定")
         globalMouseAreaEnabled:false
         property int selectedIndex: 0
+        property var valueModel:["板厚补正标志:","间隙补正标志:","角度补正标志:"]
+        property var valueBuf:new Array(valueModel.length)
         signal changeFixSelectedIndex(int index)
+        signal changeValue(int index,bool value)
         onChangeFixSelectedIndex:{
             fix.selectedIndex=index;
         }
+        Keys.onUpPressed: {
+            if(fix.selectedIndex)
+                fix.selectedIndex--;
+        }
+        Keys.onDownPressed: {
+            if(fix.selectedIndex<2)
+                fix.selectedIndex++;
+        }
+        Keys.onVolumeDownPressed: {
+            changeValue(fix.selectedIndex,false)
+        }
+        Keys.onVolumeUpPressed: {
+            changeValue(fix.selectedIndex,true)
+        }
+        onOpened:{
+            for(var i=0;i<valueModel.length;i++)
+                fix.changeValue(i,valueBuf[i]);
+        }
+        onAccepted: {
+            AppConfig.setFixAngel(valueBuf[0]);
+            AppConfig.setFixGap(valueBuf[1]);
+            AppConfig.setFixHeight(valueBuf[2]);
+        }
+        onRejected: {
+            valueBuf[0]=AppConfig.fixHeight();
+            valueBuf[1]=AppConfig.fixGap();
+            valueBuf[2]=AppConfig.fixAngel();
+        }
+
+        Component.onCompleted: {
+            valueBuf[0]=AppConfig.fixHeight();
+            valueBuf[1]=AppConfig.fixGap();
+            valueBuf[2]=AppConfig.fixAngel();
+        }
+
         dialogContent:Repeater{
-            model:["板厚补正标志:","间隙补正标志:","间隙补正标志:"]
+            model:fix.valueModel
             delegate: ListItem.Subtitled{
                 id:sub
                 property int subIndex: index
                 text:modelData
                 height:Units.dp(32)
+                width: Units.dp(250)
                 selected: index===fix.selectedIndex
                 onPressed:fix.changeFixSelectedIndex(index)
-                secondaryItem: RowLayout{
-                    spacing: Units.dp(12)
-                    anchors.verticalCenter: parent.verticalCenter
-                    Switch{
-                        id:switchButton
-                        Layout.alignment: Qt.AlignVCenter
-                        onClicked: {
-                            fix.changeFixSelectedIndex(sub.subIndex)
+                Connections{
+                    target: fix
+                    onChangeValue:{
+                        if(sub.subIndex===index){
+                            checkBox.checked=value;
                         }
                     }
-                    Label{
-                        text:switchButton.checked?"打开":"关闭"
-                        style: "button"
-                        Layout.alignment: Qt.AlignVCenter
+                }
+                secondaryItem: CheckBox{
+                    id:checkBox
+                    text:checked?"打开":"关闭"
+                    anchors.verticalCenter: parent.verticalCenter
+                    onCheckedChanged: {
+                        fix.changeFixSelectedIndex(sub.subIndex)
+                        fix.valueBuf[sub.subIndex]=checked;
                     }
                 }
             }

@@ -53,7 +53,7 @@ class AppConfig : public QObject
     Q_PROPERTY(int yMoto READ yMoto WRITE setYMoto NOTIFY yMotoChanged)
     Q_PROPERTY(int zMoto READ zMoto WRITE setZMoto NOTIFY zMotoChanged)
 
-    Q_PROPERTY(int weldDir READ weldDir WRITE setWeldDir NOTIFY weldDirChanged)
+    Q_PROPERTY(int weldStyle READ weldStyle WRITE setWeldStyle NOTIFY weldStyleChanged)
     Q_PROPERTY(int grooveStyle READ grooveStyle WRITE setGrooveStyle NOTIFY grooveStyleChanged)
     Q_PROPERTY(int connectStyle READ connectStyle WRITE setConnectStyle NOTIFY connectStyleChanged)
 
@@ -72,7 +72,7 @@ private:
     QString Accentcolor;
     QString Backgroundcolor;
 
-    int weldDirValue;
+    int weldStyleValue;
     int grooveStyleValue;
     int connectStyleValue;
 
@@ -100,10 +100,13 @@ private:
     bool yMotoValue;
     bool zMotoValue;
 
+    bool fixHeightValue;
+    bool fixAngelValue;
+    bool fixGapValue;
+
 public:
     AppConfig();
     ~AppConfig();
-
     QString leds();
     int currentGroove(); // 当前坡口
     int bottomStyle();
@@ -130,10 +133,13 @@ public:
     int xMoto();
     int yMoto();
     int zMoto();
-    int weldDir();
+    int weldStyle();
     int grooveStyle();
     int connectStyle();
 public slots:
+    void setFixHeight(bool value);
+    void setFixAngel(bool value);
+    void setFixGap(bool value);
     void setBottomStyle(int value);
     void setBottomStyleWidth(int value);
     void setBottomStyleDeep(int value);
@@ -161,9 +167,13 @@ public slots:
     void setXMoto(bool value);
     void setYMoto(bool value);
     void setZMoto(bool value);
-    void setWeldDir(int value);
+    void setWeldStyle(int value);
     void setGrooveStyle(int value);
     void setConnectStyle(int value);
+
+    bool fixHeight();
+    bool fixAngel();
+    bool fixGap();
 
 signals:
     void xSpeedChanged();
@@ -192,7 +202,7 @@ signals:
     void xMotoChanged(bool value);
     void yMotoChanged(bool value);
     void zMotoChanged(bool value);
-    void weldDirChanged(int value);
+    void weldStyleChanged(int value);
     void grooveStyleChanged(int value);
     void connectStyleChanged(int value);
 };

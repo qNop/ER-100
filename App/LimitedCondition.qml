@@ -15,6 +15,7 @@ TableCard {
     ListModel{id:pasteModel;
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:""}
     }
+    property bool swingWidthOrWeldWidth
     property bool superUser
     property Item message
     property string limitedRulesName
@@ -26,16 +27,32 @@ TableCard {
         "非坡口侧  停留时间   (s)",
         "层      高      Min     (mm)",
         "层      高      Max    (mm)",
-        "坡口侧    停留距离(mm)",
-        "非坡口侧停留距离(mm)",
-        "最    大    摆   宽     (mm)",
+        "坡口侧    接近距离(mm)",
+        "非坡口侧接近距离(mm)",
+        "摆  动  宽  度  Max (mm)",
         "摆    动    间   隔     (mm)",
         "分    开    结   束  比   (%)",
         "焊    接    电     压       (V)",
         "焊接速度Min  (cm/min)",
         "焊接速度Max (cm/min)",
         "层    填    充   系   数 (%)"]
-
+    property var nameModel1: [
+        "坡口侧          电流       (A)",
+        "中间              电流       (A)",
+        "非坡口侧      电流       (A)",
+        "坡口侧      停留时间   (s)",
+        "非坡口侧  停留时间   (s)",
+        "层      高      Min     (mm)",
+        "层      高      Max    (mm)",
+        "坡口侧    接近距离(mm)",
+        "非坡口侧接近距离(mm)",
+        "焊  道  宽  度  Max (mm)",
+        "摆    动    间   隔     (mm)",
+        "分    开    结   束  比   (%)",
+        "焊    接    电     压       (V)",
+        "焊接速度Min  (cm/min)",
+        "焊接速度Max (cm/min)",
+        "层    填    充   系   数 (%)"]
     signal changeGasError()
     signal changeWireDError()
     signal changeWireTypeError()
@@ -79,6 +96,8 @@ TableCard {
         var str;
         var temp=num;
         if(visible){
+            var weldStyle=AppConfig.weldStyle
+            swingWidthOrWeldWidth=weldStyle==="横焊"||weldStyle==="水平角焊"?false:true
             if((temp&0x0f)===4){
                 str="焊丝直径为1.2mm/"
             }else if((temp&0x0f)===6){
@@ -231,9 +250,9 @@ TableCard {
     tableData:[
         Controls.TableViewColumn{role: "C1";title:"坡口/中/非坡口\n   焊接电流(A)";width:Units.dp(140);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C2";title: "坡口/非坡口\n停留时间(s)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
-        Controls.TableViewColumn{role: "C4";title: "   坡口/非坡口\n停留距离(mm)";width:Units.dp(130);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
+        Controls.TableViewColumn{role: "C4";title: "   坡口/非坡口\n接近距离(mm)";width:Units.dp(130);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C3";title: "层高Min/Max\n       (mm)";width:Units.dp(110);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
-        Controls.TableViewColumn{role: "C5";title: "摆宽Max\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
+        Controls.TableViewColumn{role: "C5";title: swingWidthOrWeldWidth?"摆动宽度Max\n       (mm)":"焊道宽度Max\n       (mm)";width:Units.dp(120);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
         Controls.TableViewColumn{role: "C6";title: "分道间隔\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C7";title: "结束开始比\n       (%)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C8";title: "焊接电压\n     (V)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
@@ -244,7 +263,7 @@ TableCard {
     MyTextFieldDialog{
         id:edit
         title: "编辑限制条件"
-        repeaterModel:nameModel
+        repeaterModel:swingWidthOrWeldWidth?nameModel:nameModel1
         onOpened: {
             var res=limitedMath(currentRow,currentRow+1);
             pasteModel.set(0,limitedTable.get(currentRow))

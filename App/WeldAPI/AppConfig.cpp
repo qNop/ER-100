@@ -70,7 +70,7 @@ void Write_App_Config(QSettings *File){
     File->setValue("BottomStyleDeep","1.2");
     File->setValue("ConnectSyle","0");
     File->setValue("GrooveStyle","0");
-    File->setValue("WeldDir","0");
+    File->setValue("WeldStyle","0");
 }
 /*
  **********************************************************************************获取配置ini指针
@@ -117,10 +117,15 @@ AppConfig::AppConfig(){
     setbackLight(BacklightValue);
     connectStyleValue=File->value("ConnectStyle").toInt();
     grooveStyleValue=File->value("GrooveStyle").toInt();
-    weldDirValue=File->value("WeldDir").toInt();
-}
-AppConfig::~AppConfig(){
+    weldStyleValue=File->value("WeldStyle").toInt();
 
+    fixAngelValue=File->value("FixAngel").toBool();
+    fixHeightValue=File->value("FixHeight").toBool();
+    fixGapValue=File->value("FixGap").toBool();
+
+}
+
+AppConfig::~AppConfig(){
     qDebug()<<"AppConfig::REMOVE";
 }
 /*
@@ -456,13 +461,13 @@ int AppConfig::swingMoto(){
     return swingMotoValue;
 }
 
-void AppConfig::setWeldDir(int value){
-    File->setValue("WeldDir",value);
-    weldDirValue=value;
-    qDebug() <<"AppConfig::WeldDir Changed";
+void AppConfig::setWeldStyle(int value){
+    File->setValue("WeldStyle",value);
+    weldStyleValue=value;
+    qDebug() <<"AppConfig::weldStyle Changed";
 }
-int AppConfig::weldDir(){
-    return weldDirValue;
+int AppConfig::weldStyle(){
+    return weldStyleValue;
 }
 void AppConfig::setGrooveStyle(int value){
     File->setValue("GrooveStyle",value);
@@ -479,4 +484,30 @@ void AppConfig::setConnectStyle(int value){
     File->setValue("ConnectStyle",value);
     connectStyleValue=value;
     qDebug() <<"AppConfig::ConnectStyle Changed";
+}
+
+void AppConfig::setFixHeight(bool value){
+    File->setValue("FixHeight",value);
+    fixHeightValue=value;
+}
+
+bool AppConfig::fixHeight(){
+    return fixHeightValue;
+}
+
+void AppConfig::setFixAngel(bool value){
+    File->setValue("FixAngel",value);
+    fixAngelValue=value;
+}
+
+bool AppConfig::fixAngel(){
+    return fixAngelValue;
+}
+void AppConfig::setFixGap(bool value){
+    File->setValue("FixGap",value);
+    fixGapValue=value;
+}
+
+bool AppConfig::fixGap(){
+    return fixGapValue;
 }

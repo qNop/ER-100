@@ -24,7 +24,6 @@
         <file>InputPanelButton.qml</file>
         <file>HighVolagteInfor.qml</file>
         <file>RoboInfor.qml</file>
-        <file>WeldPowerInfor.qml</file>
         <file>Table.qml</file>
         <file>LimitedCondition.qml</file>
         <file>MenuDropdown.qml</file>

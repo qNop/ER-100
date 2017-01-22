@@ -34,7 +34,14 @@ Material.ApplicationWindow{
     property var sectionsIcon:[presetIcon,analyseIcon,inforIcon]
     property var sectionTitles: ["预置条件", "焊接分析", "系统信息"]
     property var tabiconname: ["action/settings_input_composite","awesome/tasks","awesome/windows"]
-    property var errorName: ["主控制器异常","CAN通讯异常","急停报警","摇动电机过热过流","摇动电机右限位","摇动电机左限位","摇动电机原点搜索","摇动电机堵转", "摆动电机过热过流","摆动电机内限位","摆动电机外限位","摆动电机原点搜索","摆动电机堵转", "上下电机过热过流","上下电机下限位","上下电机上限位","上下电机原点搜索","上下电机堵转", "行走电机过热过流","行走电机右限位","行走电机左限位","行走电机原点搜索","行走电机堵转","驱动器急停报警","手持盒通讯异常","示教器通讯异常","焊接电源通讯异常","焊接电源粘丝异常","焊接电源其他异常","坡口参数表格内无数据","生成焊接规范异常","未定义异常"]
+    property var errorName:["主控制器异常","CAN通讯异常","急停报警","摇动电机过热过流","摇动电机右限位","摇动电机左限位","摇动电机原点搜索","摇动电机堵转", "摆动电机过热过流","摆动电机内限位",
+        "摆动电机外限位","摆动电机原点搜索","摆动电机堵转", "上下电机过热过流","上下电机下限位","上下电机上限位","上下电机原点搜索","上下电机堵转", "行走电机过热过流","行走电机右限位",
+        "行走电机左限位","行走电机原点搜索","行走电机堵转","驱动器急停报警","手持盒通讯异常","示教器通讯异常","焊接电源通讯异常","焊接电源粘丝异常","焊接电源其他异常","坡口参数表格内无数据",
+        "生成焊接规范异常","未定义异常",
+        "未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常", "未定义异常","未定义异常",
+        "未定义异常","未定义异常","未定义异常", "未定义异常","未定义异常","未定义异常","未定义异常","未定义异常", "未定义异常","未定义异常",
+        "未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常",
+        "未定义异常","未定义异常"]
     property int  page0SelectedIndex:0
     property int  page1SelectedIndex:0
     property int  page2SelectedIndex:0
@@ -56,8 +63,10 @@ Material.ApplicationWindow{
     property Item lastFocusedItem:null
     /*错误*/
     property int errorCode:0
+    property int errorCode1: 0
     /*上次错误*/
     property int oldErrorCode: 0
+    property int oldErrorCode1: 0
     /*焊接分析表格index*/
     property int weldTableIndex: -1
     /*坡口表格index*/
@@ -165,8 +174,6 @@ Material.ApplicationWindow{
         //更新焊接规范名称
         if((typeof(res)==="string")&&(res!=="")){
             currentGrooveName=res;
-            //  AppConfig.setcurrentGroove(currentGroove);
-            //WeldMath.setGroove(currentGroove);
             //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
             res =Material.UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
             if((res!==-1)&&(typeof(res)==="object")){
@@ -199,7 +206,7 @@ Material.ApplicationWindow{
         /*actions列表*/
         actions: [
             /*坡口形状action*/
-            Material.Action{id:grooveAction;name: currentGrooveName//qsTr("时间");
+            Material.Action{id:grooveAction;name: currentGrooveName
                 onTriggered:{page.selectedTab=0;app.page0SelectedIndex=0;}
             },
             /*时间action*/
@@ -579,8 +586,7 @@ Material.ApplicationWindow{
                 if(grooveTable.count===0){
                     //写入错误
                     errorCode|=0x20000000;
-                    ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)]);
-                    console.log(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)])
+                    ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16),String(errorCode1&0x0000ffff),String((errorCode1&0xffff0000)>>16)]);
                 }else{//根据示教点数 复制第一个数据表格内容创建 示教点数个 坡口参数
                     if(grooveTable.count!==1)
                         for(var i=1;i<grooveTable.count;i++)
@@ -660,17 +666,13 @@ Material.ApplicationWindow{
                     //获取系统状态
                     sysStatus=sysStatusList[Number(frame[2])];
                     //获取系统错误警报
-                    //                    MathError=Number(frame[6]);
-                    //                    console.log("MathError "+MathError);
-                    //                    MathError<<=16;
-                    //                    MathError|=Number(frame[5]);
-                    //                    console.log("MathError "+MathError);
-                    //                    MathError<<=16;
+                    MathError=Number(frame[6]);
+                    MathError<<=16;
+                    MathError|=Number(frame[5]);
+                     errorCode1=MathError;
                     MathError=Number(frame[4]);
-
                     MathError<<=16;
                     MathError|=Number(frame[3]);
-
                     errorCode=MathError;
                 }
                 else if((frame[1]==="150")&&(sysStatus==="坡口检测态")){
@@ -695,15 +697,12 @@ Material.ApplicationWindow{
                                 console.log("teachModel === 1")
                                 grooveTable.setProperty(num,"ID",frame[2])
                                 if(AppConfig.fixHeight()){
-                                    console.log("fix height")
                                     grooveTable.setProperty(num,"C1",(Number(frame[3])/10).toString())
                                 }
                                 if(AppConfig.fixGap()){
-                                    console.log("fix gap")
                                     grooveTable.setProperty(num,"C3",(Number(frame[5])/10).toString())
                                 }
                                 if(AppConfig.fixAngel()){
-                                    console.log("fix angel")
                                     grooveTable.setProperty(num,"C4",(Number(frame[6])/10).toString())
                                     grooveTable.setProperty(num,"C5",(Number(frame[7])/10).toString())
                                 }
@@ -820,6 +819,7 @@ Material.ApplicationWindow{
             }else{
                 //输出错误
                 //showMathError(value[0]);
+                snackBar.open(value[0])
                 //写入错误
                 errorCode|=0x40000000;
                 ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)]);
@@ -880,9 +880,6 @@ Material.ApplicationWindow{
             property string status: "open"
             fullWidth:false
             duration:3000;
-            Component.onCompleted: {
-                console.log("snackBar Completed !")
-            }
         }
     }
     Material.OverlayLayer{
@@ -898,12 +895,10 @@ Material.ApplicationWindow{
             }
         }
     }
-    onErrorCodeChanged: {
-        var MathError=errorCode;
-        var MathXor=errorCode^oldErrorCode;
+    function errorMath(Start,Length,MathError,MathXor){
+        //获取时间
         var errorTime=Material.UserData.getSysTime();
-        moto.errorCode=errorCode;
-        for(var i=0;i<errorName.length;i++){
+        for(var i=Start;i<Length;i++){
             //如果变化存在
             if(MathXor&0x0001){
                 //错误存在
@@ -913,6 +908,7 @@ Material.ApplicationWindow{
                         if(initialListModel.get(0).ID===0)
                             initialListModel.remove(0,1);}
                     initialListModel.insert(0,{"ID":Number(i+1),"C1":errorName[i],"C2":errorTime })
+                    console.log("C1",errorName[i])
                     errorHistroy.insert(0,{"ID":String(errorHistroy.count+1),"C1":String(i+1),"C2":"发生","C4":errorName[i],"C3":app.currentUser,"C5": errorTime})
                 }else{
                     for(var j=0;j<initialListModel.count;j++){
@@ -933,17 +929,38 @@ Material.ApplicationWindow{
             MathXor>>=1;
             MathError>>=1;
         }
-        //显示系统错误对话框
+    }
+
+    onErrorCodeChanged: {
+        moto.errorCode=errorCode;
+        errorMath(0,32,errorCode,errorCode^oldErrorCode);
         if((errorCode)&&(!myErrorDialog.showing))
             myErrorDialog.show();
-        if(errorCode===0)
+        if((errorCode===0)&&(errorCode1===0))
         {
             initialListModel.clear()
             initialListModel.append({"ID":0,"C1":"无","C2":"0:00"})
             errorTable.__listView.currentIndex=0;
             errorTable.selection.select(0);
+            if(myErrorDialog.showing)
+                myErrorDialog.close()
         }
         oldErrorCode=errorCode;
+    }
+    onErrorCode1Changed: {
+        errorMath(32,64,errorCode1,errorCode1^oldErrorCode1);
+        if((errorCode1)&&(!myErrorDialog.showing))
+            myErrorDialog.show();
+       if((errorCode===0)&&(errorCode1===0))
+        {
+            initialListModel.clear()
+            initialListModel.append({"ID":0,"C1":"无","C2":"0:00"})
+            errorTable.__listView.currentIndex=0;
+            errorTable.selection.select(0);
+            if(myErrorDialog.showing)
+                myErrorDialog.close()
+        }
+        oldErrorCode1=errorCode1;
     }
     Material.Dialog{
         id:myErrorDialog
@@ -953,6 +970,7 @@ Material.ApplicationWindow{
         positiveButtonText: qsTr("错误历史信息");
         //dismissOnTap: false
         onAccepted: {
+
             if(errorCode&0x20000000){//坡口数据表中无数据
                 errorCode&=0xdfffffff;
                 ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)]);
@@ -960,6 +978,7 @@ Material.ApplicationWindow{
                 errorCode&=0xbfffffff;
                 ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)]);
             }else{
+                errorCode=0;
                 page.selectedTab=2;
                 page2SelectedIndex=1;
             }
@@ -1113,7 +1132,6 @@ Material.ApplicationWindow{
     Material.Dialog{
         id:changeuser;
         objectName: "ChangeUserDialog"
-        width:Material.Units.dp(350)
         title:qsTr("用户登录");
         negativeButtonText:qsTr("取消");positiveButtonText:qsTr("确定");
         positiveButtonEnabled:false;
@@ -1134,11 +1152,17 @@ Material.ApplicationWindow{
             }
             return -1;
         }
-
         Keys.onUpPressed: {
             if(sysStatus==="未登录态"){
-                upCount++;
-                if(upCount>2){
+                if(event.isAutoRepeat)
+                    upCount++;
+                else
+                    upCount=0;
+                if(upCount>50){
+                    upCount=0;
+                    errorCode=1
+                    errorCode1=1
+                    console.log(errorCode);
                     app.sysStatus="空闲态";
                     AppConfig.currentUserPassword = "TKSW"
                     AppConfig.currentUserName = "TKSW";
@@ -1150,7 +1174,6 @@ Material.ApplicationWindow{
                 }
             }
         }
-
         onAccepted: {
             if(changeuser.positiveButtonEnabled){
                 AppConfig.currentUserPassword = changeuser.password
@@ -1183,63 +1206,68 @@ Material.ApplicationWindow{
             password.placeholderText="请输入密码..."
             password.helperText=""
         }
-        Column{
-            spacing: Material.Units.dp(4)
-            RowLayout{
-                id:fLayout
-                spacing: Material.Units.dp(12)
-                Material.Label{
-                    id:nameLabel
-                    text:qsTr("用户名:");
-                    style:"subheading"
-                    color: Material.Theme.light.shade(0.54)
-                    Layout.alignment: Qt.AlignVCenter
-                }
-                Material.MenuField{
-                    id:changeuserFeildtext;
-                    textRole: "C2"
-                    model:accountmodel
-                    implicitWidth:Material.Units.dp(220)
-                    onItemSelected:  {
-                        password.enabled=true;
-                        var data=accountmodel.get(index);
-                        changeuser.user=data.C2
-                        changeuser.password = data.C3;
-                        changeuser.type = data.C4;
-                        password.text="";}}
+        RowLayout{
+            spacing: Material.Units.dp(24)
+            Image{
+                id:image
+                Layout.alignment: Qt.AlignVCenter
+                source: "../Pic/logo.png"
+                Layout.preferredWidth: Material.Units.dp(228)
+                Layout.preferredHeight: Material.Units.dp(40)
+                mipmap: true
             }
-            RowLayout{
-                spacing: Material.Units.dp(12)
-                Material.Label{
-                    text:qsTr("密    码:");
-                    style:"subheading"
-                    color: Material.Theme.light.shade(0.54)
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignVCenter
+            Rectangle{
+                Layout.alignment: Qt.AlignVCenter
+                Layout.fillHeight: true
+                width: 1
+                color: Qt.rgba(0,0,0,0.2)
+            }
+            Column{
+                id:column
+                Layout.alignment: Qt.AlignVCenter
+                width:Material.Units.dp(200)
+                ListItem.Subtitled{
+                    margins: 1
+                    text:qsTr("用户名:");
+                    interactive:false
+                    height: Material.Units.dp(64)
+                    secondaryItem: Material.MenuField{
+                        id:changeuserFeildtext;
+                        textRole: "C2"
+                        model:accountmodel
+                        width:Material.Units.dp(120)
+                        onItemSelected:  {
+                            password.enabled=true;
+                            var data=accountmodel.get(index);
+                            changeuser.user=data.C2
+                            changeuser.password = data.C3;
+                            changeuser.type = data.C4;
+                            password.text="";}}
                 }
-                Material.TextField{id:password;
-                    placeholderText:qsTr("请输入密码...");
-                    characterLimit: 8;
-                    implicitWidth:Material.Units.dp(220)
-                    color: Material.Theme.light.shade(0.54)
-                    onTextChanged:{
-                        if(password.text=== changeuser.password){
-                            changeuser.positiveButtonEnabled=true;
-                            password.helperText=qsTr("密码正确");}
-                        else{
-                            password.helperText=qsTr("请输入密码...");
-                            changeuser.positiveButtonEnabled=false;}}
-                    onHasErrorChanged: {
-                        if(password.hasError === true){
-                            password.helperText =qsTr( "密码超过最大限制");}
-                        else
-                            password.helperText=""
+                ListItem.Subtitled{
+                    margins: 1
+                    text:qsTr("密    码:");
+                    height: Material.Units.dp(48)
+                    interactive:false
+                    secondaryItem: Material.TextField{id:password;
+                        placeholderText:qsTr("请输入密码...");
+                        characterLimit: 8;
+                        width:Material.Units.dp(120)
+                        onTextChanged:{
+                            if(password.text=== changeuser.password){
+                                changeuser.positiveButtonEnabled=true;
+                                password.helperText=qsTr("密码正确");}
+                            else{
+                                password.helperText=qsTr("请输入密码...");
+                                changeuser.positiveButtonEnabled=false;}}
+                        onHasErrorChanged: {
+                            if(password.hasError === true){
+                                password.helperText =qsTr( "密码超过最大限制");}
+                            else
+                                password.helperText=""
+                        }
                     }
                 }
-            }
-            Item{
-                width:parent.width
-                height: 10
             }
         }
     }

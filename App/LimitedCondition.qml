@@ -97,7 +97,7 @@ TableCard {
         var temp=num;
         if(visible){
             var weldStyle=AppConfig.weldStyle
-            swingWidthOrWeldWidth=weldStyle==="横焊"||weldStyle==="水平角焊"?false:true
+            swingWidthOrWeldWidth=weldStyle===1||weldStyle===4?false:true
             if((temp&0x0f)===4){
                 str="焊丝直径为1.2mm/"
             }else if((temp&0x0f)===6){

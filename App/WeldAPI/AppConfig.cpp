@@ -118,7 +118,6 @@ AppConfig::AppConfig(){
     connectStyleValue=File->value("ConnectStyle").toInt();
     grooveStyleValue=File->value("GrooveStyle").toInt();
     weldStyleValue=File->value("WeldStyle").toInt();
-
     fixAngelValue=File->value("FixAngel").toBool();
     fixHeightValue=File->value("FixHeight").toBool();
     fixGapValue=File->value("FixGap").toBool();

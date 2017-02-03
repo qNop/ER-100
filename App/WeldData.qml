@@ -21,6 +21,8 @@ TableCard{
     property string weldRulesName;
     property bool weldTableEx
     property string currentGrooveName
+
+    property string currentUserName
     //外部更新数据
     signal updateModel(string str,var data);
     signal updateWeldRulesName(string str);
@@ -345,7 +347,7 @@ TableCard{
             updateWeldRulesName(title+"焊接规范");
             //获取系统时间
             var time=UserData.getSysTime();
-            var user=AppConfig.currentUserName
+            var user=currentUserName
             //在次列表插入新的数据
             UserData.insertTable(currentGrooveName+"次列表","(?,?,?,?,?,?,?,?)",[title+"焊接规范",title+"限制条件",title+"过程分析",title+"焊接曲线",time,user,time,user])
             //创建新的 焊接条件
@@ -521,19 +523,6 @@ TableCard{
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
         globalMouseAreaEnabled:false
-        //        property int currentGroove : AppConfig.currentGroove
-        //        dialogContent: [
-        //            Label{text:"焊接位置："+String(AppConfig.currentGroove&0x00000003)},
-        //            Label{text:"坡口形式："+String(AppConfig.currentGroove&0x00000004)},
-        //            Label{text:"接头形式："+String(AppConfig.currentGroove&0x00000008)},
-        //            Label{text:"衬垫形式："+String(AppConfig.currentGroove&0x00000030)},
-        //            Label{text:"操作用户："+AppConfig.currentUserName},
-        //            Label{text:"用户类别："+AppConfig.currentUserType},
-        //            Label{text:"创建时间："+AppConfig.currentUserType},
-        //            Label{text:"编辑时间："+AppConfig.currentUserType},
-        //            Label{text:"总计焊接时间："+10},
-        //            Label{text:"总计气体消耗量："+10}
-        //        ]
     }
     Dialog{
         id:weldArea

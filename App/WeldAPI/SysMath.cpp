@@ -489,18 +489,18 @@ float SysMath::getVoltage(int current){
         }
     }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //CO2 D 实芯 1.2
-        if (current<currentMin){
-            return -1;
+        if (current<=200){
+            voltage=14+0.05*current;
         }
         else
-            voltage=14+0.05*current+2;
+            voltage=16+0.05*current;
     }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==4)&&(wireDValue==4)){
         //CO2 D 药芯 1.2
         if (current<currentMin){
-            return -1;
+           voltage=14+0.05*current;
         }
         else
-            voltage=14+0.05*current+2;
+            voltage=16+0.05*current;
     }else {
         return -1;
     }

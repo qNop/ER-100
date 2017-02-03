@@ -18,6 +18,8 @@ TableCard{
 
     property int currentGroove;
 
+    property var settings
+
     property Item message
     property string helpText;
     //坡口列表名称
@@ -94,7 +96,7 @@ TableCard{
                     //更新数据库保存时间
                     UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"EditTime",UserData.getSysTime())
                     //更新数据库保存
-                    UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"Editor",AppConfig.currentUserName)
+                    UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"Editor",settings.currentUserName)
                     message.open("坡口参数已保存。");
                 }else{
                     message.open("坡口名称格式不是字符串！")
@@ -349,7 +351,7 @@ TableCard{
             //更新标题
             var name = newFileTextField.text
             if((name!==currentGrooveName)&&(typeof(name)==="string")){
-                var user=AppConfig.currentUserName;
+                var user=settings.currentUserName;
                 var Time=UserData.getSysTime();
 
                 message.open("正在创建坡口参数数据库！")
@@ -457,20 +459,20 @@ TableCard{
                 fix.changeValue(i,valueBuf[i]);
         }
         onAccepted: {
-            AppConfig.setFixAngel(valueBuf[0]);
-            AppConfig.setFixGap(valueBuf[1]);
-            AppConfig.setFixHeight(valueBuf[2]);
+            settings.fixAngel=valueBuf[0];
+            settings.fixGap=valueBuf[1];
+            settings.fixHeight=valueBuf[2];
         }
         onRejected: {
-            valueBuf[0]=AppConfig.fixHeight();
-            valueBuf[1]=AppConfig.fixGap();
-            valueBuf[2]=AppConfig.fixAngel();
+            valueBuf[0]=settings.fixHeight;
+            valueBuf[1]=settings.fixGap;
+            valueBuf[2]=settings.fixAngel;
         }
 
         Component.onCompleted: {
-            valueBuf[0]=AppConfig.fixHeight();
-            valueBuf[1]=AppConfig.fixGap();
-            valueBuf[2]=AppConfig.fixAngel();
+            valueBuf[0]=settings.fixHeight;
+            valueBuf[1]=settings.fixGap;
+            valueBuf[2]=settings.fixAngel;
         }
 
         dialogContent:Repeater{

@@ -7,6 +7,7 @@ import WeldSys.WeldMath 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
 import QtQuick.LocalStorage 2.0
+
 import QtQuick.Controls 1.4
 import QtQuick.Window 2.2
 
@@ -16,8 +17,7 @@ Material.ApplicationWindow{
     objectName: "App"
     visible: false
     /*主题默认颜色*/
-    theme {primaryColor: AppConfig.themePrimaryColor;accentColor: AppConfig.themeAccentColor;backgroundColor:AppConfig.themeBackgroundColor
-        tabHighlightColor: AppConfig.themeAccentColor}
+    theme.tabHighlightColor: theme.accentColor
     //不需要解释
     property var grooveStyleName: [ "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接", "平焊V形坡口平对接","横焊单边V形坡口T接头",  "横焊单边V形坡口平对接", "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接","水平角焊"]
     property var preset:["GrooveCondition","TeachCondition","WeldCondition","GrooveCheck","LimitedConditon"]
@@ -88,11 +88,11 @@ Material.ApplicationWindow{
     /*app加载完毕*/
     property bool completed:false
     /*当前用户名*/
-    property string currentUser: AppConfig.currentUserName
+   // property string currentUser: appSettings.currentUserName
 
     property string  weldRulesName
 
-    property bool superUser:AppConfig.currentUserType==="超级用户"?true:false
+    property bool superUser
     //示教模式
     property int teachModel: 0
     //示教点数
@@ -115,6 +115,8 @@ Material.ApplicationWindow{
     signal changeGrooveTableIndex(int index)
     //signal
     signal changeTeachSet(var value);
+    //Settings
+    MySettings{id:appSettings}
     /*更新时间定时器*/
     Timer{
         interval:1000;running:true;repeat: true;
@@ -125,6 +127,18 @@ Material.ApplicationWindow{
             time.name=timeD[1];
         }
     }
+    Timer{id:camera
+        interval:5000;running: false;repeat: false
+        onTriggered: {
+            if(AppConfig.screenShot(app)){
+                snackBar.open("截屏成功！")
+            }else
+                snackBar.open("截屏失败！")
+        }
+    }
+
+
+
     //该页面下1000ms问一次检测参数是否有效
     Timer{ repeat: true;interval:sysStatus==="空闲态"?200:500;
         running:readTime
@@ -175,7 +189,7 @@ Material.ApplicationWindow{
         if((typeof(res)==="string")&&(res!=="")){
             currentGrooveName=res;
             //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
-            res =Material.UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
+         res =Material.UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
             if((res!==-1)&&(typeof(res)==="object")){
                 //清除焊接规范表格
                 weldTable.clear();
@@ -230,16 +244,20 @@ Material.ApplicationWindow{
             },
             /*账户*/
             Material.Action {id:accountname;iconName: "awesome/user";
-                onTriggered:changeuser.show();text:AppConfig.currentUserName;
+                onTriggered:changeuser.show();text:appSettings.currentUserName;
             },
             /*语言*/
             Material.Action {iconName: "action/language";name: qsTr("语言");
                 onTriggered: languagePicker.show();
             },
-            /*mount网络*/
-            Material.Action {iconName:loadInterNet?"hardware/phonelink": "hardware/phonelink_off";name: qsTr("网络");
-                onTriggered: {loadInterNet=!loadInterNet;AppConfig.setloadNet(loadInterNet);}
+            /*截屏*/
+            Material.Action {iconName:"awesome/camera";name: qsTr("截屏");visible: superUser
+                onTriggered: {snackBar.open("截屏操作将在5秒钟后启动！");camera.start()}
             },
+            //            /*mount网络*/
+            //            Material.Action {iconName:loadInterNet?"hardware/phonelink": "hardware/phonelink_off";name: qsTr("网络");
+            //                onTriggered: {loadInterNet=!loadInterNet;AppConfig.setloadNet(loadInterNet);}
+            //            },
             /*系统电源*/
             Material.Action {iconName: "awesome/power_off";name: qsTr("关机")
                 onTriggered: {app.modbusBusy=false;app.sysInforFlag=false;Qt.quit();}
@@ -267,13 +285,14 @@ Material.ApplicationWindow{
             id:navigationDrawer
             ListModel{id:listModel;ListElement{name:"";icon:""}}
             property bool openFinish: false
+            settings: appSettings
             onClosed: openFinish=false;
             //加载model进入listview
             onOpened: {
                 listModel.clear();
                 titleImage=app.tabiconname[page.selectedTab]
                 titleLabel=app.sectionTitles[page.selectedTab]
-                var type=AppConfig.currentUserType;
+                var type=appSettings.currentUserType;
                 for(var i=0;i<sectionsName[page.selectedTab].length;i++){
                     listModel.append({"name":sectionsName[page.selectedTab][i],"icon":sectionsIcon[page.selectedTab][i]})
                 }
@@ -333,10 +352,11 @@ Material.ApplicationWindow{
                 //最后加载
                 GrooveCondition{
                     id:grooveConditionPage
+                    settings: appSettings
                     visible: page.selectedTab===0&&page0SelectedIndex===0
                     message: snackBar
                     onCurrentGrooveChanged:{
-                        app.currentGroove=currentGroove;
+                       app.currentGroove=currentGroove;
                     }
                 }
                 TeachCondition{
@@ -375,6 +395,7 @@ Material.ApplicationWindow{
                     id:weldConditionPage
                     visible: page.selectedTab===0&&page0SelectedIndex===2
                     message:snackBar
+                    superUser:app.superUser
                     Connections{
                         target:app
                         onChangeTeachSet:{
@@ -399,6 +420,7 @@ Material.ApplicationWindow{
                     status: app.sysStatus
                     message:snackBar
                     model:grooveTable
+                    settings: appSettings
                     //状态为坡口检测态时不能更改 数据表
                     onStatusChanged: table.enabled=app.sysStatus!=="坡口检测态"?true:false
                     currentGrooveName:app.currentGrooveName
@@ -432,6 +454,7 @@ Material.ApplicationWindow{
                         target:app
                         onChangeGrooveTableIndex:{
                             if(index<grooveTable.count){
+                                grooveTableIndex=index;
                                 grooveCheckPage.currentRow=index;
                                 grooveCheckPage.selectIndex(index);
                             }else
@@ -441,8 +464,8 @@ Material.ApplicationWindow{
                 }
                 LimitedCondition{
                     id:limitedConditionPage
+                    settings: appSettings
                     visible: page.selectedTab===0&&(page0SelectedIndex===4)&&(app.superUser)
-                    superUser:app.superUser
                     limitedRulesName: app.weldRulesName.replace("焊接规范","限制条件")
                     message: snackBar
                     Connections{
@@ -466,6 +489,7 @@ Material.ApplicationWindow{
                     weldTableEx: app.superUser
                     currentGrooveName: app.currentGrooveName
                     weldRulesName: app.weldRulesName
+                    currentUserName: appSettings.currentUserName
                     onUpdateWeldRulesName: {
                         app.weldRulesName=str;
                         weldTable.clear()
@@ -479,7 +503,6 @@ Material.ApplicationWindow{
                         }
                     }
                     onCurrentRowChanged: {
-                        console.log("app.weldTableIndex"+currentRow)
                         app.weldTableIndex=currentRow;
                     }
                     model: weldTable
@@ -526,6 +549,7 @@ Material.ApplicationWindow{
                     id:userAccountPage
                     visible: page.selectedTab===2&&page2SelectedIndex===0
                     model:accountmodel
+                    superUser: app.superUser
                     onUserUpdate: changeuser.show()
                     message: snackBar
                     Component.onCompleted: console.log(objectName+"Completed")
@@ -586,7 +610,7 @@ Material.ApplicationWindow{
                 if(grooveTable.count===0){
                     //写入错误
                     errorCode|=0x20000000;
-                    ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16),String(errorCode1&0x0000ffff),String((errorCode1&0xffff0000)>>16)]);
+                    ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
                 }else{//根据示教点数 复制第一个数据表格内容创建 示教点数个 坡口参数
                     if(grooveTable.count!==1)
                         for(var i=1;i<grooveTable.count;i++)
@@ -595,6 +619,7 @@ Material.ApplicationWindow{
                         grooveTable.append(grooveTable.get(0))
                         grooveTable.setProperty(i,"ID",String(i+1));
                     }
+                    changeGrooveTableIndex(-1);
                 }
             }
         }else if(sysStatus=="坡口检测完成态"){
@@ -650,7 +675,6 @@ Material.ApplicationWindow{
             lastFocusedItem.forceActiveFocus();
         }
     }
-
     Connections{
         target: ERModbus
         //frame[0] 代表状态 1代读取的寄存器地址 2代表返回的 第一个数据 3代表返回的第二个数据 依次递推
@@ -669,7 +693,7 @@ Material.ApplicationWindow{
                     MathError=Number(frame[6]);
                     MathError<<=16;
                     MathError|=Number(frame[5]);
-                     errorCode1=MathError;
+                    errorCode1=MathError;
                     MathError=Number(frame[4]);
                     MathError<<=16;
                     MathError|=Number(frame[3]);
@@ -677,11 +701,10 @@ Material.ApplicationWindow{
                 }
                 else if((frame[1]==="150")&&(sysStatus==="坡口检测态")){
                     //间隔跳示教点允许删除示教点操作尚未加入
-                    console.log(frame);
                     if(frame[2]!=="0"){
                         var num=Number(frame[2])-1;
                         //如果当前选择行和 上传数据行不一至则更新数据
-                        if(num!==app.grooveTableIndex){
+                        if((num!==app.grooveTableIndex)&&(num>app.grooveTableIndex)){
                             if(teachModel===0)
                                 grooveTable.append({
                                                        "ID":frame[2],
@@ -694,15 +717,14 @@ Material.ApplicationWindow{
                                                        "C7":String(Number(frame[10])/10),
                                                        "C8":String(Number(frame[11])/10)})
                             else if(teachModel===1){
-                                console.log("teachModel === 1")
                                 grooveTable.setProperty(num,"ID",frame[2])
-                                if(AppConfig.fixHeight()){
+                                if(appSettings.fixHeight()){
                                     grooveTable.setProperty(num,"C1",(Number(frame[3])/10).toString())
                                 }
-                                if(AppConfig.fixGap()){
+                                if(appSettings.fixGap()){
                                     grooveTable.setProperty(num,"C3",(Number(frame[5])/10).toString())
                                 }
-                                if(AppConfig.fixAngel()){
+                                if(appSettings.fixAngel()){
                                     grooveTable.setProperty(num,"C4",(Number(frame[6])/10).toString())
                                     grooveTable.setProperty(num,"C5",(Number(frame[7])/10).toString())
                                 }
@@ -710,9 +732,13 @@ Material.ApplicationWindow{
                                 grooveTable.setProperty(num,"C7",String(Number(frame[10])/10))
                                 grooveTable.setProperty(num,"C8",String(Number(frame[11])/10))
                             }
-                            else
+                            else{
                                 grooveTable.setProperty(num,"C3",(Number(frame[5])/10).toString())
-                            changeGrooveTableIndex(Number(frame[2])-1);
+                                grooveTable.setProperty(num,"C6",String((Number(frame[8])|(Number(frame[9])<<16))/10))
+                                grooveTable.setProperty(num,"C7",String(Number(frame[10])/10))
+                                grooveTable.setProperty(num,"C8",String(Number(frame[11])/10))
+                            }
+                            changeGrooveTableIndex(num);
                         }
                     }
                     ERModbus.setmodbusFrame(["R","0","5"]);
@@ -723,13 +749,12 @@ Material.ApplicationWindow{
                         var temp =getGrooveAverage();
                         WeldMath.setGrooveRules(temp===-1?snackBar.open("坡口参数数据不存在！"):temp);
                     }
+                    ERModbus.setmodbusFrame(["R","0","5"]);
                 }else if((frame[1]==="10")&&(sysStatus==="焊接态")){
                     //记录焊接时间（焊接长度）
-
                     //发送握手信号
                     //ERModbus.setmodbusFrame(["R","0","5"]);
                 }else  if((frame[1]==="200")&&((sysStatus==="焊接端部暂停态")||(sysStatus==="焊接中间暂停态"))){
-
                     if((frame[2]!==weldTableIndex.toString())&&(!weldFix)){
                         if(frame[2]!=="99"){
                             //当前焊道号与实际焊道号不符 更换当前焊道
@@ -814,15 +839,18 @@ Material.ApplicationWindow{
                     changeWeldIndex(0);
                     //1目的是为了能够正常下发第一条规范。
                     weldTableIndex=1;
-                }else
-                    showMathError("计算错误！");
+                }else{
+                    // showMathError("计算错误！");
+                    errorCode|=0x40000000;
+                    ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
+                }
             }else{
                 //输出错误
                 //showMathError(value[0]);
                 snackBar.open(value[0])
                 //写入错误
                 errorCode|=0x40000000;
-                ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)]);
+                ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
             }
         }
     }
@@ -909,14 +937,14 @@ Material.ApplicationWindow{
                             initialListModel.remove(0,1);}
                     initialListModel.insert(0,{"ID":Number(i+1),"C1":errorName[i],"C2":errorTime })
                     console.log("C1",errorName[i])
-                    errorHistroy.insert(0,{"ID":String(errorHistroy.count+1),"C1":String(i+1),"C2":"发生","C4":errorName[i],"C3":app.currentUser,"C5": errorTime})
+                    errorHistroy.insert(0,{"ID":String(errorHistroy.count+1),"C1":String(i+1),"C2":"发生","C4":errorName[i],"C3":appSettings.currentUserName,"C5": errorTime})
                 }else{
                     for(var j=0;j<initialListModel.count;j++){
                         //如果列表里面有则移除 解除错误
                         if((i+1)===(initialListModel.get(j).ID)){
                             initialListModel.remove(j,1);
                             //向数据库中插入
-                            errorHistroy.insert(0,{"ID":String(errorHistroy.count+1),"C1":String(i+1),"C2":"解除","C4":errorName[i],"C3":app.currentUser,"C5": errorTime})
+                            errorHistroy.insert(0,{"ID":String(errorHistroy.count+1),"C1":String(i+1),"C2":"解除","C4":errorName[i],"C3":appSettings.currentUserName,"C5": errorTime})
                             if(errorTable.__listView.currentIndex>=initialListModel.count){
                                 errorTable.__listView.currentIndex=j;
                                 errorTable.selection.select(j);
@@ -951,7 +979,7 @@ Material.ApplicationWindow{
         errorMath(32,64,errorCode1,errorCode1^oldErrorCode1);
         if((errorCode1)&&(!myErrorDialog.showing))
             myErrorDialog.show();
-       if((errorCode===0)&&(errorCode1===0))
+        if((errorCode===0)&&(errorCode1===0))
         {
             initialListModel.clear()
             initialListModel.append({"ID":0,"C1":"无","C2":"0:00"})
@@ -967,18 +995,15 @@ Material.ApplicationWindow{
         objectName: "myErrorDialog"
         title: "系统错误"
         property alias errorModel:errorTable.model
-        positiveButtonText: qsTr("错误历史信息");
-        //dismissOnTap: false
+        positiveButtonText: (errorCode&0x20000000||errorCode&0x40000000)?qsTr("确认"):qsTr("错误历史信息");
         onAccepted: {
-
             if(errorCode&0x20000000){//坡口数据表中无数据
                 errorCode&=0xdfffffff;
-                ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)]);
+                ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
             }else if(errorCode&0x40000000){//错误生成焊接规范错误
                 errorCode&=0xbfffffff;
-                ERModbus.setmodbusFrame(["W","1","4",String(errorCode&0x000000000000ffff),String((errorCode&0x00000000ffff0000)>>16),String((errorCode&0x0000ffff00000000)>>32),String((errorCode&0xffff000000000000)>>48)]);
+                ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
             }else{
-                errorCode=0;
                 page.selectedTab=2;
                 page2SelectedIndex=1;
             }
@@ -990,6 +1015,14 @@ Material.ApplicationWindow{
             errorTable.selection.select(0);
         }
         globalMouseAreaEnabled:false;
+        Keys.onVolumeDownPressed: {
+            if(errorTable.columnCount>errorTable.currentRow)
+                errorTable.__incrementCurrentIndex();
+        }
+        Keys.onVolumeUpPressed: {
+            if(errorTable.currentRow>0)
+                errorTable.__decrementCurrentIndex();
+        }
         Table{
             id:errorTable
             model:initialListModel
@@ -1001,11 +1034,11 @@ Material.ApplicationWindow{
         }
     }
 
-    MotoDialog{id:moto}
+    MotoDialog{id:moto;settings: appSettings}
     /*日历*/
     Material.Dialog {
         id:datePickerDialog;
-        property var dateTimeDialog:new Array();
+        property var dateTimeDialog:new Array(0);
         hasActions: true; contentMargins: 0;floatingActions: true
         negativeButtonText:qsTr("取消");positiveButtonText: qsTr("完成");
         dialogContent:Material.DatePicker {
@@ -1033,7 +1066,7 @@ Material.ApplicationWindow{
     /*时间*/
     Material.Dialog {
         id:timePickerDialog;
-        property var timeDialog:new Array();
+        property var timeDialog:new Array(0);
         hasActions: true; contentMargins: 0;
         negativeButtonText:qsTr("取消");positiveButtonText: qsTr("完成");
         Material.TimePicker {
@@ -1066,28 +1099,39 @@ Material.ApplicationWindow{
     /*背光调节*/
     Material.Dialog{
         id:backlight
-        title: qsTr("背光调节");negativeButtonText:qsTr("取消");positiveButtonText: qsTr("完成");
-        property int back: 0
+        title: qsTr("背光调节");negativeButtonText:qsTr("取消");positiveButtonText: qsTr("完成")
         dialogContent: Item{
             height:Material.Units.dp(100);
             width:Material.Units.dp(240);
             Material.Slider {
                 id:backlightslider;width:Material.Units.dp(240);anchors.top: parent.top;anchors.topMargin: Material.Units.dp(24)
-                value:AppConfig.backLight;stepSize: 5;numericValueLabel: true;
+                stepSize: 1;numericValueLabel: true;
                 minimumValue: 5;maximumValue: 100; activeFocusOnPress: true;
-                onVisibleChanged: {if(visible){forceActiveFocus();backlight.back=backlightslider.value}}
-                onValueChanged: if(focus) AppConfig.backLight=backlightslider.value;
+                onValueChanged: AppConfig.setbackLight(backlightslider.value)
+                 Component.onCompleted: backlightslider.value=appSettings.backLightValue<5?5:appSettings.backLightValue
             }}
-        //  onAccepted: {AppConfig.backLight=backlightslider.value}
-        onRejected: {backlightslider.value=back}
+        onOpened: {backlightslider.value=appSettings.backLightValue<5?5:appSettings.backLightValue
+            backlightslider.forceActiveFocus()
+        }
+        onAccepted: appSettings.backLightValue=backlightslider.value
+        onRejected: backlightslider.value=appSettings.backLightValue<5?5:appSettings.backLightValue
+
     }
     /*颜色选择对话框*/
     Material.Dialog {
         id: colorPicker;title: qsTr("主题");negativeButtonText:qsTr("取消");positiveButtonText: qsTr("完成");
         /*接受则存储系统颜色*/
-        onAccepted:{AppConfig.themePrimaryColor=theme.primaryColor;AppConfig.themeAccentColor=theme.accentColor;AppConfig.themeBackgroundColor=theme.backgroundColor; }
+        onAccepted:{
+            appSettings.accentColor=theme.accentColor;
+            appSettings.primaryColor=theme.primaryColor;
+            appSettings.backgroundColor=theme.backgroundColor;
+        }
         /*不接受则释放系统颜色*/
-        onRejected: {theme.primaryColor=AppConfig.themePrimaryColor;theme.accentColor=AppConfig.themeAccentColor;theme.backgroundColor=AppConfig.themeBackgroundColor; }
+        onRejected: {
+            theme.accentColor=appSettings.accentColor
+            theme.primaryColor=appSettings.primaryColor
+            theme.backgroundColor=appSettings.backgroundColor
+        }
         /*下拉菜单*/
         Material.MenuField { id: selection; model: ["基本色彩", "前景色彩", "背景色彩"]; width: Material.Units.dp(160)}
         Grid {
@@ -1142,9 +1186,7 @@ Material.ApplicationWindow{
         property string password
         property string user
         property string type
-
         property int upCount: 0
-
         function getIndex(name){
             for(var i=0;i<accountmodel.count;i++){
                 if(accountmodel.get(i).C2===name)
@@ -1160,13 +1202,11 @@ Material.ApplicationWindow{
                     upCount=0;
                 if(upCount>50){
                     upCount=0;
-                    errorCode=1
-                    errorCode1=1
-                    console.log(errorCode);
                     app.sysStatus="空闲态";
-                    AppConfig.currentUserPassword = "TKSW"
-                    AppConfig.currentUserName = "TKSW";
-                    AppConfig.currentUserType = "超级用户";
+                    appSettings.currentUserPassword = "TKSW"
+                    appSettings.currentUserName = "TKSW";
+                    appSettings.currentUserType = "超级用户";
+                    app.superUser=appSettings.currentUserType==="超级用户"?true:false;
                     //发送主控登录标志
                     ERModbus.setmodbusFrame(["W","25","1","3"])
                     close();
@@ -1176,9 +1216,10 @@ Material.ApplicationWindow{
         }
         onAccepted: {
             if(changeuser.positiveButtonEnabled){
-                AppConfig.currentUserPassword = changeuser.password
-                AppConfig.currentUserName = changeuser.user;
-                AppConfig.currentUserType = changeuser.type;
+                appSettings.currentUserPassword = changeuser.password
+                appSettings.currentUserName = changeuser.user;
+                appSettings.currentUserType = changeuser.type;
+                app.superUser=appSettings.currentUserType==="超级用户"?true:false;
                 if(app.sysStatus==="未登录态"){
                     app.sysStatus="空闲态";
                     //发送主控登录标志
@@ -1187,13 +1228,13 @@ Material.ApplicationWindow{
             }
         }
         onRejected: {
-            changeuserFeildtext.selectedIndex=getIndex(AppConfig.currentUserName);
-            changeuser.type=AppConfig.currentUserType;
+            changeuserFeildtext.selectedIndex=getIndex(appSettings.currentUserName);
+            changeuser.type=appSettings.currentUserType;
         }
         onOpened: {
             app.visible=true
             if(accountmodel.count>0){
-                changeuser.user=AppConfig.currentUserName;
+                changeuser.user=appSettings.currentUserName;
                 var index=getIndex(changeuser.user);
                 if(index>=0){
                     changeuser.password=accountmodel.get(index).C3;
@@ -1212,20 +1253,20 @@ Material.ApplicationWindow{
                 id:image
                 Layout.alignment: Qt.AlignVCenter
                 source: "../Pic/logo.png"
-                Layout.preferredWidth: Material.Units.dp(228)
-                Layout.preferredHeight: Material.Units.dp(40)
+                Layout.preferredWidth: Material.Units.dp(256)
+                Layout.preferredHeight: Material.Units.dp(45)
                 mipmap: true
             }
             Rectangle{
                 Layout.alignment: Qt.AlignVCenter
-                Layout.fillHeight: true
+                Layout.preferredHeight: parent.height-Material.Units.dp(24)
                 width: 1
                 color: Qt.rgba(0,0,0,0.2)
             }
             Column{
                 id:column
                 Layout.alignment: Qt.AlignVCenter
-                width:Material.Units.dp(200)
+                Layout.preferredWidth:Material.Units.dp(200)
                 ListItem.Subtitled{
                     margins: 1
                     text:qsTr("用户名:");
@@ -1247,7 +1288,7 @@ Material.ApplicationWindow{
                 ListItem.Subtitled{
                     margins: 1
                     text:qsTr("密    码:");
-                    height: Material.Units.dp(48)
+                    height: Material.Units.dp(56)
                     interactive:false
                     secondaryItem: Material.TextField{id:password;
                         placeholderText:qsTr("请输入密码...");
@@ -1295,6 +1336,10 @@ Material.ApplicationWindow{
         }
     }
     Component.onCompleted: {
+        theme.accentColor=appSettings.accentColor
+        theme.primaryColor=appSettings.primaryColor
+        theme.backgroundColor=appSettings.backgroundColor
+        theme.tabHighlightColor=appSettings.accentColor
         AppConfig.setleds("all");
         ERModbus.setmodbusFrame(["R","510","6"]);
         /*打开数据库*/
@@ -1309,7 +1354,6 @@ Material.ApplicationWindow{
             }
         }
         changeuser.show();
-
         //创建错误历史记录
         Material.UserData.createTable("SysErrorHistroy","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT");
         res=Material.UserData.getTableJson("SysErrorHistroy","","")

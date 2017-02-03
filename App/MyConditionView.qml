@@ -21,7 +21,7 @@ Item{
     width:parent.width
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
     //用户类别
-    property bool type
+    property bool superUser
     //作为数据的临时缓存数组 condition必须在加载后一次性赋值。
     property var condition:[]
     //选定的行
@@ -77,6 +77,7 @@ Item{
     }
 
     onChangeGroupCurrent: {
+        console.log(objectName+"onChangeGroupCurrent index = "+index+" flag = "+flag)
         root.condition[selectedIndex]=index;
         if(!flag)
             work(selectedIndex,true);
@@ -93,6 +94,7 @@ Item{
         var left=Number(root.condition[selectedIndex]-1);
         var right=Number(root.condition[selectedIndex]+1);
         if(left<0) left=0;
+        if(selectedIndex<listValueNameEnable.length)
         if(right>=listValueNameEnable[selectedIndex].length) right=listValueNameEnable[selectedIndex].length-1;
         if((event.key===Qt.Key_Left)||(event.key===Qt.Key_Right)){
             if((selectedIndex<listValueName.length)&&

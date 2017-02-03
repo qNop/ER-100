@@ -42,6 +42,10 @@ BaseListItem {
     property alias secondaryItem: secondaryItem.children
     property alias content: contentItem.children
 
+    property alias itemLabel: label
+    property alias itemSubLabel: subLabel
+    property alias itemValueLabel: valueLabel
+
     property int leftMargin:0
 
     interactive: !contentItem.showing

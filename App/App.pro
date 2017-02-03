@@ -57,10 +57,10 @@ INCLUDEPATH +=libmodbus \
 linux-g++{
    # DESTDIR = $$[QT_INSTALL_PLUGINS]/platforminputcontexts
     CONFIG += console qml_debug
-}#else{
+}else{
 #存储位置为 downloadfiles
     DESTDIR = /home/nop/ER-100/RootFs/Nop/
-#}
+}
 
 target.path=/ER-100
 INSTALLS += target

@@ -94,16 +94,17 @@ PopupBase {
 
     Keys.onPressed: {
         if (event.key === Qt.Key_Escape) {
-            closeKeyPressed(event);
-            rejected();
+	    rejected();
+            closeKeyPressed(event);  
         }
         if (event.key === Qt.Key_Enter){
+	    accepted();
             closeKeyPressed(event);
-            accepted();
+            
         }
         if (event.key === Qt.Key_Return){
-            closeKeyPressed(event);
-            accepted();
+	    accepted();
+            closeKeyPressed(event);        
         }
     }
 

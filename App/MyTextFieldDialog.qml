@@ -50,7 +50,6 @@ Dialog{
     }
     RowLayout{
         spacing: Units.dp(24)
-     //   height: loader.height>column.height?loader.height:column.height
         Loader {
             id:loader
             Layout.alignment: Qt.AlignVCenter
@@ -61,7 +60,7 @@ Dialog{
         Rectangle{
             Layout.alignment: Qt.AlignVCenter
             visible: loader.visible
-            height: parent.height-Units.dp(48)
+            height: parent.height-Units.dp(24)
             width: 1
             color: Qt.rgba(0,0,0,0.2)
         }

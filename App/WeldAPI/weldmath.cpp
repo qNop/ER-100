@@ -24,8 +24,6 @@ void WeldMath::setWeldRules(QStringList value){
 void WeldMath::setGrooveRules(QStringList value){
     qDebug()<<"WeldMath::setGrooveRules "<<value;
     //数组有效
-    //emit  updateWeldMathChanged();
-    //sysMath.bottomFloor=sysMath.ceramicBack==1?&bottomFloor0:&bottomFloor;
     if(sysMath.setGrooveRules(value)==-1){
         value.clear();
         value<<sysMath.status;

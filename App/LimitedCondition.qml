@@ -3,8 +3,6 @@ import Material 0.1
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.2 as Controls
 import QtQuick.Window 2.2
-import WeldSys.AppConfig 1.0
-import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
 import QtQuick.Layouts 1.1
 TableCard {
@@ -16,8 +14,9 @@ TableCard {
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:""}
     }
     property bool swingWidthOrWeldWidth
-    property bool superUser
+    //property bool superUser
     property Item message
+    property var  settings
     property string limitedRulesName
     property var nameModel: [
         "坡口侧          电流       (A)",
@@ -53,10 +52,6 @@ TableCard {
         "焊接速度Min  (cm/min)",
         "焊接速度Max (cm/min)",
         "层    填    充   系   数 (%)"]
-    signal changeGasError()
-    signal changeWireDError()
-    signal changeWireTypeError()
-    signal changePulseError()
 
     property int num: 0
 
@@ -69,20 +64,11 @@ TableCard {
                 for(var i=0;i<res.length;i++){
                     //删除object 里面C11属性
                     delete res[i].C11
-                    limitedTable.set(i,res[i])
+                    limitedTable.append(res[i])
                 }
                 WeldMath.setLimited(limitedMath(0,limitedTable.count));
                 headerTitle=limitedRulesName;
             }else{
-                if(typeof(type)==="number")
-                {
-                    switch(type){
-                    case 0: changeGasError();break;
-                    case 1: changePulseError();break;
-                    case 2: changeWireTypeError();break;
-                    case 3: changeWireDError();break;
-                    }
-                }
                 message.open(limitedRulesName+"数据不存在！")
             }
         }
@@ -96,7 +82,7 @@ TableCard {
         var str;
         var temp=num;
         if(visible){
-            var weldStyle=AppConfig.weldStyle
+            var weldStyle=settings.weldStyle
             swingWidthOrWeldWidth=weldStyle===1||weldStyle===4?false:true
             if((temp&0x0f)===4){
                 str="焊丝直径为1.2mm/"

@@ -12,7 +12,7 @@ TableCard {
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "UserAccount"
 
-    property bool superUser: AppConfig.currentUserType==="超级用户"
+    property bool superUser
 
     property Item message;
     signal userUpdate();

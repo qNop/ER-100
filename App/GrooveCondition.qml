@@ -41,6 +41,16 @@ MyConditionView{
         ListModel{ListElement{ID:1;c1:"30~40";c2:"16~60";c3:"4~10" }}
     ]
 
+    property int weldStyle
+    property int grooveStyle
+    property int connectStyle
+
+    property int bottomStyle
+    property int bottomStyleWidth
+    property int bottomStyleDeep
+
+    property var settings
+
     property var grooveStyleName: [
         "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接",  "平焊V形坡口平对接",
         "横焊单边V形坡口T接头",  "横焊单边V形坡口平对接",
@@ -149,7 +159,7 @@ MyConditionView{
                 changeGroupCurrent(index,flag);
                 //立焊V形坡口对接
                 if(Number(root.condition[2])){
-                   // temp=7;
+                    // temp=7;
                 }else{//无此种情况
                     oldIndex=selectedIndex;
                     selectedIndex=2;
@@ -198,22 +208,22 @@ MyConditionView{
         switch(index){
         case 0:  //焊接位置
             if(flag)
-                AppConfig.setWeldStyle(num)
+                settings.weldStyle=num
             WeldMath.setWeldStyle(num);
             frame.push("90");frame.push("1");frame.push(String(currentGroove));break;
         case 1://坡口形式
             if(flag)
-                AppConfig.setGrooveStyle(num)
+                settings.grooveStyle=num
             WeldMath.setGrooveStyle(num)
             frame.push("90");frame.push("1");frame.push(String(currentGroove));break;
         case 2: //接头形式
             if(flag)
-                AppConfig.setConnectStyle(num)
+                settings.connectStyle=num
             WeldMath.setConnectStyle(num)
             frame.push("90");frame.push("1");frame.push(String(currentGroove));break;
         case 3: //衬垫形式
             if(flag)
-                AppConfig.setBottomStyle(num);
+                settings.bottomStyle=num;
             WeldMath.setCeramicBack(num);
             frame.push("91");frame.push("1");frame.push(String(num));break;
         default:frame.length=0;break;
@@ -254,7 +264,7 @@ MyConditionView{
                 Image{
                     source: "../Pic/"+grooveStyleName[currentGroove]+".png"
                     sourceSize.width: Material.Units.dp(200)
-                    mipmap: true
+                    mipmap: false
                     width: Material.Units.dp(260)
                 }
                 Table{
@@ -291,14 +301,19 @@ MyConditionView{
     }
     Component.onCompleted: {
         var temp=new Array(0);
-        temp.push(AppConfig.weldStyle);
-        temp.push(AppConfig.grooveStyle);
-        temp.push(AppConfig.connectStyle)
-        temp.push(AppConfig.bottomStyle)
+        temp.push(settings.weldStyle)
+        temp.push(settings.grooveStyle)
+        temp.push(settings.connectStyle)
+        temp.push(settings.bottomStyle)
         condition=temp;
+        console.log(objectName+condition)
         //获取currentGroove 初始化enable
-        doNum(false);
-        for(var i=0;i<listName.length;i++)
+        doNum(root.condition[0],false);
+        for(var i=2;i>0;i--){
+            selectedIndex=i;
+            changeGroupCurrent(root.condition[i],false);
+        }
+        for( i=0;i<listName.length;i++)
             work(i,false);
     }
 }

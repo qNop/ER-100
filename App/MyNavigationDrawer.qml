@@ -1,15 +1,7 @@
 import QtQuick 2.4
 import Material 0.1
 import Material.Extras 0.1
-import WeldSys.AppConfig 1.0
-import WeldSys.ERModbus 1.0
-import WeldSys.WeldMath 1.0
 import Material.ListItems 0.1 as ListItem
-import QtQuick.Layouts 1.1
-import QtQuick.LocalStorage 2.0
-//import WeldSys.SysInfor 1.0
-import QtQuick.Window 2.2
-
 
 PopupBase {
     id:root
@@ -43,6 +35,8 @@ PopupBase {
 
     property string titleImage;
     property string titleLabel;
+
+    property var settings
 
     property int oldIndex:0
 
@@ -123,7 +117,7 @@ PopupBase {
                         height:Units.dp(40);
                         itemLabel.style: "body1"
                         iconName:modelData
-                        text:index?"用户组："+AppConfig.currentUserType:"用户名："+AppConfig.currentUserName
+                        text:index?"用户组："+settings.currentUserType:"用户名："+settings.currentUserName
                         ThinDivider{anchors.top: parent.Top;visible: index===0}
                     }
                 }

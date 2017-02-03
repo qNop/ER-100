@@ -38,5 +38,6 @@
         <file>MotoDialog.qml</file>
         <file>MyConditionView.qml</file>
         <file>../Pic/logo.png</file>
+        <file>MySettings.qml</file>
     </qresource>
 </RCC>

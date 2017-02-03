@@ -16,6 +16,7 @@ Material.Dialog{
     property int oldSelectedIndex: 0
     property int selectedIndex: 0
     property int errorCode: 0
+    property var settings
     negativeButtonText:qsTr("取消");
     positiveButtonText: qsTr("完成");
     signal changeSelectedMoto(int index);
@@ -47,10 +48,10 @@ Material.Dialog{
                 if(j<3)
                     send[i][j]=0;
                 else if(j===3){
-                    send[i][j]=i===0?AppConfig.swingMoto:i===1?AppConfig.zMoto:i===2?AppConfig.yMoto:AppConfig.xMoto;
+                    send[i][j]=i===0?settings.swingMoto:i===1?settings.zMoto:i===2?settings.yMoto:settings.xMoto;
                 }
                 else if(j===4){
-                    send[i][j]=i===0?AppConfig.swingSpeed:i===1?AppConfig.zSpeed:i===2?AppConfig.ySpeed:AppConfig.xSpeed;
+                    send[i][j]=i===0?settings.swingSpeed:i===1?settings.zSpeed:i===2?settings.ySpeed:settings.xSpeed;
                 }
             }
         }
@@ -86,15 +87,15 @@ Material.Dialog{
 
         ERModbus.setmodbusFrame(["W","26","20"].concat(res));
         //同时也保存数据
-        AppConfig.setSwingSpeed(Number(send[0][4]));
-        AppConfig.setZSpeed(Number(send[1][4]));
-        AppConfig.setYSpeed(Number(send[2][4]));
-        AppConfig.setXSpeed(Number(send[3][4]));
+        settings.swingSpeed=Number(send[0][4]);
+         settings.zSpeed=Number(send[1][4]);
+         settings.ySpeed=Number(send[2][4]);
+         settings.xSpeed=Number(send[3][4]);
 
-        AppConfig.setSwingMoto(Number(send[0][3]));
-        AppConfig.setZMoto(Number(send[1][3]));
-        AppConfig.setYMoto(Number(send[2][3]));
-        AppConfig.setXMoto(Number(send[3][3]));
+        settings.swingMoto=Number(send[0][3]);
+        settings.zMoto=Number(send[1][3]);
+        settings.yMoto=Number(send[2][3]);
+        settings.xMoto=Number(send[3][3]);
 
     }
     Keys.onPressed: {

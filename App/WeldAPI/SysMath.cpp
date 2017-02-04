@@ -65,9 +65,9 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
         }
         else
             *swingSpeed= temp;
-        *weldTravelSpeed=GET_VERTICAL_TRAVERLSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,swingHz,pF->totalStayTime);
+        *weldTravelSpeed=GET_VERTICAL_TRAVERLSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,pF->fillCoefficient,swingHz,pF->totalStayTime);
     }else
-        *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill);
+        *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,pF->fillCoefficient);
     if(*weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
     //保证焊接速度不大于最大焊接速度 否则减小电流
     if(*weldTravelSpeed>pF->maxWeldSpeed){
@@ -85,9 +85,9 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
             if(temp==-1){*status=str+"焊接电流过小或此焊接条件下焊接电流不存在导致送丝速度不能获取。";return -1;}
             else *weldFeedSpeed=temp;
             if(weldStyleName=="立焊")
-                *weldTravelSpeed=GET_VERTICAL_TRAVERLSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,swingHz,pF->totalStayTime);
+                *weldTravelSpeed=GET_VERTICAL_TRAVERLSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,pF->fillCoefficient,swingHz,pF->totalStayTime);
             else
-                *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill);
+                *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,pF->fillCoefficient);
             if(*weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
         }
         *weldTravelSpeed=qRound(*weldTravelSpeed);

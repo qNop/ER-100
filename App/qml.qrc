@@ -39,5 +39,6 @@
         <file>MyConditionView.qml</file>
         <file>../Pic/logo.png</file>
         <file>MySettings.qml</file>
+        <file>Limited.js</file>
     </qresource>
 </RCC>

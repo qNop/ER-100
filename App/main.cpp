@@ -48,8 +48,9 @@ int main(int argc, char *argv[])
     //必须声明在APP之前声明环境变量。
     qputenv("QT_IM_MODULE", QByteArray("Virtualkeyboard"));
     //配置文件存储目录
-#if defined(unix) //电脑端
-   qputenv("HOME",QByteArray("/usr/local/ER-100/Nop"));
+#if defined(linux) //电脑端
+ //  qputenv("HOME",QByteArray("/usr/local/ER-100/Nop"));
+     qputenv("HOME",QByteArray("/home/nop/ER-100/RootFs/Nop"));
 #else //嵌入式端
     qputenv("HOME",QByteArray("/home/nop/ER-100/RootFs/Nop"));
 #endif

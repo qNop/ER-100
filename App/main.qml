@@ -128,7 +128,7 @@ Material.ApplicationWindow{
         }
     }
     Timer{id:camera
-        interval:5000;running: false;repeat: false
+        interval:10000;running: false;repeat: false
         onTriggered: {
             if(AppConfig.screenShot(app)){
                 snackBar.open("截屏成功！")
@@ -136,9 +136,6 @@ Material.ApplicationWindow{
                 snackBar.open("截屏失败！")
         }
     }
-
-
-
     //该页面下1000ms问一次检测参数是否有效
     Timer{ repeat: true;interval:sysStatus==="空闲态"?200:500;
         running:readTime
@@ -252,7 +249,7 @@ Material.ApplicationWindow{
             },
             /*截屏*/
             Material.Action {iconName:"awesome/camera";name: qsTr("截屏");visible: superUser
-                onTriggered: {snackBar.open("截屏操作将在5秒钟后启动！");camera.start()}
+                onTriggered: {snackBar.open("截屏操作将在10秒钟后启动！");camera.start()}
             },
             //            /*mount网络*/
             //            Material.Action {iconName:loadInterNet?"hardware/phonelink": "hardware/phonelink_off";name: qsTr("网络");
@@ -718,13 +715,13 @@ Material.ApplicationWindow{
                                                        "C8":String(Number(frame[11])/10)})
                             else if(teachModel===1){
                                 grooveTable.setProperty(num,"ID",frame[2])
-                                if(appSettings.fixHeight()){
+                                if(appSettings.fixHeight){
                                     grooveTable.setProperty(num,"C1",(Number(frame[3])/10).toString())
                                 }
-                                if(appSettings.fixGap()){
+                                if(appSettings.fixGap){
                                     grooveTable.setProperty(num,"C3",(Number(frame[5])/10).toString())
                                 }
-                                if(appSettings.fixAngel()){
+                                if(appSettings.fixAngel){
                                     grooveTable.setProperty(num,"C4",(Number(frame[6])/10).toString())
                                     grooveTable.setProperty(num,"C5",(Number(frame[7])/10).toString())
                                 }

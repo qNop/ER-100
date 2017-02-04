@@ -22,10 +22,10 @@ MyConditionView{
     property var bottomStyleListEnable:[true,true,true]
 
     property list<ListModel> limitedModel:[
+        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~50";c3:"4~10" }
+            ListElement{iD:2;c1:"45~60";c2:"9~32";c3:"0~2"}},
         ListModel{ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"4~10" }
-            ListElement{iD:2;c1:"45~60";c2:"9~45";c3:"0~2"}},
-        ListModel{ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"4~10" }
-            ListElement{iD:2;c1:"45~60";c2:"9~45";c3:"0~2"}},
+            ListElement{iD:2;c1:"45~60";c2:"9~32";c3:"0~2"}},
         ListModel{ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"4~10" }},
 
         ListModel{ListElement{ID:1;c1:"30~40";c2:"12~55";c3:"4~10" }
@@ -38,16 +38,8 @@ MyConditionView{
         ListModel{ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"4~10" }},
         ListModel{ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"4~10" }},
 
-        ListModel{ListElement{ID:1;c1:"30~40";c2:"16~60";c3:"4~10" }}
+        ListModel{ListElement{ID:1;c1:"90";c2:"6~";c3:"6~60" }}
     ]
-
-    property int weldStyle
-    property int grooveStyle
-    property int connectStyle
-
-    property int bottomStyle
-    property int bottomStyleWidth
-    property int bottomStyleDeep
 
     property var settings
 
@@ -84,9 +76,9 @@ MyConditionView{
                 //第三行第1列无效
                 changeEnable(2,0,false);
                 changeEnable(2,1,true);
+                changeGroupCurrent(index,flag);
                 if(!flag)
                     currentGroove=2;
-                changeGroupCurrent(index,flag);
                 //平焊V形坡口对接
                 if(Number(root.condition[2])){
 
@@ -105,9 +97,9 @@ MyConditionView{
                 }else{//平焊单边V形坡口T对接
                     temp=0;
                 }
+                changeGroupCurrent(index,flag);
                 if(!flag)
                     currentGroove=temp;
-                changeGroupCurrent(index,flag);
             }
             break;
         case 1://横焊V形坡口
@@ -125,9 +117,9 @@ MyConditionView{
                 }else{//平焊单边V形坡口T对接
                     temp=3;
                 }
+                changeGroupCurrent(index,flag)
                 if(!flag)
                     currentGroove=temp;
-                changeGroupCurrent(index,flag)
                 //无此种情况 立即更改
                 oldIndex=selectedIndex;
                 selectedIndex=1;
@@ -140,9 +132,9 @@ MyConditionView{
                 }else{//平焊单边V形坡口T对接
                     temp=3;
                 }
+                changeGroupCurrent(index,flag)
                 if(!flag)
                     currentGroove=temp;
-                changeGroupCurrent(index,flag)
             }break;
         case 2: //立焊V形坡口
             changeEnable(1,0,true);// V行坡口有效 单边V行也有效
@@ -154,9 +146,9 @@ MyConditionView{
                 //第三行第1列无效
                 changeEnable(2,0,false);
                 changeEnable(2,1,true);
+                changeGroupCurrent(index,flag);
                 if(!flag)
                     currentGroove=7;
-                changeGroupCurrent(index,flag);
                 //立焊V形坡口对接
                 if(Number(root.condition[2])){
                     // temp=7;
@@ -176,9 +168,9 @@ MyConditionView{
                 }else{//立焊单边V形坡口T对接
                     temp=5;
                 }
+                changeGroupCurrent(index,flag);
                 if(!flag)
                     currentGroove=temp;
-                changeGroupCurrent(index,flag);
             }break;
         case 3://水平角焊
             changeEnable(1,0,false)
@@ -188,9 +180,10 @@ MyConditionView{
             changeEnable(3,0,false)
             changeEnable(3,1,false)
             changeEnable(3,2,false)
+            changeGroupCurrent(index,flag);
             if(!flag)
                 currentGroove=8;
-            changeGroupCurrent(index,flag);break;
+            break;
         }
     }
     onChangeGroup: {
@@ -290,7 +283,7 @@ MyConditionView{
                     }
                     Controls.TableViewColumn{
                         role: "c3"
-                        title: "根部间隙b\n     (mm)"
+                        title: settings.weldStyle===3?"脚长ι\n(mm)":"根部间隙b\n     (mm)"
                         width:Material.Units.dp(100);
                         movable:false
                         resizable:false

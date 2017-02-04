@@ -55,7 +55,7 @@ TableCard {
 
     property int num: 0
 
-    function getTableData(index,type){
+    function getTableData(index){
         if((limitedRulesName!=="")&&(typeof(limitedRulesName)==="string")){
             console.log(objectName+"limitedRulesName"+limitedRulesName)
             var res=UserData.getLimitedTableJson(limitedRulesName,index)
@@ -73,10 +73,25 @@ TableCard {
             }
         }
     }
+    //开启线程
+//    WorkerScript{
+//        id:work
+//        source: "Limited.js"
+//        onMessage: {
+//            if(messageObject.error.length)
+//                message.open(messageObject.error)
+//            else{
+//                WeldMath.setLimited(limitedMath(0,limitedTable.count));
+//                 headerTitle=limitedRulesName;
+//            }
+//        }
+//    }
 
-    onNumChanged: {getTableData(num,4);}
+    onNumChanged: {getTableData(num);}
+        //console.log("work.sendMessage")
+        //work.sendMessage({"model":limitedTable,"index":num,"limitedRulesName":limitedRulesName})}
     //规则改变时重新加载限制条件
-    onLimitedRulesNameChanged:getTableData(num,4);
+    onLimitedRulesNameChanged:getTableData(num);
     //显示当前的页脚
     onVisibleChanged: {
         var str;
@@ -228,9 +243,9 @@ TableCard {
     funcMenu: [ Action{iconName:"awesome/send_o";name:"更新算法";
             onTriggered: {
                 if(WeldMath.setLimited(limitedMath(0,limitedTable.count)))
-                message.open("更新限制条件成功！")
+                    message.open("更新限制条件成功！")
                 else
-                message.open("限制条件数量不符。更新限制条件失败！")
+                    message.open("限制条件数量不符。更新限制条件失败！")
             }
         }]
     tableData:[

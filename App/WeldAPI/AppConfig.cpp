@@ -107,11 +107,14 @@ void AppConfig::setlanguage(QString str){
 
 bool AppConfig::screenShot(QQuickWindow *widget){
     QPixmap pixmap = QPixmap::fromImage(widget->grabWindow());
-       QFile f("save.png");
-       f.open(QIODevice::WriteOnly);
-       if(f.isOpen()) {
-           pixmap.save(&f, "PNG");
-           return true;
-       }else
-           return false;
+    QString dateTime=QDateTime::currentDateTime().toString("yyMMdd-hhmm");
+    QString name="screenShot/"+dateTime+".png";
+    QFile f(name);
+    qDebug()<<name;
+    f.open(QIODevice::WriteOnly);
+    if(f.isOpen()) {
+        pixmap.save(&f, "PNG");
+        return true;
+    }else
+        return false;
 }

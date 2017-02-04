@@ -57,7 +57,8 @@ TableCard{
         //插入数据到grooveTableInit
         if(typeof(res)==="object"){
             for(var i=0;i<res.length;i++){
-                updateModel("Append",res[i])
+                if(res[i].ID!==null)
+                    updateModel("Append",res[i])
             }
         }
     }
@@ -414,8 +415,7 @@ TableCard{
                     pasteModel.set(0,obj);
                     focusIndex=0;
                     changeFocus(focusIndex)
-                }
-                else{
+                }else{
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
                 }

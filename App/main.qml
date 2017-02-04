@@ -88,7 +88,7 @@ Material.ApplicationWindow{
     /*app加载完毕*/
     property bool completed:false
     /*当前用户名*/
-   // property string currentUser: appSettings.currentUserName
+    // property string currentUser: appSettings.currentUserName
 
     property string  weldRulesName
 
@@ -186,7 +186,7 @@ Material.ApplicationWindow{
         if((typeof(res)==="string")&&(res!=="")){
             currentGrooveName=res;
             //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
-         res =Material.UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
+            res =Material.UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
             if((res!==-1)&&(typeof(res)==="object")){
                 //清除焊接规范表格
                 weldTable.clear();
@@ -353,7 +353,7 @@ Material.ApplicationWindow{
                     visible: page.selectedTab===0&&page0SelectedIndex===0
                     message: snackBar
                     onCurrentGrooveChanged:{
-                       app.currentGroove=currentGroove;
+                        app.currentGroove=currentGroove;
                     }
                 }
                 TeachCondition{
@@ -429,6 +429,7 @@ Material.ApplicationWindow{
                     }
                     //通过信号的方式交互Model数据而不影响到数据的绑定问题。
                     onUpdateModel: {
+                        console.log(objectName+str+data.ID+data.C1+data.C2+data.C3+data.C4)
                         switch(str){
                         case "Set":grooveTable.set(currentRow,data);break;
                         case "Append":grooveTable.append(data);break;
@@ -436,7 +437,10 @@ Material.ApplicationWindow{
                         case "Remove":
                             selectIndex(currentRow-1);
                             grooveTable.remove(currentRow);
-                            currentRow-=1;
+                            if((currentRow===0)&&(grooveTable.count))
+                                ;
+                            else
+                                currentRow-=1;
                             break;
                         default:message.open("操作焊接数据表格命令不支持！")
                         }
@@ -493,7 +497,8 @@ Material.ApplicationWindow{
                         var res=Material.UserData.getTableJson(str)
                         if(res!==-1){
                             for(var i=0;i<res.length;i++){
-                                weldTable.append(res[i]);
+                                if(res[i].ID!==null)
+                                    weldTable.append(res[i]);
                             }
                             currentRow=0;
                             selectIndex(0);
@@ -517,7 +522,9 @@ Material.ApplicationWindow{
                         case "Remove":
                             selectIndex(currentRow-1);
                             weldTable.remove(currentRow);
-                            weldTableIndex-=1;break;
+                            if((currentRow===0)&&(weldTable.count));
+                            else
+                                weldTableIndex-=1;break;
                         default:message.open("操作焊接数据表格命令不支持！")
                         }
                     }
@@ -1105,7 +1112,7 @@ Material.ApplicationWindow{
                 stepSize: 1;numericValueLabel: true;
                 minimumValue: 5;maximumValue: 100; activeFocusOnPress: true;
                 onValueChanged: AppConfig.setbackLight(backlightslider.value)
-                 Component.onCompleted: backlightslider.value=appSettings.backLightValue<5?5:appSettings.backLightValue
+                Component.onCompleted: backlightslider.value=appSettings.backLightValue<5?5:appSettings.backLightValue
             }}
         onOpened: {backlightslider.value=appSettings.backLightValue<5?5:appSettings.backLightValue
             backlightslider.forceActiveFocus()

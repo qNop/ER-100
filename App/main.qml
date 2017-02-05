@@ -7,7 +7,6 @@ import WeldSys.WeldMath 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
 import QtQuick.LocalStorage 2.0
-
 import QtQuick.Controls 1.4
 import QtQuick.Window 2.2
 
@@ -375,7 +374,7 @@ Material.ApplicationWindow{
                                     lastFocusedItem.forceActiveFocus();
                                     teachConditionPage.selectedIndex=i-1;//切换选中栏
                                     Material.UserData.setValueFromFuncOfTable(teachConditionPage.objectName,i-1,Number(value[i]))//存储数据
-                                    if(i<teachConditionPage.listValueName.length){
+                                    if(i<=teachConditionPage.listValueName.length){
                                         //只改变显示不下发数据不存储
                                         teachConditionPage.changeGroupCurrent(Number(value[i]),true);
                                         str= teachConditionPage.listName[i-1]+"切换为"+teachConditionPage.listValueName[i-1][Number(value[i])]+"。"

@@ -10,7 +10,6 @@ SOURCES += main.cpp \
     libmodbus/src/modbus-rtu.c \
     WeldAPI/ERModbus.cpp \
     WeldAPI/AppConfig.cpp \
-    WeldAPI/SysInfor.cpp \
     WeldAPI/weldmath.cpp \
    # WeldAPI/verticalmath.cpp \
    #WeldAPI/flatmath.cpp \
@@ -42,7 +41,6 @@ HEADERS += \
     libmodbus/src/modbus-rtu-private.h \
     WeldAPI/ERModbus.h \
     WeldAPI/AppConfig.h \
-    WeldAPI/SysInfor.h \
     WeldAPI/weldmath.h \
     #WeldAPI/verticalmath.h \
    # WeldAPI/flatmath.h \

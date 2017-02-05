@@ -3,7 +3,6 @@
 #include <QtQml>
 #include "AppConfig.h"
 #include "ERModbus.h"
-#include "SysInfor.h"
 #include "weldmath.h"
 #include <QDebug>
 #include "gloabldefine.h"
@@ -28,13 +27,6 @@ QObject* AppConfigEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
     AppConfig *p=new AppConfig();
     return p;
 }
-QObject* SysInforEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
-{
-    Q_UNUSED(engine)
-    Q_UNUSED(scriptEngine)
-    SysInfor *p=new SysInfor();
-    return p;
-}
 QObject* WeldMathEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
@@ -48,12 +40,10 @@ int main(int argc, char *argv[])
     //必须声明在APP之前声明环境变量。
     qputenv("QT_IM_MODULE", QByteArray("Virtualkeyboard"));
     //配置文件存储目录
-#if defined(linux) //电脑端
- //  qputenv("HOME",QByteArray("/usr/local/ER-100/Nop"));
-     qputenv("HOME",QByteArray("/home/nop/ER-100/RootFs/Nop"));
-#else //嵌入式端
-    qputenv("HOME",QByteArray("/home/nop/ER-100/RootFs/Nop"));
-#endif
+
+//    qputenv("HOME",QByteArray("/home/nop/ER-100/RootFs/Nop"));
+    qputenv("HOME",QByteArray("/usr/local/ER-100/Nop"));
+
     qDebug()<<qgetenv("HOME");
     //显示插件调试信息
     // qputenv("QT_DEBUG_PLUGINS", QByteArray("1"));

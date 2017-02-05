@@ -55,7 +55,7 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
     //获取焊速 立焊从此处获取焊速 现有摆速才能求取填充量才能计算 焊接速度
     if(weldStyleName=="立焊"){
         //焊速必须有数 否则无法进入 求摆速函数
-        temp=getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,100,WAVE_MAX_VERTICAL_SPEED,&swingHz);
+        temp=getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,100,swingLengthOne>10?WAVE_MAX_VERTICAL_SPEED-60*swingLengthOne+600:WAVE_MAX_VERTICAL_SPEED,&swingHz);
         //判断返回数据
         if(temp==-1){
             QString tempStr=*status;
@@ -293,7 +293,7 @@ int SysMath::getFillMetal(FloorCondition *pF){
     if(feedSpeed!=-1){
         if(weldStyleName=="立焊"){
             //求最小摆频 最大摆宽/2
-            temp=getSwingSpeed(pF->maxSwingLength/2,pF->swingLeftStayTime,pF->swingRightStayTime,weldTravelSpeed,WAVE_MAX_VERTICAL_SPEED,&swingHz);
+            temp=getSwingSpeed(pF->maxSwingLength/2,pF->swingLeftStayTime,pF->swingRightStayTime,weldTravelSpeed,1000,&swingHz);
             //判断返回数据
             if(temp==-1){
                 QString tempStr=status;
@@ -473,24 +473,24 @@ float SysMath::getSwingSpeed(float swing,float swingLeftStayTime,float swingRigh
 
 float SysMath::getVoltage(int current){
     float voltage=18;
-    if((gasValue)&&(!pulseValue==0)&&(wireTypeValue==0)&&(wireDValue==4)){
+    if((gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //MAG D 实芯 1.2
-        if (current<currentMin){
-            return -1;
+        if (current<200){
+            voltage=14+0.05*current-2;
         }else{
             voltage=14+0.05*current;
         }
     }else if((gasValue)&&(pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //MAG P 实芯 1.2
         if (current<currentMin){
-            return -1;
+            voltage=14+0.05*current-2;
         }else{
-            voltage=10+0.1*current;
+            voltage=14+0.05*current;
         }
     }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //CO2 D 实芯 1.2
         if (current<=200){
-            voltage=14+0.05*current;
+            voltage=14+0.05*current-1;
         }
         else
             voltage=16+0.05*current;
@@ -657,8 +657,8 @@ int SysMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,flo
     }else{
         topFloor->num=secondFloor->num=1;
         //都应该是一样的四舍五入取整 否则会变成 小的大于大的
-        fillFloor_MinNum=qRound((*pH-topFloor->maxHeight-secondFloor->maxHeight)/fillFloor->maxHeight);
-        fillFloor_MaxNum=qRound((*pH-topFloor->minHeight-secondFloor->minHeight)/fillFloor->minHeight);
+        fillFloor_MinNum=qCeil((*pH-topFloor->maxHeight-secondFloor->maxHeight)/fillFloor->maxHeight);
+        fillFloor_MaxNum=qFloor((*pH-topFloor->minHeight-secondFloor->minHeight)/fillFloor->minHeight);
         //如果最小层数小于最大层数
         if(fillFloor_MinNum<=fillFloor_MaxNum){
             fillFloor->num=fillFloor_MinNum;

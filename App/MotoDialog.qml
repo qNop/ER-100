@@ -2,7 +2,6 @@ import QtQuick 2.0
 import Material 0.1 as Material
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.4
-import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
 
 Material.Dialog{

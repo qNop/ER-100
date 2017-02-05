@@ -42,8 +42,6 @@ signals:
 class ERModbus : public QObject
 {
     Q_OBJECT
-
-    Q_PROPERTY(QStringList modbusFrame READ modbusFrame WRITE setmodbusFrame NOTIFY modbusFrameChanged)
 private:
     QString status;
     ModbusThread* pModbusThread;
@@ -52,7 +50,6 @@ private:
 public:
     explicit ERModbus(QObject* parent = 0);
     ~ERModbus();
-    QStringList modbusFrame();
 public  slots:
     void setmodbusFrame(QStringList frame);
     //信号

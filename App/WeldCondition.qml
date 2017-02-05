@@ -1,7 +1,6 @@
 import QtQuick 2.4
 import Material 0.1 as Material
 import Material.Extras 0.1 as JS
-import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
 import Material.ListItems 0.1 as ListItem
@@ -20,7 +19,7 @@ MyConditionView{
         var num=root.condition[5];
         num<<=1;
         //电源特性
-        num|=root.condition[7];
+        num|=root.condition[6];
         num<<=3;
         //焊丝种类
         num|=root.condition[2]===0?0:4;

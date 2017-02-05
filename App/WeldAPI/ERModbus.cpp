@@ -85,9 +85,6 @@ ERModbus::~ERModbus(){
     pModbusThread->wait();
 }
 
-QStringList ERModbus::modbusFrame(){
-    return Frame;
-}
 /*R REG NUM */
 void ERModbus::setmodbusFrame(QStringList frame){
     pModbusThread->frame = frame;

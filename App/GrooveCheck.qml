@@ -161,7 +161,7 @@ TableCard{
                                                 model.get(0).C7,
                                                 model.get(0).C8
                                             ]);
-                    message.open("生成焊接规范。");
+                  //  message.open("生成焊接规范。");
                 }else {
                     message.open("请选择要生成规范的坡口信息。")
                 }

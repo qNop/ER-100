@@ -41,8 +41,8 @@ int main(int argc, char *argv[])
     qputenv("QT_IM_MODULE", QByteArray("Virtualkeyboard"));
     //配置文件存储目录
 
-//    qputenv("HOME",QByteArray("/home/nop/ER-100/RootFs/Nop"));
-    qputenv("HOME",QByteArray("/usr/local/ER-100/Nop"));
+    qputenv("HOME",QByteArray("/home/nop/ER-100/RootFs/Nop"));
+//    qputenv("HOME",QByteArray("/usr/local/ER-100/Nop"));
 
     qDebug()<<qgetenv("HOME");
     //显示插件调试信息

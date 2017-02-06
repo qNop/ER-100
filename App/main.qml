@@ -88,7 +88,6 @@ Material.ApplicationWindow{
     property bool completed:false
     /*当前用户名*/
     // property string currentUser: appSettings.currentUserName
-
     property string  weldRulesName
 
     property bool superUser
@@ -821,7 +820,7 @@ Material.ApplicationWindow{
     Connections{
         target: WeldMath
         onWeldRulesChanged:{
-            console.log(value);
+
             //确保数组数值正确
             if((typeof(value)==="object")&&(value.length===18)&&(value[0]==="Successed")){
                 weldTable.append({"ID":value[1], "C1":value[2],"C2":value[3],"C3":value[4],"C4":value[5],"C5":value[6],
@@ -830,6 +829,7 @@ Material.ApplicationWindow{
             }else if(value[0]==="Clear"){
                 weldTable.clear();
             }else if(value[0]==="Finish"){
+                snackBar.open("焊接规范已生成！")
                 // 切换状态为端部暂停
                 if(sysStatus==="坡口检测完成态"){
                     //下发端部暂停态
@@ -843,14 +843,13 @@ Material.ApplicationWindow{
                     //1目的是为了能够正常下发第一条规范。
                     weldTableIndex=1;
                 }else{
-                    // showMathError("计算错误！");
                     errorCode|=0x40000000;
                     ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
                 }
             }else{
+                // console.log(value);
                 //输出错误
-                //showMathError(value[0]);
-                snackBar.open(value[0])
+                snackBar.open(value)
                 //写入错误
                 errorCode|=0x40000000;
                 ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
@@ -1358,8 +1357,8 @@ Material.ApplicationWindow{
         }
         changeuser.show();
         //创建错误历史记录
-        Material.UserData.createTable("SysErrorHistroy","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT");
-        res=Material.UserData.getTableJson("SysErrorHistroy","","")
+        //Material.UserData.createTable("SysErrorHistroy","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT");
+        res=Material.UserData.getTableJson("SysErrorHistroy")
         if(res!==-1){
             for(i=res.length-1;i>=0;i--){
                 errorHistroy.append(res[i])

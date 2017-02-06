@@ -121,7 +121,7 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
 }
 
 int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *weldLineYUesd,float *startArcZ,int *currentFloor,int *currentWeldNum){
-    float s,swingLength,weldLineY,weldLineX,swingLengthOne,reSwingLeftLength,startArcX,startArcY;
+    float s,swingLength,weldLineY,swingLengthOne,reSwingLeftLength;
     int weldNum,i;
     QString str="计算第"+QString::number(*currentFloor)+"层时，";
     QStringList value;
@@ -191,13 +191,6 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     for(i=0;i<weldNum;i++){
         if(getWeldNum(pF,weldCurrent+i,weldVoltage+i,weldFeedSpeed+i,swingSpeed+i,weldTravelSpeed+i,weldFill+i
                       ,&s,i,weldNum,*currentFloor,&status,swingLengthOne)==-1){
-            //删除数组数据
-            delete weldFill;
-            delete weldCurrent;
-            delete weldVoltage;
-            delete weldFeedSpeed;
-            delete weldTravelSpeed;
-            delete swingSpeed;
             return -1;
         }
     }
@@ -209,71 +202,69 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     *weldLineYUesd=weldLineY+ float(qRound(10*pF->height))/10;
     //重新计算 距离前侧
     reSwingLeftLength= (((*hused+pF->height/2-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-weldNum*swingLengthOne-(weldNum-1)*pF->weldSwingSpacing)*(pF->swingLeftLength))/(pF->swingLeftLength+pF->swingRightLength);
+
+    float *weldLineX=new float[weldNum];
+    float *startArcX=new float[weldNum];
+    float *startArcY=new float[weldNum];
     //坡口侧从外往内焊  主要针对单边V
     if(!grooveDirValue){
         //从外侧往内侧偏移
         for(i=0;i<weldNum;i++){
-            str=i==(weldNum-1)?"永久":"5";
+            //   str=i==(weldNum-1)?"永久":"5";
             //焊道数增加
-            *currentWeldNum=*currentWeldNum+1;
+
             //中线偏移X 取一位小数
-            weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne/2+(swingLengthOne+pF->weldSwingSpacing)*(i)-qMax(float(0),(*hused+pF->height/2-rootFace)*grooveAngel1Tan)-rootGap/2)))/10;
+            *(weldLineX+i)= float(qRound(10*(reSwingLeftLength+swingLengthOne/2+(swingLengthOne+pF->weldSwingSpacing)*(i)-qMax(float(0),(*hused+pF->height/2-rootFace)*grooveAngel1Tan)-rootGap/2)))/10;
             //如果是陶瓷衬垫且为打底层
             if(pF->name=="ceramicBackFloor"){
                 //如果在坡口侧
                 if(!grooveDirValue){
                     //前侧为- 内侧为正
-                    startArcX=rootGap/2+(pF->height/2-rootFace)*grooveAngel2Tan;
+                    *(startArcX+i)=rootGap/2+(pF->height/2-rootFace)*grooveAngel2Tan;
                 }else{
-                    startArcX=0-rootGap/2-(pF->height/2-rootFace)*grooveAngel1Tan;
+                    *(startArcX+i)=0-rootGap/2-(pF->height/2-rootFace)*grooveAngel1Tan;
                 }
-                startArcX=float(qRound(10*startArcX))/10;
-                startArcY=weldLineY+qMax(float(0),(pF->height/2-rootFace));
-                startArcY=float(qRound(10*startArcY))/10;
+                *(startArcX+i)=float(qRound(10**(startArcX+i)))/10;
+                *(startArcY+i)=weldLineY+qMax(float(0),(pF->height/2-rootFace));
+                *(startArcY+i)=float(qRound(10**(startArcY+i)))/10;
             }else{
-                startArcX=weldLineX;
-                startArcY=weldLineY;
+                *(startArcX+i)=*(weldLineX+i);
+                *(startArcY+i)=weldLineY;
             }
-            //全部参数计算完成
-            value.clear();
-            value<<status<<QString::number(*currentWeldNum)<<QString::number(*currentFloor)+"/"+QString::number(i+1)<<QString::number(*(weldCurrent+i))<<QString::number(*(weldVoltage+i))<<QString::number(swingLengthOne/2)
-                <<QString::number(*(swingSpeed+i))<<QString::number(*(weldTravelSpeed+i)/10)<<QString::number(weldLineX)<<QString::number(weldLineY)
-               <<QString::number(pF->swingLeftStayTime)<<QString::number(pF->swingRightStayTime)<<str
-              <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(*(weldFill+i)*10))/10)<<QString::number(startArcX)<<QString::number(startArcY) <<QString::number(*startArcZ);
-            emit weldRulesChanged(value);
         }
     }else{
         //从内侧往外侧偏移
         for(i=(weldNum-1);i>=0;i--){
-            str=i==0?"永久":"5";
-            //焊道数增加
-            *currentWeldNum=*currentWeldNum+1;
             //中线偏移X 取一位小数
-            weldLineX= float(qRound(10*(reSwingLeftLength+swingLengthOne/2+(swingLengthOne+pF->weldSwingSpacing)*(i)-qMax(float(0),(*hused+pF->height/2-rootFace)*grooveAngel1Tan)-rootGap/2)))/10;
+            *(weldLineX+i)= float(qRound(10*(reSwingLeftLength+swingLengthOne/2+(swingLengthOne+pF->weldSwingSpacing)*(i)-qMax(float(0),(*hused+pF->height/2-rootFace)*grooveAngel1Tan)-rootGap/2)))/10;
             //如果是陶瓷衬垫且为打底层
             if(pF->name=="ceramicBackFloor"){
                 //如果在坡口侧
                 if(!grooveDirValue){
                     //前侧为- 内侧为正
-                    startArcX=rootGap/2+(pF->height/2-rootFace)*grooveAngel2Tan;
+                    *(startArcX+i)=rootGap/2+(pF->height/2-rootFace)*grooveAngel2Tan;
                 }else{
-                    startArcX=0-rootGap/2-(pF->height/2-rootFace)*grooveAngel1Tan;
+                    *(startArcX+i)=0-rootGap/2-(pF->height/2-rootFace)*grooveAngel1Tan;
                 }
-                startArcX=float(qRound(10*startArcX))/10;
-                startArcY=weldLineY+qMax(float(0),(pF->height/2-rootFace));
-                startArcY=float(qRound(10*startArcY))/10;
+                *(startArcX+i)=float(qRound(10* *(startArcX+i)))/10;
+                *(startArcY+i)=weldLineY+qMax(float(0),(pF->height/2-rootFace));
+                *(startArcY+i)=float(qRound(10* *(startArcY+i)))/10;
             }else{
-                startArcX=weldLineX;
-                startArcY=weldLineY;
+                *(startArcX+i)=*(weldLineX+i);
+                *(startArcY+i)=weldLineY;
             }
-            //全部参数计算完成
-            value.clear();
-            value<<status<<QString::number(*currentWeldNum)<<QString::number(*currentFloor)+"/"+QString::number(weldNum-i)<<QString::number(*(weldCurrent+i))<<QString::number(*(weldVoltage+i))<<QString::number(swingLengthOne/2)
-                <<QString::number(*(swingSpeed+i))<<QString::number(*(weldTravelSpeed+i)/10)<<QString::number(weldLineX)<<QString::number(weldLineY)
-               <<QString::number(pF->swingRightStayTime)<<QString::number(pF->swingLeftStayTime)<<str
-              <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(*(weldFill+i)*10))/10)<<QString::number(startArcX)<<QString::number(startArcY) <<QString::number(*startArcZ);
-            emit weldRulesChanged(value);
         }
+    }
+    for(i=0;i<weldNum;i++){
+        str=i==(weldNum-1)?"永久":"5";
+        *currentWeldNum=*currentWeldNum+1;
+        //全部参数计算完成
+        value.clear();
+        value<<status<<QString::number(*currentWeldNum)<<QString::number(*currentFloor)+"/"+QString::number(i+1)<<QString::number(*(weldCurrent+i))<<QString::number(*(weldVoltage+i))<<QString::number(swingLengthOne/2)
+            <<QString::number(*(swingSpeed+i))<<QString::number(*(weldTravelSpeed+i)/10)<<QString::number(*(weldLineX+i))<<QString::number(weldLineY)
+           <<QString::number(pF->swingLeftStayTime)<<QString::number(pF->swingRightStayTime)<<str
+          <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(*(weldFill+i)*10))/10)<<QString::number(*(startArcX+i))<<QString::number(*(startArcY+i)) <<QString::number(*startArcZ);
+        emit weldRulesChanged(value);
     }
     *hused+=pF->height;
     *sused+=s;
@@ -358,7 +349,10 @@ int SysMath::weldMath(){
         if(pulseValue){
             currentMax=300;
             currentMin=50;
-        } else{
+        }else  if(wireTypeValue==4){//药芯
+            currentMax=240;
+            currentMin=180;
+        }else{
             currentMax=300;
             currentMin=80;}
     }else if(weldStyleName=="横焊"){
@@ -497,7 +491,7 @@ float SysMath::getVoltage(int current){
     }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==4)&&(wireDValue==4)){
         //CO2 D 药芯 1.2
         if (current<currentMin){
-           voltage=14+0.05*current;
+            voltage=14+0.05*current;
         }
         else
             voltage=16+0.05*current;

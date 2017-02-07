@@ -31,6 +31,13 @@ float getFloorHeight(FloorCondition *pF,float leftAngel,float rightAngel,float h
     float cc=(hused-rootFace)*(hused-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*hused-sused-*s;
     return (qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);
 }
+//坐标转换
+void getXYPosition(float angel,float *x1,float *y1,float x2,float y2){
+    float arcTan=qAtan((x2/y2)*PI/180);
+    float temp=qTan((angel-arcTan)*PI/180)*qTan((angel-arcTan)*PI/180);
+    *x1=qSqrt((x2*x2+y2*y2)/(1+temp));
+    *y1=*x1*qTan((angel-arcTan)*PI/180);
+}
 
 float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,QString *status,float swingLengthOne){
     float swingHz, temp1;
@@ -692,12 +699,24 @@ int SysMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,flo
 int SysMath::setGrooveRules(QStringList value){
     //数组有效
     if(value.count()){
-        grooveHeight=value.at(0).toFloat();
-        grooveHeightError=value.at(1).toFloat();
-        rootGap=value.at(2).toFloat();
-        grooveAngel2=value.at(3).toFloat();
-        float temp=value.at(4).toFloat();
-        grooveAngel1=-temp;
+        if(weldStyleName!="水平角焊"){
+            grooveHeight=value.at(0).toFloat();
+            grooveHeightError=value.at(1).toFloat();
+            rootGap=value.at(2).toFloat();
+            grooveAngel2=value.at(3).toFloat();
+            float temp=value.at(4).toFloat();
+            grooveAngel1=-temp;
+        }else{
+            //grooveHeight=value.at(0).toFloat()*qsin(45*PI/180);
+            //grooveHeightError=value.at(1).toFloat();
+            rootGap=value.at(2).toFloat();
+            grooveAngel2=value.at(3).toFloat()+45;
+            float temp=value.at(4).toFloat();
+            grooveAngel1=-temp-45;
+            float x1,y1;
+            getXYPosition(45,&x1,&y1,2.5,5);
+            qDebug()<<"getXYPosition(x1,y1)"<<x1<<y1;
+        }
     }
     value.clear();
     value.append("Clear");

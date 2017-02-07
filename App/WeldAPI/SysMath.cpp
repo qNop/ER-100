@@ -32,19 +32,14 @@ float getFloorHeight(FloorCondition *pF,float leftAngel,float rightAngel,float h
     return (qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);
 }
 
-int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,float *s,int count,int weldNum,int weldFloor,QString *status,float swingLengthOne){
+float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,QString *status,float swingLengthOne){
+    float swingHz, temp1;
     int temp;
-    float swingHz;
-    QString str="计算第"+QString::number(weldFloor)+"层第"+QString::number(weldNum)+"道时，";
-    //获取电流
-    temp=solveI(pF,count,weldNum);
-    if(temp==-1){*status=str+"焊接电流不能正常分配。";return -1;}
-    else *weldCurrent=temp;
     //获取电压 为0 则自动生成电压 否则 采用限制条件电压
     if(pF->voltage==0){
-        temp=getVoltage(*weldCurrent);
-        if(temp==-1){*status=str+"焊接电流过小或此焊接条件下焊接电流不存在导致焊接电压不能获取。";return -1;}
-        else *weldVoltage=temp;
+        temp1=getVoltage(*weldCurrent);
+        if(temp1==-1){*status=str+"焊接电流过小或此焊接条件下焊接电流不存在导致焊接电压不能获取。";return -1;}
+        else *weldVoltage=temp1;
     }
     else
         *weldVoltage=pF->voltage;
@@ -69,6 +64,20 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
     }else
         *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,pF->fillCoefficient);
     if(*weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
+    else
+        return 1;
+
+}
+
+int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,float *s,int count,int weldNum,int weldFloor,QString *status,float swingLengthOne){
+    int temp;
+    float swingHz;
+    QString str="计算第"+QString::number(weldFloor)+"层第"+QString::number(weldNum)+"道时，";
+    //获取电流
+    temp=solveI(pF,count,weldNum);
+    if(temp==-1){*status=str+"焊接电流不能正常分配。";return -1;}
+    else *weldCurrent=temp;
+    if(getTravelSpeed(pF,str,weldCurrent,weldVoltage,weldFeedSpeed,swingSpeed,weldTravelSpeed,weldFill,status,swingLengthOne)==-1) return -1;
     //保证焊接速度不大于最大焊接速度 否则减小电流
     if(*weldTravelSpeed>pF->maxWeldSpeed){
         while(*weldTravelSpeed>pF->maxWeldSpeed){
@@ -76,19 +85,7 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
             // if(tempCurrent-*weldCurrent>CURRENT_COUNT_DEC) {*status=str+"焊接电流相对预置"}
             //如果带脉冲焊接
             if(*weldCurrent<currentMin){*status=str+"焊接电流超过最小值。";return -1;}
-            //获取电压
-            temp=getVoltage(*weldCurrent);
-            if(temp==-1){*status=str+"焊接电流过小或此焊接条件下焊接电流不存在导致焊接电压不能获取。";return -1;}
-            else *weldVoltage=temp;
-            //获取送丝速度
-            temp=getFeedSpeed(*weldCurrent);
-            if(temp==-1){*status=str+"焊接电流过小或此焊接条件下焊接电流不存在导致送丝速度不能获取。";return -1;}
-            else *weldFeedSpeed=temp;
-            if(weldStyleName=="立焊")
-                *weldTravelSpeed=GET_VERTICAL_TRAVERLSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,pF->fillCoefficient,swingHz,pF->totalStayTime);
-            else
-                *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,pF->fillCoefficient);
-            if(*weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
+            if(getTravelSpeed(pF,str,weldCurrent,weldVoltage,weldFeedSpeed,swingSpeed,weldTravelSpeed,weldFill,status,swingLengthOne)==-1) return -1;
         }
         *weldTravelSpeed=qRound(*weldTravelSpeed);
     }else if((*weldFill>pF->maxFillMetal)||(*weldTravelSpeed<pF->minWeldSpeed)){
@@ -140,7 +137,10 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         s+=GET_CERAMICBACK_AREA(rootGap,1.5);
     }
     //计算h/2处摆宽
-    swingLength=(*hused+pF->height/2-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-pF->swingLeftLength-pF->swingRightLength;
+    swingLength=(*hused+pF->height/2-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
+    //如果摆宽小于两端间隔则 不变
+    if(swingLength>(pF->swingLeftLength+pF->swingRightLength))
+        swingLength-=pF->swingLeftLength-pF->swingRightLength;
     //计算分多少道
     weldNum=qCeil((swingLength+pF->weldSwingSpacing)/(pF->maxSwingLength+pF->weldSwingSpacing));
     //创建 weldnum  的数组 必须要加3 否则 数组溢出
@@ -174,7 +174,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     //计算单道摆宽
     swingLengthOne=float(qRound(5*(swingLength-(weldNum-1)*pF->weldSwingSpacing)/weldNum))/5;
     //如果摆宽过小则 不需要摆动
-    if(swingLengthOne<=0.5){
+    if((swingLengthOne<=0.5)){
         swingLengthOne=0;
     }
     //层内每一道的电流
@@ -202,68 +202,47 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     *weldLineYUesd=weldLineY+ float(qRound(10*pF->height))/10;
     //重新计算 距离前侧
     reSwingLeftLength= (((*hused+pF->height/2-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-weldNum*swingLengthOne-(weldNum-1)*pF->weldSwingSpacing)*(pF->swingLeftLength))/(pF->swingLeftLength+pF->swingRightLength);
-
     float *weldLineX=new float[weldNum];
     float *startArcX=new float[weldNum];
     float *startArcY=new float[weldNum];
     //坡口侧从外往内焊  主要针对单边V
-    if(!grooveDirValue){
-        //从外侧往内侧偏移
-        for(i=0;i<weldNum;i++){
-            //   str=i==(weldNum-1)?"永久":"5";
-            //焊道数增加
-
-            //中线偏移X 取一位小数
-            *(weldLineX+i)= float(qRound(10*(reSwingLeftLength+swingLengthOne/2+(swingLengthOne+pF->weldSwingSpacing)*(i)-qMax(float(0),(*hused+pF->height/2-rootFace)*grooveAngel1Tan)-rootGap/2)))/10;
-            //如果是陶瓷衬垫且为打底层
-            if(pF->name=="ceramicBackFloor"){
-                //如果在坡口侧
-                if(!grooveDirValue){
-                    //前侧为- 内侧为正
-                    *(startArcX+i)=rootGap/2+(pF->height/2-rootFace)*grooveAngel2Tan;
-                }else{
-                    *(startArcX+i)=0-rootGap/2-(pF->height/2-rootFace)*grooveAngel1Tan;
-                }
-                *(startArcX+i)=float(qRound(10**(startArcX+i)))/10;
-                *(startArcY+i)=weldLineY+qMax(float(0),(pF->height/2-rootFace));
-                *(startArcY+i)=float(qRound(10**(startArcY+i)))/10;
+    for(i=0;i<weldNum;i++){
+        //中线偏移X 取一位小数
+        *(weldLineX+i)= float(qRound(10*(reSwingLeftLength+swingLengthOne/2+(swingLengthOne+pF->weldSwingSpacing)*(i)-qMax(float(0),(*hused+pF->height/2-rootFace)*grooveAngel1Tan)-rootGap/2)))/10;
+        //如果是陶瓷衬垫且为打底层
+        if(pF->name=="ceramicBackFloor"){
+            //如果在坡口侧
+            if(!grooveDirValue){
+                //前侧为- 内侧为正
+                *(startArcX+i)=rootGap/2+(pF->height/2-rootFace)*grooveAngel2Tan;
             }else{
-                *(startArcX+i)=*(weldLineX+i);
-                *(startArcY+i)=weldLineY;
+                *(startArcX+i)=0-rootGap/2-(pF->height/2-rootFace)*grooveAngel1Tan;
             }
-        }
-    }else{
-        //从内侧往外侧偏移
-        for(i=(weldNum-1);i>=0;i--){
-            //中线偏移X 取一位小数
-            *(weldLineX+i)= float(qRound(10*(reSwingLeftLength+swingLengthOne/2+(swingLengthOne+pF->weldSwingSpacing)*(i)-qMax(float(0),(*hused+pF->height/2-rootFace)*grooveAngel1Tan)-rootGap/2)))/10;
-            //如果是陶瓷衬垫且为打底层
-            if(pF->name=="ceramicBackFloor"){
-                //如果在坡口侧
-                if(!grooveDirValue){
-                    //前侧为- 内侧为正
-                    *(startArcX+i)=rootGap/2+(pF->height/2-rootFace)*grooveAngel2Tan;
-                }else{
-                    *(startArcX+i)=0-rootGap/2-(pF->height/2-rootFace)*grooveAngel1Tan;
-                }
-                *(startArcX+i)=float(qRound(10* *(startArcX+i)))/10;
-                *(startArcY+i)=weldLineY+qMax(float(0),(pF->height/2-rootFace));
-                *(startArcY+i)=float(qRound(10* *(startArcY+i)))/10;
-            }else{
-                *(startArcX+i)=*(weldLineX+i);
-                *(startArcY+i)=weldLineY;
-            }
+            *(startArcX+i)=float(qRound(10**(startArcX+i)))/10;
+            *(startArcY+i)=weldLineY+qMax(float(0),(pF->height/2-rootFace));
+            *(startArcY+i)=float(qRound(10**(startArcY+i)))/10;
+        }else{
+            *(startArcX+i)=*(weldLineX+i);
+            *(startArcY+i)=weldLineY;
         }
     }
     for(i=0;i<weldNum;i++){
+        int temp;
+        //外负内正
+        if(weldStyleName!="横焊")
+            temp=!grooveDirValue?i:weldNum-1-i;
+        else//横焊 近似仰焊 基数从一侧开始焊偶数从另一侧开始焊
+            temp=i%2?grooveDirValue?i/2:weldNum-1-i/2:!grooveDirValue?i/2:weldNum-1-i/2;
         str=i==(weldNum-1)?"永久":"5";
+        //焊道数增加
         *currentWeldNum=*currentWeldNum+1;
         //全部参数计算完成
         value.clear();
-        value<<status<<QString::number(*currentWeldNum)<<QString::number(*currentFloor)+"/"+QString::number(i+1)<<QString::number(*(weldCurrent+i))<<QString::number(*(weldVoltage+i))<<QString::number(swingLengthOne/2)
-            <<QString::number(*(swingSpeed+i))<<QString::number(*(weldTravelSpeed+i)/10)<<QString::number(*(weldLineX+i))<<QString::number(weldLineY)
-           <<QString::number(pF->swingLeftStayTime)<<QString::number(pF->swingRightStayTime)<<str
-          <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(*(weldFill+i)*10))/10)<<QString::number(*(startArcX+i))<<QString::number(*(startArcY+i)) <<QString::number(*startArcZ);
+        value<<status<<QString::number(*currentWeldNum)<<QString::number(*currentFloor)+"/"+QString::number(i+1)<<QString::number(*(weldCurrent+i))
+            <<QString::number(*(weldVoltage+i))<<QString::number(weldStyleName!="横焊"?swingLengthOne/2:0)<<QString::number(*(swingSpeed+i))<<QString::number(*(weldTravelSpeed+i)/10)
+           <<QString::number(*(weldLineX+temp))<<QString::number(weldLineY)<<QString::number(pF->swingLeftStayTime)<<QString::number(pF->swingRightStayTime)<<str
+          <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(*(weldFill+i)*10))/10)
+         << QString::number(*(startArcX+temp))<<QString::number(*(startArcY+i)) <<QString::number(*startArcZ);
         emit weldRulesChanged(value);
     }
     *hused+=pF->height;
@@ -469,15 +448,18 @@ float SysMath::getVoltage(int current){
     float voltage=18;
     if((gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //MAG D 实芯 1.2
-        if (current<200){
+        if (current<=200){
             voltage=14+0.05*current-2;
         }else{
             voltage=14+0.05*current;
         }
     }else if((gasValue)&&(pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //MAG P 实芯 1.2
-        if (current<currentMin){
-            voltage=14+0.05*current-2;
+        if (current<=200){
+            if(weldStyleName=="横焊")
+                voltage=14+0.05*current-1.5;
+            else
+                voltage=14+0.05*current;
         }else{
             voltage=14+0.05*current;
         }
@@ -490,7 +472,7 @@ float SysMath::getVoltage(int current){
             voltage=16+0.05*current;
     }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==4)&&(wireDValue==4)){
         //CO2 D 药芯 1.2
-        if (current<currentMin){
+        if (current<=200){
             voltage=14+0.05*current;
         }
         else

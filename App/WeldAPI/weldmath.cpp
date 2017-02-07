@@ -34,6 +34,7 @@ void WeldMath::setGrooveRules(QStringList value){
 void WeldMath::setCeramicBack(int value){
     qDebug()<<"WeldMath::setCeramicBack"<<value;
     sysMath.ceramicBack=value;
+    sysMath.bottomFloor=sysMath.ceramicBack==1?&bottomFloor0:&bottomFloor;
 }
 
 void WeldMath::setGas(int value){

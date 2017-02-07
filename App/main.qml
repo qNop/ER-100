@@ -730,15 +730,16 @@ Material.ApplicationWindow{
                                     grooveTable.setProperty(num,"C4",(Number(frame[6])/10).toString())
                                     grooveTable.setProperty(num,"C5",(Number(frame[7])/10).toString())
                                 }
-                                grooveTable.setProperty(num,"C6",String((Number(frame[8])|(Number(frame[9])<<16))/10))
+                                //对掉一下xz坐标
+                                grooveTable.setProperty(num,"C8",String((Number(frame[8])|(Number(frame[9])<<16))/10))
                                 grooveTable.setProperty(num,"C7",String(Number(frame[10])/10))
-                                grooveTable.setProperty(num,"C8",String(Number(frame[11])/10))
+                                grooveTable.setProperty(num,"C6",String(Number(frame[11])/10))
                             }
                             else{
                                 grooveTable.setProperty(num,"C3",(Number(frame[5])/10).toString())
-                                grooveTable.setProperty(num,"C6",String((Number(frame[8])|(Number(frame[9])<<16))/10))
+                                grooveTable.setProperty(num,"C8",String((Number(frame[8])|(Number(frame[9])<<16))/10))
                                 grooveTable.setProperty(num,"C7",String(Number(frame[10])/10))
-                                grooveTable.setProperty(num,"C8",String(Number(frame[11])/10))
+                                grooveTable.setProperty(num,"C6",String(Number(frame[11])/10))
                             }
                             changeGrooveTableIndex(num);
                         }
@@ -820,7 +821,7 @@ Material.ApplicationWindow{
     Connections{
         target: WeldMath
         onWeldRulesChanged:{
-
+            console.log(value)
             //确保数组数值正确
             if((typeof(value)==="object")&&(value.length===18)&&(value[0]==="Successed")){
                 weldTable.append({"ID":value[1], "C1":value[2],"C2":value[3],"C3":value[4],"C4":value[5],"C5":value[6],

@@ -824,7 +824,7 @@ Material.ApplicationWindow{
             console.log(value)
             //确保数组数值正确
             if((typeof(value)==="object")&&(value.length===18)&&(value[0]==="Successed")){
-                weldTable.append({"ID":value[1], "C1":value[2],"C2":value[3],"C3":value[4],"C4":value[5],"C5":value[6],
+                weldTable.set(Number(value[1])-1,{"ID":value[1], "C1":value[2],"C2":value[3],"C3":value[4],"C4":value[5],"C5":value[6],
                                      "C6":value[7],"C7":value[8],"C8":value[9],"C9":value[10],"C10":value[11],"C11":value[12],"C12":value[13],
                                      "C13":value[14],"C14":value[15],"C15":value[16],"C16":value[17]})
             }else if(value[0]==="Clear"){

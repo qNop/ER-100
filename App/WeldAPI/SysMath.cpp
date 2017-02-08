@@ -33,10 +33,19 @@ float getFloorHeight(FloorCondition *pF,float leftAngel,float rightAngel,float h
 }
 //坐标转换
 void getXYPosition(float angel,float *x1,float *y1,float x2,float y2){
-    float arcTan=qAtan((x2/y2)*PI/180);
+    //转换为角度
+    float arcTan=qAtan((x2/y2))*180/PI;
     float temp=qTan((angel-arcTan)*PI/180)*qTan((angel-arcTan)*PI/180);
     *x1=qSqrt((x2*x2+y2*y2)/(1+temp));
     *y1=*x1*qTan((angel-arcTan)*PI/180);
+    //y1为负值则迁移坐标使y值为正值
+    qDebug()<<"angel"<<Angel<<"x1"<<*x1<<"*y1"<<*y1;
+    if(*y1<0){
+        *x1+=(-*y1)/qTan(angel*PI/180);
+        *y1=0;
+    }
+    *x1=float(qRound(10**x1))/10;
+    *y1=float(qRound(10**y1))/10;
 }
 
 float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,QString *status,float swingLengthOne){
@@ -125,8 +134,17 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
 }
 
 int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *weldLineYUesd,float *startArcZ,int *currentFloor,int *currentWeldNum){
-    float s,swingLength,weldLineY,swingLengthOne,reSwingLeftLength;
+    float s,swingLength,swingLengthOne,reSwingLeftLength;
     int weldNum,i;
+    //打底层清空
+    if((pF->name=="bottomFloor")||(pF->name=="ceramicBackFloor")){
+        *currentWeldNum=0;
+        *hused=0;
+        *sused=0;
+        *weldLineYUesd=0;
+        *startArcZ=0;
+        *currentFloor=1;
+    }
     QString str="计算第"+QString::number(*currentFloor)+"层时，";
     QStringList value;
     float ba=1.5;
@@ -203,17 +221,16 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     }
     //重新计算层高
     pF->height=getFloorHeight(pF,grooveAngel1,grooveAngel2,*hused,*sused,&s,rootFace,rootGap);
-    //中线偏移Y
-    weldLineY=*weldLineYUesd;
-    //迭代中线偏移Y
-    *weldLineYUesd=weldLineY+ float(qRound(10*pF->height))/10;
     //重新计算 距离前侧
     reSwingLeftLength= (((*hused+pF->height/2-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-weldNum*swingLengthOne-(weldNum-1)*pF->weldSwingSpacing)*(pF->swingLeftLength))/(pF->swingLeftLength+pF->swingRightLength);
     float *weldLineX=new float[weldNum];
     float *startArcX=new float[weldNum];
     float *startArcY=new float[weldNum];
+    float *weldLineY=new float[weldNum];
     //坡口侧从外往内焊  主要针对单边V
     for(i=0;i<weldNum;i++){
+        //中线偏移Y
+        *(weldLineY+i)=*weldLineYUesd;
         //中线偏移X 取一位小数
         *(weldLineX+i)= float(qRound(10*(reSwingLeftLength+swingLengthOne/2+(swingLengthOne+pF->weldSwingSpacing)*(i)-qMax(float(0),(*hused+pF->height/2-rootFace)*grooveAngel1Tan)-rootGap/2)))/10;
         //如果是陶瓷衬垫且为打底层
@@ -226,11 +243,16 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
                 *(startArcX+i)=0-rootGap/2-(pF->height/2-rootFace)*grooveAngel1Tan;
             }
             *(startArcX+i)=float(qRound(10**(startArcX+i)))/10;
-            *(startArcY+i)=weldLineY+qMax(float(0),(pF->height/2-rootFace));
+            *(startArcY+i)=*(weldLineY+i)+qMax(float(0),(pF->height/2-rootFace));
             *(startArcY+i)=float(qRound(10**(startArcY+i)))/10;
         }else{
             *(startArcX+i)=*(weldLineX+i);
-            *(startArcY+i)=weldLineY;
+            *(startArcY+i)=*(weldLineY+i);
+        }
+        if(weldStyleName=="水平角焊"){
+            getXYPosition(Angel,startArcX+i,startArcY+i,*(weldLineX+i),*(weldLineY+i));
+            *(weldLineX+i)=*(startArcX+i);
+            *(weldLineY+i)=*(startArcY+i);
         }
     }
     for(i=0;i<weldNum;i++){
@@ -246,12 +268,15 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         //全部参数计算完成
         value.clear();
         value<<status<<QString::number(*currentWeldNum)<<QString::number(*currentFloor)+"/"+QString::number(i+1)<<QString::number(*(weldCurrent+i))
-            <<QString::number(*(weldVoltage+i))<<QString::number(weldStyleName!="横焊"?swingLengthOne/2:0)<<QString::number(*(swingSpeed+i))<<QString::number(*(weldTravelSpeed+i)/10)
-           <<QString::number(*(weldLineX+temp))<<QString::number(weldLineY)<<QString::number(pF->swingLeftStayTime)<<QString::number(pF->swingRightStayTime)<<str
-          <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(*(weldFill+i)*10))/10)
-         << QString::number(*(startArcX+temp))<<QString::number(*(startArcY+i)) <<QString::number(*startArcZ);
+            <<QString::number(*(weldVoltage+i))<<QString::number(((weldStyleName=="横焊")||(weldStyleName=="水平角焊"&&((pF->name!="bottomFloor")&&(pF->name!="ceramicBackFloor"))))?0:swingLengthOne/2)
+           <<QString::number(*(swingSpeed+i))<<QString::number(*(weldTravelSpeed+i)/10)
+          <<QString::number(*(weldLineX+temp))<<QString::number(*(weldLineY+temp))<<QString::number(pF->swingLeftStayTime)<<QString::number(pF->swingRightStayTime)<<str
+         <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(*(weldFill+i)*10))/10)
+        << QString::number(*(startArcX+temp))<<QString::number(*(startArcY+temp)) <<QString::number(*startArcZ);
         emit weldRulesChanged(value);
     }
+    //迭代中线偏移Y
+    *weldLineYUesd+= float(qRound(10*pF->height))/10;
     *hused+=pF->height;
     *sused+=s;
     *startArcZ-=3;
@@ -583,6 +608,7 @@ int SysMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,flo
             tempH=bottomFloor->height+*pH-topFloor->height;
             if(tempH<bottomFloor->minHeight){
                 status="错误，层高分配无法满足要求！";
+                return -1;
             }else
                 bottomFloor->height=tempH;
             //调用重新匹配第一层
@@ -615,6 +641,7 @@ int SysMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,flo
             if(tempH<bottomFloor->minHeight){
                 bottomFloor->height= bottomFloor->minHeight;
                 status="错误，层高分配无法满足要求！";
+                return -1;
             }else{
                 bottomFloor->height=tempH;
             }
@@ -678,6 +705,7 @@ int SysMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,flo
             if(tempH<bottomFloor->minHeight){
                 bottomFloor->height=bottomFloor->minHeight;
                 status="错误，层高分配无法满足要求！";
+                return -1;
             }else{
                 bottomFloor->height=tempH;
             }
@@ -707,15 +735,13 @@ int SysMath::setGrooveRules(QStringList value){
             float temp=value.at(4).toFloat();
             grooveAngel1=-temp;
         }else{
-            //grooveHeight=value.at(0).toFloat()*qsin(45*PI/180);
+            grooveHeight=value.at(0).toFloat();
+            grooveHeight*=qSin(45*PI/180);
             //grooveHeightError=value.at(1).toFloat();
-            rootGap=value.at(2).toFloat();
-            grooveAngel2=value.at(3).toFloat()+45;
+            rootGap=0;//value.at(2).toFloat();
+            grooveAngel2=value.at(3).toFloat()-45;
             float temp=value.at(4).toFloat();
-            grooveAngel1=-temp-45;
-            float x1,y1;
-            getXYPosition(45,&x1,&y1,2.5,5);
-            qDebug()<<"getXYPosition(x1,y1)"<<x1<<y1;
+            grooveAngel1=-temp+45;
         }
     }
     value.clear();

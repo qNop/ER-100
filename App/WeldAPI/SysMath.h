@@ -25,6 +25,8 @@ public:
     int currentMin;
     //最大电流
     int currentMax;
+    //角度转换
+    float angel;
     //余高
     int reinforcementValue;
     //溶敷系数 *100

@@ -4,6 +4,7 @@ SysMath::SysMath()
 {
 
 }
+
 SysMath::~SysMath(){
 
 }
@@ -249,8 +250,8 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             *(startArcX+i)=*(weldLineX+i);
             *(startArcY+i)=*(weldLineY+i);
         }
-        if(weldStyleName=="水平角焊"){
-            getXYPosition(Angel,startArcX+i,startArcY+i,*(weldLineX+i),*(weldLineY+i));
+        if((weldStyleName=="水平角焊")||(pF->name=="overFloor")){
+            getXYPosition(angel,startArcX+i,startArcY+i,*(weldLineX+i),*(weldLineY+i));
             *(weldLineX+i)=*(startArcX+i);
             *(weldLineY+i)=*(startArcY+i);
         }
@@ -385,6 +386,10 @@ int SysMath::weldMath(){
     if(getFillMetal(secondFloor)==-1) return -1;
     if(getFillMetal(fillFloor)==-1) return -1;
     if(getFillMetal(topFloor)==-1) return -1;
+    if(weldConnectName=="T接头"){//计算T角度 角度为 单V最大角度上距离 为l2
+        //余高为0
+        reinforcementValue=0;
+    }
     bottomFloor->height=bottomFloor->maxHeight;
     if(getWeldFloor(bottomFloor,&hUsed,&sUsed,&weldLineYUesd,&startArcZ,&floorNum,&currentWeldNum)==-1){
         return -1;
@@ -406,6 +411,9 @@ int SysMath::weldMath(){
         if(getWeldFloor(topFloor,&hUsed,&sUsed,&weldLineYUesd,&startArcZ,&floorNum,&currentWeldNum)==-1){
             return -1;
         }
+    }
+    if(weldConnectName=="T接头"){//计算T角度 角度为 单V最大角度上距离 为l2
+
     }
     value.clear();
     value.append("Finish");
@@ -736,8 +744,9 @@ int SysMath::setGrooveRules(QStringList value){
             grooveAngel1=-temp;
         }else{
             grooveHeight=value.at(0).toFloat();
+            grooveHeightError=value.at(1).toFloat();
+            angel=qAtan(grooveHeight/grooveHeightError)*PI/180;
             grooveHeight*=qSin(45*PI/180);
-            //grooveHeightError=value.at(1).toFloat();
             rootGap=0;//value.at(2).toFloat();
             grooveAngel2=value.at(3).toFloat()-45;
             float temp=value.at(4).toFloat();

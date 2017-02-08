@@ -27,7 +27,8 @@ TableCard{
     property string currentGrooveName
     property string status:"空闲态"
 
-    property var grooveRules: ["           No.       :", "板    厚δ(mm):","板厚差e(mm):","间    隙b(mm):","角  度β1(deg):","角  度β2(deg):"]//,"中心线X(mm)","中心线Y(mm)","中心线Z(mm)"]
+    property var grooveRules:currentGroove===8?["           No.       :", "脚    长l1(mm):","脚   长l2(mm):","间    隙b(mm):","角  度β1(deg):","角  度β2(deg):"]:
+        ["           No.       :", "板    厚δ(mm):","板厚差e(mm):","间    隙b(mm):","角  度β1(deg):","角  度β2(deg):"]
 
     property int teachModel
 
@@ -179,8 +180,8 @@ TableCard{
         }
     ]
     tableData:[
-        Controls.TableViewColumn{  role:"C1"; title:currentGroove===8?"脚长 l\n (mm)": "板厚 δ\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-        Controls.TableViewColumn{  role:"C2"; title: "板厚差 e\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:currentGroove!==8?true:false},
+        Controls.TableViewColumn{  role:"C1"; title:currentGroove===8?"脚长 l1\n (mm)": "板厚 δ\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+        Controls.TableViewColumn{  role:"C2"; title:currentGroove===8?"脚长 l2\n (mm)": "板厚差 e\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{  role:"C3"; title: "间隙 b\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:currentGroove!==8?true:false},
         Controls.TableViewColumn{  role:"C4"; title: "角度 β1\n  (deg)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{  role:"C5"; title: "角度 β2\n  (deg)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},

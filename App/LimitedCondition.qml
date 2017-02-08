@@ -18,7 +18,7 @@ TableCard {
     property Item message
     property var  settings
     property string limitedRulesName
-    property var nameModel: [
+    property var nameModel:swingWidthOrWeldWidth?[
         "坡口侧          电流       (A)",
         "中间              电流       (A)",
         "非坡口侧      电流       (A)",
@@ -34,8 +34,7 @@ TableCard {
         "焊    接    电     压       (V)",
         "焊接速度Min  (cm/min)",
         "焊接速度Max (cm/min)",
-        "层    填    充   系   数 (%)"]
-    property var nameModel1: [
+        "层    填    充   系   数 (%)"]: [
         "坡口侧          电流       (A)",
         "中间              电流       (A)",
         "非坡口侧      电流       (A)",
@@ -264,7 +263,7 @@ TableCard {
     MyTextFieldDialog{
         id:edit
         title: "编辑限制条件"
-        repeaterModel:swingWidthOrWeldWidth?nameModel:nameModel1
+        repeaterModel:nameModel
         onOpened: {
             var res=limitedMath(currentRow,currentRow+1);
             pasteModel.set(0,limitedTable.get(currentRow))

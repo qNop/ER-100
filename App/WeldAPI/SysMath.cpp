@@ -746,11 +746,11 @@ int SysMath::setGrooveRules(QStringList value){
             grooveHeight=value.at(0).toFloat();
             grooveHeightError=value.at(1).toFloat();
             angel=qAtan(grooveHeight/grooveHeightError)*PI/180;
-            grooveHeight*=qSin(45*PI/180);
+            grooveHeight*=qSin(angel*PI/180);
             rootGap=0;//value.at(2).toFloat();
-            grooveAngel2=value.at(3).toFloat()-45;
+            grooveAngel2=value.at(3).toFloat()-angel;
             float temp=value.at(4).toFloat();
-            grooveAngel1=-temp+45;
+            grooveAngel1=-temp+angel;
         }
     }
     value.clear();

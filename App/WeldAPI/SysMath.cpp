@@ -35,9 +35,9 @@ float getFloorHeight(FloorCondition *pF,float leftAngel,float rightAngel,float h
 //坐标转换
 void getXYPosition(float angel,float *x1,float *y1,float x2,float y2){
     //转换为角度
-    float arcTan=qAtan((x2/y2))*180/PI;
-    float temp=qTan((angel-arcTan)*PI/180)*qTan((angel-arcTan)*PI/180);
-    *x1=qSqrt((x2*x2+y2*y2)/(1+temp));
+    float arcTan=qAtan((y2/x2))*180/PI;
+    float temp=qCos((arcTan-angel)*PI/180);
+    *x1=qSqrt(x2*x2+y2*y2)*temp;
     *y1=*x1*qTan((angel-arcTan)*PI/180);
     //y1为负值则迁移坐标使y值为正值
     qDebug()<<"angel"<<Angel<<"x1"<<*x1<<"*y1"<<*y1;
@@ -137,6 +137,7 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
 int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *weldLineYUesd,float *startArcZ,int *currentFloor,int *currentWeldNum){
     float s,swingLength,swingLengthOne,reSwingLeftLength;
     int weldNum,i;
+    QStringList value;
     //打底层清空
     if((pF->name=="bottomFloor")||(pF->name=="ceramicBackFloor")){
         *currentWeldNum=0;
@@ -147,7 +148,6 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         *currentFloor=1;
     }
     QString str="计算第"+QString::number(*currentFloor)+"层时，";
-    QStringList value;
     float ba=1.5;
     //前面应该对输入参数进行校验 否则不能进入函数
     //计算层面积
@@ -745,8 +745,8 @@ int SysMath::setGrooveRules(QStringList value){
         }else{
             grooveHeight=value.at(0).toFloat();
             grooveHeightError=value.at(1).toFloat();
-            angel=qAtan(grooveHeight/grooveHeightError)*PI/180;
-            grooveHeight*=qSin(angel*PI/180);
+            angel=qAtan(grooveHeight/grooveHeightError)*180/PI;
+            grooveHeight*=qCos(angel*PI/180);
             rootGap=0;//value.at(2).toFloat();
             grooveAngel2=value.at(3).toFloat()-angel;
             float temp=value.at(4).toFloat();

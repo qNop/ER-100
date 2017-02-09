@@ -35,16 +35,33 @@ float getFloorHeight(FloorCondition *pF,float leftAngel,float rightAngel,float h
 //坐标转换
 void getXYPosition(float angel,float *x1,float *y1,float x2,float y2){
     //转换为角度
-    float arcTan=qAtan((y2/x2))*180/PI;
-    float temp=qCos((arcTan-angel)*PI/180);
-    *x1=qSqrt(x2*x2+y2*y2)*temp;
-    *y1=*x1*qTan((angel-arcTan)*PI/180);
+    if(y2==0){
+        *x1=x2/qCos(angel*PI/180);
+        *y1=0;
+    }else if(x2==0){
+        *x1=y2*qSin(angel*PI/180);
+        *y1=y2*qCos(angel*PI/180);
+    }else if(x2<0){
+        float arcTan=qAtan((y2/qAbs(x2)))*180/PI;
+        float temp=qSin((arcTan-90+angel)*PI/180);
+        *x1=qSqrt(x2*x2+y2*y2)*temp;
+        *y1=*x1/qTan((arcTan-90+angel)*PI/180);
+        if(*y1<0){
+            *x1+=(-*y1)/qTan(angel*PI/180);
+            *y1=0;
+        }
+    }else{
+        float arcTan=qAtan((y2/qAbs(x2)))*180/PI;
+        float temp=qCos((arcTan-angel)*PI/180);
+        *x1=qSqrt(x2*x2+y2*y2)*temp;
+        *y1=*x1*qTan((arcTan-angel)*PI/180);
+        if(*y1<0){
+            *x1+=(-*y1)/qTan(angel*PI/180);
+            *y1=0;
+        }
+    }
     //y1为负值则迁移坐标使y值为正值
     qDebug()<<"angel"<<Angel<<"x1"<<*x1<<"*y1"<<*y1;
-    if(*y1<0){
-        *x1+=(-*y1)/qTan(angel*PI/180);
-        *y1=0;
-    }
     *x1=float(qRound(10**x1))/10;
     *y1=float(qRound(10**y1))/10;
 }

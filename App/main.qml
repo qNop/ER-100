@@ -605,9 +605,11 @@ Material.ApplicationWindow{
             //切小页面
             app.page0SelectedIndex=3;
             //全自动则清除
-            if(teachModel===0)
+            if((teachModel===0)&&(appSettings.weldStyle!==4)){
+                changeGrooveTableIndex(-1);
                 //清除坡口数据
                 grooveTable.clear();
+            }
             else {//半自动 手动 检测数据表是否有效
                 if(grooveTable.count===0){
                     //写入错误
@@ -633,6 +635,8 @@ Material.ApplicationWindow{
             ERModbus.setmodbusFrame(["R","104","1"])
             page.selectedTab=1;
             app.page1SelectedIndex=0;
+            changeWeldIndex(-1);
+            weldTableIndex=-1;
             weldTable.clear();
         }else if(sysStatus=="焊接态"){
             //启动焊接
@@ -711,7 +715,7 @@ Material.ApplicationWindow{
                                 grooveTable.append({
                                                        "ID":frame[2],
                                                        "C1":(Number(frame[3])/10).toString(),
-                                                       "C2":(Number(frame[4])/10).toString(),
+                                                       "C2":((appSettings.connectStyle===1)||(appSettings.weldStyle===3))?grooveTable.get(frame[2]).C2:(Number(frame[4])/10).toString(),
                                                        "C3":(Number(frame[5])/10).toString(),
                                                        "C4":(Number(frame[6])/10).toString(),
                                                        "C5":(Number(frame[7])/10).toString(),
@@ -730,6 +734,8 @@ Material.ApplicationWindow{
                                     grooveTable.setProperty(num,"C4",(Number(frame[6])/10).toString())
                                     grooveTable.setProperty(num,"C5",(Number(frame[7])/10).toString())
                                 }
+                                if((appSettings.connectStyle!==1)&&(appSettings.weldStyle!=3)) //只有在非T接头和水平角焊时不替换
+                                    grooveTable.setProperty(num,"C2",String(Number(frame[4])/10))
                                 //对掉一下xz坐标
                                 grooveTable.setProperty(num,"C8",String((Number(frame[8])|(Number(frame[9])<<16))/10))
                                 grooveTable.setProperty(num,"C7",String(Number(frame[10])/10))
@@ -825,9 +831,11 @@ Material.ApplicationWindow{
             //确保数组数值正确
             if((typeof(value)==="object")&&(value.length===18)&&(value[0]==="Successed")){
                 weldTable.set(Number(value[1])-1,{"ID":value[1], "C1":value[2],"C2":value[3],"C3":value[4],"C4":value[5],"C5":value[6],
-                                     "C6":value[7],"C7":value[8],"C8":value[9],"C9":value[10],"C10":value[11],"C11":value[12],"C12":value[13],
-                                     "C13":value[14],"C14":value[15],"C15":value[16],"C16":value[17]})
+                                  "C6":value[7],"C7":value[8],"C8":value[9],"C9":value[10],"C10":value[11],"C11":value[12],"C12":value[13],
+                                  "C13":value[14],"C14":value[15],"C15":value[16],"C16":value[17]})
             }else if(value[0]==="Clear"){
+                weldTableIndex=-1;
+                changeWeldIndex(-1);
                 weldTable.clear();
             }else if(value[0]==="Finish"){
                 snackBar.open("焊接规范已生成！")
@@ -848,7 +856,6 @@ Material.ApplicationWindow{
                     ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
                 }
             }else{
-                // console.log(value);
                 //输出错误
                 snackBar.open(value)
                 //写入错误

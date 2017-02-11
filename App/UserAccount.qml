@@ -84,18 +84,20 @@ TableCard {
             addOrEdit=flag;
             open();
         }
-        repeaterModel: [
-            "工        号：",
-            "用  户  名：",
-            "密        码：",
-            "用  户  组：",
-            "所在班组：",
-            "备        注：" ]
+        ListModel{
+            id:textModel
+            ListElement{name:"工        号：";show:true;min:1;max:1000;isNum:true;step:1}
+            ListElement{name:"用  户  名：";show:true;min:10;max:300;isNum:false;step:1}
+            ListElement{name:"密        码：";show:true;min:10;max:300;isNum:false;step:1}
+            ListElement{name:"用  户  组：";show:true;min:10;max:300;isNum:false;step:1}
+            ListElement{name:"所在班组：";show:true;min:10;max:300;isNum:false;step:1}
+            ListElement{name:"备        注：";show:true;min:10;max:300;isNum:false;step:1}
+        }
+        repeaterModel:textModel
         onOpened: {
             if((currentRow>-1)||(!addOrEdit)){
                 //复制数据到 editData
                 var index=currentRow
-                pasteModel.setProperty(0,"ID",addOrEdit?model.get(index).ID:String(model.count+1));
                 openText(0,addOrEdit?model.get(index).C1:"");
                 openText(1,addOrEdit?model.get(index).C2:"");
                 openText(2,addOrEdit?model.get(index).C3:"");
@@ -107,21 +109,12 @@ TableCard {
                 message.open("请选择要编辑的行！")
             }
         }
-        onChangeText: {
-            switch(index){
-            case 0:pasteModel.setProperty(0,"C1",text);break;
-            case 1:pasteModel.setProperty(0,"C2",text);break;
-            case 2:pasteModel.setProperty(0,"C3",text);break;
-            case 3:pasteModel.setProperty(0,"C4",text);break;
-            case 4:pasteModel.setProperty(0,"C5",text);break;
-            case 5:pasteModel.setProperty(0,"C6",text);break;
-            }
-        }
         onAccepted: {
+            var js={"C1":getText(1),"C2":getText(2),"C3":getText(3),"C4":getText(4),"C5":getText(5),"C6":getText(6)};
             if(addOrEdit)
-                model.set(currentRow,pasteModel.get(0))
+                model.set(currentRow,js)
             else
-                model.append(pasteModel.get(0))
+                model.append(js)
         }
     }
 }

@@ -46,24 +46,16 @@ void getXYPosition(float angel,float *x1,float *y1,float x2,float y2){
         float temp=qSin((arcTan-90+angel)*PI/180);
         *x1=qSqrt(x2*x2+y2*y2)*temp;
         *y1=*x1/qTan((arcTan-90+angel)*PI/180);
-        if(*y1<0){
-            *x1+=(-*y1)/qTan(angel*PI/180);
-            *y1=0;
-        }
     }else{
         float arcTan=qAtan((y2/qAbs(x2)))*180/PI;
         float temp=qCos((arcTan-angel)*PI/180);
         *x1=qSqrt(x2*x2+y2*y2)*temp;
         *y1=*x1*qTan((arcTan-angel)*PI/180);
-        if(*y1<0){
-            *x1+=(-*y1)/qTan(angel*PI/180);
-            *y1=0;
-        }
     }
-    //y1为负值则迁移坐标使y值为正值
-    qDebug()<<"angel"<<Angel<<"x1"<<*x1<<"*y1"<<*y1;
     *x1=float(qRound(10**x1))/10;
     *y1=float(qRound(10**y1))/10;
+    //y1为负值则迁移坐标使y值为正值
+    qDebug()<<"angel"<<Angel<<"x1"<<*x1<<"*y1"<<*y1;
 }
 
 float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,QString *status,float swingLengthOne){
@@ -163,6 +155,10 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         *weldLineYUesd=0;
         *startArcZ=0;
         *currentFloor=1;
+        if(grooveHeight<pF->minHeight){
+            status="计算第1层时，最小层高限制超过板厚。请检查输入坡口参数！";
+            return -1;
+        }
     }
     QString str="计算第"+QString::number(*currentFloor)+"层时，";
     float ba=1.5;

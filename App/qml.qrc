@@ -40,5 +40,6 @@
         <file>../Pic/logo.png</file>
         <file>MySettings.qml</file>
         <file>Limited.js</file>
+        <file>MyMath.js</file>
     </qresource>
 </RCC>

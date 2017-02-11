@@ -18,39 +18,29 @@ TableCard {
     property Item message
     property var  settings
     property string limitedRulesName
-    property var nameModel:swingWidthOrWeldWidth?[
-        "坡口侧          电流       (A)",
-        "中间              电流       (A)",
-        "非坡口侧      电流       (A)",
-        "坡口侧      停留时间   (s)",
-        "非坡口侧  停留时间   (s)",
-        "层      高      Min     (mm)",
-        "层      高      Max    (mm)",
-        "坡口侧    接近距离(mm)",
-        "非坡口侧接近距离(mm)",
-        "摆  动  宽  度  Max (mm)",
-        "摆    动    间   隔     (mm)",
-        "分    开    结   束  比   (%)",
-        "焊    接    电     压       (V)",
-        "焊接速度Min  (cm/min)",
-        "焊接速度Max (cm/min)",
-        "层    填    充   系   数 (%)"]: [
-        "坡口侧          电流       (A)",
-        "中间              电流       (A)",
-        "非坡口侧      电流       (A)",
-        "坡口侧      停留时间   (s)",
-        "非坡口侧  停留时间   (s)",
-        "层      高      Min     (mm)",
-        "层      高      Max    (mm)",
-        "坡口侧    接近距离(mm)",
-        "非坡口侧接近距离(mm)",
-        "焊  道  宽  度  Max (mm)",
-        "摆    动    间   隔     (mm)",
-        "分    开    结   束  比   (%)",
-        "焊    接    电     压       (V)",
-        "焊接速度Min  (cm/min)",
-        "焊接速度Max (cm/min)",
-        "层    填    充   系   数 (%)"]
+
+    ListModel{
+        id:nameModel
+        ListElement{name:"坡口侧          电流       (A)";show:true;min:10;max:300;isNum:true;step:1}
+        ListElement{name:"中间              电流       (A)";show:true;min:10;max:300;isNum:true;step:1}
+        ListElement{name:"非坡口侧      电流       (A)";show:true;min:10;max:300;isNum:true;step:1}
+        ListElement{name:"坡口侧      停留时间    (s)";show:true;min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"非坡口侧  停留时间    (s)";show:true;min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"层      高      Min     (mm)";show:true;min:1;max:10;isNum:true;step:0.1}
+        ListElement{name:"层      高      Max    (mm)";show:true;min:1;max:10;isNum:true;step:0.1}
+        ListElement{name:"坡口侧    接近距离(mm)";show:true;min:-50;max:50;isNum:true;step:0.1}
+        ListElement{name:"非坡口侧接近距离(mm)";show:true;min:-50;max:50;isNum:true;step:0.1}
+        ListElement{name:"摆  动  宽  度  Max (mm)";show:true;min:1;max:100;isNum:true;step:0.1}
+        ListElement{name:"摆    动    间   隔     (mm)";show:true;min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"分    开    结   束  比   (%)";show:true;min:0;max:1;isNum:true;step:0.01}
+        ListElement{name:"焊    接    电     压        (V)";show:true;min:0;max:50;isNum:true;step:0.1}
+        ListElement{name:"焊接速度Min   (cm/min)";show:true;min:0;max:2000;isNum:true;step:0.1}
+        ListElement{name:"焊接速度Max (cm/min)";show:true;min:0;max:2000;isNum:true;step:0.1}
+        ListElement{name:"层    填    充   系   数 (%)";show:true;min:0;max:1;isNum:true;step:0.01}
+    }
+    onSwingWidthOrWeldWidthChanged: {
+        nameModel.setProperty(9,"name",swingWidthOrWeldWidth?"摆  动  宽  度  Max (mm)":"焊  道  宽  度  Max (mm)")
+    }
 
     property int num: 0
 
@@ -73,22 +63,22 @@ TableCard {
         }
     }
     //开启线程
-//    WorkerScript{
-//        id:work
-//        source: "Limited.js"
-//        onMessage: {
-//            if(messageObject.error.length)
-//                message.open(messageObject.error)
-//            else{
-//                WeldMath.setLimited(limitedMath(0,limitedTable.count));
-//                 headerTitle=limitedRulesName;
-//            }
-//        }
-//    }
+    //    WorkerScript{
+    //        id:work
+    //        source: "Limited.js"
+    //        onMessage: {
+    //            if(messageObject.error.length)
+    //                message.open(messageObject.error)
+    //            else{
+    //                WeldMath.setLimited(limitedMath(0,limitedTable.count));
+    //                 headerTitle=limitedRulesName;
+    //            }
+    //        }
+    //    }
 
     onNumChanged: {getTableData(num);}
-        //console.log("work.sendMessage")
-        //work.sendMessage({"model":limitedTable,"index":num,"limitedRulesName":limitedRulesName})}
+    //console.log("work.sendMessage")
+    //work.sendMessage({"model":limitedTable,"index":num,"limitedRulesName":limitedRulesName})}
     //规则改变时重新加载限制条件
     onLimitedRulesNameChanged:getTableData(num);
     //显示当前的页脚
@@ -266,121 +256,25 @@ TableCard {
         repeaterModel:nameModel
         onOpened: {
             var res=limitedMath(currentRow,currentRow+1);
-            pasteModel.set(0,limitedTable.get(currentRow))
-            for(var i=0;i<repeaterModel.length;i++){
+            for(var i=0;i<repeaterModel.count;i++){
                 openText(i,res[i])
             }
             focusIndex=0;
             changeFocus(focusIndex)
         }
-        onChangeText: {
-            var str;
-            var data=["0","0","0"];
-            switch(index){
-            case 0:str=pasteModel.get(0).C1;
-                if(typeof(str)==="string"){
-                    data=str.split("/");
-                    str=text+"/"+data[1]+"/"+data[2];
-                }
-                else
-                    str=text+"/0/0";
-                pasteModel.setProperty(0,"C1",str);
-                break;
-            case 1:str=pasteModel.get(0).C1;
-                if(typeof(str)==="string"){
-                    data=str.split("/");
-                    str=+data[0]+"/"+text+"/"+data[2];
-                }
-                else
-                    str="/0"+text+"/0";
-                pasteModel.setProperty(0,"C1",str);break;
-            case 2:str=pasteModel.get(0).C1;
-                if(typeof(str)==="string"){
-                    data=str.split("/");
-                    str=+data[0]+"/"+data[1]+"/"+text;
-                }
-                else
-                    str="/0/0"+text;
-                pasteModel.setProperty(0,"C1",str);break;
-            case 3:str=pasteModel.get(0).C2;
-                if(typeof(str)==="string"){
-                    data=str.split("/");
-                    str=text+"/"+data[1];
-                }else{
-                    str=text+"/0"
-                }
-
-                pasteModel.setProperty(0,"C2",str);break;
-            case 4:str=pasteModel.get(0).C2;
-                if(typeof(str)==="string"){
-                    data=str.split("/");
-                    str=data[0]+"/"+text;
-                }else{
-                    str="0/"+text;
-                }
-                pasteModel.setProperty(0,"C2",str);break;
-            case 5:str=pasteModel.get(0).C3;
-                if(typeof(str)==="string"){
-                    data=str.split("/");
-                    str=text+"/"+data[1];
-                }else{
-                    str=text+"/0"
-                }
-                pasteModel.setProperty(0,"C3",str);break;
-            case 6:str=pasteModel.get(0).C3;
-                if(typeof(str)==="string"){
-                    data=str.split("/");
-                    str=data[0]+"/"+text;
-                }else{
-                    str="0/"+text;
-                }
-                pasteModel.setProperty(0,"C3",str);break;
-            case 7:str=pasteModel.get(0).C4;
-                if(typeof(str)==="string"){
-                    data=str.split("/");
-                    str=text+"/"+data[1];
-                }else{
-                    str=text+"/0"
-                }
-                pasteModel.setProperty(0,"C4",str);break;
-            case 8:str=pasteModel.get(0).C4;
-                if(typeof(str)==="string"){
-                    data=str.split("/");
-                    str=data[0]+"/"+text;
-                }else{
-                    str="0/"+text;
-                }
-                pasteModel.setProperty(0,"C4",str);break;
-            case 9:
-                pasteModel.setProperty(0,"C5",text);break;
-            case 10:
-                pasteModel.setProperty(0,"C6",text);break;
-            case 11:
-                pasteModel.setProperty(0,"C7",text);break;
-            case 12:
-                pasteModel.setProperty(0,"C8",text);break;
-            case 13:str=pasteModel.get(0).C9;
-                if(typeof(str)==="string"){
-                    data=str.split("/");
-                    str=text+"/"+data[1];
-                }else{
-                    str=text+"/0"
-                }
-                pasteModel.setProperty(0,"C9",str);break;
-            case 14:str=pasteModel.get(0).C9;
-                if(typeof(str)==="string"){
-                    data=str.split("/");
-                    str=data[0]+"/"+text;
-                }else{
-                    str="0/"+text;
-                }
-                pasteModel.setProperty(0,"C9",str);break;
-            case 15:
-                pasteModel.setProperty(0,"C10",text);break;
-            }
-        }
         onAccepted: {
-            model.set(currentRow,pasteModel.get(0));
+            model.set(currentRow,
+                      {"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
+                          "C2":getText(3)+"/"+getText(4),
+                          "C3":getText(5)+"/"+getText(6),
+                          "C4":getText(7)+"/"+getText(8),
+                          "C5":getText(9),
+                          "C6":getText(10),
+                          "C7":getText(11),
+                          "C8":getText(12),
+                          "C9":getText(13)+"/"+getText(14),
+                          "C10":getText(15)
+                      });
         }
     }
 }

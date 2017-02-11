@@ -27,14 +27,23 @@ TableCard{
     property string currentGrooveName
     property string status:"空闲态"
 
-    property var grooveRules:currentGroove===8?["           No.       :", "脚   长ι1(mm):","脚   长ι2(mm):","间    隙b(mm):","角  度β1(deg):","角  度β2(deg):"]:
-                                                currentGroove==0||currentGroove==3||currentGroove==5? ["           No.       :", "板    厚δ(mm):","脚    长ι (mm):","间    隙b(mm):","角  度β1(deg):","角  度β2(deg):"]:
-        ["           No.       :", "板    厚δ(mm):","板厚差e(mm):","间    隙b(mm):","角  度β1(deg):","角  度β2(deg):"]
-
     property int teachModel
 
     ListModel{id:pasteModel
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"0";C7:"0";C8:"0"}
+    }
+    ListModel{id:grooveRules
+        ListElement{name:"           No.       :";show:true;min:0;max:100;isNum:true;step:1}
+        ListElement{name:"板    厚δ(mm):";show:true;min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"板厚差 e (mm):";show:true;min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"间    隙b(mm):";show:true;min:0;max:10;isNum:true;step:0.1}
+        ListElement{name:"角  度β1(deg):";show:true;min:-180;max:180;isNum:true;step:0.1}
+        ListElement{name:"角  度β2(deg):";show:true;min:-180;max:180;isNum:true;step:0.1}
+    }
+    onCurrentGrooveChanged: {
+        grooveRules.setProperty(1,"name",currentGroove===8?"脚   长ι1(mm):":"板    厚δ(mm):")
+        grooveRules.setProperty(2,"name",currentGroove===8||currentGroove==0||currentGroove==3||currentGroove==5?"脚   长ι2(mm):":"板厚差 e (mm):")
+        grooveRules.setProperty(3,"show",currentGroove===8?false:true)
     }
     signal changedCurrentGroove(string name)
     //外部更新数据
@@ -154,16 +163,15 @@ TableCard{
             onTriggered:{
                 if(currentRow>-1){
                     WeldMath.setGrooveRules([
-                                                model.get(0).C1,
-                                                model.get(0).C2,
-                                                model.get(0).C3,
-                                                model.get(0).C4,
-                                                model.get(0).C5,
-                                                model.get(0).C6,
-                                                model.get(0).C7,
-                                                model.get(0).C8
+                                                model.get(currentRow).C1,
+                                                model.get(currentRow).C2,
+                                                model.get(currentRow).C3,
+                                                model.get(currentRow).C4,
+                                                model.get(currentRow).C5,
+                                                model.get(currentRow).C6,
+                                                model.get(currentRow).C7,
+                                                model.get(currentRow).C8
                                             ]);
-                  //  message.open("生成焊接规范。");
                 }else {
                     message.open("请选择要生成规范的坡口信息。")
                 }
@@ -389,17 +397,12 @@ TableCard{
         }
         repeaterModel:grooveRules
         onAccepted: {
-            updateModel(myTextFieldDialog.title==="编辑坡口参数"?"Set":"Append",pasteModel.get(0))
-        }
-        onChangeText: {
-            switch(index){
-            case 0:pasteModel.setProperty(0,"ID",text);break;
-            case 1:pasteModel.setProperty(0,"C1",text);break;
-            case 2:pasteModel.setProperty(0,"C2",text);break;
-            case 3:pasteModel.setProperty(0,"C3",text);break;
-            case 4:pasteModel.setProperty(0,"C4",text);break;
-            case 5:pasteModel.setProperty(0,"C5",text);break;
-            }
+            updateModel(myTextFieldDialog.title==="编辑坡口参数"?"Set":"Append",
+                                                            {"ID":getText(0),"C1":getText(1),"C2":getText(2),"C3":getText(3),"C4":getText(4),"C5":getText(5),
+                                                                "C6":myTextFieldDialog.title==="编辑坡口参数"?model.get(currentRow).C6:"0",
+                                                                                                         "C7":myTextFieldDialog.title==="编辑坡口参数"?model.get(currentRow).C7:"0",
+                                                                                                                                                  "C8":myTextFieldDialog.title==="编辑坡口参数"?model.get(currentRow).C8:"0",
+                                                            })
         }
         onOpened: {
             if(title==="编辑坡口参数"){
@@ -413,7 +416,6 @@ TableCard{
                     openText(3,obj.C3);
                     openText(4,obj.C4);
                     openText(5,obj.C5);
-                    pasteModel.set(0,obj);
                     focusIndex=0;
                     changeFocus(focusIndex)
                 }else{
@@ -421,7 +423,7 @@ TableCard{
                     positiveButtonEnabled=false;
                 }
             }else{
-                for(var i=0;i<grooveRules.length;i++){
+                for(var i=0;i<grooveRules.count;i++){
                     openText(i,"0")
                 }
             }
@@ -434,7 +436,7 @@ TableCard{
         positiveButtonText:qsTr("确定")
         globalMouseAreaEnabled:false
         property int selectedIndex: 0
-        property var valueModel:["板厚补正标志:","间隙补正标志:","角度补正标志:"]
+        property var valueModel:[currentGroove===8||currentGroove==0||currentGroove==3||currentGroove==5?"脚长补正标志:":"板厚补正标志:","间隙补正标志:","角度补正标志:"]
         property var valueBuf:new Array(valueModel.length)
         signal changeFixSelectedIndex(int index)
         signal changeValue(int index,bool value)

@@ -26,39 +26,36 @@ TableCard{
     signal updateModel(string str,var data);
     signal updateWeldRulesName(string str);
 
-    property var weldCondtion: [
-        "        NO.          :",
-        "层                号 :",
-        "道                号 :",
-        "电      流  (A)    :",
-        "电      压  (V)    :",
-        "摆      幅(mm) :",
-        "摆速(cm/min) :",
-        "焊速(cm/min) :",
-        "焊接线X(mm) :",
-        "焊接线Y(mm) :",
-        "前   停  留   (s):",
-        "后   停  留   (s):",
-        "停  止 时 间(s):",
-        "层       面     积:",
-        "道       面     积:",
-        "起    弧   点   X:",
-        "起    弧   点   Y:",
-        "起    弧   点   Z:"]
-    property var weldCondtion1: [
-        "        NO.          :",
-        "层                号 :",
-        "道                号 :",
-        "电      流  (A)    :",
-        "电      压  (V)    :",
-        "摆      幅(mm) :",
-        "摆速(cm/min) :",
-        "焊速(cm/min) :",
-        "焊接线X(mm) :",
-        "焊接线Y(mm) :",
-        "前   停  留   (s):",
-        "后   停  留   (s):",
-        "停  止 时 间(s):"]
+    ListModel{
+        id:weldCondtion
+        ListElement{name:"        NO.          :";show:true;min:1;max:1000;isNum:true;step:1}
+        ListElement{name:"层                号 :";show:true;min:1;max:1000;isNum:true;step:1}
+        ListElement{name:"道                号 :";show:true;min:1;max:1000;isNum:true;step:1}
+        ListElement{name:"电      流  (A)    :";show:true;min:10;max:300;isNum:true;step:1}
+        ListElement{name:"电      压  (V)    :";show:true;min:10;max:50;isNum:true;step:0.1}
+        ListElement{name:"摆      幅(mm) :";show:true;min:0;max:1000;isNum:true;step:1}
+        ListElement{name:"摆速(cm/min) :";show:true;min:500;max:3000;isNum:true;step:10}
+        ListElement{name:"焊速(cm/min) :";show:true;min:0;max:200;isNum:true;step:0.1}
+        ListElement{name:"焊接线X(mm)  :";show:true;min:-100;max:100;isNum:true;step:0.1}
+        ListElement{name:"焊接线Y(mm)  :";show:true;min:-10;max:100;isNum:true;step:0.1}
+        ListElement{name:"前   停  留   (s) :";show:true;min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"后   停  留   (s) :";show:true;min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"停  止 时 间(s) :";show:true;min:0;max:1000;isNum:true;step:1}
+        ListElement{name:"层       面     积 :";show:true;min:1;max:10000;isNum:true;step:0.1}
+        ListElement{name:"道       面     积 :";show:true;min:1;max:10000;isNum:true;step:0.1}
+        ListElement{name:"起    弧   点   X :";show:true;min:-100;max:100;isNum:true;step:0.1}
+        ListElement{name:"起    弧   点   Y :";show:true;min:-10;max:100;isNum:true;step:0.1}
+        ListElement{name:"起    弧   点   Z :";show:true;min:-1000;max:1000;isNum:true;step:0.1}
+    }
+    onWeldTableExChanged: {
+        weldCondtion.setProperty(6,"show",weldTableEx?true:false);
+        weldCondtion.setProperty(13,"show",weldTableEx?true:false);
+        weldCondtion.setProperty(14,"show",weldTableEx?true:false);
+        weldCondtion.setProperty(15,"show",weldTableEx?true:false);
+        weldCondtion.setProperty(16,"show",weldTableEx?true:false);
+        weldCondtion.setProperty(17,"show",weldTableEx?true:false);
+    }
+
     ListModel{id:pasteModel;
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:""}
     }
@@ -398,80 +395,9 @@ TableCard{
     MyTextFieldDialog{
         id:myTextFieldDialog
         // title: qsTr("编辑焊接规范")
-        repeaterModel: weldTableEx?weldCondtion:weldCondtion1
+        repeaterModel: weldCondtion
         onAccepted: {
-            updateModel(myTextFieldDialog.title==="编辑焊接规范"?"Set":"Append",pasteModel.get(0))
-        }
-        onKeysonVolumeDown: { //按键按下
-            var num;
-            switch(focusIndex){
-            case 0:
-                num=Number(pasteModel.get(0).ID);
-                num--;
-                if(num<=1)
-                    num=1;
-                else
-                    openText(0,String(num))
-                break;
-            case 2:
-                num=Number(pasteModel.get(0).C2);
-                num--;
-                if(num<=1)
-                    num=1;
-                else
-                    openText(2,String(num))
-                break;
-
-            }
-        }
-        onKeysonVolumeUp: {//按键按上
-            var num;
-            switch(focusIndex){
-            case 0:
-                num=Number(pasteModel.get(0).ID);
-                num++;
-                if(num>99)
-                    num=99;
-                else
-                    openText(0,String(num))
-                break;
-            case 2:
-                num=Number(pasteModel.get(0).C2);
-                num++;
-                if(num>300)
-                    num=300;
-                else
-                    openText(2,String(num))
-                break;
-
-            }
-        }
-        onChangeText: {
-            var temp;
-            switch(index){
-            case 0:pasteModel.setProperty(0,"ID",text);break;
-            case 1:temp=pasteModel.get(0).C1;
-                temp=temp.split("/");
-                pasteModel.setProperty(0,"C1",text+"/"+temp[1]);break;
-            case 2:temp=pasteModel.get(0).C1;
-                temp=temp.split("/");
-                pasteModel.setProperty(0,"C1",+temp[0]+"/"+text);break;
-            case 3:pasteModel.setProperty(0,"C2",text);break;
-            case 4:pasteModel.setProperty(0,"C3",text);break;
-            case 5:pasteModel.setProperty(0,"C4",text);break;
-            case 6:pasteModel.setProperty(0,"C5",text);break;
-            case 7:pasteModel.setProperty(0,"C6",text);break;
-            case 8:pasteModel.setProperty(0,"C7",text);break;
-            case 9:pasteModel.setProperty(0,"C8",text);break;
-            case 10:pasteModel.setProperty(0,"C9",text);break;
-            case 11:pasteModel.setProperty(0,"C10",text);break;
-            case 12:pasteModel.setProperty(0,"C11",text);break;
-            case 13:pasteModel.setProperty(0,"C12",text);break;
-            case 14:pasteModel.setProperty(0,"C13",text);break;
-            case 15:pasteModel.setProperty(0,"C14",text);break;
-            case 16:pasteModel.setProperty(0,"C15",text);break;
-            case 17:pasteModel.setProperty(0,"C16",text);break;
-            }
+            updateModel(myTextFieldDialog.title==="编辑焊接规范"?"Set":"Append",{"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),"C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),"C12":getText(13),"C13":getText(14),"C14":getText(15),"C15":getText(16)})
         }
         onOpened: {
             if(title==="编辑焊接规范"){
@@ -494,14 +420,11 @@ TableCard{
                     openText(10,obj.C9);
                     openText(11,obj.C10);
                     openText(12,obj.C11);
-                    if(weldTableEx){
-                        openText(13,obj.C12);
-                        openText(14,obj.C13);
-                        openText(15,obj.C14);
-                        openText(16,obj.C15);
-                        openText(17,obj.C16);
-                    }
-                    pasteModel.set(0,obj);
+                    openText(13,obj.C12);
+                    openText(14,obj.C13);
+                    openText(15,obj.C14);
+                    openText(16,obj.C15);
+                    openText(17,obj.C16);
                     focusIndex=0;
                     changeFocus(focusIndex)
                 }
@@ -510,7 +433,7 @@ TableCard{
                     positiveButtonEnabled=false;
                 }
             }else{
-                for(var i=0;i<=weldCondtion.length;i++){
+                for(var i=0;i<=weldCondtion.count;i++){
                     openText(i,"0")
                 }
             }

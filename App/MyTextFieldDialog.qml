@@ -19,6 +19,8 @@ Dialog{
     property bool isNum;
     property bool keyStatus: false
 
+    property Item meassage
+
     signal openText(int index,string text)
     signal changeFocus(int index)
     signal changeFocusIndex(int index)

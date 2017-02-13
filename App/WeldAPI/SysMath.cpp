@@ -55,7 +55,7 @@ void getXYPosition(float angel,float *x1,float *y1,float x2,float y2){
     *x1=float(qRound(10**x1))/10;
     *y1=float(qRound(10**y1))/10;
     //y1为负值则迁移坐标使y值为正值
-    qDebug()<<"angel"<<Angel<<"x1"<<*x1<<"*y1"<<*y1;
+    qDebug()<<"angel"<<angel<<"x1"<<*x1<<"*y1"<<*y1<<"x2"<<*x2<<"*y2"<<*y2;
 }
 
 float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,QString *status,float swingLengthOne){

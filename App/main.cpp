@@ -38,8 +38,8 @@ int main(int argc, char *argv[])
     //必须声明在APP之前声明环境变量。
     qputenv("QT_IM_MODULE", QByteArray("Virtualkeyboard"));
     //配置文件存储目录
-    qputenv("HOME",QByteArray("/home/nop/ER-100/RootFs/Nop"));
-    //qputenv("HOME",QByteArray("/usr/local/ER-100/Nop"));
+    //qputenv("HOME",QByteArray("/home/nop/ER-100/RootFs/Nop"));
+    qputenv("HOME",QByteArray("/usr/local/ER-100/Nop"));
     qDebug()<<qgetenv("HOME");
     //显示插件调试信息
     // qputenv("QT_DEBUG_PLUGINS", QByteArray("1"));

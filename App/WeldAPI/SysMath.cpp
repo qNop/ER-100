@@ -271,9 +271,9 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     for(i=0;i<weldNum;i++){
         int temp;
         //外负内正
-        if(weldStyleName!="横焊")
+        if(weldStyleName!="仰焊")
             temp=!grooveDirValue?i:weldNum-1-i;
-        else//横焊 近似仰焊 基数从一侧开始焊偶数从另一侧开始焊
+        else//仰焊 基数从一侧开始焊偶数从另一侧开始焊
             temp=i%2?grooveDirValue?i/2:weldNum-1-i/2:!grooveDirValue?i/2:weldNum-1-i/2;
         str=i==(weldNum-1)?"永久":"5";
         //焊道数增加
@@ -515,7 +515,7 @@ float SysMath::getVoltage(int current){
     }else if((gasValue)&&(pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //MAG P 实芯 1.2
         if (current<=200){
-            if(weldStyleName=="横焊")
+            if(weldStyleName=="仰焊")
                 voltage=14+0.05*current-1.5;
             else
                 voltage=14+0.05*current;

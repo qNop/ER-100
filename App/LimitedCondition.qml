@@ -14,7 +14,7 @@ TableCard {
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:""}
     }
     property bool swingWidthOrWeldWidth
-    //property bool superUser
+
     property Item message
     property var  settings
     property string limitedRulesName
@@ -52,7 +52,6 @@ TableCard {
             if((typeof(res)==="object")&&(res.length)){
                 for(var i=0;i<res.length;i++){
                     //删除object 里面C11属性
-                    delete res[i].C11
                     limitedTable.append(res[i])
                 }
                 WeldMath.setLimited(limitedMath(0,limitedTable.count));
@@ -62,23 +61,8 @@ TableCard {
             }
         }
     }
-    //开启线程
-    //    WorkerScript{
-    //        id:work
-    //        source: "Limited.js"
-    //        onMessage: {
-    //            if(messageObject.error.length)
-    //                message.open(messageObject.error)
-    //            else{
-    //                WeldMath.setLimited(limitedMath(0,limitedTable.count));
-    //                 headerTitle=limitedRulesName;
-    //            }
-    //        }
-    //    }
 
     onNumChanged: {getTableData(num);}
-    //console.log("work.sendMessage")
-    //work.sendMessage({"model":limitedTable,"index":num,"limitedRulesName":limitedRulesName})}
     //规则改变时重新加载限制条件
     onLimitedRulesNameChanged:getTableData(num);
     //显示当前的页脚
@@ -206,9 +190,10 @@ TableCard {
                     UserData.clearTable(limitedRulesName,"C11",C11)
                     //数据表格重新插入数据
                     for(var i=0;i<table.rowCount;i++){
+                        var temp=limitedTable.get(i);
                         UserData.insertTable(limitedRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?)",[
-                                                 limitedTable.get(i).ID,limitedTable.get(i).C1,limitedTable.get(i).C2,limitedTable.get(i).C3,limitedTable.get(i).C4,
-                                                 limitedTable.get(i).C5,limitedTable.get(i).C6,limitedTable.get(i).C7,limitedTable.get(i).C8,limitedTable.get(i).C9,limitedTable.get(i).C10,C11])
+                                                 temp.ID,temp.C1,temp.C2,temp.C3,temp.C4,
+                                                 temp.C5,temp.C6,temp.C7,temp.C8,temp.C9,temp.C10,temp.C11])
                     }
                     message.open("限制条件已保存！")
                 }
@@ -247,13 +232,15 @@ TableCard {
         Controls.TableViewColumn{role: "C7";title: "结束开始比\n       (%)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C8";title: "焊接电压\n     (V)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C10";title:"层填充系数\n       (%)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-        Controls.TableViewColumn{role: "C9";title: "焊接速度Min/Max\n        (cm/min)";width:Units.dp(160);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter}
+        Controls.TableViewColumn{role: "C9";title: "焊接速度Min/Max\n        (cm/min)";width:Units.dp(160);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+        Controls.TableViewColumn{role: "C11";title:"代码";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: false}
     ]
 
     MyTextFieldDialog{
         id:edit
         title: "编辑限制条件"
         repeaterModel:nameModel
+        message: root.message
         onOpened: {
             var res=limitedMath(currentRow,currentRow+1);
             for(var i=0;i<repeaterModel.count;i++){

@@ -1,0 +1,98 @@
+#!/bin/sh
+
+if [ ! -x /sbin/ifconfig ]
+then
+    exit 0
+fi
+
+
+if [ "$1" = "mount" ]
+then
+    echo "mount ER-100"
+    mount -n -o nolock 192.168.1.101:/home/nop/ER-100 /mnt/
+    echo "mount ER-100 OK !"
+fi
+
+if [ "$1" = "umount" ]
+then
+    echo "umount ER-100"
+    umount /mnt/
+    echo "umount ER-100 OK !"
+fi
+
+if [ "$1" = "Material" ]
+then
+
+
+   echo "remount /dev/root read write " 
+   mount -n -o remount,rw /dev/root
+   echo "Send mnt/RootFs/opt/Qt5/qml/Material to /opt/Qt5/qml/Material"
+   cp -R /mnt/RootFs/opt/Qt5/qml/Material /opt/Qt5/qml
+   echo "remount /dev/root read only "
+   mount -n -o remount,ro /dev/root
+fi
+
+if [ "$1" = "run" ]
+then
+    echo "Stop App ing !"
+    pgrep App | xargs kill -s 9
+    echo "If you want to send the App program, enter the send command, or exit"
+    read Cmd
+    if [ "$Cmd" = "send" ]
+	then 
+	echo "Send ER-100/App to /Nop ! "
+	cp /mnt/RootFs/Nop/App /usr/local/ER-100/Nop
+	chmod 777 /usr/local/ER-100/Nop/App	
+	echo "If you want to start the App program, enter the start command, or exit"
+	read start
+	if [ "$start" = "start" ]
+		then 
+		echo "Start App" 
+		cd /usr/local/ER-100/Nop 
+		./App
+	else
+		echo "exit !"
+	fi
+	else
+	echo "exit !"
+    fi
+fi
+
+if [ "$1" = "copy" ]
+then 
+	name=`date +%y%m%d-%H%M`
+	echo "copy /Nop/App to /ER-100/BackUp/$name !"
+	
+	mkdir /mnt/BackUp/$name
+	cp App /mnt/BackUp/$name
+	cp -R .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases /mnt/BackUp/$name
+	cp .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100.conf /mnt/BackUp/$name
+	chmod -R 777 /mnt/BackUp/$name
+	echo "copy OK !"
+fi
+
+if [ "$1" = "update" ]
+then 
+	echo "update Databases "
+	if [ -d Databases ]
+	then 
+
+          mv Databases .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage
+	  echo "Ok !"
+	else  
+	  echo "Fail !"
+	fi
+	echo "update ER-100.config"
+	if [ -f ER-100.conf ]
+	then
+
+	  mv ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd
+	  echo "Ok !"
+	else
+	  echo "Fail !"
+	fi  
+fi
+	  
+	
+	
+	 

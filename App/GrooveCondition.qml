@@ -202,17 +202,17 @@ MyConditionView{
             if(flag)
                 settings.weldStyle=num
             WeldMath.setWeldStyle(num);
-            frame.push("90");frame.push("1");frame.push(String(currentGroove));break;
+            frame.push("88");frame.push("1");frame.push(String(num));break;
         case 1://坡口形式
             if(flag)
                 settings.grooveStyle=num
             WeldMath.setGrooveStyle(num)
-            frame.push("90");frame.push("1");frame.push(String(currentGroove));break;
+            frame.push("89");frame.push("1");frame.push(String(num));break;
         case 2: //接头形式
             if(flag)
                 settings.connectStyle=num
             WeldMath.setConnectStyle(num)
-            frame.push("90");frame.push("1");frame.push(String(currentGroove));break;
+            frame.push("90");frame.push("1");frame.push(String(num));break;
         case 3: //衬垫形式
             if(flag)
                 settings.bottomStyle=num;

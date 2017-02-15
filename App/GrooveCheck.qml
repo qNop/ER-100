@@ -35,7 +35,7 @@ TableCard{
     ListModel{id:grooveRules
         ListElement{name:"           No.       :";show:true;min:0;max:100;isNum:true;step:1}
         ListElement{name:"板    厚δ(mm):";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"板厚差 e (mm):";show:true;min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"板厚差e(mm):";show:true;min:0;max:100;isNum:true;step:0.1}
         ListElement{name:"间    隙b(mm):";show:true;min:0;max:10;isNum:true;step:0.1}
         ListElement{name:"角  度β1(deg):";show:true;min:-180;max:180;isNum:true;step:0.1}
         ListElement{name:"角  度β2(deg):";show:true;min:-180;max:180;isNum:true;step:0.1}
@@ -395,6 +395,7 @@ TableCard{
             source: "../Pic/坡口参数图.png"
             sourceSize.width: Units.dp(350)
         }
+        message:root.message
         repeaterModel:grooveRules
         onAccepted: {
             updateModel(myTextFieldDialog.title==="编辑坡口参数"?"Set":"Append",

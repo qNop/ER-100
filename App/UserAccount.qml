@@ -77,6 +77,7 @@ TableCard {
 
     MyTextFieldDialog{
         id:dialog
+         message: root.message
         title: addOrEdit?qsTr("编辑用户信息"):qsTr("添加用户信息")
         property bool addOrEdit: true
         isTextInput: true

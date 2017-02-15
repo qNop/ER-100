@@ -19,7 +19,7 @@ Dialog{
     property bool isNum;
     property bool keyStatus: false
 
-    property Item meassage
+    property Item message
 
     signal openText(int index,string text)
     signal changeFocus(int index)
@@ -51,12 +51,16 @@ Dialog{
         }
     }
     Keys.onVolumeDownPressed: {
-        var num;
+        var num,temp;
         if(focusIndex<(repeaterModel.count)){
             Qt.inputMethod.hide()
             num=Number(repeater.itemAt(focusIndex).text)
-            if(!isNaN(num)&&isNum) {//是数值进行加减操作
-                num=MyMath.subMath(num,step);
+            if(!isNaN(num)&&isNum){//是数值进行加减操作
+                if(event.isAutoRepeat)
+                    temp=step*10;
+                else
+                    temp=step;
+                num=MyMath.subMath(num,temp);
                 if(num>max) num=max;
                 if(num<min) num=min;
                 openText(focusIndex,String(num))
@@ -64,12 +68,16 @@ Dialog{
         }
     }
     Keys.onVolumeUpPressed:{
-        var num
+        var num,temp;
         if(focusIndex<(repeaterModel.count)){
             Qt.inputMethod.hide()
             num=Number(repeater.itemAt(focusIndex).text)
             if(!isNaN(num)&&isNum) {//是数值进行加减操作
-                num=MyMath.addMath(num,step);
+                if(event.isAutoRepeat)
+                    temp=step*10;
+                else
+                    temp=step;
+                num=MyMath.addMath(num,temp);
                 if(num>max) num=max;
                 if(num<min) num=min;
                 openText(focusIndex,String(num))
@@ -106,6 +114,7 @@ Dialog{
                     Label{text:name;anchors.bottom: parent.bottom;style: "button"}
                     TextField{
                         id:textField
+                        property string lastText
                         Connections{
                             target:root
                             onOpenText:{
@@ -119,6 +128,21 @@ Dialog{
                                     else
                                         root.changeFocus(keyStatus?index+1>repeater.model.count?0:index+1:index-1<0?0:index-1);
                                 }
+                            }
+                        }
+                        onTextChanged: {
+                            var temp=Number(text);
+                            if(!isNaN(temp)){//判断是否是数字
+                                if(temp>root.max){
+                                    message.open("设置数值 "+temp+" 超过最大限制值 "+root.max+" !");
+                                }
+                                else if(temp<root.min){
+                                    message.open("设置数值 "+temp+" 小于最小限制值 "+root.min+" !");
+                                }
+                                lastText=text;
+                            }else if((root.isNum)&&(text!=="-")){
+                                text=lastText;
+                                message.open("请输入数字 !")
                             }
                         }
                         onActiveFocusChanged: {

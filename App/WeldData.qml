@@ -33,7 +33,7 @@ TableCard{
         ListElement{name:"道                号 :";show:true;min:1;max:1000;isNum:true;step:1}
         ListElement{name:"电      流  (A)    :";show:true;min:10;max:300;isNum:true;step:1}
         ListElement{name:"电      压  (V)    :";show:true;min:10;max:50;isNum:true;step:0.1}
-        ListElement{name:"摆      幅(mm) :";show:true;min:0;max:1000;isNum:true;step:1}
+        ListElement{name:"摆      幅(mm) :";show:true;min:0;max:1000;isNum:true;step:0.1}
         ListElement{name:"摆速(cm/min) :";show:true;min:500;max:3000;isNum:true;step:10}
         ListElement{name:"焊速(cm/min) :";show:true;min:0;max:200;isNum:true;step:0.1}
         ListElement{name:"焊接线X(mm)  :";show:true;min:-100;max:100;isNum:true;step:0.1}
@@ -396,6 +396,7 @@ TableCard{
         id:myTextFieldDialog
         // title: qsTr("编辑焊接规范")
         repeaterModel: weldCondtion
+        message: root.message
         onAccepted: {
             updateModel(myTextFieldDialog.title==="编辑焊接规范"?"Set":"Append",{"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),"C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),"C12":getText(13),"C13":getText(14),"C14":getText(15),"C15":getText(16)})
         }

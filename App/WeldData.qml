@@ -398,7 +398,10 @@ TableCard{
         repeaterModel: weldCondtion
         message: root.message
         onAccepted: {
-            updateModel(myTextFieldDialog.title==="编辑焊接规范"?"Set":"Append",{"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),"C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),"C12":getText(13),"C13":getText(14),"C14":getText(15),"C15":getText(16)})
+            updateModel(myTextFieldDialog.title==="编辑焊接规范"?"Set":"Append",
+                                                            {"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),
+                                                                "C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),"C12":getText(13),"C13":getText(14),
+                                                                "C14":getText(15),"C15":getText(16),"C16":getText(17)})
         }
         onOpened: {
             if(title==="编辑焊接规范"){

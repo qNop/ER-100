@@ -62,7 +62,7 @@ TableCard {
         }
     }
 
-    onNumChanged: {getTableData(num);}
+    onNumChanged: getTableData(num);
     //规则改变时重新加载限制条件
     onLimitedRulesNameChanged:getTableData(num);
     //显示当前的页脚

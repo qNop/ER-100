@@ -296,11 +296,4 @@ Item{
             sourceComponent: root.description===null?file:root.description
         }
     }
-
-    //    Component.onCompleted: {
-    //        condition=Material.UserData.getValueFromFuncOfTable(objectName,"","");
-    //        for(var i=0;i<listName.length;i++){
-    //            work(i,false);
-    //        }
-    //    }
 }

@@ -166,8 +166,13 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     //计算层面积
     if(pF->name=="topFloor"){
         pF->height=grooveHeight+reinforcementValue-*hused;
-        s=(grooveHeight-rootFace)*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*grooveHeight+
-                reinforcementValue*(2*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap+2*ba)/2-*sused;
+        //面积为 坡口剩余面积+余高*（间隙+两侧坡口角度+覆盖坡口外益面积）/2
+        s=(grooveHeight-rootFace)*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*grooveHeight;
+        s-=*sused;
+        if(GrooveStyleName=="V形坡口")
+            s+=reinforcementValue*(2*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap+2*ba)/2;
+        else
+            s+=(0.25*grooveHeight+reinforcementValue)*(2*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap+ba)/2;
     }else
         s=((*hused+pF->height-rootFace)*(*hused+pF->height-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*(*hused+pF->height)-*sused)*pF->fillCoefficient;
     if(pF->name=="ceramicBackFloor"){
@@ -243,7 +248,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     //坡口侧从外往内焊  主要针对单边V
     for(i=0;i<weldNum;i++){
         //中线偏移Y
-        *(weldLineY+i)=*weldLineYUesd;
+        *(weldLineY+i)=float(qRound(10*(*weldLineYUesd+pF->height/2)))/10;
         //中线偏移X 取一位小数
         *(weldLineX+i)= float(qRound(10*(reSwingLeftLength+swingLengthOne/2+(swingLengthOne+pF->weldSwingSpacing)*(i)-qMax(float(0),(*hused+pF->height/2-rootFace)*grooveAngel1Tan)-rootGap/2)))/10;
         //如果是陶瓷衬垫且为打底层
@@ -262,10 +267,19 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             *(startArcX+i)=*(weldLineX+i);
             *(startArcY+i)=*(weldLineY+i);
         }
-        if((weldStyleName=="水平角焊")||(pF->name=="overFloor")){
+        if(weldStyleName=="水平角焊"){
             getXYPosition(angel,startArcX+i,startArcY+i,*(weldLineX+i),*(weldLineY+i));
             *(weldLineX+i)=*(startArcX+i);
             *(weldLineY+i)=*(startArcY+i);
+        }
+        if(GrooveStyleName=="单边V形坡口"){ //提高干伸后同样也要缩枪
+            if(!grooveDirValue){//非坡口侧
+               *(weldLineX+i)-=pF->height/2*(tan((grooveAngel2/2)*PI/180));
+            }else{//坡口侧
+                *(weldLineX+i)+=pF->height/2*(tan((grooveAngel1/2)*PI/180));
+            }
+             *(weldLineX+i)=float(qRound(10*(*(weldLineX+i))))/10;
+             *(startArcX+i)=*(weldLineX+i);
         }
     }
     for(i=0;i<weldNum;i++){
@@ -353,7 +367,6 @@ int SysMath::weldMath(){
     //起弧z位置 每次都往里面缩进3mm
     float startArcZ=0;
     float weldLineYUesd=0;
-    float oldReinforcementValue;
     controlWeld=false;
     QStringList value;
     //状态为successed
@@ -399,12 +412,6 @@ int SysMath::weldMath(){
     if(getFillMetal(secondFloor)==-1) return -1;
     if(getFillMetal(fillFloor)==-1) return -1;
     if(getFillMetal(topFloor)==-1) return -1;
-    if(weldConnectName=="T接头"){//计算T角度 角度为 单V最大角度上距离 为l2
-        //存储余高
-        oldReinforcementValue=reinforcementValue;
-        //余高为0
-        reinforcementValue=0;
-    }
     bottomFloor->height=bottomFloor->maxHeight;
     if(getWeldFloor(bottomFloor,&hUsed,&sUsed,&weldLineYUesd,&startArcZ,&floorNum,&currentWeldNum)==-1){
         return -1;
@@ -424,13 +431,6 @@ int SysMath::weldMath(){
     }
     for(i=0;i<topFloor->num;i++){
         if(getWeldFloor(topFloor,&hUsed,&sUsed,&weldLineYUesd,&startArcZ,&floorNum,&currentWeldNum)==-1){
-            return -1;
-        }
-    }
-    if(weldConnectName=="T接头"){//计算T角度 角度为 单V最大角度上距离 为l2
-        //存储余高
-        reinforcementValue=oldReinforcementValue;
-        if(getWeldFloor(overFloor,&hUsed,&sUsed,&weldLineYUesd,&startArcZ,&floorNum,&currentWeldNum)==-1){
             return -1;
         }
     }
@@ -505,6 +505,8 @@ float SysMath::getSwingSpeed(float swing,float swingLeftStayTime,float swingRigh
 
 float SysMath::getVoltage(int current){
     float voltage=18;
+    if((current>300)&&(current<10))
+        return -1;
     if((gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //MAG D 实芯 1.2
         if (current<=200){
@@ -535,7 +537,7 @@ float SysMath::getVoltage(int current){
             voltage=14+0.05*current;
         }
         else
-            voltage=14+0.05*current+2;
+            voltage=14+0.05*current;
     }else {
         return -1;
     }
@@ -561,6 +563,8 @@ int SysMath::getFeedSpeed(int current){
          3700, 4100, 4500,5300, 5850,6400,6850,7300,7850,8400,
          9200,10000,10650,11300,11900,12500,13750,15000,15750,16500,
          17250,18000,18800,19600,20400} };
+    if((current>300)||(current<10))
+        return -1;
     if((gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //MAG D 实芯 1.2
         feedspeed=0;

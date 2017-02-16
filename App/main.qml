@@ -267,11 +267,11 @@ Material.ApplicationWindow{
         Keys.onPressed:{
             switch(event.key){
             case Qt.Key_F5:
-                error.action.trigger();
+                myErrorDialog.toggle()
                 event.accpet=true;
                 break;
             case Qt.Key_F6:
-                robot.action.trigger();
+                 moto.toggle()
                 event.accpet=true;
                 break;
             }

@@ -267,7 +267,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             *(startArcX+i)=*(weldLineX+i);
             *(startArcY+i)=*(weldLineY+i);
         }
-        if(weldStyleName=="水平角焊"){
+        if(weldStyleName=="水平角焊"){//角焊翻转坐标系  尚未翻转
             getXYPosition(angel,startArcX+i,startArcY+i,*(weldLineX+i),*(weldLineY+i));
             *(weldLineX+i)=*(startArcX+i);
             *(weldLineY+i)=*(startArcY+i);

@@ -61,6 +61,8 @@ MyConditionView{
 
     descriptionCardHeight: Material.Units.dp(225);
 
+
+
     function doNum(index,flag){
         var oldIndex;
         var temp;
@@ -305,7 +307,5 @@ MyConditionView{
             selectedIndex=i;
             changeGroupCurrent(root.condition[i],false);
         }
-        for( i=0;i<listName.length;i++)
-            work(i,false);
     }
 }

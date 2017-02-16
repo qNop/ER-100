@@ -51,7 +51,6 @@ TableCard {
             limitedTable.clear();
             if((typeof(res)==="object")&&(res.length)){
                 for(var i=0;i<res.length;i++){
-                    //删除object 里面C11属性
                     limitedTable.append(res[i])
                 }
                 WeldMath.setLimited(limitedMath(0,limitedTable.count));
@@ -260,7 +259,8 @@ TableCard {
                           "C7":getText(11),
                           "C8":getText(12),
                           "C9":getText(13)+"/"+getText(14),
-                          "C10":getText(15)
+                          "C10":getText(15),
+                          "C11":num
                       });
         }
     }

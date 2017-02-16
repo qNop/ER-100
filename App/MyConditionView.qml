@@ -77,7 +77,6 @@ Item{
     }
 
     onChangeGroupCurrent: {
-        console.log(objectName+"onChangeGroupCurrent index = "+index+" flag = "+flag)
         root.condition[selectedIndex]=index;
         if(!flag)
             work(selectedIndex,true);

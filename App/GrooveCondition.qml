@@ -48,7 +48,7 @@ MyConditionView{
         "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接",
         "水平角焊" ]
     //前两位代表焊接位置 1位代表坡口形式 1位代表街头样式 2位代表衬垫种类
-    property int currentGroove
+    property int currentGroove:9
 
     titleName: "坡口条件"
 

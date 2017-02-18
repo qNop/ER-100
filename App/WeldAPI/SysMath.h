@@ -20,7 +20,7 @@ public:
     //接头形式 T接头 平对接
     QString weldConnectName;
     //坡口形式 V形坡口 单边V形坡口
-    QString GrooveStyleName;
+    QString grooveStyleName;
     //最小电流
     int currentMin;
     //最大电流
@@ -77,7 +77,7 @@ public:
     bool pulseValue;
     //焊丝种类 0 碳钢实芯 1药芯
     int wireTypeValue;
-        int grooveValue;
+    int grooveValue;
     //计算数据状态
     QString status;
     //函数 有 电流求送丝速度

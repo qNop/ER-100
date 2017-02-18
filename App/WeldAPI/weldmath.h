@@ -64,6 +64,8 @@ public slots:
     void setGrooveDir(bool value);
     //设置限制条件
     bool setLimited(QStringList value);
+    //获取电压
+    float getWeldVoltage(int current);
     //设置坡口
     void setGroove(int value);
     //根据电流获取送丝速度

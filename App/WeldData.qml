@@ -212,7 +212,7 @@ TableCard{
                 }
             }
         },
-        Action{iconName:"awesome/send_o";name:"相关计算"
+        Action{iconName:"awesome/send_o";name:"填充面积"
             onTriggered: {weldArea.show()}
         }
     ]
@@ -452,56 +452,81 @@ TableCard{
     }
     Dialog{
         id:weldArea
-        title: qsTr("相关计算")
-        negativeButtonText:qsTr("取消")
-        positiveButtonText:qsTr("确定")
+        title: qsTr("计算填充面积")
+        negativeButtonText:qsTr("关闭")
+        positiveButton.visible: false
+       // positiveButtonText:qsTr("计算")
+        dismissOnTap:false
         property int current: 0
-        property int weldSpeed: 0
-        property int k: 0
+        property double weldSpeed: 0
+        property double k: 0
         property int met: 0
-        property int area: 0
+        property double area: 0
+        property double voltage: 0
 
-        signal changedArea();
         onOpened: {
-            current=0;
-            weldSpeed=0;
-            k=0;
-            met=0;
+            re.itemAt(0).text=0;
+            re.itemAt(1).text=0;
+            re.itemAt(2).text=0;
+            re.itemAt(3).text=0;
             area=0;
         }
+        onAccepted: {
+            var temp
+            if((current!==0)&&(weldSpeed!==0)&&(k!==0)&&(met!=0)){
+                weldArea.area=Math.round(WeldMath.getWeldArea(weldArea.current,weldArea.weldSpeed,weldArea.k,weldArea.met));
+                weldArea.voltage=Math.round(WeldMath.getWeldVoltage(weldArea.current))
+            }
+            else
+                message.open("输入参数不能为0 !")
+        }
+        onRejected:{
+            weldArea.close();
+        }
         Row{
-            Repeater{
-                model:["焊接电流:","焊接速度:","层填充系数:","溶敷系数:","填充量:"]
-                delegate: Row{
-                    property alias text: textfield.text
-                    Label{anchors.bottom: parent.bottom;text:modelData}
-                    TextField{id:textfield
-                        horizontalAlignment:TextInput.AlignHCenter
-                        width: Units.dp(60)
-                        onTextChanged: {
-                            switch(index){
-                            case 0: weldArea.current=Number(text);break;
-                            case 1: weldArea.weldSpeed=Number(text);break;
-                            case 2: weldArea.k=Number(text);break;
-                            case 3: weldArea.met=Number(text);break;
-                            case 4: weldArea.area=Number(text);break;
+            spacing: Units.dp(8)
+            Column{
+                width: Units.dp(150)
+                Repeater{
+                    id:re
+                    model:["焊接电流:","焊接速度:","溶敷系数:","层填充系数:"]
+                    delegate: Row{
+                        property alias text: textfield.text
+                        Label{anchors.bottom: parent.bottom;text:modelData}
+                        TextField{id:textfield
+                            horizontalAlignment:TextInput.AlignHCenter
+                            width: Units.dp(60)
+                            onTextChanged: {
+                                switch(index){
+                                case 0: weldArea.current=Number(text);break;
+                                case 1: weldArea.weldSpeed=Number(text);break;
+                                case 2: weldArea.met=Number(text);break;
+                                case 3: weldArea.k=Number(text);break;
+                                }
                             }
                         }
                     }
                 }
             }
-            Button{
-                text:"计算"
-                onPressedChanged: {
-                    if(pressed){
-                        if(weldArea.weldSpeed){
-                            weldArea.area=WeldMath.getWeldArea(weldArea.current,weldArea.weldSpeed,weldArea.k,weldArea.met);
-                            console.log("计算weldArea.area"+weldArea.area)
+           Rectangle{
+               width:1
+               height:parent.height-Units.dp(20)
+           }
+            Column{
+                width: Units.dp(100)
+                Repeater{
+                    id:re1
+                    model:["焊接电压:","填 充 量:"]
+                    delegate: Row{
+                        spacing: Units.dp(8)
+                        Label{anchors.bottom: parent.bottom;text:modelData}
+                        Text{
+                            width: Units.dp(60)
+                            text:index===0?weldArea.voltage:weldArea.area
                         }
                     }
                 }
             }
-
         }
     }
 }

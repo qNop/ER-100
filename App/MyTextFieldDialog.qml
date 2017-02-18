@@ -132,15 +132,14 @@ Dialog{
                         }
                         onTextChanged: {
                             var temp=Number(text);
-                            if(!isNaN(temp)){//判断是否是数字
+                            if((!isNaN(temp))&&(text.length)){//判断是否是数字
                                 if(temp>root.max){
                                     message.open("设置数值 "+temp+" 超过最大限制值 "+root.max+" !");
-                                }
-                                else if(temp<root.min){
+                                }else if(temp<root.min){
                                     message.open("设置数值 "+temp+" 小于最小限制值 "+root.min+" !");
                                 }
                                 lastText=text;
-                            }else if((root.isNum)&&(text!=="-")){
+                            }else if((root.isNum)&&(text!=="-")&&(text!==".")&&(text.length)){
                                 text=lastText;
                                 message.open("请输入数字 !")
                             }

@@ -41,34 +41,37 @@ void ModbusThread::run(){
     res=0;
     errno=0;
     if(ER_Modbus){
-    //R读命令
-    modbusCmd=frame.at(0);
-    modbusReg=frame.at(1);
-    modbusNum=frame.at(2);
-    modbusData.clear();
-    if(modbusCmd=="R"){
-        res= modbus_read_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
-        if(res!=-1){
-            modbusData.append(modbusReg);
-            for(i=0;i<modbusNum.toInt();i++){
-                modbusData.append(QString::number(int16_t(data[i])));
+        //R读命令
+        modbusCmd=frame.at(0);
+        modbusReg=frame.at(1);
+        modbusNum=frame.at(2);
+        modbusData.clear();
+        if(modbusCmd=="R"){
+            res= modbus_read_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
+            if(res!=-1){
+                modbusData.append(modbusReg);
+                for(i=0;i<modbusNum.toInt();i++){
+                    if(modbusReg=="0")
+                        modbusData.append(QString::number(uint16_t(data[i])));
+                    else
+                        modbusData.append(QString::number(int16_t(data[i])));
+                }
             }
+        }else if(modbusCmd=="W"){
+            for(i=0;i<modbusNum.toInt();i++){
+                data[i]=frame.at(3+i).toInt();
+            }
+            if(modbusNum.toInt()!=1)
+                res= modbus_write_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
+            else
+                res= modbus_write_register(ER_Modbus,modbusReg.toInt(),data[0]);
+        }else{
+            qDebug()<<"ModbusThread::Cmd is not support .";
         }
-    }else if(modbusCmd=="W"){
-        for(i=0;i<modbusNum.toInt();i++){
-            data[i]=frame.at(3+i).toInt();
-        }
-        if(modbusNum.toInt()!=1)
-            res= modbus_write_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
-        else
-            res= modbus_write_register(ER_Modbus,modbusReg.toInt(),data[0]);
-    }else{
-        qDebug()<<"ModbusThread::Cmd is not support .";
+        modbusData.insert(0,modbus_strerror(errno));
+        emit ModbusThreadSignal(modbusData);
+        // qDebug()<<"ModbusThread::ANSWER "<<modbusData;
     }
-    modbusData.insert(0,modbus_strerror(errno));
-    emit ModbusThreadSignal(modbusData);
-   // qDebug()<<"ModbusThread::ANSWER "<<modbusData;
-     }
 }
 
 ERModbus::ERModbus(QObject *parent)
@@ -78,7 +81,7 @@ ERModbus::ERModbus(QObject *parent)
     pModbusThread = new ModbusThread();
     /*连接 线程*/
     connect(pModbusThread,&ModbusThread::ModbusThreadSignal,this,&ERModbus::modbusFrameChanged);
-   // connect(pModbusThread,&ModbusThread::finished,pModbusThread,&ModbusThread::stop);
+    // connect(pModbusThread,&ModbusThread::finished,pModbusThread,&ModbusThread::stop);
 }
 ERModbus::~ERModbus(){
     pModbusThread->quit();

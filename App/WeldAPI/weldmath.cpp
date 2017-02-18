@@ -22,7 +22,6 @@ void WeldMath::setWeldRules(QStringList value){
 }
 
 void WeldMath::setGrooveRules(QStringList value){
-    qDebug()<<"WeldMath::setGrooveRules "<<value;
     //数组有效
     if(sysMath.setGrooveRules(value)==-1){
         value.clear();
@@ -32,7 +31,6 @@ void WeldMath::setGrooveRules(QStringList value){
 }
 
 void WeldMath::setCeramicBack(int value){
-    qDebug()<<"WeldMath::setCeramicBack"<<value;
     sysMath.ceramicBack=value;
     sysMath.bottomFloor=sysMath.ceramicBack==1?&bottomFloor0:&bottomFloor;
 }
@@ -66,7 +64,7 @@ void WeldMath::setGroove(int value){
 }
 
 void WeldMath::setGrooveStyle(int value){
-        sysMath.GrooveStyleName=value?"V形坡口":"单边V形坡口";
+        sysMath.grooveStyleName=value?"V形坡口":"单边V形坡口";
 }
 void WeldMath::setWeldStyle(int value){
         sysMath.weldStyleName=value==0?"平焊":value==1?"横焊":value==2?"立焊":"水平角焊";
@@ -79,8 +77,12 @@ int WeldMath::getFeedSpeed(int current){
     return  sysMath.getFeedSpeed(current);
 }
 
+float WeldMath::getWeldVoltage(int current){
+    return sysMath.getVoltage(current);
+}
+
 float WeldMath::getWeldArea(int current, float weldSpeed,float k,float met){
-    return  GET_WELDFILL_AREA(met,sysMath.weldWireSquare,sysMath.getFeedSpeed(current),weldSpeed,k);
+    return  GET_WELDFILL_AREA(met,(sysMath.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4,sysMath.getFeedSpeed(current),weldSpeed,k);
 }
 
 float WeldMath::getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed){

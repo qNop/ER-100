@@ -185,7 +185,16 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     if(swingLength>(pF->swingLeftLength+pF->swingRightLength))
         swingLength-=pF->swingLeftLength+pF->swingRightLength;
     //计算分多少道  *************此处有问题 应该采用枚举法分道
-    weldNum=qCeil((swingLength+pF->weldSwingSpacing)/(pF->maxSwingLength+pF->weldSwingSpacing));
+    for(weldNum=0;weldNum++;weldNum<100){
+            if(swingLength<((pF->weldSwingSpacing)*(weldNum-1)+pF->maxSwingLength*weldNum)){
+                    break;
+            }
+    }
+    if(weldNum>100){
+        status=str+"焊道数超过100！";
+        return -1;
+    }
+    //weldNum=qCeil((swingLength+pF->weldSwingSpacing)/(pF->maxSwingLength+pF->weldSwingSpacing));
     //创建 weldnum  的数组 必须要加3 否则 数组溢出
     float *weldFill=new float[weldNum];
     //初始化数组
@@ -275,7 +284,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             *(weldLineX+i)=*(startArcX+i);
             *(weldLineY+i)=*(startArcY+i);
         }
-        if((grooveStyleName=="单边V形坡口")&&(wireTypeValue)){ //提高干伸后同样也要缩枪 药芯有效  但是 单边V时最外侧不应该抬枪防止电流过小
+        if((grooveStyleName=="单边V形坡口")&&(wireTypeValue)&&(i!=(weldNum-1))){ //提高干伸后同样也要缩枪 药芯有效  但是 单边V时最外侧不应该抬枪防止电流过小
             if(!grooveDirValue){//非坡口侧
                 *(weldLineX+i)-=pF->height/2*(tan((grooveAngel2/2)*PI/180));
             }else{//坡口侧

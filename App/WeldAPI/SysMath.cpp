@@ -58,8 +58,8 @@ void getXYPosition(float angel,float *x1,float *y1,float x2,float y2){
     qDebug()<<"angel"<<angel<<"x1"<<*x1<<"*y1"<<*y1<<"x2"<<x2<<"y2"<<y2;
 }
 
-float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,QString *status,float swingLengthOne){
-    float swingHz, temp1;
+float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,QString *status,float swingLengthOne,float *swingHz){
+    float temp1;
     int temp;
     //获取电压 为0 则自动生成电压 否则 采用限制条件电压
     if(pF->voltage==0){
@@ -76,7 +76,7 @@ float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,fl
     //获取焊速 立焊从此处获取焊速 现有摆速才能求取填充量才能计算 焊接速度
     if(weldStyleName=="立焊"){
         //焊速必须有数 否则无法进入 求摆速函数
-        temp=getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,100,swingLengthOne>10?WAVE_MAX_VERTICAL_SPEED-60*swingLengthOne+600:WAVE_MAX_VERTICAL_SPEED,&swingHz);
+        temp=getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,100,swingLengthOne>10?WAVE_MAX_VERTICAL_SPEED-60*swingLengthOne+600:WAVE_MAX_VERTICAL_SPEED,swingHz);
         //判断返回数据
         if(temp==-1){
             QString tempStr=*status;
@@ -86,7 +86,7 @@ float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,fl
         }
         else
             *swingSpeed= temp;
-        *weldTravelSpeed=GET_VERTICAL_TRAVERLSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,pF->fillCoefficient,swingHz,pF->totalStayTime);
+        *weldTravelSpeed=GET_VERTICAL_TRAVERLSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,pF->fillCoefficient,*swingHz,pF->totalStayTime);
     }else
         *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill,pF->fillCoefficient);
     if(*weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
@@ -103,7 +103,7 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
     temp=solveI(pF,count,weldNum);
     if(temp==-1){*status=str+"焊接电流不能正常分配。";return -1;}
     else *weldCurrent=temp;
-    if(getTravelSpeed(pF,str,weldCurrent,weldVoltage,weldFeedSpeed,swingSpeed,weldTravelSpeed,weldFill,status,swingLengthOne)==-1) return -1;
+    if(getTravelSpeed(pF,str,weldCurrent,weldVoltage,weldFeedSpeed,swingSpeed,weldTravelSpeed,weldFill,status,swingLengthOne,&swingHz)==-1) return -1;
     //保证焊接速度不大于最大焊接速度 否则减小电流
     if(*weldTravelSpeed>pF->maxWeldSpeed){
         while(*weldTravelSpeed>pF->maxWeldSpeed){
@@ -111,7 +111,7 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
             // if(tempCurrent-*weldCurrent>CURRENT_COUNT_DEC) {*status=str+"焊接电流相对预置"}
             //如果带脉冲焊接
             if(*weldCurrent<currentMin){*status=str+"焊接电流超过最小值。";return -1;}
-            if(getTravelSpeed(pF,str,weldCurrent,weldVoltage,weldFeedSpeed,swingSpeed,weldTravelSpeed,weldFill,status,swingLengthOne)==-1) return -1;
+            if(getTravelSpeed(pF,str,weldCurrent,weldVoltage,weldFeedSpeed,swingSpeed,weldTravelSpeed,weldFill,status,swingLengthOne,&swingHz)==-1) return -1;
         }
         *weldTravelSpeed=qRound(*weldTravelSpeed);
     }else if((*weldFill>pF->maxFillMetal)||(*weldTravelSpeed<pF->minWeldSpeed)){
@@ -172,7 +172,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         if(grooveStyleName=="V形坡口")
             s+=reinforcementValue*(2*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap+2*ba)/2;
         else
-            s+=(0.25*grooveHeight+reinforcementValue)*(2*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap+ba)/2;
+            s+=(reinforcementValue)*(2*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap+ba)/2;
     }else
         s=((*hused+pF->height-rootFace)*(*hused+pF->height-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*(*hused+pF->height)-*sused)*pF->fillCoefficient;
     if(pF->name=="ceramicBackFloor"){
@@ -184,7 +184,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     //如果摆宽小于两端间隔则 不变
     if(swingLength>(pF->swingLeftLength+pF->swingRightLength))
         swingLength-=pF->swingLeftLength+pF->swingRightLength;
-    //计算分多少道
+    //计算分多少道  *************此处有问题 应该采用枚举法分道
     weldNum=qCeil((swingLength+pF->weldSwingSpacing)/(pF->maxSwingLength+pF->weldSwingSpacing));
     //创建 weldnum  的数组 必须要加3 否则 数组溢出
     float *weldFill=new float[weldNum];
@@ -424,6 +424,11 @@ int SysMath::weldMath(){
     if(getFillMetal(fillFloor)==-1) return -1;
     if(getFillMetal(topFloor)==-1) return -1;
     bottomFloor->height=bottomFloor->maxHeight;
+    float lastReinforcementValue;
+    if(grooveStyleName=="单边V形坡口"){
+        lastReinforcementValue=reinforcementValue;
+        reinforcementValue=0;
+    }
     if(getWeldFloor(bottomFloor,&hUsed,&sUsed,&weldLineYUesd,&startArcZ,&floorNum,&currentWeldNum)==-1){
         return -1;
     }
@@ -442,6 +447,12 @@ int SysMath::weldMath(){
     }
     for(i=0;i<topFloor->num;i++){
         if(getWeldFloor(topFloor,&hUsed,&sUsed,&weldLineYUesd,&startArcZ,&floorNum,&currentWeldNum)==-1){
+            return -1;
+        }
+    }
+    if(grooveStyleName=="单边V形坡口"){
+        overFloor->height=overFloor->maxHeight;
+        if(getWeldFloor(overFloor,&hUsed,&sUsed,&weldLineYUesd,&startArcZ,&floorNum,&currentWeldNum)==-1){
             return -1;
         }
     }

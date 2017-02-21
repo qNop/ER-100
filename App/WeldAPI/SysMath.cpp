@@ -275,7 +275,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             *(weldLineX+i)=*(startArcX+i);
             *(weldLineY+i)=*(startArcY+i);
         }
-        if((grooveStyleName=="单边V形坡口")&&(wireTypeValue)){ //提高干伸后同样也要缩枪 药芯有效
+        if((grooveStyleName=="单边V形坡口")&&(wireTypeValue)){ //提高干伸后同样也要缩枪 药芯有效  但是 单边V时最外侧不应该抬枪防止电流过小
             if(!grooveDirValue){//非坡口侧
                 *(weldLineX+i)-=pF->height/2*(tan((grooveAngel2/2)*PI/180));
             }else{//坡口侧

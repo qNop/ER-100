@@ -76,7 +76,7 @@ float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,fl
     //获取焊速 立焊从此处获取焊速 现有摆速才能求取填充量才能计算 焊接速度
     if(weldStyleName=="立焊"){
         //焊速必须有数 否则无法进入 求摆速函数
-        temp=getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,100,swingLengthOne>10?WAVE_MAX_VERTICAL_SPEED-60*swingLengthOne+600:WAVE_MAX_VERTICAL_SPEED,swingHz);
+        temp=getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,100,swingLengthOne>10?WAVE_MAX_VERTICAL_SPEED-40*swingLengthOne+600:WAVE_MAX_VERTICAL_SPEED,swingHz);
         //判断返回数据
         if(temp==-1){
             QString tempStr=*status;
@@ -185,10 +185,12 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     if(swingLength>(pF->swingLeftLength+pF->swingRightLength))
         swingLength-=pF->swingLeftLength+pF->swingRightLength;
     //计算分多少道  *************此处有问题 应该采用枚举法分道
-    for(weldNum=0;weldNum++;weldNum<100){
-            if(swingLength<((pF->weldSwingSpacing)*(weldNum-1)+pF->maxSwingLength*weldNum)){
-                    break;
-            }
+    for(weldNum=1;weldNum<100;weldNum++){
+        if(swingLength<((pF->weldSwingSpacing)*(weldNum-1)+pF->maxSwingLength*weldNum)){
+            qDebug()<<"pF->weldSwingSpacing"<<pF->weldSwingSpacing<<"pF->maxSwingLength"<<pF->maxSwingLength
+                   <<"swingLength"<<swingLength<<"weldNum"<<weldNum;
+            break;
+        }
     }
     if(weldNum>100){
         status=str+"焊道数超过100！";
@@ -199,6 +201,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     float *weldFill=new float[weldNum];
     //初始化数组
     solveA(weldFill,pF,weldNum,s);
+    qDebug()<<"pF->maxFillMetal"<<pF->maxFillMetal<<"weldFill"<<*weldFill;
     if(*weldFill>pF->maxFillMetal){
         weldNum+=1;
         //数组发生改变则 相应的也要发生改变 防止数组越界；
@@ -254,11 +257,20 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     float *startArcX=new float[weldNum];
     float *startArcY=new float[weldNum];
     float *weldLineY=new float[weldNum];
+    float weldLineYDec=0;
     //坡口侧从外往内焊  主要针对单边V
     for(i=0;i<weldNum;i++){
         //中线偏移Y
-        if(wireTypeValue)
-            *(weldLineY+i)=float(qRound(10*(*weldLineYUesd+pF->height/2)))/10;
+        if(wireTypeValue){//药芯
+            if(grooveStyleName=="单边V形坡口"){
+                weldLineYDec=pF->height/2;
+                if(weldNum>1)
+                    weldLineYDec=!grooveDirValue?weldLineYDec*(weldNum-1-i)/(weldNum-1):weldLineYDec*i/(weldNum-1);
+                qDebug()<<"weldLineYDec"<<weldLineYDec;
+            }else
+                weldLineYDec=pF->height/2;
+            *(weldLineY+i)=float(qRound(10*(*weldLineYUesd+weldLineYDec)))/10;
+        }
         else
             *(weldLineY+i)=float(qRound(10*(*weldLineYUesd)))/10;
         //中线偏移X 取一位小数
@@ -284,12 +296,14 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             *(weldLineX+i)=*(startArcX+i);
             *(weldLineY+i)=*(startArcY+i);
         }
-        if((grooveStyleName=="单边V形坡口")&&(wireTypeValue)&&(i!=(weldNum-1))){ //提高干伸后同样也要缩枪 药芯有效  但是 单边V时最外侧不应该抬枪防止电流过小
+        if((grooveStyleName=="单边V形坡口")&&(wireTypeValue)){ //提高干伸后同样也要缩枪 药芯有效  但是 单边V时最外侧不应该抬枪防止电流过小
+            qDebug()<<"weldLineX"<<*(weldLineX+i);
             if(!grooveDirValue){//非坡口侧
-                *(weldLineX+i)-=pF->height/2*(tan((grooveAngel2/2)*PI/180));
+                *(weldLineX+i)-=(pF->height/2-weldLineYDec)*(tan((grooveAngel2/2)*PI/180));
             }else{//坡口侧
-                *(weldLineX+i)+=pF->height/2*(tan((grooveAngel1/2)*PI/180));
+                *(weldLineX+i)+=(pF->height/2-weldLineYDec)*(tan((grooveAngel1/2)*PI/180));
             }
+            qDebug()<<"weldLineXDec"<<*(weldLineX+i);
             *(weldLineX+i)=float(qRound(10*(*(weldLineX+i))))/10;
             *(startArcX+i)=*(weldLineX+i);
         }
@@ -307,7 +321,6 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         *currentWeldNum=*currentWeldNum+1;
         temp1=!grooveDirValue?pF->swingRightStayTime:pF->swingLeftStayTime;
         temp2=!grooveDirValue?pF->swingLeftStayTime:pF->swingRightStayTime;
-
         //全部参数计算完成
         value.clear();
         value<<status<<QString::number(*currentWeldNum)<<QString::number(*currentFloor)+"/"+QString::number(i+1)<<QString::number(*(weldCurrent+i))
@@ -432,12 +445,13 @@ int SysMath::weldMath(){
     if(getFillMetal(secondFloor)==-1) return -1;
     if(getFillMetal(fillFloor)==-1) return -1;
     if(getFillMetal(topFloor)==-1) return -1;
-    bottomFloor->height=bottomFloor->maxHeight;
     float lastReinforcementValue;
     if(grooveStyleName=="单边V形坡口"){
         lastReinforcementValue=reinforcementValue;
         reinforcementValue=0;
+        if(getFillMetal(overFloor)==-1) return -1;
     }
+    bottomFloor->height=bottomFloor->maxHeight;
     if(getWeldFloor(bottomFloor,&hUsed,&sUsed,&weldLineYUesd,&startArcZ,&floorNum,&currentWeldNum)==-1){
         return -1;
     }

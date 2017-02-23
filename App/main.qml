@@ -701,9 +701,10 @@ Material.ApplicationWindow{
                     MathError<<=16;
                     MathError|=Number(frame[3]);
                     errorCode=MathError;
-                    console.log(errorCode.toString(16))
+
                 }
                 else if((frame[1]==="150")&&(sysStatus==="坡口检测态")){
+                     console.log(frame);
                     //间隔跳示教点允许删除示教点操作尚未加入
                     if(frame[2]!=="0"){
                         var num=Number(frame[2])-1;

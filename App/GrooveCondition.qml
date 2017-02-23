@@ -61,8 +61,6 @@ MyConditionView{
 
     descriptionCardHeight: Material.Units.dp(225);
 
-
-
     function doNum(index,flag){
         var oldIndex;
         var temp;

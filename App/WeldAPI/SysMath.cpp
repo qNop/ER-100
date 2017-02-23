@@ -76,7 +76,12 @@ float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,fl
     //获取焊速 立焊从此处获取焊速 现有摆速才能求取填充量才能计算 焊接速度
     if(weldStyleName=="立焊"){
         //焊速必须有数 否则无法进入 求摆速函数
-        temp=getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,100,swingLengthOne>10?WAVE_MAX_VERTICAL_SPEED-40*swingLengthOne+600:WAVE_MAX_VERTICAL_SPEED,swingHz);
+        if(gasValue){//MaG脉冲不能摆动太快了
+            temp1=1200;
+        }else{
+            temp1=swingLengthOne>10?WAVE_MAX_VERTICAL_SPEED-65*swingLengthOne+600:WAVE_MAX_VERTICAL_SPEED;
+        }
+        temp=getSwingSpeed(swingLengthOne/2,pF->swingLeftStayTime,pF->swingRightStayTime,100,temp1,swingHz);
         //判断返回数据
         if(temp==-1){
             QString tempStr=*status;

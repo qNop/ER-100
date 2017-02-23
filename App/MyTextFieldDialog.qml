@@ -132,6 +132,7 @@ Dialog{
                         }
                         onTextChanged: {
                             var temp=Number(text);
+                            console.log("text"+text+"temp"+temp)
                             if((!isNaN(temp))&&(text.length)){//判断是否是数字
                                 if(temp>root.max){
                                     message.open("设置数值 "+temp+" 超过最大限制值 "+root.max+" !");

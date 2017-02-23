@@ -15,7 +15,8 @@ SOURCES += main.cpp \
    #WeldAPI/flatmath.cpp \
    # WeldAPI/horizontalmath.cpp \
    #WeldAPI/filletmath.cpp \
-    WeldAPI/SysMath.cpp
+    WeldAPI/SysMath.cpp \
+   WeldAPI/SQL.cpp
 
 
 RESOURCES += \
@@ -46,7 +47,8 @@ HEADERS += \
    # WeldAPI/flatmath.h \
    # WeldAPI/horizontalmath.h \
    # WeldAPI/filletmath.h \
-    WeldAPI/SysMath.h
+    WeldAPI/SysMath.h \
+    WeldAPI/SQL.h
 
 INCLUDEPATH +=libmodbus \
               libmodbus/src \

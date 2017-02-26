@@ -4,12 +4,14 @@ import Material.Extras 0.1
 import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
+import WeldSys.SQL 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
 import QtQuick.LocalStorage 2.0
 import QtQuick.Controls 1.4
 import QtQuick.Window 2.2
 import "MyMath.js" as MyMath
+
 
 /*应用程序窗口 */
 Material.ApplicationWindow{
@@ -702,9 +704,8 @@ Material.ApplicationWindow{
                     MathError|=Number(frame[3]);
                     errorCode=MathError;
 
-                }
-                else if((frame[1]==="150")&&(sysStatus==="坡口检测态")){
-                     console.log(frame);
+                }else if((frame[1]==="150")&&(sysStatus==="坡口检测态")){
+                    console.log(frame);
                     //间隔跳示教点允许删除示教点操作尚未加入
                     if(frame[2]!=="0"){
                         var num=Number(frame[2])-1;
@@ -749,8 +750,7 @@ Material.ApplicationWindow{
                             changeGrooveTableIndex(num);
                         }
                     }
-                }
-                else if((frame[1]==="104")&&(sysStatus=="坡口检测完成态")){
+                }else if((frame[1]==="104")&&(sysStatus=="坡口检测完成态")){
                     //如果坡口参数里面有数据 则进行计算数据
                     if(grooveTable.count!==0){
                         var temp1 =getGrooveAverage();
@@ -1008,7 +1008,7 @@ Material.ApplicationWindow{
         onAccepted: {
             if(errorCode&0x60000000){//两种错误一起清 顺带把errorCode 也清掉
                 errorCode&=0x9fffffff;
-                 ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
+                ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
             }else if(errorCode&0x20000000){//坡口数据表中无数据
                 errorCode&=0xdfffffff;
                 ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
@@ -1348,6 +1348,13 @@ Material.ApplicationWindow{
             }
         }
     }
+//    Connections{
+//        target: SQL
+//        onSqlSingalChanged:{
+//            console.log("SQL record is "+record);
+//        }
+//    }
+
     Component.onCompleted: {
         theme.accentColor=appSettings.accentColor
         theme.primaryColor=appSettings.primaryColor
@@ -1429,8 +1436,7 @@ Material.ApplicationWindow{
         //获取最近的坡口条件 包含名称
         res=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
         if(res!==-1){currentGrooveName=res}
-        console.log(WeldMath.getWeldArea(250,203,1,90))
-        console.log(WeldMath.getWeldArea(250,250,1,90))
-        console.log(WeldMath.getWeldArea(250,338,1,90))
+        SQL.setSqlCommand("SELECT * FROM "+grooveStyleName[currentGroove]+"列表")
+        SQL.setSqlCommand("SELECT * FROM "+app.weldRulesName.replace("焊接规范","限制条件"))
     }
 }

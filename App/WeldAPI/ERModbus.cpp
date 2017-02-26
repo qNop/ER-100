@@ -81,6 +81,7 @@ ERModbus::ERModbus(QObject *parent)
     pModbusThread = new ModbusThread();
     /*连接 线程*/
     connect(pModbusThread,&ModbusThread::ModbusThreadSignal,this,&ERModbus::modbusFrameChanged);
+    qDebug()<<"链接串口！";
     // connect(pModbusThread,&ModbusThread::finished,pModbusThread,&ModbusThread::stop);
 }
 ERModbus::~ERModbus(){

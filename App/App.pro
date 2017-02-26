@@ -16,7 +16,11 @@ SOURCES += main.cpp \
    # WeldAPI/horizontalmath.cpp \
    #WeldAPI/filletmath.cpp \
     WeldAPI/SysMath.cpp \
-   WeldAPI/SQL.cpp
+    WeldAPI/SQL.cpp \
+#    WeldAPI/json/json_writer.cpp \
+#    WeldAPI/json/json_valueiterator.inl \
+#    WeldAPI/json/json_value.cpp \
+#    WeldAPI/json/json_reader.cpp
 
 
 RESOURCES += \
@@ -48,7 +52,20 @@ HEADERS += \
    # WeldAPI/horizontalmath.h \
    # WeldAPI/filletmath.h \
     WeldAPI/SysMath.h \
-    WeldAPI/SQL.h
+    WeldAPI/SQL.h \
+#    WeldAPI/json/version.h.in \
+#    WeldAPI/json/json_tool.h \
+#    WeldAPI/json/writer.h \
+#    WeldAPI/json/version.h \
+#    WeldAPI/json/value.h \
+#    WeldAPI/json/reader.h \
+#    WeldAPI/json/json.h \
+#    WeldAPI/json/forwards.h \
+#    WeldAPI/json/features.h \
+#    WeldAPI/json/config.h \
+#    WeldAPI/json/autolink.h \
+#    WeldAPI/json/assertions.h \
+#    WeldAPI/json/allocator.h
 
 INCLUDEPATH +=libmodbus \
               libmodbus/src \

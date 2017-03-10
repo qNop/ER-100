@@ -42,12 +42,14 @@ TableCard{
     }
     onCurrentGrooveChanged: {
         grooveRules.setProperty(1,"name",currentGroove===8?"脚   长ι1(mm):":"板    厚δ(mm):")
-        grooveRules.setProperty(2,"name",currentGroove===8||currentGroove==0||currentGroove==3||currentGroove==5?"脚   长ι2(mm):":"板厚差 e (mm):")
+        grooveRules.setProperty(2,"name",currentGroove===8||currentGroove==0||currentGroove==3||currentGroove==5?"脚   长ι2(mm):":"板厚差e(mm):")
         grooveRules.setProperty(3,"show",currentGroove===8?false:true)
     }
     signal changedCurrentGroove(string name)
     //外部更新数据
     signal updateModel(string str,var data);
+
+    signal getWeldRules();
 
     function selectIndex(index){
         if((index<model.count)&&(index>-1)){
@@ -57,7 +59,6 @@ TableCard{
         else
             message.open("索引超过条目上限或索引无效！")
     }
-
     function update(){
         console.log("UPDATE")
         //清空坡口数据
@@ -122,7 +123,11 @@ TableCard{
                 myTextFieldDialog.show();}},
         Action{iconName:"awesome/edit";name:"编辑";onTriggered:{
                 myTextFieldDialog.title="编辑坡口参数";
-                myTextFieldDialog.show();}},
+                if(currentRow>=0){
+                    myTextFieldDialog.show();
+                }else
+                    message.open("请选择要编辑的行！")
+            }},
         Action{iconName:"awesome/paste";name:"复制";
             onTriggered: {
                 if(currentRow>=0){
@@ -162,16 +167,7 @@ TableCard{
         Action{iconName:"awesome/send_o";hoverAnimation:true;summary: "F4"; name:"生成规范";
             onTriggered:{
                 if(currentRow>-1){
-                    WeldMath.setGrooveRules([
-                                                model.get(currentRow).C1,
-                                                model.get(currentRow).C2,
-                                                model.get(currentRow).C3,
-                                                model.get(currentRow).C4,
-                                                model.get(currentRow).C5,
-                                                model.get(currentRow).C6,
-                                                model.get(currentRow).C7,
-                                                model.get(currentRow).C8
-                                            ]);
+                    getWeldRules();
                 }else {
                     message.open("请选择要生成规范的坡口信息。")
                 }

@@ -94,12 +94,15 @@ Item{
         var right=Number(root.condition[selectedIndex]+1);
         if(left<0) left=0;
         if(selectedIndex<listValueNameEnable.length)
-        if(right>=listValueNameEnable[selectedIndex].length) right=listValueNameEnable[selectedIndex].length-1;
+            if(right>=listValueNameEnable[selectedIndex].length) right=listValueNameEnable[selectedIndex].length-1;
         if((event.key===Qt.Key_Left)||(event.key===Qt.Key_Right)){
             if((selectedIndex<listValueName.length)&&
                     (listValueNameEnable[selectedIndex][
-                         event.key===Qt.Key_Left?left:right]))
-                changeGroup(root.condition[selectedIndex],event.isAutoRepeat);
+                         event.key===Qt.Key_Left?left:right])){
+                changeGroup(event.key===Qt.Key_Left?left:right,event.isAutoRepeat);
+            }else{
+                message.open("该选项无效！")
+            }
         }else if((event.key===Qt.Key_VolumeDown)||(event.key===Qt.Key_VolumeUp)){
             if(selectedIndex>=(listValueName.length))
                 changeText(root.condition[selectedIndex],event.isAutoRepeat);
@@ -117,10 +120,11 @@ Item{
             if(selectedIndex>0){
                 selectedIndex--;
             }
-        }else if(event.key===Qt.Key_Left){
+        }/*else if(event.key===Qt.Key_Left){
             if((num>0)&&(selectedIndex<listValueName.length)){
                 if(listValueNameEnable[selectedIndex][num-1]){
                     num-=1;
+                    console.log(objectName+"Keys.onPressed!")
                     changeGroup(num,true);
                 }else
                     message.open("该选项无效！")
@@ -133,7 +137,7 @@ Item{
                 }else
                     message.open("该选项无效！")
             }
-        }else if(event.key===Qt.Key_VolumeDown){
+        }*/else if(event.key===Qt.Key_VolumeDown){
             if(selectedIndex>=(listValueName.length)){
                 keyDec(selectedIndex-listValueName.length,event.isAutoRepeat);
             }
@@ -217,7 +221,6 @@ Item{
                                         changeGroup(index,false);
                                     }
                                     exclusiveGroup: group
-
                                 }
                             }
                         }

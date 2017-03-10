@@ -70,7 +70,7 @@ void ModbusThread::run(){
         }
         modbusData.insert(0,modbus_strerror(errno));
         emit ModbusThreadSignal(modbusData);
-        // qDebug()<<"ModbusThread::ANSWER "<<modbusData;
+        qDebug()<<"ModbusThread::ANSWER "<<modbusData;
     }
 }
 

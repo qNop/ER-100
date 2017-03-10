@@ -119,7 +119,15 @@ Dialog{
                             target:root
                             onOpenText:{
                                 if(index===row.rowIndex)
-                                    textField.text=text;
+                                    if(isNum){
+                                        if(Number(text)<min){
+                                            textField.text=String(min);
+                                        }else if(Number(text)>max){
+                                            textField.text=String(max);
+                                        }else
+                                             textField.text=text;
+                                    }else
+                                        textField.text=text;
                             }
                             onChangeFocus:{
                                 if(index===row.rowIndex){

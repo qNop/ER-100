@@ -20,8 +20,5 @@ function subMath(arg1,arg2) {
        return ((arg1 * m - arg2 * m) / m).toFixed(n);
 }
 
-function absMath(arg1){
-        return(arg1>>>0);
-}
 
 

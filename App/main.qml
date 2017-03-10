@@ -12,7 +12,6 @@ import QtQuick.Controls 1.4
 import QtQuick.Window 2.2
 import "MyMath.js" as MyMath
 
-
 /*应用程序窗口 */
 Material.ApplicationWindow{
     id: app;title: "app";
@@ -39,7 +38,7 @@ Material.ApplicationWindow{
     property var errorName:["主控制器异常","CAN通讯异常","急停报警","摇动电机过热过流","摇动电机右限位","摇动电机左限位","摇动电机原点搜索","摇动电机堵转", "摆动电机过热过流","摆动电机内限位",
         "摆动电机外限位","摆动电机原点搜索","摆动电机堵转", "上下电机过热过流","上下电机下限位","上下电机上限位","上下电机原点搜索","上下电机堵转", "行走电机过热过流","行走电机右限位",
         "行走电机左限位","行走电机原点搜索","行走电机堵转","驱动器急停报警","手持盒通讯异常","示教器通讯异常","焊接电源通讯异常","焊接电源粘丝异常","焊接电源其他异常","坡口参数表格内无数据",
-        "生成焊接规范异常","未定义异常",
+        "生成焊接规范异常","焊接规范表格内无数据",
         "未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常", "未定义异常","未定义异常",
         "未定义异常","未定义异常","未定义异常", "未定义异常","未定义异常","未定义异常","未定义异常","未定义异常", "未定义异常","未定义异常",
         "未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常",
@@ -116,6 +115,8 @@ Material.ApplicationWindow{
     signal changeGrooveTableIndex(int index)
     //signal
     signal changeTeachSet(var value);
+    //
+    signal changeWeldLength(int value);
     //Settings
     MySettings{id:appSettings}
     /*更新时间定时器*/
@@ -170,7 +171,20 @@ Material.ApplicationWindow{
             }
             array.push(grooveTable.get(j-1).C6)
             array.push(grooveTable.get(j-1).C7)
-            array.push(grooveTable.get(j-1).C8)
+            if(count>0){
+                temp=Number(grooveTable.get(0).C8)
+                //找出最远端
+                if(count==1){//只有一点
+                    temp=weldLength;
+                }else{//多点
+                    for(j=1;j<count;j++){
+                        if(temp<Number(grooveTable.get(j).C8))
+                            temp=Number(grooveTable.get(j).C8);
+                    }
+                    changeWeldLength(temp);
+                }
+                array.push(String(temp))
+            }
             return array;
         }else
             return -1;
@@ -359,6 +373,7 @@ Material.ApplicationWindow{
                     enabled: sysStatus!=="坡口检测态"
                     onChangeTeachPoint: app.teachPoint=num;
                     onChangeTeachModel: app.teachModel=model;
+                    onChangeWeldLength: app.weldLength=num;
                     Connections{
                         target:app
                         onChangeTeachSet:{
@@ -381,6 +396,10 @@ Material.ApplicationWindow{
                                     }
                                     snackBar.open(str)
                                 }
+                        }
+                        onChangeWeldLength:{//改变焊接长度
+                            teachConditionPage.selectedIndex=4;
+                            teachConditionPage.changeText(value,true);
                         }
                     }
                 }
@@ -422,6 +441,11 @@ Material.ApplicationWindow{
                     //改变坡口名称
                     onChangedCurrentGroove: {
                         app.currentGrooveName=name;
+                    }
+                    //生成焊接规范
+                    onGetWeldRules: {
+                        var temp1 =getGrooveAverage();
+                        WeldMath.setGrooveRules(temp1===-1?snackBar.open("坡口参数数据不存在！"):temp1);
                     }
                     //通过信号的方式交互Model数据而不影响到数据的绑定问题。
                     onUpdateModel: {
@@ -551,7 +575,6 @@ Material.ApplicationWindow{
                     superUser: app.superUser
                     onUserUpdate: changeuser.show()
                     message: snackBar
-                    Component.onCompleted: console.log(objectName+"Completed")
                 }
                 SysErrorHistroy{
                     id:sysErrorHistroyPage
@@ -581,7 +604,6 @@ Material.ApplicationWindow{
         }
     }
     onSysStatusChanged: {
-
         if(sysStatus=="空闲态"){
             //高压接触传感
             snackBar.open("焊接系统空闲！")
@@ -603,12 +625,11 @@ Material.ApplicationWindow{
             //切小页面
             app.page0SelectedIndex=3;
             //全自动则清除
-            if((teachModel===0)&&(appSettings.weldStyle!==4)){
+            if((teachModel===0)&&(appSettings.weldStyle!==3)){
                 changeGrooveTableIndex(-1);
                 //清除坡口数据
                 grooveTable.clear();
-            }
-            else {//半自动 手动 检测数据表是否有效
+            }else {//半自动 手动 检测数据表是否有效
                 if(grooveTable.count===0){
                     //写入错误
                     errorCode|=0x20000000;
@@ -703,7 +724,6 @@ Material.ApplicationWindow{
                     MathError<<=16;
                     MathError|=Number(frame[3]);
                     errorCode=MathError;
-
                 }else if((frame[1]==="150")&&(sysStatus==="坡口检测态")){
                     console.log(frame);
                     //间隔跳示教点允许删除示教点操作尚未加入
@@ -711,20 +731,31 @@ Material.ApplicationWindow{
                         var num=Number(frame[2])-1;
                         //如果当前选择行和 上传数据行不一至则更新数据
                         if((num!==app.grooveTableIndex)&&(num>app.grooveTableIndex)){
-                            if(teachModel===0)
-                                grooveTable.append({
-                                                       "ID":frame[2],
-                                                       "C1":(Number(frame[3])/10).toString(),
-                                                       "C2":((appSettings.connectStyle===1)||(appSettings.weldStyle===3))?grooveTable.get(frame[2]).C2:(Number(frame[4])/10).toString(),
-                                                                                                                           "C3":(Number(frame[5])/10).toString(),
-                                                                                                                           "C4":(Number(frame[6])/10).toString(),
-                                                                                                                           "C5":(Number(frame[7])/10).toString(),
-                                                                                                                           "C6":String((Number(frame[8])|(Number(frame[9])<<16))/10),
-                                                                                                                           "C7":String(Number(frame[10])/10),
-                                                                                                                           "C8":String(Number(frame[11])/10)})
-                            else if(teachModel===1){
+                            if(teachModel===0){
+                                if(appSettings.weldStyle!==3){
+                                    grooveTable.append({
+                                                           "ID":frame[2],
+                                                           "C1":(Number(frame[3])/10).toString(),
+                                                           "C2":(Number(frame[4])/10).toString(),
+                                                           "C3":(Number(frame[5])/10).toString(),
+                                                           "C4":(Number(frame[6])/10).toString(),
+                                                           "C5":(Number(frame[7])/10).toString(),
+                                                           "C6":String((Number(frame[8])|(Number(frame[9])<<16))/10),
+                                                           "C7":String(Number(frame[10])/10),
+                                                           "C8":String(Number(frame[11])/10)})
+                                }else{//角焊需要设置脚长1 脚长2
+                                    grooveTable.setProperty(num,"ID",frame[2])
+                                    grooveTable.setProperty(num,"C3",(Number(frame[5])/10).toString()) //根部
+                                    grooveTable.setProperty(num,"C4",(Number(frame[6])/10).toString()) //角1
+                                    grooveTable.setProperty(num,"C5",(Number(frame[7])/10).toString()) //角2
+                                    //对掉一下xz坐标
+                                    grooveTable.setProperty(num,"C8",String((Number(frame[8])|(Number(frame[9])<<16))/10))
+                                    grooveTable.setProperty(num,"C7",String(Number(frame[10])/10))
+                                    grooveTable.setProperty(num,"C6",String(Number(frame[11])/10))
+                                }
+                            }else if(teachModel===1){
                                 grooveTable.setProperty(num,"ID",frame[2])
-                                if(appSettings.fixHeight){
+                                if((appSettings.fixHeight)&&(appSettings.weldStyle!=3)){//水平角焊时不替换脚长1
                                     grooveTable.setProperty(num,"C1",(Number(frame[3])/10).toString())
                                 }
                                 if(appSettings.fixGap){
@@ -758,15 +789,17 @@ Material.ApplicationWindow{
                     }
                 }else if((frame[1]==="10")&&(sysStatus==="焊接态")){
                     //记录焊接时间（焊接长度）
-                    //发送握手信号
-                    //ERModbus.setmodbusFrame(["R","0","5"]);
                 }else  if((frame[1]==="200")&&((sysStatus==="焊接端部暂停态")||(sysStatus==="焊接中间暂停态"))){
                     if((frame[2]!==weldTableIndex.toString())&&(!weldFix)){
                         if(frame[2]!=="99"){
                             //当前焊道号与实际焊道号不符 更换当前焊道
-                            if(weldTable.count>0){
+                            if(weldTable.count>Number(frame[2])){
                                 changeWeldIndex(Number(frame[2]));
                                 weldTableIndex=Number(frame[2]);
+                            }else{
+                                //写入错误
+                                errorCode|=0x70000000;
+                                ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
                             }
                             weldFix=false;
                         }else{
@@ -776,12 +809,12 @@ Material.ApplicationWindow{
                         if((weldTableIndex<weldTable.count)&&(weldTableIndex>-1)){
                             //分离层/道
                             var floor=weldTable.get(weldTableIndex).C1.split("/");
-                            ERModbus.setmodbusFrame(["W","201","17",
+                            ERModbus.setmodbusFrame(["W","201","20",
                                                      (Number(floor[0])*100+Number(floor[1])).toString(),
                                                      weldTable.get(weldTableIndex).C2,
                                                      weldTable.get(weldTableIndex).C3*10,
                                                      weldTable.get(weldTableIndex).C4*10,
-                                                     weldTable.get(weldTableIndex).C5,
+                                                     weldTable.get(weldTableIndex).C5*10,
                                                      weldTable.get(weldTableIndex).C6*10,
                                                      weldTable.get(weldTableIndex).C7*10,
                                                      weldTable.get(weldTableIndex).C8*10,
@@ -792,12 +825,15 @@ Material.ApplicationWindow{
                                                                                                weldTable.get(weldTableIndex).C13*10,//单道面积
                                                                                                weldTable.get(weldTableIndex).C14*10,//起弧位置偏移
                                                                                                weldTable.get(weldTableIndex).C15*10,//起弧
-                                                                                               weldTable.get(weldTableIndex).C16*10,//起弧
-                                                                                               weldTable.count//总共焊道号
+                                                                                               weldTable.get(weldTableIndex).C16,//起弧
+                                                                                               weldTable.count,//总共焊道号
+                                                                                               weldTable.get(weldTableIndex).C17*10,//起弧位置偏移
+                                                                                               weldTable.get(weldTableIndex).C18*10,//起弧
+                                                                                               weldTable.get(weldTableIndex).C19//起弧
                                                     ]);
                         }else{
                             //发送全0数据
-                            ERModbus.setmodbusFrame((["W","201","17","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]));
+                            ERModbus.setmodbusFrame((["W","201","20","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]));
                         }
                         return;
                     }else if ((weldFix)&&(frame[2]!=="99")){
@@ -825,10 +861,10 @@ Material.ApplicationWindow{
         onWeldRulesChanged:{
             console.log(value)
             //确保数组数值正确
-            if((typeof(value)==="object")&&(value.length===18)&&(value[0]==="Successed")){
+            if((typeof(value)==="object")&&(value.length===21)&&(value[0]==="Successed")){
                 weldTable.set(Number(value[1])-1,{"ID":value[1], "C1":value[2],"C2":value[3],"C3":value[4],"C4":value[5],"C5":value[6],
                                   "C6":value[7],"C7":value[8],"C8":value[9],"C9":value[10],"C10":value[11],"C11":value[12],"C12":value[13],
-                                  "C13":value[14],"C14":value[15],"C15":value[16],"C16":value[17]})
+                                  "C13":value[14],"C14":value[15],"C15":value[16],"C16":value[17],"C17":value[18],"C18":value[19],"C19":value[20]})
             }else if(value[0]==="Clear"){
                 weldTableIndex=-1;
                 changeWeldIndex(-1);
@@ -853,7 +889,7 @@ Material.ApplicationWindow{
                 }
             }else{
                 //输出错误
-                snackBar.open(value)
+                snackBar.open(value[0])
                 //写入错误
                 errorCode|=0x40000000;
                 ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
@@ -1047,7 +1083,7 @@ Material.ApplicationWindow{
         }
     }
 
-    MotoDialog{id:moto;settings: appSettings}
+    MotoDialog{id:moto;settings: appSettings;errorCode: app.errorCode}
     /*日历*/
     Material.Dialog {
         id:datePickerDialog;
@@ -1099,16 +1135,16 @@ Material.ApplicationWindow{
             AppConfig.setdateTime(timeDialog);
         }
     }//计算错误报告
-    //显示math错误函数
-    function showMathError(text){
-        mathError.text=text;
-        mathError.open();
-    }
-    Material.Dialog{
-        id:mathError
-        title: qsTr("生成焊接规范异常");negativeButtonText:qsTr("取消");positiveButtonText: qsTr("确认");
-        negativeButton.visible: false;
-    }
+    //    //显示math错误函数
+    //    function showMathError(text){
+    //        mathError.text=text;
+    //        mathError.open();
+    //    }
+    //    Material.Dialog{
+    //        id:mathError
+    //        title: qsTr("生成焊接规范异常");negativeButtonText:qsTr("取消");positiveButtonText: qsTr("确认");
+    //        negativeButton.visible: false;
+    //    }
     /*背光调节*/
     Material.Dialog{
         id:backlight
@@ -1348,13 +1384,6 @@ Material.ApplicationWindow{
             }
         }
     }
-//    Connections{
-//        target: SQL
-//        onSqlSingalChanged:{
-//            console.log("SQL record is "+record);
-//        }
-//    }
-
     Component.onCompleted: {
         theme.accentColor=appSettings.accentColor
         theme.primaryColor=appSettings.primaryColor
@@ -1436,7 +1465,5 @@ Material.ApplicationWindow{
         //获取最近的坡口条件 包含名称
         res=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
         if(res!==-1){currentGrooveName=res}
-        SQL.setSqlCommand("SELECT * FROM "+grooveStyleName[currentGroove]+"列表")
-        SQL.setSqlCommand("SELECT * FROM "+app.weldRulesName.replace("焊接规范","限制条件"))
     }
 }

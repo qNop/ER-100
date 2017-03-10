@@ -37,6 +37,7 @@ MyConditionView{
 
     signal changeTeachModel(int model) //改变示教模式
     signal changeTeachPoint(int num) //改变示教点数
+    signal changeWeldLength(int num)//改变焊接长度
 
     onChangeGroup: {
         switch(selectedIndex){
@@ -71,7 +72,7 @@ MyConditionView{
             //示教点数
         case 3:frame.push("103");frame.push("1");frame.push(String(num));changeTeachPoint(num);break;
             //焊接长度
-        case 4:frame.push("104");frame.push("1");frame.push(String(num));break;
+        case 4:frame.push("104");frame.push("1");frame.push(String(num));changeWeldLength(num);break;
             //坡口检测点左
         case 5:frame.push("105");frame.push("1");frame.push(String(num));break;
             //坡口检测点右
@@ -94,9 +95,9 @@ MyConditionView{
     onKeyDec:{
         var num=Number(root.condition[selectedIndex]);
         switch(index){
-            //焊接长度
-        case 0:num-=1; if(num<0)num=0;break;
             //示教点数
+        case 0:num-=1; if(num<0)num=0;break;
+            //焊接长度
         case 1:if(flag)num-=10;else num-=1; if(num<0)num=0;break;
             //检测点左
         case 2:if(flag)num-=10;else num-=1; if(num<-1000)num=-1000;break;
@@ -111,9 +112,9 @@ MyConditionView{
     onKeyInc:{
         var num=Number(root.condition[selectedIndex]);
         switch(index){
-            //焊接长度
-        case 0:num+=1; if(num>30)num=30;break;
             //示教点数
+        case 0:num+=1; if(num>30)num=30;break;
+            //焊接长度
         case 1:if(flag)num+=10;else num+=1; if(num>10000)num=10000;break;
             //检测点左
         case 2:if(flag)num+=10;else num+=1; if(num>1000)num=1000;break;

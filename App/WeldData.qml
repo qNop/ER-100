@@ -34,7 +34,7 @@ TableCard{
         ListElement{name:"电      流  (A)    :";show:true;min:10;max:300;isNum:true;step:1}
         ListElement{name:"电      压  (V)    :";show:true;min:10;max:50;isNum:true;step:0.1}
         ListElement{name:"摆      幅(mm) :";show:true;min:0;max:1000;isNum:true;step:0.1}
-        ListElement{name:"摆速(cm/min) :";show:true;min:500;max:3000;isNum:true;step:10}
+        ListElement{name:"摆速(cm/min) :";show:true;min:50;max:300;isNum:true;step:1}
         ListElement{name:"焊速(cm/min) :";show:true;min:0;max:200;isNum:true;step:0.1}
         ListElement{name:"焊接线X(mm)  :";show:true;min:-100;max:100;isNum:true;step:0.1}
         ListElement{name:"焊接线Y(mm)  :";show:true;min:-10;max:100;isNum:true;step:0.1}
@@ -46,6 +46,9 @@ TableCard{
         ListElement{name:"起    弧   点   X :";show:true;min:-100;max:100;isNum:true;step:0.1}
         ListElement{name:"起    弧   点   Y :";show:true;min:-10;max:100;isNum:true;step:0.1}
         ListElement{name:"起    弧   点   Z :";show:true;min:-1000;max:1000;isNum:true;step:0.1}
+        ListElement{name:"收    弧   点   X :";show:true;min:-100;max:100;isNum:true;step:0.1}
+        ListElement{name:"收    弧   点   Y :";show:true;min:-10;max:100;isNum:true;step:0.1}
+        ListElement{name:"收    弧   点   Z :";show:true;min:-1000;max:1000;isNum:true;step:0.1}
     }
     onWeldTableExChanged: {
         weldCondtion.setProperty(6,"show",weldTableEx?true:false);
@@ -54,10 +57,13 @@ TableCard{
         weldCondtion.setProperty(15,"show",weldTableEx?true:false);
         weldCondtion.setProperty(16,"show",weldTableEx?true:false);
         weldCondtion.setProperty(17,"show",weldTableEx?true:false);
+        weldCondtion.setProperty(18,"show",weldTableEx?true:false);
+        weldCondtion.setProperty(19,"show",weldTableEx?true:false);
+        weldCondtion.setProperty(20,"show",weldTableEx?true:false);
     }
 
     ListModel{id:pasteModel;
-        ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:""}
+        ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:"";C17:"";C18:"";C19:""}
     }
 
     function getLastRulesName(){
@@ -120,7 +126,10 @@ TableCard{
                                                  model.get(i).C13,
                                                  model.get(i).C14,
                                                  model.get(i).C15,
-                                                 model.get(i).C16,])
+                                                 model.get(i).C16,
+                                                 model.get(i).C17,
+                                                 model.get(i).C18,
+                                                 model.get(i).C19])
                     }
                     message.open("焊接规范已保存。");}
                 else{
@@ -142,7 +151,12 @@ TableCard{
                 myTextFieldDialog.title="添加焊接规范";
                 myTextFieldDialog.show();}},
         Action{iconName:"awesome/edit";name:"编辑";onTriggered: {myTextFieldDialog.title="编辑焊接规范"
-                myTextFieldDialog.show()}
+                if(currentRow!==-1){
+                    myTextFieldDialog.show()
+                }else{
+                    message.open("请选择要编辑的行！")
+                }
+            }
         },
         Action{iconName:"awesome/copy";name:"复制";
             onTriggered: {
@@ -187,12 +201,12 @@ TableCard{
                 if(currentRow>-1){
                     var index= currentRow
                     var floor=model.get(index).C1.split("/");
-                    ERModbus.setmodbusFrame(["W","201","17",
+                    ERModbus.setmodbusFrame(["W","201","20",
                                              (Number(floor[0])*100+Number(floor[1])).toString(),
                                              model.get(index).C2,
                                              model.get(index).C3*10,
                                              model.get(index).C4*10,
-                                             model.get(index).C5,
+                                             model.get(index).C5*10,
                                              model.get(index).C6*10,
                                              model.get(index).C7*10,
                                              model.get(index).C8*10,
@@ -203,8 +217,11 @@ TableCard{
                                                                           model.get(index).C13*10,//单道面积
                                                                           model.get(index).C14*10,//起弧位置偏移
                                                                           model.get(index).C15*10,//起弧
-                                                                          model.get(index).C16*10,//起弧
-                                                                          table.rowCount//总共焊道号
+                                                                          model.get(index).C16,//起弧
+                                                                          table.rowCount,//总共焊道号
+                                             model.get(index).C17*10,//起弧位置偏移
+                                             model.get(index).C18*10,//起弧
+                                             model.get(index).C19//起弧
                                             ]);
                     message.open("已下发焊接规范。");
                 }else {
@@ -221,7 +238,7 @@ TableCard{
         Controls.TableViewColumn{role: "C2";title: "电流\n  A";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C3";title: "电压\n  V";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C4";title: " 摆幅\n  mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: weldTableEx},
-        Controls.TableViewColumn{role: "C5";title: "   摆速   \nmm/min";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: weldTableEx},
+        Controls.TableViewColumn{role: "C5";title: "   摆速   \ncm/min";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: weldTableEx},
         Controls.TableViewColumn{role: "C6";title: "焊接速度\n cm/min";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C7";title: "焊接线\n X mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C8";title: "焊接线\n Y mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
@@ -232,7 +249,10 @@ TableCard{
         Controls.TableViewColumn{role: "C13";title: "道面积";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
         Controls.TableViewColumn{role: "C14";title: "起弧x";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
         Controls.TableViewColumn{role: "C15";title: "起弧y";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
-        Controls.TableViewColumn{role: "C16";title: "起弧z";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx}
+        Controls.TableViewColumn{role: "C16";title: "起弧z";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
+        Controls.TableViewColumn{role: "C17";title: "起弧x";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
+        Controls.TableViewColumn{role: "C18";title: "起弧y";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
+        Controls.TableViewColumn{role: "C19";title: "起弧z";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx}
     ]
 
     Dialog{
@@ -347,7 +367,7 @@ TableCard{
             //在次列表插入新的数据
             UserData.insertTable(currentGrooveName+"次列表","(?,?,?,?,?,?,?,?)",[title+"焊接规范",title+"限制条件",title+"过程分析",title+"焊接曲线",time,user,time,user])
             //创建新的 焊接条件
-            UserData.createTable(title+"焊接规范","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT")
+            UserData.createTable(title+"焊接规范","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT,C17 TEXT,C18 TEXT,C19 TEXT")
             //创建新的 限制条件
             UserData.createTable(title+"限制条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT")
             //创建新的 曲线
@@ -401,7 +421,8 @@ TableCard{
             updateModel(myTextFieldDialog.title==="编辑焊接规范"?"Set":"Append",
                                                             {"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),
                                                                 "C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),"C12":getText(13),"C13":getText(14),
-                                                                "C14":getText(15),"C15":getText(16),"C16":getText(17)})
+                                                                "C14":getText(15),"C15":getText(16),"C16":getText(17),
+                                                                "C17":getText(18),"C18":getText(18),"C19":getText(19)})
         }
         onOpened: {
             if(title==="编辑焊接规范"){
@@ -429,6 +450,9 @@ TableCard{
                     openText(15,obj.C14);
                     openText(16,obj.C15);
                     openText(17,obj.C16);
+                    openText(18,obj.C17);
+                    openText(19,obj.C18);
+                    openText(20,obj.C19);
                     focusIndex=0;
                     changeFocus(focusIndex)
                 }
@@ -455,7 +479,7 @@ TableCard{
         title: qsTr("计算填充面积")
         negativeButtonText:qsTr("关闭")
         positiveButton.visible: false
-       // positiveButtonText:qsTr("计算")
+        // positiveButtonText:qsTr("计算")
         dismissOnTap:false
         property int current: 0
         property double weldSpeed: 0
@@ -508,10 +532,10 @@ TableCard{
                     }
                 }
             }
-           Rectangle{
-               width:1
-               height:parent.height-Units.dp(20)
-           }
+            Rectangle{
+                width:1
+                height:parent.height-Units.dp(20)
+            }
             Column{
                 width: Units.dp(100)
                 Repeater{
@@ -520,7 +544,7 @@ TableCard{
                     delegate: Row{
                         spacing: Units.dp(8)
                         Label{anchors.bottom: parent.bottom;text:modelData}
-                        Text{
+                        Label{
                             width: Units.dp(60)
                             text:index===0?weldArea.voltage:weldArea.area
                         }

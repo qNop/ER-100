@@ -73,6 +73,27 @@ void WeldMath::setConnectStyle(int value){
         sysMath.weldConnectName=value?"平对接":"T接头";
 }
 
+void WeldMath::setReturnWay(int value){
+    sysMath.returnWay=value;
+}
+
+void WeldMath::setStartArcZz(int value){
+    sysMath.startArcZz=value;
+}
+
+void WeldMath::setStartArcZx(int value){
+    sysMath.startArcZx=value;
+}
+
+void WeldMath::setStopArcZz(int value){
+    sysMath.stopArcZz=value;
+}
+
+void WeldMath::setStopArcZx(int value){
+    sysMath.stopArcZx=value;
+}
+
+
 int WeldMath::getFeedSpeed(int current){
     return  sysMath.getFeedSpeed(current);
 }

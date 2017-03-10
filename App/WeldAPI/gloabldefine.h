@@ -97,7 +97,7 @@
 #define GET_VERTICAL_TRAVERLSPEED(COEFFICIENT,WIRE_D,FEEDSPEED,S,FILL_COEFFICIENT,SWINGHZ,STAYTIME)   (COEFFICIENT*WIRE_D*FEEDSPEED*60)/(S*100*SWINGHZ*STAYTIME)/FILL_COEFFICIENT
 #define GET_VERTICAL_WELDFILL_AREA(COEFFICIENT,WIRE_D,FEEDSPEED,TRAVELSPEED,FILL_COEFFICIENT,SWINGHZ,STAYTIME)      (COEFFICIENT*WIRE_D*60*FEEDSPEED)/(TRAVELSPEED*SWINGHZ*STAYTIME*100)/FILL_COEFFICIENT
 
-//#define DEBUG_VERTICAL
+#define DEBUG_VERTICAL
 
 struct FloorCondition
 {       //电流
@@ -122,6 +122,8 @@ struct FloorCondition
     float swingLeftLength;
     //摆动距离坡口右侧距离
     float swingRightLength;
+    //摆动宽度
+    float swingLength;
     //最大摆动宽度
     float maxSwingLength;
     //分道摆动间隔 同一层 不同焊道之间间隔距离

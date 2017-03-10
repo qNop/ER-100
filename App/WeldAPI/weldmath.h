@@ -68,9 +68,19 @@ public slots:
     float getWeldVoltage(int current);
     //设置坡口
     void setGroove(int value);
+    //设置往返方式
+    void setReturnWay(int value);
+    //设置层间起弧偏移
+    void setStartArcZz(int value);
+    //设置层间收弧偏移
+    void setStopArcZz(int value);
+    //设置层外起弧偏移
+    void setStartArcZx(int value);
+    //设置层外收弧偏移
+    void setStopArcZx(int value);
     //根据电流获取送丝速度
     int getFeedSpeed(int current);
-     //根据电流电压行走速度获取道面积
+    //根据电流电压行走速度获取道面积
     float getWeldArea(int current,float weldSpeed,float k,float met);
     //求摆动距离
     float getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed);

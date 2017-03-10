@@ -34,7 +34,7 @@ MyConditionView{
     titleName: qsTr("焊接条件");
     condition: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     listName: ["焊丝伸出长度:","头部摇动方式:","焊丝种类:","机头放置侧:","焊丝直径:","保护气体:","焊接脉冲状态:","焊接往返动作:","电弧跟踪:","预期余高:","溶敷系数:","焊接电流偏置:","焊接电压偏置:","提前送气时间:","滞后送气时间","起弧停留时间:","收弧停留时间","起弧电流:","起弧电压:","收弧电流:","收弧电压:"
-        ,"收弧回退距离","收弧回退速度","收弧回退停留时间","回烧电压补偿","回烧时间补偿1","回烧时间补偿2"]
+        ,"层间起弧位置偏移" ,"层间收弧位置偏移" ,"层内起弧位置偏移" ,"层内起弧位置偏移","收弧回退距离","收弧回退速度","收弧回退停留时间","回烧电压补偿","回烧时间补偿1","回烧时间补偿2"]
     property var weldWireLengthModel:     ["15mm","20mm","25mm","30mm"];
     property var weldWireLengthEnable:    [true,true,true,true]
     property var swingWayModel:                ["无","左方","右方","左右"];
@@ -76,13 +76,17 @@ MyConditionView{
         "设定焊接起弧电压。",
         "设定焊接收弧电流。",
         "设定焊接收弧电压。",
+        "设定每层之间起弧坐标Z行走轴偏移量,焊接方向为正反之则为负。",
+        "设定每层之间收弧坐标Z行走轴偏移量,焊接方向为正反之则为负。",
+        "设定层内每层焊道之间起弧坐标Z行走轴偏移量,焊接方向为正反之则为负。",
+        "设定层内每层焊道之间收弧坐标Z行走轴偏移量,焊接方向为正反之则为负。",
         "设定焊接收弧回退距离。",
         "设定焊接收弧回退速度。",
         "设定焊接收弧回退停留时间。",
         "设定回烧时间中的输出电压微调整(和焊丝的上燃量有关)。",
         "设定回烧时间的微调整(和焊丝的上燃量有关)。",
         "设定回烧时间的微调整(和焊丝的上燃量有关)。"]
-    valueType: ["mm","%","A","V","S","S","S","S","A","V","A","V","mm","cm/min","S","","",""]
+    valueType: ["mm","%","A","V","S","S","S","S","A","V","A","V","mm","mm","mm","mm","mm","cm/min","S","","",""]
     //处理 数据
     onChangeGroup: {
         var str;
@@ -221,7 +225,9 @@ MyConditionView{
             WeldMath.setGas(num);
             break;
             //往返动作
-        case 7:frame.push("125");frame.push("1");frame.push(String(num ));break;
+        case 7:
+            WeldMath.setReturnWay(num);break;
+            //frame.push("125");frame.push("1");frame.push(String(num));break;
             //电源特性
         case 6:frame.push("119");frame.push("1");frame.push(String(num ));
             if(flag)
@@ -256,18 +262,26 @@ MyConditionView{
         case 19:frame.push("138");frame.push("1");frame.push(String(num));break;
             //收弧电压
         case 20:frame.push("139");frame.push("1");frame.push(String(num*10));break;
+            //层内起弧X位置偏移
+        case 21:WeldMath.setStartArcZz(num);break;
+            //层内收弧X位置偏移
+        case 22:WeldMath.setStopArcZz(num);break;
+            //层间起弧X位置偏移
+        case 23:WeldMath.setStartArcZx(num);break;
+            //层间收弧X位置偏移
+        case 24:WeldMath.setStopArcZx(num);break;
             //收弧回退距离
-        case 21:frame.push("303");frame.push("1");frame.push(String(num*10));break;
+        case 25:frame.push("303");frame.push("1");frame.push(String(num*10));break;
             //收弧回退速度
-        case 22:frame.push("304");frame.push("1");frame.push(String(num*10));break;
+        case 26:frame.push("304");frame.push("1");frame.push(String(num*10));break;
             //收弧回退时间
-        case 23:frame.push("305");frame.push("1");frame.push(String(num*10));break;
+        case 27:frame.push("305");frame.push("1");frame.push(String(num*10));break;
             //回烧电压补偿
-        case 24:frame.push("300");frame.push("1");frame.push(String(num));break;
+        case 28:frame.push("300");frame.push("1");frame.push(String(num));break;
             //回烧时间补偿1
-        case 25:frame.push("301");frame.push("1");frame.push(String(num));break;
+        case 29:frame.push("301");frame.push("1");frame.push(String(num));break;
             //回烧时间补偿2
-        case 26:frame.push("302");frame.push("1");frame.push(String(num));break;
+        case 30:frame.push("302");frame.push("1");frame.push(String(num));break;
         default:frame.length=0;break;
         }
         if(frame.length===4){
@@ -309,18 +323,26 @@ MyConditionView{
         case 10:num-=1; if(num<0)num=0;break;
             //收弧电压
         case 11:num-=0.1;num=num.toFixed(1); if(num<0)num=0;break;
-            //收弧回退距离
-        case 12:num-=1; if(num<0)num=0;break;
-            //收弧回退速度
-        case 13:num-=0.1;num=num.toFixed(1);if(num<0)num=0;break;
-            //收弧回退时间
-        case 14:num-=0.1;num=num.toFixed(1); if(num<0)num=0;break;
-            //回烧电压补偿
+            //层间起弧偏移
+        case 12:
+            //层间收弧偏移
+        case 13:
+            //层内起弧偏移
+        case 14:
+            //层内收弧偏移
         case 15:
+            //收弧回退距离
+        case 16:num-=1; if(num<0)num=0;break;
+            //收弧回退速度
+        case 17:num-=0.1;num=num.toFixed(1);if(num<0)num=0;break;
+            //收弧回退时间
+        case 18:num-=0.1;num=num.toFixed(1); if(num<0)num=0;break;
+            //回烧电压补偿
+        case 19:
             //回烧时间补偿
-        case 16:
+        case 20:
             //回烧时间补偿
-        case 17:num-=1; if(num<-50)num=-50;break;
+        case 21:num-=1; if(num<-50)num=-50;break;
         }
         if(index>=0){
             //变更显示但是不变更数据
@@ -354,18 +376,26 @@ MyConditionView{
         case 10:num+=1; if(num>300)num=300;break;
             //收弧电压
         case 11:num+=0.1;num=num.toFixed(1); if(num>30)num=30;break;
-            //收弧回退距离
-        case 12:num+=1; if(num>30)num=30;break;
-            //收弧回退速度
-        case 13:num+=0.1;num=num.toFixed(1);if(num>30)num=30;break;
-            //收弧回退时间
-        case 14:num+=0.1;num=num.toFixed(1);if(num>3)num=3;break;
-            //回烧电压补偿
+            //层间起弧偏移
+        case 12:
+            //层间收弧偏移
+        case 13:
+            //层内起弧偏移
+        case 14:
+            //层内收弧偏移
         case 15:
+            //收弧回退距离
+        case 16:num+=1; if(num>30)num=30;break;
+            //收弧回退速度
+        case 17:num+=0.1;num=num.toFixed(1);if(num>30)num=30;break;
+            //收弧回退时间
+        case 18:num+=0.1;num=num.toFixed(1);if(num>3)num=3;break;
+            //回烧电压补偿
+        case 19:
             //回烧时间补偿
-        case 16:
+        case 20:
             //回烧时间补偿
-        case 17:num+=1;if(num>50)num=50;break;
+        case 21:num+=1;if(num>50)num=50;break;
         }
         if(index>=0){
             //变更显示但是不变更数据

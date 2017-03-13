@@ -103,7 +103,7 @@ Item{
             }else{
                 message.open("该选项无效！")
             }
-        }else if((event.key===Qt.Key_VolumeDown)||(event.key===Qt.Key_VolumeUp)){
+        }else if((event.key===Qt.Key_VolumeDown)||(event.key===Qt.Key_VolumeUp)||(event.key===Qt.Key_Plus)||(event.key===Qt.Key_Minus)){
             if(selectedIndex>=(listValueName.length))
                 changeText(root.condition[selectedIndex],event.isAutoRepeat);
         }
@@ -144,6 +144,14 @@ Item{
         }else if(event.key===Qt.Key_VolumeUp){
             if(selectedIndex>=(listValueName.length)){
                 keyInc(selectedIndex-listValueName.length,event.isAutoRepeat)
+            }
+        }else if(event.key===Qt.Key_Plus){
+            if(selectedIndex>=(listValueName.length)){
+                keyInc(selectedIndex-listValueName.length,event.isAutoRepeat);
+            }
+        }else if(event.key===Qt.Key_Minus){
+            if(selectedIndex>=(listValueName.length)){
+                keyDec(selectedIndex-listValueName.length,event.isAutoRepeat)
             }
         }
         event.accpet=true;

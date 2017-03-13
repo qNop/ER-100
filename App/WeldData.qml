@@ -25,6 +25,7 @@ TableCard{
     //外部更新数据
     signal updateModel(string str,var data);
     signal updateWeldRulesName(string str);
+    signal changeWeldData();
 
     ListModel{
         id:weldCondtion
@@ -45,10 +46,10 @@ TableCard{
         ListElement{name:"道       面     积 :";show:true;min:1;max:10000;isNum:true;step:0.1}
         ListElement{name:"起    弧   点   X :";show:true;min:-100;max:100;isNum:true;step:0.1}
         ListElement{name:"起    弧   点   Y :";show:true;min:-10;max:100;isNum:true;step:0.1}
-        ListElement{name:"起    弧   点   Z :";show:true;min:-1000;max:1000;isNum:true;step:0.1}
+        ListElement{name:"起    弧   点   Z :";show:true;min:-30000;max:30000;isNum:true;step:0.1}
         ListElement{name:"收    弧   点   X :";show:true;min:-100;max:100;isNum:true;step:0.1}
         ListElement{name:"收    弧   点   Y :";show:true;min:-10;max:100;isNum:true;step:0.1}
-        ListElement{name:"收    弧   点   Z :";show:true;min:-1000;max:1000;isNum:true;step:0.1}
+        ListElement{name:"收    弧   点   Z :";show:true;min:-30000;max:30000;isNum:true;step:0.1}
     }
     onWeldTableExChanged: {
         weldCondtion.setProperty(6,"show",weldTableEx?true:false);
@@ -199,30 +200,7 @@ TableCard{
         Action{iconName:"awesome/send_o";name:"下发规范"
             onTriggered:{
                 if(currentRow>-1){
-                    var index= currentRow
-                    var floor=model.get(index).C1.split("/");
-                    ERModbus.setmodbusFrame(["W","201","20",
-                                             (Number(floor[0])*100+Number(floor[1])).toString(),
-                                             model.get(index).C2,
-                                             model.get(index).C3*10,
-                                             model.get(index).C4*10,
-                                             model.get(index).C5*10,
-                                             model.get(index).C6*10,
-                                             model.get(index).C7*10,
-                                             model.get(index).C8*10,
-                                             model.get(index).C9*10,
-                                             model.get(index).C10*10,
-                                             model.get(index).C11==="永久"?"0":model.get(index).C11,
-                                                                          model.get(index).C12*10,//层面积
-                                                                          model.get(index).C13*10,//单道面积
-                                                                          model.get(index).C14*10,//起弧位置偏移
-                                                                          model.get(index).C15*10,//起弧
-                                                                          model.get(index).C16,//起弧
-                                                                          table.rowCount,//总共焊道号
-                                             model.get(index).C17*10,//起弧位置偏移
-                                             model.get(index).C18*10,//起弧
-                                             model.get(index).C19//起弧
-                                            ]);
+                  changeWeldData();
                     message.open("已下发焊接规范。");
                 }else {
                     message.open("请选择下发焊接规范。")
@@ -250,9 +228,9 @@ TableCard{
         Controls.TableViewColumn{role: "C14";title: "起弧x";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
         Controls.TableViewColumn{role: "C15";title: "起弧y";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
         Controls.TableViewColumn{role: "C16";title: "起弧z";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
-        Controls.TableViewColumn{role: "C17";title: "起弧x";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
-        Controls.TableViewColumn{role: "C18";title: "起弧y";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
-        Controls.TableViewColumn{role: "C19";title: "起弧z";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx}
+        Controls.TableViewColumn{role: "C17";title: "收弧x";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
+        Controls.TableViewColumn{role: "C18";title: "收弧y";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
+        Controls.TableViewColumn{role: "C19";title: "收弧z";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx}
     ]
 
     Dialog{
@@ -422,7 +400,7 @@ TableCard{
                                                             {"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),
                                                                 "C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),"C12":getText(13),"C13":getText(14),
                                                                 "C14":getText(15),"C15":getText(16),"C16":getText(17),
-                                                                "C17":getText(18),"C18":getText(18),"C19":getText(19)})
+                                                                "C17":getText(18),"C18":getText(19),"C19":getText(20)})
         }
         onOpened: {
             if(title==="编辑焊接规范"){

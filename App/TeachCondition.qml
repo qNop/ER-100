@@ -38,6 +38,7 @@ MyConditionView{
     signal changeTeachModel(int model) //改变示教模式
     signal changeTeachPoint(int num) //改变示教点数
     signal changeWeldLength(int num)//改变焊接长度
+    signal changeFirstPointLeftOrRight(bool num)//改变示教点位置
 
     onChangeGroup: {
         switch(selectedIndex){
@@ -68,7 +69,7 @@ MyConditionView{
             //焊接始终端检测
         case 1:frame.push("101");frame.push("1");frame.push(String(num));break;
             // 示教第一点位置
-        case 2:frame.push("102");frame.push("1");frame.push(String(num));break;
+        case 2:frame.push("102");frame.push("1");frame.push(String(num));changeFirstPointLeftOrRight(num);break;
             //示教点数
         case 3:frame.push("103");frame.push("1");frame.push(String(num));changeTeachPoint(num);break;
             //焊接长度

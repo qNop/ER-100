@@ -455,8 +455,12 @@ TableCard{
             changeValue(fix.selectedIndex,true)
         }
         onOpened:{
-            for(var i=0;i<valueModel.length;i++)
-                fix.changeValue(i,valueBuf[i]);
+            valueBuf[0]=settings.fixHeight;
+            valueBuf[1]=settings.fixGap;
+            valueBuf[2]=settings.fixAngel;
+            fix.changeValue(0,settings.fixHeight);
+            fix.changeValue(1,settings.fixGap);
+            fix.changeValue(2,settings.fixAngel);
         }
         onAccepted: {
             settings.fixAngel=valueBuf[0];
@@ -468,13 +472,6 @@ TableCard{
             valueBuf[1]=settings.fixGap;
             valueBuf[2]=settings.fixAngel;
         }
-
-        Component.onCompleted: {
-            valueBuf[0]=settings.fixHeight;
-            valueBuf[1]=settings.fixGap;
-            valueBuf[2]=settings.fixAngel;
-        }
-
         dialogContent:Repeater{
             model:fix.valueModel
             delegate: ListItem.Subtitled{

@@ -74,7 +74,7 @@ Card{
         }
     ]
 
-    onActiveFocusChanged: {
+   /* onActiveFocusChanged: {
         if(activeFocus){
             __listview.forceActiveFocus();
             if((tableView.currentRow===-1)&&(tableView.rowCount)){
@@ -82,7 +82,7 @@ Card{
                 tableView.selection.select(0);
             }
         }
-    }
+    }*/
 
     Item{
         id:title

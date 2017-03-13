@@ -58,6 +58,7 @@ void ModbusThread::run(){
                 }
             }
         }else if(modbusCmd=="W"){
+            qDebug()<<"ModbusThread::Cmd "<<frame;
             for(i=0;i<modbusNum.toInt();i++){
                 data[i]=frame.at(3+i).toInt();
             }
@@ -70,7 +71,7 @@ void ModbusThread::run(){
         }
         modbusData.insert(0,modbus_strerror(errno));
         emit ModbusThreadSignal(modbusData);
-        qDebug()<<"ModbusThread::ANSWER "<<modbusData;
+       // qDebug()<<"ModbusThread::ANSWER "<<modbusData;
     }
 }
 

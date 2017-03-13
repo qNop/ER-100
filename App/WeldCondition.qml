@@ -34,7 +34,7 @@ MyConditionView{
     titleName: qsTr("焊接条件");
     condition: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     listName: ["焊丝伸出长度:","头部摇动方式:","焊丝种类:","机头放置侧:","焊丝直径:","保护气体:","焊接脉冲状态:","焊接往返动作:","电弧跟踪:","预期余高:","溶敷系数:","焊接电流偏置:","焊接电压偏置:","提前送气时间:","滞后送气时间","起弧停留时间:","收弧停留时间","起弧电流:","起弧电压:","收弧电流:","收弧电压:"
-        ,"层间起弧位置偏移" ,"层间收弧位置偏移" ,"层内起弧位置偏移" ,"层内起弧位置偏移","收弧回退距离","收弧回退速度","收弧回退停留时间","回烧电压补偿","回烧时间补偿1","回烧时间补偿2"]
+        ,"层间起弧位置偏移" ,"层间收弧位置偏移" ,"层内起弧位置偏移" ,"层内收弧位置偏移","收弧回退距离","收弧回退速度","收弧回退停留时间","回烧电压补偿","回烧时间补偿1","回烧时间补偿2"]
     property var weldWireLengthModel:     ["15mm","20mm","25mm","30mm"];
     property var weldWireLengthEnable:    [true,true,true,true]
     property var swingWayModel:                ["无","左方","右方","左右"];
@@ -332,7 +332,7 @@ MyConditionView{
             //层内收弧偏移
         case 15:
             //收弧回退距离
-        case 16:num-=1; if(num<0)num=0;break;
+        case 16:num-=1; if(num<-1000)num=1000;break;
             //收弧回退速度
         case 17:num-=0.1;num=num.toFixed(1);if(num<0)num=0;break;
             //收弧回退时间
@@ -385,7 +385,7 @@ MyConditionView{
             //层内收弧偏移
         case 15:
             //收弧回退距离
-        case 16:num+=1; if(num>30)num=30;break;
+        case 16:num+=1; if(num>1000)num=1000;break;
             //收弧回退速度
         case 17:num+=0.1;num=num.toFixed(1);if(num>30)num=30;break;
             //收弧回退时间

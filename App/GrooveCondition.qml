@@ -202,7 +202,7 @@ MyConditionView{
             if(flag)
                 settings.weldStyle=num
             WeldMath.setWeldStyle(num);
-            frame.push("88");frame.push("1");frame.push(String(num===2?0:num));break;
+            frame.push("88");frame.push("1");frame.push(String(num));break;
         case 1://坡口形式
             if(flag)
                 settings.grooveStyle=num
@@ -301,7 +301,7 @@ MyConditionView{
         console.log(objectName+condition)
         //获取currentGroove 初始化enable
         doNum(root.condition[0],false);
-        for(var i=2;i>0;i--){
+        for(var i=3;i>0;i--){
             selectedIndex=i;
             changeGroupCurrent(root.condition[i],false);
         }

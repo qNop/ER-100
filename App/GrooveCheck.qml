@@ -463,9 +463,9 @@ TableCard{
             fix.changeValue(2,settings.fixAngel);
         }
         onAccepted: {
-            settings.fixAngel=valueBuf[0];
+            settings.fixHeight=valueBuf[0];
             settings.fixGap=valueBuf[1];
-            settings.fixHeight=valueBuf[2];
+            settings.fixAngel=valueBuf[2];
         }
         onRejected: {
             valueBuf[0]=settings.fixHeight;
@@ -476,7 +476,7 @@ TableCard{
             model:fix.valueModel
             delegate: ListItem.Subtitled{
                 id:sub
-                property int subIndex: index
+                property int subIndex:index
                 text:modelData
                 height:Units.dp(32)
                 width: Units.dp(250)

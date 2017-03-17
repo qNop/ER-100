@@ -20,6 +20,8 @@ Item{
     }
     width:parent.width
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
+
+    property bool writeEnable: false
     //用户类别
     property bool superUser
     //作为数据的临时缓存数组 condition必须在加载后一次性赋值。
@@ -42,7 +44,6 @@ Item{
     property alias titleName:title.text
 
     property alias descriptionCardHeight: descriptionCard.height
-
     //负责选择
     signal changeSelectedIndex(int index)
     //负责处理 按键+触摸的 操作合并
@@ -93,6 +94,9 @@ Item{
         var left=Number(root.condition[selectedIndex]-1);
         var right=Number(root.condition[selectedIndex]+1);
         if(left<0) left=0;
+        if((writeEnable)&&(!event.isAutoRepeat)){//按键写使能打开且 不是连续触发则关闭写使能
+                writeEnable=false;
+        }
         if(selectedIndex<listValueNameEnable.length)
             if(right>=listValueNameEnable[selectedIndex].length) right=listValueNameEnable[selectedIndex].length-1;
         if((event.key===Qt.Key_Left)||(event.key===Qt.Key_Right)){
@@ -112,6 +116,7 @@ Item{
     Keys.onPressed: {
         var temp;
         var num=Number(root.condition[selectedIndex]);
+        writeEnable=true;
         if(event.key===Qt.Key_Down){
             if(selectedIndex<(listName.length-1)){
                 selectedIndex++;
@@ -154,6 +159,7 @@ Item{
                 keyDec(selectedIndex-listValueName.length,event.isAutoRepeat)
             }
         }
+
         event.accpet=true;
     }
     //滚屏
@@ -166,6 +172,8 @@ Item{
         case 14:flickable.contentY=Material.Units.dp(44)*14;break;
         case 20:flickable.contentY=Material.Units.dp(44)*14;break;
         case 21:flickable.contentY=Material.Units.dp(44)*21;break;
+        case 27:flickable.contentY=Material.Units.dp(44)*21;break;
+        case 28:flickable.contentY=Material.Units.dp(44)*28;break;
         }
     }
     Material.Card{

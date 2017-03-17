@@ -37,7 +37,7 @@ MyConditionView{
 
     signal changeTeachModel(int model) //改变示教模式
     signal changeTeachPoint(int num) //改变示教点数
-    signal changeWeldLength(int num)//改变焊接长度
+    signal changeWeldLength(double num)//改变焊接长度
     signal changeFirstPointLeftOrRight(bool num)//改变示教点位置
 
     onChangeGroup: {
@@ -63,6 +63,9 @@ MyConditionView{
         var frame=new Array(0);
         frame.push("W");
         var num=Number(root.condition[index]);
+        if(isNaN(num)){
+                num=0;
+        }
         switch(index){
             //示教模式
         case 0: frame.push("100");frame.push("1");frame.push(String(num));changeTeachModel(num);break;
@@ -95,6 +98,7 @@ MyConditionView{
     }
     onKeyDec:{
         var num=Number(root.condition[selectedIndex]);
+        if(isNaN(num)) num=0;
         switch(index){
             //示教点数
         case 0:num-=1; if(num<0)num=0;break;
@@ -112,6 +116,7 @@ MyConditionView{
     }
     onKeyInc:{
         var num=Number(root.condition[selectedIndex]);
+        if(isNaN(num)) num=0;
         switch(index){
             //示教点数
         case 0:num+=1; if(num>30)num=30;break;

@@ -144,7 +144,7 @@ Material.Dialog{
                     if(num) num=0;
                     else num=1;
                 else
-                    if(num<400)
+                    if(num<700)
                         num+=10;
                 moto.changeValue(num,moto.selectedIndex)
             }
@@ -168,7 +168,7 @@ Material.Dialog{
                     if(num) num=0;
                     else num=1;
                 else
-                    if(num<400)
+                    if(num<700)
                         num+=10;
                 moto.changeValue(num,moto.selectedIndex)
             }

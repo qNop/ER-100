@@ -93,7 +93,7 @@ TableCard{
                 if(typeof(currentGrooveName)==="string"){
                     //清除保存数据库
                     UserData.clearTable(currentGrooveName,"","");
-                    for(var i=0;i<table.rowCount;i++){
+                    for(var i=0;i<model.count;i++){
                         //插入新的数据
                         UserData.insertTable(currentGrooveName,"(?,?,?,?,?,?,?,?,?)",[
                                                  model.get(i).ID,
@@ -370,7 +370,7 @@ TableCard{
                 //初始化次列表
                 UserData.insertTable(name+"次列表","(?,?,?,?,?,?,?,?)",[name+"焊接规范",name+"限制条件",name+"过程分析",name+"焊接曲线",Time,user,Time,user])
                 //创建新的 焊接条件
-                UserData.createTable(name+"焊接规范","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT")
+                UserData.createTable(name+"焊接规范","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT,C17 TEXT,C18 TEXT,C19 TEXT")
                 //创建新的 限制条件
                 UserData.createTable(name+"限制条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT")
                 //创建新的 曲线

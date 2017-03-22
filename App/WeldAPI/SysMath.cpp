@@ -115,7 +115,10 @@ float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,fl
         if(gasValue){//MaG脉冲不能摆动太快了
             temp1=1200;
         }else{
-            temp1=pF->swingLength>10?WAVE_MAX_VERTICAL_SPEED-65*pF->swingLength+600:WAVE_MAX_VERTICAL_SPEED;
+            if((pF->name=="ceramicBackFloor")||(pF->name=="bottomFloor"))
+                temp1=WAVE_MIN_SPEED;
+            else
+                temp1=pF->swingLength>10?WAVE_MAX_VERTICAL_SPEED-65*pF->swingLength+600:WAVE_MAX_VERTICAL_SPEED;
         }
         if(pF->swingLength!=0){//不摆动 的情况算作特例
             temp=getSwingSpeed(pF->swingLength/2,pF->swingLeftStayTime,pF->swingRightStayTime,100,temp1,swingHz);
@@ -199,7 +202,11 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
         if(gasValue){//MaG脉冲不能摆动太快了
             temp=1200;
         }else{
-            temp=pF->swingLength>10?WAVE_MAX_VERTICAL_SPEED-65*pF->swingLength+600:WAVE_MAX_VERTICAL_SPEED;
+            //最大摆频1200  800   8之后 开始衰减 到 16 800  8 -》1200
+            // 1200=8*x+Y
+            // 800=16*x+Y  ->400=8X ->X=-50 ->Y=1600 最小600
+
+            temp=pF->swingLength>8?qMax(1600-65*pF->swingLength,float(500)):WAVE_MAX_VERTICAL_SPEED;
         }
     }else
         temp=getSwingSpeed(pF->swingLength/2,pF->swingLeftStayTime,pF->swingRightStayTime,*weldTravelSpeed,WAVE_MAX_SPEED,&swingHz);
@@ -343,8 +350,8 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     float *weldLineY=new float[weldNum];
     float *startWeldLineZ=new float[weldNum];
     float *stopWeldLineZ=new float[weldNum];
-   // float *tempX=new float[weldNum];
-  //  float *tempY=new float[weldNum];
+    // float *tempX=new float[weldNum];
+    //  float *tempY=new float[weldNum];
     //获取坐标点
     //getPoint(weldLineX,weldLineY,startArcX,startArcY,weldNum,pF);
     //重新计算 摆幅距离非坡口侧距离
@@ -439,23 +446,24 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         //停留时间前后以轨道为准
         temp1=!grooveDirValue?pF->swingRightStayTime:pF->swingLeftStayTime;
         temp2=!grooveDirValue?pF->swingLeftStayTime:pF->swingRightStayTime;
-         if(weldStyleName=="水平角焊"){
-              if(grooveDirValue){ //非坡口测将X值变负值
-                  temp =i;
-                  *(weldLineX+i)=-*(weldLineX+i);
-                  *(startArcX+i)=*(weldLineX+i);
-              }else    //坡口侧颠倒Y值
-                  temp=weldNum-i-1;
-         }else{
-             temp=i;
-         }
+        if(weldStyleName=="水平角焊"){
+            if(grooveDirValue){ //非坡口测将X值变负值
+                temp =i;
+                *(weldLineX+i)=-*(weldLineX+i);
+                *(startArcX+i)=*(weldLineX+i);
+            }else    //坡口侧颠倒Y值
+                temp=weldNum-i-1;
+        }else{
+            temp=i;
+        }
         //全部参数计算完成
         value.clear();
         value<<status<<QString::number(*currentWeldNum)<<QString::number(*currentFloor)+"/"+QString::number(i+1)<<QString::number(*(weldCurrent+i))
-            <<QString::number(*(weldVoltage+i))<<QString::number(((weldStyleName=="横焊")||(weldStyleName=="水平角焊"))?0:pF->swingLength/2)
-           <<QString::number(float(qRound(*(swingSpeed+i)*10))/10)<<QString::number(*(weldTravelSpeed+i)/10)
-          <<QString::number(*(weldLineX+temp))<<QString::number(*(weldLineY+temp))<<QString::number(temp1)<<QString::number(temp2)<<str
-         <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(*(weldFill+i)*10))/10)
+            <<QString::number(*(weldVoltage+i))
+           <<QString::number((((weldStyleName=="横焊")&&((pF->name!="bottomFloor")&&(pF->name!="ceramicBackFloor")))||(weldStyleName=="水平角焊"))?0:pF->swingLength/2)
+          <<QString::number(float(qRound(*(swingSpeed+i)*10))/10)<<QString::number(*(weldTravelSpeed+i)/10)
+         <<QString::number(*(weldLineX+temp))<<QString::number(*(weldLineY+temp))<<QString::number(temp1)<<QString::number(temp2)<<str
+        <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(*(weldFill+i)*10))/10)
         << QString::number(*(startArcX+temp))<<QString::number(*(startArcY+temp)) <<QString::number(*(startWeldLineZ+i))
         << QString::number(*(weldLineX+temp))<<QString::number(*(weldLineY+temp)) <<QString::number(*(stopWeldLineZ+i));
         emit weldRulesChanged(value);
@@ -707,11 +715,11 @@ float SysMath::getVoltage(int current){
             voltage=14+0.05*current+2;
     }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==4)&&(wireDValue==4)){
         //CO2 D 药芯 1.2  药芯电压作用不明显
-        if (current<=200){
+        if (current<200){
             voltage=14+0.05*current;
         }
         else
-            voltage=14+0.05*current;
+            voltage=14+0.05*current+2;
     }else {
         return -1;
     }

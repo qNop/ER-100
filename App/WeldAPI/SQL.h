@@ -30,7 +30,7 @@ public:
     ~SqlThread();
     QMutex* lockThread;
     QString function;
-       QSqlDatabase myDataBases;
+    QSqlDatabase myDataBases;
 signals:
     void sqlThreadSignal(QStringList record);
 };
@@ -53,6 +53,8 @@ public  slots:
 signals:
     //发送命令改变
     void sqlSignalChanged(QStringList record);
+
+
 };
 
 #endif // SQLITE3_H

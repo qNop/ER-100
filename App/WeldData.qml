@@ -82,7 +82,7 @@ TableCard{
     onStatusChanged: {
         if(status==="坡口检测完成态"){
             currentRow=0;
-            selectIndex(0)
+            selectIndex(0);
         }
     }
     function selectIndex(index){
@@ -110,7 +110,7 @@ TableCard{
                     UserData.clearTable(weldRulesName,"","");
                     for(var i=0;i<table.rowCount;i++){
                         //插入新的数据
-                        UserData.insertTable(weldRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[
+                        UserData.insertTable(weldRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[
                                                  model.get(i).ID,
                                                  model.get(i).C1,
                                                  model.get(i).C2,

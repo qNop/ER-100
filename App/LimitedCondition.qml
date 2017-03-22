@@ -188,7 +188,7 @@ TableCard {
                     //清空数据表格
                     UserData.clearTable(limitedRulesName,"C11",C11)
                     //数据表格重新插入数据
-                    for(var i=0;i<table.rowCount;i++){
+                    for(var i=0;i<limitedTable.count;i++){
                         var temp=limitedTable.get(i);
                         UserData.insertTable(limitedRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?)",[
                                                  temp.ID,temp.C1,temp.C2,temp.C3,temp.C4,
@@ -260,7 +260,7 @@ TableCard {
                           "C8":getText(12),
                           "C9":getText(13)+"/"+getText(14),
                           "C10":getText(15),
-                          "C11":num
+                          "C11":String(num)
                       });
         }
     }

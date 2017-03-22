@@ -125,7 +125,7 @@ Dialog{
                                         }else if(Number(text)>max){
                                             textField.text=String(max);
                                         }else
-                                             textField.text=text;
+                                            textField.text=text;
                                     }else
                                         textField.text=text;
                             }
@@ -139,18 +139,20 @@ Dialog{
                             }
                         }
                         onTextChanged: {
-                            var temp=Number(text);
-                            console.log("text"+text+"temp"+temp)
-                            if((!isNaN(temp))&&(text.length)){//判断是否是数字
-                                if(temp>root.max){
-                                    message.open("设置数值 "+temp+" 超过最大限制值 "+root.max+" !");
-                                }else if(temp<root.min){
-                                    message.open("设置数值 "+temp+" 小于最小限制值 "+root.min+" !");
+                            if(!root.isNum){
+                                var temp=Number(text);
+                                console.log("text"+text+"temp"+temp)
+                                if((!isNaN(temp))&&(text.length)){//判断是否是数字
+                                    if(temp>root.max){
+                                        message.open("设置数值 "+temp+" 超过最大限制值 "+root.max+" !");
+                                    }else if(temp<root.min){
+                                        message.open("设置数值 "+temp+" 小于最小限制值 "+root.min+" !");
+                                    }
+                                    lastText=text;
+                                }else if((text!=="-")&&(text!==".")&&(text.length)){
+                                    text=lastText;
+                                    message.open("请输入数字 !")
                                 }
-                                lastText=text;
-                            }else if((root.isNum)&&(text!=="-")&&(text!==".")&&(text.length)){
-                                text=lastText;
-                                message.open("请输入数字 !")
                             }
                         }
                         onActiveFocusChanged: {

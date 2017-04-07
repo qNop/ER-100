@@ -9,12 +9,16 @@ WeldMath::WeldMath()
     sysMath.rootFace=0;
 }
 
-void WeldMath::setReinforcement(int value){
+void WeldMath::setReinforcement(float value){
     sysMath.reinforcementValue=value;
 }
 
 void WeldMath::setMeltingCoefficient(int value){
     sysMath.meltingCoefficientValue=value;
+}
+
+void WeldMath::setRootFace(float value){
+    sysMath.rootFace=value;
 }
 
 void WeldMath::setWeldRules(QStringList value){

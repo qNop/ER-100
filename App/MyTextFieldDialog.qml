@@ -118,6 +118,10 @@ Dialog{
                         Connections{
                             target:root
                             onOpenText:{
+                                root.min=min;
+                                root.max=max;
+                                root.isNum=isNum;
+                                root.step=step;
                                 if(index===row.rowIndex)
                                     if(isNum){
                                         if(Number(text)<min){
@@ -139,7 +143,7 @@ Dialog{
                             }
                         }
                         onTextChanged: {
-                            if(!root.isNum){
+                            if(root.isNum){
                                 var temp=Number(text);
                                 console.log("text"+text+"temp"+temp)
                                 if((!isNaN(temp))&&(text.length)){//判断是否是数字

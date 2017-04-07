@@ -38,7 +38,7 @@ float *array(float *oldData,int num){
 float getFloorHeight(FloorCondition *pF,float leftAngel,float rightAngel,float hused,float sused,float *s,float rootFace,float rootGap){
     if(pF->name=="ceramicBackFloor"){
         //陶瓷衬垫 的面积计算
-        *s-=GET_CERAMICBACK_AREA(rootGap,1.5);
+        *s-=GET_CERAMICBACK_AREA(rootGap,1.6);
     }
     float grooveAngel1Tan=qTan(leftAngel*PI/180);
     float grooveAngel2Tan=qTan(rightAngel*PI/180);
@@ -54,7 +54,24 @@ float getFloorHeight(FloorCondition *pF,float leftAngel,float rightAngel,float h
  * @param y1
  * @param x2    目标区域内坐标
  * @param y2
+ *
+ * s =  os = oa + as = x cos(theta) + y sin(theta)   cos=a/c  sin=b/c tan=b/a  (a/b)*(a/c)=a2/bc (a2+b2)/bc
+    t =  ot = ay – ab = y cos(theta) – x sin(theta)
+    y=(s-xcos())/sin()
+    t= (s-xcos())cos()/sin()-xsin() =s/tan -x(cos()/tan()+sin())
+    s/tan-t=x(cos/tan+sin)
+    x=(s/tan-t)/(cos/tan+sin)=(s-t*tan)/(cos+sintan)
+    x=
  */
+void getXY(float angel,float *x1,float *y1,float x2,float y2){
+    *x1=x2*qCos(angel*PI/180)-y2*qSin(angel*PI/180);
+    *y1=x2*qSin(angel*PI/180)+y2*qCos(angel*PI/180);
+    *x1=float(qRound(10**x1))/10;
+    *y1=float(qRound(10**y1))/10;
+    qDebug()<<"angel"<<angel<<"x1"<<*x1<<"*y1"<<*y1<<"x2"<<x2<<"y2"<<y2;
+}
+
+
 void getXYPosition(float angel,float *x1,float *y1,float x2,float y2){
     //转换为角度
     if(y2==0){
@@ -145,7 +162,6 @@ float SysMath::getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,fl
     if(*weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
     else
         return 1;
-
 }
 
 int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,float *s,int count,int weldNum,int weldFloor,QString *status){
@@ -202,11 +218,10 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
         if(gasValue){//MaG脉冲不能摆动太快了
             temp=1200;
         }else{
-            //最大摆频1200  800   8之后 开始衰减 到 16 800  8 -》1200
-            // 1200=8*x+Y
-            // 800=16*x+Y  ->400=8X ->X=-50 ->Y=1600 最小600
-
-            temp=pF->swingLength>8?qMax(1600-65*pF->swingLength,float(500)):WAVE_MAX_VERTICAL_SPEED;
+            //最大摆频1200  900   8之后 开始衰减 到 20 900  8 -》1200
+            // 1300=8*x+Y
+            // 900=18*x+Y  ->400=10X ->X=-40 ->Y=1620 最小900
+            temp=pF->swingLength>8?qMax(1620-40*pF->swingLength,float(900)):WAVE_MAX_VERTICAL_SPEED;
         }
     }else
         temp=getSwingSpeed(pF->swingLength/2,pF->swingLeftStayTime,pF->swingRightStayTime,*weldTravelSpeed,WAVE_MAX_SPEED,&swingHz);
@@ -310,7 +325,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             //填充量过小允许调整层高 以最小填充量计算层高  或者加减电流
             *weldFill=pF->minFillMetal;
             pF->height=getFloorHeight(pF,grooveAngel1,grooveAngel2,*hused,*sused,weldFill,rootFace,rootGap);
-            if(pF->height>=10){
+            if(pF->height>=12){
                 status=str+"以最小填充量来计算层高，层高超过10mm。";
                 return -1;
             }else{
@@ -322,9 +337,9 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     //计算单道摆宽
     pF->swingLength=float(qRound(5*(swingLength-(weldNum-1)*pF->weldSwingSpacing)/weldNum))/5;
     //如果摆宽过小 小于丝径 此时会出问题  这个小与1.2应该放到最后 算坐标的时候
-    if((pF->swingLength<=(wireDValue==4?1.2:1.6))){
+    /*   if((pF->swingLength<=(wireDValue==4?1.2:1.6))){
         pF->swingLength=0;
-    }
+    }*/
     //层内每一道的电流
     int *weldCurrent=new int[weldNum];
     //层内每一道的电压
@@ -380,14 +395,16 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         else
             *(weldLineX+i)=float(qRound(10*((reSwingRightLength+pF->swingLength/2+(pF->swingLength+pF->weldSwingSpacing)*(i)-(*hused+tempHeight-rootFace)*grooveAngel2Tan)-rootGap/2)))/10;
         qDebug()<<"*(weldLineX+"<<i<<")"<<*(weldLineX+i);
-        //如果是陶瓷衬垫且为打底层
-        if(pF->name=="ceramicBackFloor"){
+        //如果是陶瓷衬垫且为打底层 横焊打底不进入
+        if((pF->name=="ceramicBackFloor")&&(weldStyleName!="横焊")){
             //如果在坡口侧
             if(!grooveDirValue){
                 //外为- 内侧为正
                 *(startArcX+i)=rootGap/2+(pF->height/2-rootFace)*grooveAngel1Tan;
+                //*(startArcX+i)=*(weldLineX+i)+(qMax(pF->height/2-rootFace,float(0)))*grooveAngel1Tan+pF->swingLength/2;
             }else{
                 *(startArcX+i)=0-rootGap/2-(pF->height/2-rootFace)*grooveAngel2Tan;
+                //*(startArcX+i)=*(weldLineX+i)+(qMax(pF->height/2-rootFace,float(0)))*grooveAngel1Tan+pF->swingLength/2;
             }
             *(startArcX+i)=float(qRound(10**(startArcX+i)))/10;
             *(startArcY+i)=*(weldLineY+i)+qMax(float(0),(pF->height/2-rootFace));
@@ -403,6 +420,11 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         }
         if(weldStyleName=="水平角焊"){//角焊翻转坐标系  尚未翻转
             getXYPosition(angel,startArcX+i,startArcY+i,*(weldLineX+i),*(weldLineY+i));
+            *(weldLineX+i)=*(startArcX+i);
+            *(weldLineY+i)=*(startArcY+i);
+        }else if(weldConnectName=="T接头"){
+            getXY(angel,startArcX+i,startArcY+i,grooveDirValue?*(weldLineX+i):-*(weldLineX+i),*(weldLineY+i));
+            *(startArcX+i)=grooveDirValue?*(startArcX+i):-*(startArcX+i);
             *(weldLineX+i)=*(startArcX+i);
             *(weldLineY+i)=*(startArcY+i);
         }
@@ -456,11 +478,15 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         }else{
             temp=i;
         }
-        //全部参数计算完成
+        //横焊
+        if(((weldStyleName=="横焊")&&((pF->name!="bottomFloor")&&(pF->name!="ceramicBackFloor")))||(weldStyleName=="水平角焊")||(pF->swingLength<3)){
+            pF->swingLength=0;
+        }
         value.clear();
+        //全部参数计算完成
         value<<status<<QString::number(*currentWeldNum)<<QString::number(*currentFloor)+"/"+QString::number(i+1)<<QString::number(*(weldCurrent+i))
             <<QString::number(*(weldVoltage+i))
-           <<QString::number((((weldStyleName=="横焊")&&((pF->name!="bottomFloor")&&(pF->name!="ceramicBackFloor")))||(weldStyleName=="水平角焊"))?0:pF->swingLength/2)
+           <<QString::number(pF->swingLength/2)
           <<QString::number(float(qRound(*(swingSpeed+i)*10))/10)<<QString::number(*(weldTravelSpeed+i)/10)
          <<QString::number(*(weldLineX+temp))<<QString::number(*(weldLineY+temp))<<QString::number(temp1)<<QString::number(temp2)<<str
         <<QString::number(float(qRound(s*10))/10)<<QString::number(float(qRound(*(weldFill+i)*10))/10)
@@ -584,12 +610,12 @@ int SysMath::weldMath(){
     if(getFillMetal(secondFloor)==-1) return -1;
     if(getFillMetal(fillFloor)==-1) return -1;
     if(getFillMetal(topFloor)==-1) return -1;
-    float lastReinforcementValue;
-    if(weldConnectName=="T接头"){
-        lastReinforcementValue=reinforcementValue;
-        reinforcementValue=0;
-        if(getFillMetal(overFloor)==-1) return -1;
-    }
+//    float lastReinforcementValue;
+//    if((weldConnectName=="T接头")&&(weldStyleName!="橫焊")){
+//        lastReinforcementValue=reinforcementValue;
+//        reinforcementValue=0;
+//        if(getFillMetal(overFloor)==-1) return -1;
+//    }
     bottomFloor->height=bottomFloor->maxHeight;
     if(getWeldFloor(bottomFloor,&hUsed,&sUsed,&weldLineYUesd,&floorNum,&currentWeldNum)==-1){
         return -1;
@@ -612,13 +638,13 @@ int SysMath::weldMath(){
             return -1;
         }
     }
-    if(weldConnectName=="T接头"){
-        qDebug()<<"overFloor->height"<<overFloor->maxHeight<<"hUsed"<<hUsed;
-        overFloor->height=overFloor->maxHeight+lastReinforcementValue;
-        if(getWeldFloor(overFloor,&hUsed,&sUsed,&weldLineYUesd,&floorNum,&currentWeldNum)==-1){
-            return -1;
-        }
-    }
+//    if((weldConnectName=="T接头")&&(weldStyleName!="横焊")){
+//        qDebug()<<"overFloor->height"<<overFloor->maxHeight<<"hUsed"<<hUsed;
+//        overFloor->height=overFloor->maxHeight+lastReinforcementValue;
+//        if(getWeldFloor(overFloor,&hUsed,&sUsed,&weldLineYUesd,&floorNum,&currentWeldNum)==-1){
+//            return -1;
+//        }
+//    }
     value.clear();
     value.append("Finish");
     emit weldRulesChanged(value);
@@ -715,11 +741,11 @@ float SysMath::getVoltage(int current){
             voltage=14+0.05*current+2;
     }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==4)&&(wireDValue==4)){
         //CO2 D 药芯 1.2  药芯电压作用不明显
-        if (current<200){
+        if ((current<200)){
             voltage=14+0.05*current;
         }
         else
-            voltage=14+0.05*current+2;
+            voltage=14+0.05*current+3;
     }else {
         return -1;
     }
@@ -767,25 +793,24 @@ int SysMath::getFeedSpeed(int current){
 
 //求解 道面积 存储到pFill开始的内存里
 void SysMath::solveA(float *pFill,FloorCondition *p,int num,float s){
-    int j;
-    for( j=0;j<num;j++){
+    for(int i=0;i<num;i++){
         if(num==1)
             *pFill=s;
-        else if(j<(num-1))
-            *(pFill+j)=s/(num-1+p->k);
-        else if(j==(num-1))
-            *(pFill+j)=*(pFill+j-1)*p->k;
+        else if(i<(num-1))
+            *(pFill+i)=s/(num-1+p->k);
+        else if(i==(num-1))
+            *(pFill+i)=*(pFill+i-1)*p->k;
     }
 }
 int SysMath::solveI(FloorCondition *pI, int num,int total){
     if(total==1){
         pI->current=pI->current_middle;
     }else if(num==0){
-        pI->current=pI->current_left;
+        pI->current=pI->current_right;
     }else if(num<(total-1)){
         pI->current=pI->current_middle;
     }else if(num==(total-1)){
-        pI->current=pI->current_right;
+        pI->current=pI->current_left;
     }else{
         status="电流选择num大于total！";
         return -1;
@@ -945,8 +970,33 @@ int SysMath::setGrooveRules(QStringList value){
             grooveHeight=value.at(0).toFloat();
             grooveHeightError=value.at(1).toFloat();
             rootGap=value.at(2).toFloat();
-            grooveAngel1=value.at(3).toFloat();
-            grooveAngel2=value.at(4).toFloat();
+            if(weldConnectName=="T接头"){
+                float a,b,c,c2,angel1,angel2,angela,angelc;
+                if(grooveDirValue)//非坡口侧
+                {angel1=value.at(4).toFloat();
+                    angel2=value.at(3).toFloat();
+                }else{ angel1=value.at(3).toFloat();
+                    angel2=value.at(4).toFloat();
+                }
+                angelc=angel1+angel2;
+                a=grooveHeight/qCos(angel1*PI/180);//坡口长度
+                b=grooveHeight/qCos(angel2*PI/180)+grooveHeightError; //立板高度+脚长
+                c2=a*a+b*b-2*a*b*qCos(angelc*PI/180);//夹角对应的边长平方;
+                c=qSqrt(c2);//夹角对应边长
+                angela=qAcos((b*b+c2-a*a)/(2*b*c))*180/PI;
+                angel=90-angel2-angela;
+                grooveHeight=b*qCos((angel2+angel)*PI/180);
+                if(grooveDirValue){
+                    grooveAngel2=angel1-angel;
+                    grooveAngel1=angel2+angel;
+                }else{
+                    grooveAngel1=angel1-angel;
+                    grooveAngel2=angel2+angel;
+                }
+            }else{
+                grooveAngel1=value.at(3).toFloat();
+                grooveAngel2=value.at(4).toFloat();
+            }
         }else{
             grooveHeight=value.at(0).toFloat();
             grooveHeightError=value.at(1).toFloat();

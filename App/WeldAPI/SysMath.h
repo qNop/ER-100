@@ -28,7 +28,7 @@ public:
     //角度转换
     float angel;
     //余高
-    int reinforcementValue;
+    float reinforcementValue;
     //溶敷系数 *100
     int meltingCoefficientValue;
     //打底层限制条件

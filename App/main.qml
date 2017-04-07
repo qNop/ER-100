@@ -190,13 +190,13 @@ Material.ApplicationWindow{
             if(count>0){
                 temp=Number(grooveTable.get(0).C8)
                 //找出最远端
-                if(count==1){//只有一点
+                if((count==1)||(!flag)){//只有一点
                     temp=app.weldLength;
                     console.log(objectName+" app.weldLength "+app.weldLength.toString())
                 }else{//多点
                     for(j=1;j<count;j++){
-                        if(temp<Number(grooveTable.get(j).C8))
-                            temp=Number(grooveTable.get(j).C8);
+                        if(temp<Math.abs(Number(grooveTable.get(j).C8)))
+                            temp=Math.abs(Number(grooveTable.get(j).C8));
                     }
                     temp=Math.round(temp);
                     changeWeldLength(temp);
@@ -1442,7 +1442,7 @@ Material.ApplicationWindow{
             }
         }
         changeuser.show();
-        //创建错误历史记录
+        //创建错误历史记录  历史错误记录这块儿要更改
         //Material.UserData.createTable("SysErrorHistroy","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT");
         res=Material.UserData.getTableJson("SysErrorHistroy")
         if(res!==-1){
@@ -1510,5 +1510,9 @@ Material.ApplicationWindow{
         //获取最近的坡口条件 包含名称
         res=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
         if(res!==-1){currentGrooveName=res}
+        var  te,te1;
+        te=10;
+        te1=-1;
+        console.log((te|te1<<16).toString(2),(te|te1<<16));
     }
 }

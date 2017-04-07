@@ -10,9 +10,9 @@ TableCard {
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "LimitedConditon"
 
-    ListModel{id:pasteModel;
+/*    ListModel{id:pasteModel;
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:""}
-    }
+    }*/
     property bool swingWidthOrWeldWidth
 
     property Item message
@@ -168,6 +168,7 @@ TableCard {
                 resArray.push("0")
             }
         }
+        console.log(objectName+"resArray.length"+resArray.length)
         return resArray;
     }
 
@@ -184,7 +185,7 @@ TableCard {
         },
         Action{iconName:"awesome/save";name:"保存";
             onTriggered: { if(typeof(limitedRulesName)==="string"){
-                    var C11=num;
+                    var C11=String(num);
                     //清空数据表格
                     UserData.clearTable(limitedRulesName,"C11",C11)
                     //数据表格重新插入数据
@@ -242,7 +243,7 @@ TableCard {
         message: root.message
         onOpened: {
             var res=limitedMath(currentRow,currentRow+1);
-            for(var i=0;i<repeaterModel.count;i++){
+            for(var i=0;i<res.length;i++){
                 openText(i,res[i])
             }
             focusIndex=0;

@@ -46,10 +46,10 @@ TableCard{
         ListElement{name:"道       面     积 :";show:true;min:1;max:10000;isNum:true;step:0.1}
         ListElement{name:"起    弧   点   X :";show:true;min:-100;max:100;isNum:true;step:0.1}
         ListElement{name:"起    弧   点   Y :";show:true;min:-10;max:100;isNum:true;step:0.1}
-        ListElement{name:"起    弧   点   Z :";show:true;min:-30000;max:30000;isNum:true;step:0.1}
+        ListElement{name:"起    弧   点   Z :";show:true;min:-30000;max:30000;isNum:true;step:1}
         ListElement{name:"收    弧   点   X :";show:true;min:-100;max:100;isNum:true;step:0.1}
         ListElement{name:"收    弧   点   Y :";show:true;min:-10;max:100;isNum:true;step:0.1}
-        ListElement{name:"收    弧   点   Z :";show:true;min:-30000;max:30000;isNum:true;step:0.1}
+        ListElement{name:"收    弧   点   Z :";show:true;min:-30000;max:30000;isNum:true;step:1}
     }
     onWeldTableExChanged: {
         weldCondtion.setProperty(6,"show",weldTableEx?true:false);

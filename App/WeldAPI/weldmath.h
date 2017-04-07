@@ -43,7 +43,7 @@ public slots:
     //设置链接方式
     void setConnectStyle(int value);
     //设置余高
-    void setReinforcement(int value);
+    void setReinforcement(float value);
     //溶敷系数
     void setMeltingCoefficient(int value);
     //model
@@ -78,6 +78,8 @@ public slots:
     void setStartArcZx(int value);
     //设置层外收弧偏移
     void setStopArcZx(int value);
+    //设置顿边
+    void setRootFace(float value);
     //根据电流获取送丝速度
     int getFeedSpeed(int current);
     //根据电流电压行走速度获取道面积

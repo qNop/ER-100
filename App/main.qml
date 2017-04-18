@@ -778,7 +778,7 @@ Material.ApplicationWindow{
                 //查询系统状态
                 if(frame[1]==="0"){
                     if((sysStatus==="坡口检测态")&&(grooveTableIndex<(app.teachPoint-1))){ //如果当前检测的坡口数据与实际的不符合时则不更新坡口状态
-                        console.log("Dont update sysStatus "+frame[2])
+                       // console.log("Dont update sysStatus "+frame[2])
                         if(frame[2]==="6"){
                             sysStatus=sysStatusList[6];
                         }
@@ -795,12 +795,12 @@ Material.ApplicationWindow{
                     MathError|=Number(frame[3]);
                     errorCode=MathError;
                 }else if((frame[1]==="150")&&(sysStatus==="坡口检测态")){
-                    console.log(frame);
+                    //console.log(frame);
                     //间隔跳示教点允许删除示教点操作尚未加入
                     if(frame[2]!=="0"){
                         var num=Number(frame[2])-1;
                         //如果当前选择行和 上传数据行不一至则更新数据
-                        console.log("grooveTableIndex "+app.grooveTableIndex+"num "+num)
+                        //console.log("grooveTableIndex "+app.grooveTableIndex+"num "+num)
                         if((num!==app.grooveTableIndex)&&(num>app.grooveTableIndex)){
                             if(teachModel===0){
                                 if(appSettings.weldStyle!==3){
@@ -814,6 +814,7 @@ Material.ApplicationWindow{
                                                            "C6":String((Number(frame[8])|(Number(frame[9])<<16))/10),
                                                            "C7":String(Number(frame[10])/10),
                                                            "C8":String(Number(frame[11])/10)})
+
                                 }else{//角焊需要设置脚长1 脚长2
                                     grooveTable.setProperty(num,"ID",frame[2])
                                     grooveTable.setProperty(num,"C3",(Number(frame[5])/10).toString()) //根部
@@ -838,6 +839,14 @@ Material.ApplicationWindow{
                             }
                             else{
                                 grooveTable.setProperty(num,"C3",(Number(frame[5])/10).toString())
+                            }
+                            //只有在T接头非水平角焊时更改脚长
+                                console.log("Enter IN.")
+                            if((appSettings.connectStyle===0)&&(appSettings.weldStyle!==3)){
+                                var tempNum=Number(grooveTable.get(num).C2);
+                                console.log("C2 IS "+tempNum);
+                                if((isNaN(tempNum))||(tempNum===0))//如果是非数或为0 则替换 成0.3倍板厚
+                                    grooveTable.setProperty(num,"C2",String(Math.round(Number(frame[3])*0.3)/10))
                             }
                             //对掉一下xz坐标 对比Z行走轴坐标转换 刘斌那边行走轴 往左走为负 往右走为正 即只需要调换往左走的坐标变为 正
                             var temp1=(Number(frame[8])|(Number(frame[9])<<16))/10;

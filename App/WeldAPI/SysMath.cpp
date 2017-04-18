@@ -173,22 +173,26 @@ int SysMath::getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,f
     if(temp==-1){*status=str+"焊接电流不能正常分配。";return -1;}
     else *weldCurrent=temp;
     if(getTravelSpeed(pF,str,weldCurrent,weldVoltage,weldFeedSpeed,swingSpeed,weldTravelSpeed,weldFill,status,&swingHz)==-1) return -1;
-    //保证焊接速度不大于最大焊接速度 否则减小电流
+    //保证焊接速度不大于最大焊接速度 否则减小电流 5A
     if(*weldTravelSpeed>pF->maxWeldSpeed){
         while(*weldTravelSpeed>pF->maxWeldSpeed){
-            *weldCurrent-=10;
+            *weldCurrent-=5;
             // if(tempCurrent-*weldCurrent>CURRENT_COUNT_DEC) {*status=str+"焊接电流相对预置"}
             //如果带脉冲焊接
             if(*weldCurrent<currentMin){*status=str+"焊接电流超过最小值。";return -1;}
             if(getTravelSpeed(pF,str,weldCurrent,weldVoltage,weldFeedSpeed,swingSpeed,weldTravelSpeed,weldFill,status,&swingHz)==-1) return -1;
         }
-        *weldTravelSpeed=qRound(*weldTravelSpeed);
-    }else if((*weldFill>pF->maxFillMetal)||(*weldTravelSpeed<pF->minWeldSpeed)){
-        *weldTravelSpeed=qCeil(*weldTravelSpeed);
-    }else{
-        *weldTravelSpeed=qRound(*weldTravelSpeed);
+    }else if(*weldTravelSpeed<pF->minWeldSpeed){//焊速小于最小速度加电流 5A
+        while(*weldTravelSpeed<pF->minWeldSpeed){
+            *weldCurrent+=5;
+            // if(tempCurrent-*weldCurrent>CURRENT_COUNT_DEC) {*status=str+"焊接电流相对预置"}
+            //如果带脉冲焊接
+            if(*weldCurrent>currentMax){*status=str+"焊接电流超过最大值。";return -1;}
+            if(getTravelSpeed(pF,str,weldCurrent,weldVoltage,weldFeedSpeed,swingSpeed,weldTravelSpeed,weldFill,status,&swingHz)==-1) return -1;
+        }
     }
     if(*weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
+    *weldTravelSpeed=qRound(*weldTravelSpeed);
 #ifdef DEBUG_VERTICAL
     //获取摆动速度 非立焊在这里获取摆动速度 因为摆速要受到 焊速制约。
     if(weldStyleName!="立焊"){
@@ -309,14 +313,13 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     //初始化数组
     solveA(weldFill,pF,weldNum,s);
     qDebug()<<"pF->maxFillMetal"<<pF->maxFillMetal<<"weldFill"<<*weldFill;
-    if(*weldFill>pF->maxFillMetal){
-        //是否考虑加减电流
+    if(*weldFill>pF->maxFillMetal*1.15){//填充量超过最大填充量的10% 才分道 不超过则不分 由下面速度的环节来调整电流
         weldNum+=1;
         //数组发生改变则 相应的也要发生改变 防止数组越界；
         weldFill=array(weldFill,weldNum);
         solveA(weldFill,pF,weldNum,s);
     }
-    if(*(weldFill+weldNum-1)<pF->minFillMetal){
+    if(*(weldFill+weldNum-1)<pF->minFillMetal*0.85){ //小于最小填充量的10%
         if(weldNum>1){
             weldNum-=1;
             weldFill=array(weldFill,weldNum);
@@ -336,6 +339,8 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     }
     //计算单道摆宽
     pF->swingLength=float(qRound(5*(swingLength-(weldNum-1)*pF->weldSwingSpacing)/weldNum))/5;
+    //打底摆宽最好不要超过 根部间隙
+    if((pF->swingLength>rootGap)&&((pF->name=="ceramicBackFloor")||(pF->name=="bottomFloor"))) pF->swingLength=rootGap;
     //如果摆宽过小 小于丝径 此时会出问题  这个小与1.2应该放到最后 算坐标的时候
     /*   if((pF->swingLength<=(wireDValue==4?1.2:1.6))){
         pF->swingLength=0;
@@ -427,6 +432,8 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             *(startArcX+i)=grooveDirValue?*(startArcX+i):-*(startArcX+i);
             *(weldLineX+i)=*(startArcX+i);
             *(weldLineY+i)=*(startArcY+i);
+            pF->swingLength*=qCos(angel*PI/180);
+            pF->swingLength=float(qRound(10*(pF->swingLength)))/10;
         }
         //        if((grooveStyleName=="单边V形坡口")&&(wireTypeValue)){ //提高干伸后同样也要缩枪 药芯有效  但是 单边V时最外侧不应该抬枪防止电流过小
         //            qDebug()<<"weldLineX"<<*(weldLineX+i);
@@ -610,13 +617,35 @@ int SysMath::weldMath(){
     if(getFillMetal(secondFloor)==-1) return -1;
     if(getFillMetal(fillFloor)==-1) return -1;
     if(getFillMetal(topFloor)==-1) return -1;
-//    float lastReinforcementValue;
-//    if((weldConnectName=="T接头")&&(weldStyleName!="橫焊")){
-//        lastReinforcementValue=reinforcementValue;
-//        reinforcementValue=0;
-//        if(getFillMetal(overFloor)==-1) return -1;
-//    }
+    //    float lastReinforcementValue;
+    //    if((weldConnectName=="T接头")&&(weldStyleName!="橫焊")){
+    //        lastReinforcementValue=reinforcementValue;
+    //        reinforcementValue=0;
+    //        if(getFillMetal(overFloor)==-1) return -1;
+    //    }
     bottomFloor->height=bottomFloor->maxHeight;
+    if(weldConnectName=="T接头"){ //初始化T接头
+
+        bottomFloor->swingLeftLength*=qAcos(angel*PI/180);
+        bottomFloor->swingRightLength*=qAcos(angel*PI/180);
+        bottomFloor->weldSwingSpacing*=qAcos(angel*PI/180);
+        bottomFloor->maxSwingLength*=qAcos(angel*PI/180);
+
+        secondFloor->swingLeftLength*=qAcos(angel*PI/180);
+        secondFloor->swingRightLength*=qAcos(angel*PI/180);
+        secondFloor->weldSwingSpacing*=qAcos(angel*PI/180);
+        secondFloor->maxSwingLength*=qAcos(angel*PI/180);
+
+        fillFloor->swingLeftLength*=qAcos(angel*PI/180);
+        fillFloor->swingRightLength*=qAcos(angel*PI/180);
+        fillFloor->weldSwingSpacing*=qAcos(angel*PI/180);
+        fillFloor->maxSwingLength*=qAcos(angel*PI/180);
+
+        topFloor->swingLeftLength*=qAcos(angel*PI/180);
+        topFloor->swingRightLength*=qAcos(angel*PI/180);
+        topFloor->weldSwingSpacing*=qAcos(angel*PI/180);
+        topFloor->maxSwingLength*=qAcos(angel*PI/180);
+    }
     if(getWeldFloor(bottomFloor,&hUsed,&sUsed,&weldLineYUesd,&floorNum,&currentWeldNum)==-1){
         return -1;
     }
@@ -638,13 +667,13 @@ int SysMath::weldMath(){
             return -1;
         }
     }
-//    if((weldConnectName=="T接头")&&(weldStyleName!="横焊")){
-//        qDebug()<<"overFloor->height"<<overFloor->maxHeight<<"hUsed"<<hUsed;
-//        overFloor->height=overFloor->maxHeight+lastReinforcementValue;
-//        if(getWeldFloor(overFloor,&hUsed,&sUsed,&weldLineYUesd,&floorNum,&currentWeldNum)==-1){
-//            return -1;
-//        }
-//    }
+    //    if((weldConnectName=="T接头")&&(weldStyleName!="横焊")){
+    //        qDebug()<<"overFloor->height"<<overFloor->maxHeight<<"hUsed"<<hUsed;
+    //        overFloor->height=overFloor->maxHeight+lastReinforcementValue;
+    //        if(getWeldFloor(overFloor,&hUsed,&sUsed,&weldLineYUesd,&floorNum,&currentWeldNum)==-1){
+    //            return -1;
+    //        }
+    //    }
     value.clear();
     value.append("Finish");
     emit weldRulesChanged(value);

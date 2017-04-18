@@ -9,6 +9,7 @@ ModbusThread::~ModbusThread(){
 
 void ModbusThread::run(){
     int res,i;
+     lockThread->lock();
     res=0;
     errno=0;
     if(ER_Modbus){
@@ -43,8 +44,11 @@ void ModbusThread::run(){
         }
         modbusData.insert(0,modbus_strerror(errno));
         emit ModbusThreadSignal(modbusData);
-        qDebug()<<"ModbusThread::ANSWER "<<modbusData;
+       // qDebug()<<"ModbusThread::ANSWER "<<modbusData;
+    }else{
+        qDebug()<<"*Modbus is not exist !";
     }
+    lockThread->unlock();
 }
 
 ERModbus::ERModbus(QObject *parent)
@@ -91,7 +95,7 @@ ERModbus::~ERModbus(){
 
 /*R REG NUM */
 void ERModbus::setmodbusFrame(QStringList frame){
-    qDebug()<<"ERModbus::setmodbusFrame"<<frame;
+    //qDebug()<<"ERModbus::setmodbusFrame"<<frame;
     ModbusThread *pModbusThread;
     pModbusThread =new ModbusThread();
     pModbusThread->lockThread= &lockThread;

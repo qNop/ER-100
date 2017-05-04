@@ -21,6 +21,14 @@ void WeldMath::setRootFace(float value){
     sysMath.rootFace=value;
 }
 
+void WeldMath::setStopInTime(int value){
+    sysMath.stopInTime=value;
+}
+
+void WeldMath::setStopOutTime(int value){
+    sysMath.stopOutTime=value;
+}
+
 void WeldMath::setWeldRules(QStringList value){
     emit weldRulesChanged(value);
 }

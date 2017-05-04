@@ -12,29 +12,22 @@ MyConditionView{
     id:root
     objectName: "WeldCondition"
 
-    signal changeNum(int value)
+    signal changeNum(string value)
 
     function makeNum(){
-        //保护气体
-        var num=root.condition[5];
-        num<<=1;
-        //电源特性
-        num|=root.condition[6];
-        num<<=3;
-        //焊丝种类
-        num|=root.condition[2]===0?0:4;
-        num<<=4;
-        //焊丝直径
-        num|=root.condition[4]===0?4:6;
-        //发射信号
-        changeNum(num)
-        return String(num)
+        //实芯碳钢/脉冲无/MAG/1.2
+        var str=root.condition[2]===0?"_实芯碳钢_":"_药芯碳钢_";
+        str+=root.condition[6]===0?"脉冲无_":"脉冲有_";
+        str+=root.condition[5]===0?"CO2_":"MAG_";
+        str+=root.condition[4]===0?"12":"16";
+        changeNum(str)
+        return str
     }
 
     titleName: qsTr("焊接条件");
     condition: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
     listName: ["焊丝伸出长度:","头部摇动方式:","焊丝种类:","机头放置侧:","焊丝直径:","保护气体:","焊接脉冲状态:","焊接往返动作:","电弧跟踪:","预期余高:","溶敷系数:","焊接电流偏置:","焊接电压偏置:","提前送气时间:","滞后送气时间","起弧停留时间:","收弧停留时间","起弧电流:","起弧电压:","收弧电流:","收弧电压:"
-        ,"层间起弧位置偏移" ,"层间收弧位置偏移" ,"层内起弧位置偏移" ,"层内收弧位置偏移","收弧回退距离","收弧回退速度","收弧回退停留时间","回烧电压补偿","回烧时间补偿1","回烧时间补偿2","顿边"]
+        ,"层间起弧位置偏移:" ,"层间收弧位置偏移:" ,"层内起弧位置偏移:" ,"层内收弧位置偏移:","收弧回退距离:","收弧回退速度:","收弧回退停留时间:","回烧电压补偿:","回烧时间补偿1:","回烧时间补偿2:","顿边:","层间停止时间:","层内停止时间:","陶瓷衬垫打底起弧停留时间:","陶瓷衬垫打底起弧摆动速度:"]
     property var weldWireLengthModel:     ["15mm","20mm","25mm","30mm"];
     property var weldWireLengthEnable:    [true,true,true,true]
     property var swingWayModel:                ["无","左方","右方","左右"];
@@ -86,8 +79,12 @@ MyConditionView{
         "设定回烧时间中的输出电压微调整(和焊丝的上燃量有关)。",
         "设定回烧时间的微调整(和焊丝的上燃量有关)。",
         "设定回烧时间的微调整(和焊丝的上燃量有关)。",
-        "设定顿边大小。"]
-    valueType: ["mm","%","A","V","S","S","S","S","A","V","A","V","mm","mm","mm","mm","mm","cm/min","S","","","","mm"]
+        "设定顿边大小。",
+        "设定每层之间焊接结束后停止焊接的时间(最长1小时)。",
+        "设定层内每层焊道之间焊接结束后停止焊接的时间(最长1小时)。",
+        "设定陶瓷衬垫打底起弧两端停留时间。",
+        "设定陶瓷衬垫打底起弧时摆动速度。"]
+    valueType: ["mm","%","A","V","S","S","S","S","A","V","A","V","mm","mm","mm","mm","mm","cm/min","S","","","","mm","S","S","S","cm/min"]
     //处理 数据
     onChangeGroup: {
         var str;
@@ -220,7 +217,7 @@ MyConditionView{
             WeldMath.setWireD(num===0?4:6);
             break;
             //保护气体
-        case 5:frame.push("124");frame.push("1");frame.push(String(num ));
+        case 5:frame.push("124");frame.push("1");frame.push(String(num));
             if(flag)
                 makeNum();
             WeldMath.setGas(num);
@@ -285,11 +282,32 @@ MyConditionView{
         case 30:frame.push("302");frame.push("1");frame.push(String(num));break;
             //顿边
         case 31:WeldMath.setRootFace(num);break;
+            //层内停止时间
+        case 32:WeldMath.setStopOutTime(num);break;
+            //层内停止时间
+        case 33:WeldMath.setStopInTime(num);break;
+            //设定起弧停留时间
+        case 34:frame.push("148");frame.push("1");frame.push(String(num*10));break;
+            //设定起弧摆动速度
+        case 35:frame.push("149");frame.push("1");frame.push(String(num*10));break;
         default:frame.length=0;break;
         }
         if(frame.length===4){
             //下发规范
             ERModbus.setmodbusFrame(frame)
+            if(index===1){//头部摇动
+                frame.length=0;
+                frame.push("W");
+                frame.push("130");
+                frame.push("2");
+                switch(num){
+                case 0:frame.push("0");frame.push("0");break;
+                case 1:frame.push("35");frame.push("0");break;
+                case 2:frame.push("0");frame.push("35");break;
+                case 3:frame.push("35");frame.push("35");break;
+                }
+                ERModbus.setmodbusFrame(frame);
+            }
         }
         if(flag){
             //存储数据
@@ -348,6 +366,14 @@ MyConditionView{
         case 21:num-=1; if(num<-50)num=-50;break;
             //顿边
         case 22:num-=0.1;num=num.toFixed(1);if(num<0) num=0;break;
+            //层间
+        case 23:
+            //层内
+        case 24:num-=flag?10:1;if(num<0) num=0;break;
+            //
+        case 25:num-=0.1;num=num.toFixed(1); if(num<0)num=0;break;
+            //层内
+        case 26:num-=1;if(num<0) num=0;break;
         }
         if(index>=0){
             //变更显示但是不变更数据
@@ -403,6 +429,14 @@ MyConditionView{
         case 21:num+=1;if(num>50)num=50;break;
             //顿边
         case 22:num+=0.1;num=num.toFixed(1);if(num>10)num=10;break;
+            //层间
+        case 23:
+            //层内
+        case 24:num+=flag?10:1;if(num>3600) num=3600;break;
+            //层间
+        case 25:num+=0.1;num=num.toFixed(1);if(num>3)num=3;break;
+            //层内
+        case 26:num+=1;if(num>200) num=200;break;
         }
         if(index>=0){
             //变更显示但是不变更数据

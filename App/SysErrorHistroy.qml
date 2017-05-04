@@ -18,7 +18,7 @@ TableCard {
 
     headerTitle:"系统错误历史信息"
     tableRowCount:7
-    footerText:"总计："+table.rowCount+"条错误信息"
+    footerText:"总计："+model.count+"条错误信息"
     table.__listView.interactive:status!=="焊接态"
     fileMenu: [
         Action{iconName:"awesome/calendar_plus_o";name:"新建"; enabled: false},

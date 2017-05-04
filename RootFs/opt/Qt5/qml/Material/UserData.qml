@@ -148,6 +148,23 @@ Object {
         dataBase.transaction( function(tx) {result = tx.executeSql(str); });
         return result;
     }
+    function getDataOrderByTime(tablename,func){
+        var result,str;
+        if(!dataBase) { if(openDatabase()===-1) return -1;}
+        str="SELECT * FROM "+tablename+" ORDER BY "+func+" DESC";
+        console.log(str)
+        if((typeof(tablename)==="string")&&(typeof(func)==="string")){
+            dataBase.transaction( function(tx) {result = tx.executeSql(str); });
+            var value=new Array(0);
+            for(var i=0;i<result.rows.length;i++){
+                value.push(result.rows.item(i));
+            }
+            console.log(value);
+            return value;
+        }else
+            return -1;
+    }
+
     /**
       *从数据库中获取 焊接规范列表
       */
@@ -158,7 +175,7 @@ Object {
         console.log(str)
         if((typeof(tablename)==="string")&&(typeof(func)==="string")){
             dataBase.transaction( function(tx) {result = tx.executeSql(str); });
-            var value=new Array();
+            var value=new Array(0);
             for(var i=0;i<result.rows.length;i++){
                 value.push(result.rows.item(i));
             }
@@ -198,13 +215,13 @@ Object {
         console.log(str)
         if(typeof(tablename)==="string"){
             dataBase.transaction( function(tx) {result = tx.executeSql(str); });
-            var value=new Array();
+            var value=new Array(0);
             /*遍寻所有数据转换成json格式*/
             for(var i=0;i<result.rows.length;i++){
                 //result.rows.item返回的就是json object不需要在弄
                 value.push(result.rows.item(i));
             }
-            console.log(value)
+            console.log("value"+value)
             return value;
         }else
             return -1;
@@ -248,23 +265,6 @@ Object {
             return -1;
     }
 
-    /*
-    *从数据表中获取最近的头条信息 以时间顺序排列
-    */
-    function getLastGrooveName(tablename,func){
-        var error,result;
-        if(!dataBase) { if(openDatabase()===-1) return -1;}
-        if((typeof(tablename)==="string")&&(typeof(func)==="string")){
-            dataBase.transaction( function(tx) {
-                result = tx.executeSql("SELECT * FROM "+tablename+" ORDER BY "+func+" DESC");
-            });
-            if(result.rows.length){
-                return result.rows.item(0).Groove;
-            }else
-                return -1;
-        }else
-            return -1;
-    }
     /*
           *根据输入参数 创建数据库 参数库不存在 则返回-1 成功返回1
           */
@@ -310,8 +310,11 @@ Object {
     function insertTable(tablename,func,data){
         if(!root.dataBase){ if(openDatabase()===-1) return -1;}
         var str="INSERT INTO "+tablename+" VALUES"+func;
-        console.log(str)
-        dataBase.transaction( function(tx) { tx.executeSql(str,data);});
+        console.log(str+data)
+        try{
+            dataBase.transaction( function(tx) { tx.executeSql(str,data);});
+        }
+        catch(e){return e}
     }
     /*
         * 重命名表格
@@ -775,18 +778,18 @@ Object {
                 //气体 CO2 脉冲无 焊丝实芯碳钢 直径1.2
                 //        0          0                    0             4              ID = 4
                 tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","4"]);
-                tx.executeSql(str,["打底层","140/140/140","0.5/0.5","3.5/5","1.2/1.2","20","20","1","0","80/250","1","4"]);
-                tx.executeSql(str,["第二层","150/150/150","0.6/0.6","4/5","1.2/1.2","16","2","0.95","0","80/250","1","4"]);
-                tx.executeSql(str,["填充层","150/150/150","0.5/0.5","3.5/5","1.2/1.2","16","2","0.95","0","80/250","1","4"]);
-                tx.executeSql(str,["盖面层","130/130/130","0.4/0.4","4/5","1.2/1.2","18","2","1","0","80/250","1","4"]);
+                tx.executeSql(str,["打底层","300/300/300","0/0","5/6.5","1/1","15","0","1","0","250/500","1","4"]);
+                tx.executeSql(str,["第二层","280/280/280","0/0","4.1/5.4","3/3","10","0","0.98","0","250/500","1","4"]);
+                tx.executeSql(str,["填充层","270/270/270","0/0","4/5.2","3/3","10","0","0.98","0","250/500","1","4"]);
+                tx.executeSql(str,["盖面层","260/260/260","0/0","4.5/5.1","3/3","10","0","0.98","0","250/500","1","4"]);
                 tx.executeSql(str,["立板余高层","","","","","","","","","","","4"]);
                 //气体 MAG 脉冲有 焊丝实芯碳钢 直径1.2
                 //        1          1                    0             4              ID = 4
-                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","388"]);
-                tx.executeSql(str,["打底层","140/140/140","0.5/0.5","3.5/5","1.2/1.2","20","20","1","0","80/250","1","388"]);
-                tx.executeSql(str,["第二层","150/150/150","0.6/0.6","4/5","1.2/1.2","16","2","0.95","0","80/250","1","388"]);
-                tx.executeSql(str,["填充层","150/150/150","0.5/0.5","3.5/5","1.2/1.2","16","2","0.95","0","80/250","1","388"]);
-                tx.executeSql(str,["盖面层","130/130/130","0.4/0.4","4/5","1.2/1.2","18","2","1","0","80/250","1","388"]);
+                tx.executeSql(str,["陶瓷衬垫","","","","","","","","","","","4"]);
+                tx.executeSql(str,["打底层","300/300/300","0/0","5/6.5","1/1","15","0","1","0","250/500","1","388"]);
+                tx.executeSql(str,["第二层","280/280/280","0/0","4.1/5.4","3/3","10","0","0.98","0","250/500","1","388"]);
+                tx.executeSql(str,["填充层","270/270/270","0/0","4/5.2","3/3","10","0","0.98","0","250/500","1","388"]);
+                tx.executeSql(str,["盖面层","260/260/260","0/0","4.5/5.1","3/3","10","0","0.98","0","250/500","1","388"]);
                 tx.executeSql(str,["立板余高层","","","","","","","","","","","388"]);
             }else{
                 console.log("Skip Create 水平角焊限制条件 Table .");}

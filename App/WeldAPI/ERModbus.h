@@ -52,6 +52,7 @@ private:
 public:
       QMutex lockThread;
        modbus_t *modbus;
+       int *modbus_Cmd_count;
     explicit ERModbus(QObject* parent = 0);
     ~ERModbus();
 public  slots:

@@ -26,7 +26,7 @@ Dialog{
     signal changeFocusIndex(int index)
 
     function getText(index){
-        return String(repeater.itemAt(index).text)
+        return String(index<repeater.count?repeater.itemAt(index).text:"0")
     }
 
     negativeButtonText:qsTr("取消")
@@ -139,23 +139,6 @@ Dialog{
                                         textField.forceActiveFocus();
                                     else
                                         root.changeFocus(keyStatus?index+1>repeater.model.count?0:index+1:index-1<0?0:index-1);
-                                }
-                            }
-                        }
-                        onTextChanged: {
-                            if(root.isNum){
-                                var temp=Number(text);
-                                console.log("text"+text+"temp"+temp)
-                                if((!isNaN(temp))&&(text.length)){//判断是否是数字
-                                    if(temp>root.max){
-                                        message.open("设置数值 "+temp+" 超过最大限制值 "+root.max+" !");
-                                    }else if(temp<root.min){
-                                        message.open("设置数值 "+temp+" 小于最小限制值 "+root.min+" !");
-                                    }
-                                    lastText=text;
-                                }else if((text!=="-")&&(text!==".")&&(text.length)){
-                                    text=lastText;
-                                    message.open("请输入数字 !")
                                 }
                             }
                         }

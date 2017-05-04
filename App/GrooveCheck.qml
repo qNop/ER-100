@@ -21,13 +21,15 @@ TableCard{
 
     property Item message
     property string helpText;
-    //坡口列表名称
-    property string grooveName
     //当前坡口名称
-    property string currentGrooveName
+    property string grooveName:""
+    //坡口条件列表
+    property string grooveNameList: ""
     property string status:"空闲态"
 
     property int teachModel
+
+    property bool saveAs: false
 
     ListModel{id:pasteModel
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"0";C7:"0";C8:"0"}
@@ -45,7 +47,6 @@ TableCard{
         grooveRules.setProperty(2,"name",currentGroove===8||currentGroove==0||currentGroove==3||currentGroove==5?"脚   长ι2(mm):":"板厚差e(mm):")
         grooveRules.setProperty(3,"show",currentGroove===8?false:true)
     }
-    signal changedCurrentGroove(string name)
     //外部更新数据
     signal updateModel(string str,var data);
 
@@ -56,73 +57,93 @@ TableCard{
             table.selection.clear();
             table.selection.select(index);
         }
-        else
-            message.open("索引超过条目上限或索引无效！")
     }
-    function update(){
-        console.log("UPDATE")
-        //清空坡口数据
-        updateModel("Clear",{});
-        //获取坡口数据
-        var res=UserData.getTableJson(currentGrooveName)
-        //插入数据到grooveTableInit
-        if(typeof(res)==="object"){
-            for(var i=0;i<res.length;i++){
-                if(res[i].ID!==null)
-                    updateModel("Append",res[i])
+
+    function getLastGrooveName(){
+        if((typeof(grooveNameList)==="string")&&(grooveNameList!=="")){
+            //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
+            var res =UserData.getDataOrderByTime(grooveNameList,"EditTime")
+            if((res!==-1)&&(typeof(res)==="object")){
+                return res[0].Name;
+            }else
+                return -1;
+        }
+        return -1;
+    }
+
+    function updateGrooveName(str){
+        if((typeof(str)==="string")&&(str!=="")){
+            //获取坡口数据
+            var res=UserData.getTableJson(str)
+            //插入数据到grooveTableInit
+            if(typeof(res)!==-1){
+                //清空坡口数据
+                updateModel("Clear",{});
+                for(var i=0;i<res.length;i++){
+                    if(res[i].ID!==null)
+                        updateModel("Append",res[i])
+                }
+                currentRow=0;
+                selectIndex(0);
+                grooveName=str;
+            }else{
+                message.open("坡口条件表格不存在或为空！");
             }
+        }else
+            message.open("坡口条件列表无数据！")
+    }
+
+    function save(){
+        if(typeof(grooveName)==="string"){
+            //清除保存数据库
+            UserData.clearTable(grooveName,"","");
+            for(var i=0;i<model.count;i++){
+                //插入新的数据
+                UserData.insertTable(grooveName,"(?,?,?,?,?,?,?,?,?)",[
+                                         model.get(i).ID,
+                                         model.get(i).C1,
+                                         model.get(i).C2,
+                                         model.get(i).C3,
+                                         model.get(i).C4,
+                                         model.get(i).C5,
+                                         model.get(i).C6,
+                                         model.get(i).C7,
+                                         model.get(i).C8])}
+            //更新数据库保存时间
+            UserData.setValueWanted(grooveNameList,"Name",grooveName,"EditTime",UserData.getSysTime())
+            //更新数据库保存
+            UserData.setValueWanted(grooveNameList,"Name",grooveName,"Editor",settings.currentUserName)
+            message.open("坡口条件已保存。");
+        }else{
+            message.open("坡口名称格式不是字符串！")
         }
     }
 
-    onCurrentGrooveNameChanged: {
-        if(currentGrooveName!==""){
-            update();
-        }
-    }
-    headerTitle: currentGrooveName+"坡口参数"
+    headerTitle: grooveName
     footerText:status==="坡口检测态"?"系统当前处于"+status.replace("态","状态。高压输出！"):"系统当前处于"+status.replace("态","状态。")
     tableRowCount:7
     fileMenu: [
         Action{iconName:"av/playlist_add";name:"新建";
-            onTriggered: {newFile.show()}},
-        //newFile.show();},
+            onTriggered: {saveAs=false;newFile.show()}},
         Action{iconName:"awesome/folder_open_o";name:"打开";
             onTriggered: open.show();},
         Action{iconName:"awesome/save";name:"保存";
-            onTriggered: {
-                if(typeof(currentGrooveName)==="string"){
-                    //清除保存数据库
-                    UserData.clearTable(currentGrooveName,"","");
-                    for(var i=0;i<model.count;i++){
-                        //插入新的数据
-                        UserData.insertTable(currentGrooveName,"(?,?,?,?,?,?,?,?,?)",[
-                                                 model.get(i).ID,
-                                                 model.get(i).C1,
-                                                 model.get(i).C2,
-                                                 model.get(i).C3,
-                                                 model.get(i).C4,
-                                                 model.get(i).C5,
-                                                 model.get(i).C6,
-                                                 model.get(i).C7,
-                                                 model.get(i).C8])}
-                    //更新数据库保存时间
-                    UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"EditTime",UserData.getSysTime())
-                    //更新数据库保存
-                    UserData.setValueWanted(grooveName+"列表","Groove",currentGrooveName,"Editor",settings.currentUserName)
-                    message.open("坡口参数已保存。");
-                }else{
-                    message.open("坡口名称格式不是字符串！")
-                }
-            }},
-        Action{iconName:"awesome/trash_o";name:"删除";enabled: grooveName===currentGrooveName?false:true
+            onTriggered: {save();}},
+        Action{iconName:"awesome/credit_card";name:"另存为";
+            onTriggered: {saveAs=true;newFile.show();
+                //备份数据 新建表格
+                //插入表格数据
+            }
+        },
+        Action{iconName:"awesome/trash_o";name:"删除";enabled: grooveNameList.replace("列表","")===grooveName?false:true
             onTriggered: remove.show();}
     ]
     editMenu:[
         Action{iconName:"awesome/calendar_plus_o";name:"添加";onTriggered:{
-                myTextFieldDialog.title="添加坡口参数";
+                myTextFieldDialog.title="添加坡口条件";
                 myTextFieldDialog.show();}},
         Action{iconName:"awesome/edit";name:"编辑";onTriggered:{
-                myTextFieldDialog.title="编辑坡口参数";
+                myTextFieldDialog.title="编辑坡口条件";
                 if(currentRow>=0){
                     myTextFieldDialog.show();
                 }else
@@ -161,8 +182,7 @@ TableCard{
                 message.open("已清空。");
             }}
     ]
-    inforMenu: [ Action{iconName: "awesome/sticky_note_o";  name:"移除";
-            onTriggered: {}}]
+    inforMenu: []
     funcMenu: [
         Action{iconName:"awesome/send_o";hoverAnimation:true;summary: "F4"; name:"生成规范";
             onTriggered:{
@@ -173,7 +193,7 @@ TableCard{
                 }
             }
         },
-        Action{iconName: "awesome/server";name:"参数补正";enabled:teachModel===1;
+        Action{iconName: "awesome/server";name:"条件补正";enabled:teachModel===1;
             onTriggered: {
                 fix.show()
             }
@@ -196,7 +216,7 @@ TableCard{
     ]
     Dialog{
         id:open
-        title:qsTr("打开坡口参数")
+        title:qsTr("打开坡口条件")
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
         property var grooveList:[""]
@@ -206,26 +226,26 @@ TableCard{
         property var editorList:[""]
         property string name
         onOpened:{//打开对话框加载model
-            var res=UserData.getListGrooveName(grooveName+"列表","EditTime")
-            if(typeof(res)==="object"){
-                grooveList.length=0;
-                creatTimeList.length=0;
-                creatorList.length=0;
-                editTimeList.length=0;
-                editorList.length=0;
-                var buf;
-                for(var i=0;i<res.length;i++){
-                    buf=res[i].split(",")
-                    grooveList[i]=buf[0];
-                    creatTimeList[i]=buf[1];
-                    creatorList[i]=buf[2];
-                    editTimeList[i]=buf[3];
-                    editorList[i]=buf[4];
+            grooveList.length=0;
+            creatTimeList.length=0;
+            creatorList.length=0;
+            editTimeList.length=0;
+            editorList.length=0;
+            if((typeof(grooveNameList)==="string")&&(grooveNameList!=="")){
+                var res=UserData.getDataOrderByTime(grooveNameList,"EditTime")
+                if((res!==-1)&&(typeof(res)==="object")){
+                    for(var i=0;i<res.length;i++){
+                        grooveList.push(res[i].Name.replace("坡口条件",""));
+                        creatTimeList.push(res[i].CreatTime);
+                        creatorList.push(res[i].Creator);
+                        editTimeList.push(res[i].EditTime);
+                        editorList.push(res[i].Editor);
+                    }
+                    menuField.model=grooveList
+                    menuField.selectedIndex=0;
+                    menuField.helperText="创建时间:"+creatTimeList[0]+"\n创建者:"+creatorList[0]+"\n修改时间:"+editTimeList[0]+"\n修改者:"+editorList[0];
+                    name=grooveList[0];
                 }
-                menuField.model=grooveList
-                menuField.selectedIndex=0;
-                menuField.helperText="创建时间:"+creatTimeList[0]+"\n创建者:"+creatorList[0]+"\n修改时间:"+editTimeList[0]+"\n修改者:"+editorList[0];
-                name=grooveList[0];
             }
         }
         dialogContent: MenuField{id:menuField
@@ -237,90 +257,62 @@ TableCard{
             }
         }
         onAccepted: {
-            if(typeof(open.name)==="string"){
-                //名称一样没有变化 则重新刷
-                if(open.name===currentGrooveName){
-                    root.update();
-                }else
-                    changedCurrentGroove(open.name);
+            if(typeof(open.name)==="string")
+            {
+                updateGrooveName(open.name.concat("坡口条件"))
             }
         }
         onRejected: {
-            open.name=currentGrooveName
+            open.name=grooveName.replace("焊接规范","")
         }
     }
     Dialog{
         id:remove
-        title: qsTr("删除坡口参数")
+        title: qsTr("删除坡口条件")
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
         onOpened:{
             //确保不是默认的坡口名称
-            positiveButtonEnabled=grooveName===currentGrooveName?false:true
+            positiveButtonEnabled=grooveNameList.replace("列表","")===grooveName?false:true
         }
         dialogContent:
             Item{
             width: Units.dp(300)
             height:Units.dp(48)
             Label{
-                text:"确认删除\n"+currentGrooveName+"坡口参数！"
+                text:"确认删除\n"+grooveName+"！"
                 style: "menu"
             }
         }
         onAccepted: {
             if(positiveButtonEnabled){
                 //搜寻最近列表 删除本次列表 更新 最近列表如model
-                message.open(qsTr("正在删除坡口参数表格！"));
-                //删除在总表里面的软链接
-                UserData.clearTable(grooveName+"列表","Groove",currentGrooveName)
-                //删除坡口参数表格
-                UserData.deleteTable(currentGrooveName);
-
-                //获取 次列表 内数据
-                var res=UserData.getTableJson(currentGrooveName+"次列表")
-                if((typeof(res)==="object")&&(res!==-1)){
-
-                    for(var i=0;i<res.length;i++){
-                        //删除焊接规范
-                        message.open(qsTr("正在删除"+currentGrooveName+"参数下"+res[i].Rules+"表格！"));
-                        UserData.deleteTable(res[i].Rules)
-                        //删除限制条件列表
-                        UserData.deleteTable(res[i].Limited)
-                        //删除曲线列表
-
-                        //删除过程分析列表
-                        UserData.deleteTable(res[i].Analyse)
-                    }
-                }
-                //删除次列表
-                UserData.deleteTable(currentGrooveName+"次列表")
-                //获取最新列表
-                var name=UserData.getLastGrooveName(grooveName+"列表","EditTime")
-                console.log("delete table name "+name)
-                if((typeof(name)==="string")&&(name!=="")){
-                    //更新新列表数据
-                    changedCurrentGroove(name);
-                }
-                message.open(qsTr("已删除坡口参数表格！"))
+                message.open(qsTr("正在删除坡口条件表格！"));
+                //删除在坡口条件列表链接
+                UserData.clearTable(grooveNameList,"Name",grooveName)
+                //删除坡口条件表格
+                UserData.deleteTable(grooveName);
+                //选择最新的表格替换
+                updateGrooveName(getLastGrooveName());
+                //提示
+                message.open(qsTr("已删除坡口条件表格！"))
             }
         }
     }
     Dialog{
         id:newFile
-        title: qsTr("新建坡口参数")
+        title: saveAs?qsTr("另存坡口条件"):qsTr("新建坡口条件")
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
         property var grooveList: [""]
         onOpened:{
-            newFileTextField.text=currentGrooveName;
-            newFileTextField.helperText="请输入新的坡口参数"
-            var res=UserData.getListGrooveName(grooveName+"列表","EditTime")
+            newFileTextField.text=grooveName.replace("坡口条件","");
+            newFileTextField.helperText="请输入新的坡口条件"
+            var res=UserData.getDataOrderByTime(grooveNameList,"EditTime")
             if(typeof(res)==="object"){
-                grooveList=[""];
-                var buf;
+                grooveList.length=0;
                 for(var i=0;i<res.length;i++){
-                    buf=res[i].split("+")
-                    grooveList[i]=buf[0];
+                    grooveList[i]=res[i].Name.replace("坡口条件","");
                 }
             }
         }
@@ -329,8 +321,8 @@ TableCard{
                 height:newFileTextField.actualHeight
                 TextField{
                     id:newFileTextField
-                    text:currentGrooveName
-                    helperText: "请输入新的坡口参数"//new Date().toLocaleString("yyMd hh:mm")
+                  //  text:grooveName.replace("坡口条件","")
+                    helperText: "请输入新的坡口条件"//new Date().toLocaleString("yyMd hh:mm")
                     width: Units.dp(300)
                     anchors.horizontalCenter: parent.horizontalCenter
                     onTextChanged: {
@@ -343,47 +335,41 @@ TableCard{
                         }
                         if(check){
                             newFile.positiveButtonEnabled=false;
-                            helperText="该坡口参数名称已存在！"
+                            helperText="该坡口条件名称已存在！"
                             hasError=true;
                         }else{
                             newFile.positiveButtonEnabled=true;
-                            helperText="坡口参数名称有效！"
+                            helperText="坡口条件名称有效！"
                             hasError=false
                         }
                     }
                 }
             }]
         onAccepted: {
-            //更新标题
-            var name = newFileTextField.text
-            if((name!==currentGrooveName)&&(typeof(name)==="string")){
-                var user=settings.currentUserName;
-                var Time=UserData.getSysTime();
-
-                message.open("正在创建坡口参数数据库！")
-                //插入新的list
-                UserData.insertTable(grooveName+"列表","(?,?,?,?,?,?,?,?,?)",[name+"示教条件",name+"焊接条件",name,name+"次列表",name+"错误检测",Time,user,Time,user])
-                //创建新的 坡口条件
-                UserData.createTable(name,"ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT")
-                //创建新的次列表
-                UserData.createTable(name+"次列表","Rules TEXT,Limited TEXT,Analyse TEXT,Line TEXT,CreatTime TEXT,Creator TEXT,EditTime TEXT,Editor TEXT")
-                //初始化次列表
-                UserData.insertTable(name+"次列表","(?,?,?,?,?,?,?,?)",[name+"焊接规范",name+"限制条件",name+"过程分析",name+"焊接曲线",Time,user,Time,user])
-                //创建新的 焊接条件
-                UserData.createTable(name+"焊接规范","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT,C17 TEXT,C18 TEXT,C19 TEXT")
-                //创建新的 限制条件
-                UserData.createTable(name+"限制条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT")
-                //创建新的 曲线
-
-                //创建新的过程分析列表
-                UserData.createTable(name+"过程分析","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT")
-                //更新名称
-                changedCurrentGroove(name);
-
-                message.open("已创建坡口参数数据库！")
-
+            if(positiveButtonEnabled){
+                //更新标题
+                var name = newFileTextField.text
+                if((name!==grooveName)&&(typeof(name)==="string")){
+                    var user=settings.currentUserName;
+                    var Time=UserData.getSysTime();
+                    message.open("正在创建坡口条件数据库！")
+                    //插入新的list
+                    UserData.insertTable(grooveNameList,"(?,?,?,?,?)",[name+"坡口条件",Time,user,Time,user])
+                    //创建新的 坡口条件
+                    UserData.createTable(name+"坡口条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT")
+                    if(saveAs){
+                        grooveName=name+"坡口条件";
+                        save();
+                    }else{
+                        updateGrooveName(name+"坡口条件")
+                    }
+                    message.open("已创建坡口条件数据库！")
+                }
             }
-        }}
+            newFileTextField.text=""
+        }
+        onRejected: newFileTextField.text=""
+    }
     MyTextFieldDialog{
         id:myTextFieldDialog
         sourceComponent:Image{
@@ -394,15 +380,15 @@ TableCard{
         message:root.message
         repeaterModel:grooveRules
         onAccepted: {
-            updateModel(myTextFieldDialog.title==="编辑坡口参数"?"Set":"Append",
+            updateModel(myTextFieldDialog.title==="编辑坡口条件"?"Set":"Append",
                                                             {"ID":getText(0),"C1":getText(1),"C2":getText(2),"C3":getText(3),"C4":getText(4),"C5":getText(5),
-                                                                "C6":myTextFieldDialog.title==="编辑坡口参数"?model.get(currentRow).C6:"0",
-                                                                                                         "C7":myTextFieldDialog.title==="编辑坡口参数"?model.get(currentRow).C7:"0",
-                                                                                                                                                  "C8":myTextFieldDialog.title==="编辑坡口参数"?model.get(currentRow).C8:"0",
+                                                                "C6":myTextFieldDialog.title==="编辑坡口条件"?model.get(currentRow).C6:"0",
+                                                                                                         "C7":myTextFieldDialog.title==="编辑坡口条件"?model.get(currentRow).C7:"0",
+                                                                                                                                                  "C8":myTextFieldDialog.title==="编辑坡口条件"?model.get(currentRow).C8:"0",
                                                             })
         }
         onOpened: {
-            if(title==="编辑坡口参数"){
+            if(title==="编辑坡口条件"){
                 if(currentRow>-1){
                     //复制数据到 editData
                     var index=currentRow
@@ -420,7 +406,8 @@ TableCard{
                     positiveButtonEnabled=false;
                 }
             }else{
-                for(var i=0;i<grooveRules.count;i++){
+                openText(0,String(model.count+1))
+                for(var i=1;i<grooveRules.count;i++){
                     openText(i,"0")
                 }
             }
@@ -428,7 +415,7 @@ TableCard{
     }
     Dialog{
         id:fix
-        title: qsTr("坡口参数补正")
+        title: qsTr("坡口条件补正")
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
         globalMouseAreaEnabled:false

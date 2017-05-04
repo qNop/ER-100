@@ -86,6 +86,9 @@ public:
     int stopArcZz;
     int stopArcZx;
 
+    int stopInTime; //层内停止时间
+    int stopOutTime; //层间停止时间
+
     float weldLength;
 
     //计算数据状态

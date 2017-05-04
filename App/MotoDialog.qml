@@ -11,6 +11,12 @@ Material.Dialog{
     property var send:[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
     property var okName: ["设定     ","解除     ","启动     ","打开     "]
     property var noName: ["未设定 ","异常     ","停止     ","关闭     "]
+
+    property string currentTravelPoint: "0"
+    property string currentAvcPoint: "0"
+    property string currentSwingPoint: "0"
+    property string currentRockPoint: "0度 0"
+
     property int selectedMoto: 0
     property int oldSelectedIndex: 0
     property int selectedIndex: 0
@@ -276,6 +282,19 @@ Material.Dialog{
                     spacing: Material.Units.dp(12)
                     Material.Label{id:lab;text: String(moto.send[moto.selectedMoto][4]/10)}
                     Material.Label{text:"cm/min"}
+                }
+            }
+            ListItem.Subtitled{
+                id:currentPoint
+                text:"当前位置:"
+                height: Material.Units.dp(32)
+                selected: 5===moto.selectedIndex
+                onPressed: moto.changeSelectedIndex(5)
+                secondaryItem:Row{
+                    anchors.verticalCenter: parent.verticalCenter
+                    spacing: Material.Units.dp(12)
+                    Material.Label{text:moto.selectedMoto===0?currentRockPoint:moto.selectedMoto===1?currentSwingPoint:moto.selectedMoto===2?currentAvcPoint:currentTravelPoint}
+                    Material.Label{text:"mm"}
                 }
             }
         }

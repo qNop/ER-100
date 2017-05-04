@@ -74,16 +74,6 @@ Card{
         }
     ]
 
-   /* onActiveFocusChanged: {
-        if(activeFocus){
-            __listview.forceActiveFocus();
-            if((tableView.currentRow===-1)&&(tableView.rowCount)){
-                tableView.currentRow=0;
-                tableView.selection.select(0);
-            }
-        }
-    }*/
-
     Item{
         id:title
         anchors{left:parent.left;right:parent.right;top:parent.top}
@@ -253,20 +243,24 @@ Card{
             event.accepted=true;
             break;
         case Qt.Key_Down:
+            tableView.forceActiveFocus();
             if(tableView.currentRow<(tableView.rowCount-1))
                 tableView.__incrementCurrentIndex();
             event.accept=true;
             break;
         case Qt.Key_Up:
+            tableView.forceActiveFocus();
             if(tableView.currentRow>0)
                 tableView.__decrementCurrentIndex();
             event.accept=true;
             break;
         case Qt.Key_Right:
+            tableView.forceActiveFocus();
             tableView.__horizontalScrollBar.value +=Units.dp(70);
             event.accept=true;
             break;
         case Qt.Key_Left:
+            tableView.forceActiveFocus();
             tableView.__horizontalScrollBar.value -=Units.dp(70);
             event.accept=true;
             break;

@@ -31,7 +31,7 @@ TableCard {
                 //清除保存数据库
                 UserData.clearTable("AccountTable","","");
                 //删除条目
-                for(var i=0;i<table.rowCount;i++){
+                for(var i=0;i<model.count;i++){
                     UserData.insertTable("AccountTable","(?,?,?,?,?,?,?)",[
                                              model.get(i).ID,
                                              model.get(i).C1,

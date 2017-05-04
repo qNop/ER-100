@@ -80,6 +80,10 @@ public slots:
     void setStopArcZx(int value);
     //设置顿边
     void setRootFace(float value);
+    //设置层间停止时间
+    void setStopInTime(int value);
+    //设置层外停止时间
+    void setStopOutTime(int value);
     //根据电流获取送丝速度
     int getFeedSpeed(int current);
     //根据电流电压行走速度获取道面积

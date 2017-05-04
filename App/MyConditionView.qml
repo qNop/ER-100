@@ -125,24 +125,7 @@ Item{
             if(selectedIndex>0){
                 selectedIndex--;
             }
-        }/*else if(event.key===Qt.Key_Left){
-            if((num>0)&&(selectedIndex<listValueName.length)){
-                if(listValueNameEnable[selectedIndex][num-1]){
-                    num-=1;
-                    console.log(objectName+"Keys.onPressed!")
-                    changeGroup(num,true);
-                }else
-                    message.open("该选项无效！")
-            }
-        }else if(event.key===Qt.Key_Right){
-            if((selectedIndex<listValueName.length)&&(num<(listValueName[selectedIndex].length-1))){
-                if(listValueNameEnable[selectedIndex][num+1]){
-                    num+=1;
-                    changeGroup(num,true);
-                }else
-                    message.open("该选项无效！")
-            }
-        }*/else if(event.key===Qt.Key_VolumeDown){
+        }else if(event.key===Qt.Key_VolumeDown){
             if(selectedIndex>=(listValueName.length)){
                 keyDec(selectedIndex-listValueName.length,event.isAutoRepeat);
             }
@@ -174,6 +157,8 @@ Item{
         case 21:flickable.contentY=Material.Units.dp(44)*21;break;
         case 27:flickable.contentY=Material.Units.dp(44)*21;break;
         case 28:flickable.contentY=Material.Units.dp(44)*28;break;
+        case 34:flickable.contentY=Material.Units.dp(44)*28;break;
+        case 35:flickable.contentY=Material.Units.dp(44)*34;break;
         }
     }
     Material.Card{

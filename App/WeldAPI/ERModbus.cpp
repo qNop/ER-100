@@ -11,20 +11,18 @@ void ModbusThread::run(){
     int res,i;
      lockThread->lock();
     res=0;
-    errno=0;
     if(ER_Modbus){
         //R读命令
         modbusCmd=frame.at(0);
         modbusReg=frame.at(1);
         modbusNum=frame.at(2);
         modbusData.clear();
-        //qDebug()<<"ModbusThread::Cmd "<<frame;
         if(modbusCmd=="R"){
             res= modbus_read_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
             if(res!=-1){
                 modbusData.append(modbusReg);
                 for(i=0;i<modbusNum.toInt();i++){
-                    if((modbusReg=="0")||((i==5)&&(modbusReg=="150")))//此处用来转换32位拆分错误
+                    if((modbusReg=="0")||((i==6)&&(modbusReg=="150"))||((i==0)&&(modbusReg=="1022")))//此处用来转换32位拆分错误
                         modbusData.append(QString::number(uint16_t(data[i])));
                     else
                         modbusData.append(QString::number(int16_t(data[i])));
@@ -44,7 +42,7 @@ void ModbusThread::run(){
         }
         modbusData.insert(0,modbus_strerror(errno));
         emit ModbusThreadSignal(modbusData);
-       // qDebug()<<"ModbusThread::ANSWER "<<modbusData;
+        qDebug()<<"ModbusThread::ANSWER "<<modbusData;
     }else{
         qDebug()<<"*Modbus is not exist !";
     }
@@ -103,5 +101,7 @@ void ERModbus::setmodbusFrame(QStringList frame){
     pModbusThread->ER_Modbus=modbus;
     /*连接 线程*/
     connect(pModbusThread,&ModbusThread::ModbusThreadSignal,this,&ERModbus::modbusFrameChanged);
+    //线程运行完毕自动删除
+    connect(pModbusThread,&ModbusThread::finished,pModbusThread,&QObject::deleteLater);
     pModbusThread->start();
 }

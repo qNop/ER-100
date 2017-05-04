@@ -22,7 +22,7 @@ Material.ApplicationWindow{
     //不需要解释
     property var grooveStyleName: [ "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接", "平焊V形坡口平对接","横焊单边V形坡口T接头",  "横焊单边V形坡口平对接", "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接","水平角焊"]
     property var preset:["GrooveCondition","TeachCondition","WeldCondition","GrooveCheck","LimitedConditon"]
-    property var presetName: ["坡口条件","示教条件","焊接条件","坡口参数","限制条件"]
+    property var presetName: ["坡口条件","示教条件","焊接条件","坡口条件","限制条件"]
     property var presetIcon: ["awesome/road","action/android","user/MAG","awesome/road","awesome/sliders"]
     property var analyse: ["WeldData"]//,"WeldAnalyse"]
     property var analyseName:["焊接参数"]//,"过程分析"]
@@ -54,8 +54,6 @@ Material.ApplicationWindow{
     property string currentGrooveName
     /*Modbus重载*/
     property bool modbusBusy:false;
-    /*系统信息采集标志*/
-    property bool sysInforFlag: true;
     /*系统状态*/
     property string sysStatus:"未登录态"
     /*系统状态集合*/
@@ -103,6 +101,8 @@ Material.ApplicationWindow{
     property bool readSet:false
 
     property bool conWrite: true
+
+    property int errorCount: 0
     /*account*/
     ListModel{id:accountmodel;}
     //错误列表
@@ -121,6 +121,10 @@ Material.ApplicationWindow{
     signal changeTeachSet(var value);
     //
     signal changeWeldLength(double value);
+    //生成焊接规范
+    signal changeWeldRules();
+    //自动保存生成的焊接规范
+    signal saveData();
     //Settings
     MySettings{id:appSettings}
     /*更新时间定时器*/
@@ -187,12 +191,13 @@ Material.ApplicationWindow{
                 array.push(grooveTable.get(grooveTableIndex).C6)
                 array.push(grooveTable.get(grooveTableIndex).C7)
             }
+           // array.push(grooveTable.get(grooveTableIndex).C8)
             if(count>0){
                 temp=Number(grooveTable.get(0).C8)
                 //找出最远端
                 if((count==1)||(!flag)){//只有一点
                     temp=app.weldLength;
-                    console.log(objectName+" app.weldLength "+app.weldLength.toString())
+                    console.log(objectName+"app.weldLength "+app.weldLength.toString())
                 }else{//多点
                     for(j=1;j<count;j++){
                         if(temp<Math.abs(Number(grooveTable.get(j).C8)))
@@ -200,6 +205,7 @@ Material.ApplicationWindow{
                     }
                     temp=Math.round(temp);
                     changeWeldLength(temp);
+                    console.log(objectName+"app.weldLength "+app.weldLength.toString())
                 }
                 array.push(String(temp))
             }
@@ -238,34 +244,6 @@ Material.ApplicationWindow{
                                                                   weldTable.get(index).C18*10,//起弧
                                                                   z2.toString()//起弧
                                 ]);
-    }
-    onCurrentGrooveChanged: {
-        console.log(objectName+" currentGroove "+currentGroove)
-        var res=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
-        //更新焊接规范名称
-        if((typeof(res)==="string")&&(res!=="")){
-            currentGrooveName=res;
-            //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
-            res =Material.UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
-            if((res!==-1)&&(typeof(res)==="object")){
-                //清除焊接规范表格
-                weldTable.clear();
-                weldRulesName=res[0].Rules;
-                //获取新的焊接规范表
-                res=Material.UserData.getTableJson(weldRulesName)
-                if((res!==-1)&&(typeof(res)==="object")){
-                    for(var i=0;i<res.length;i++){
-                        weldTable.append(res[i]);
-                    }
-                }else{
-                    snackBar.open("获取焊接规范表格错误！")
-                }
-            }else
-                snackBar.open("获取焊接规范名称错误！")
-
-        }else{
-            snackBar.open("获取坡口名称错误！")
-        }
     }
     /*初始化Tabpage*/
     initialPage: Material.TabbedPage {
@@ -316,8 +294,8 @@ Material.ApplicationWindow{
             //                onTriggered: {loadInterNet=!loadInterNet;AppConfig.setloadNet(loadInterNet);}
             //            },
             /*系统电源*/
-            Material.Action {iconName: "awesome/power_off";name: qsTr("关机")
-                onTriggered: {app.modbusBusy=false;app.sysInforFlag=false;Qt.quit();}
+            Material.Action {iconName: "awesome/power_off";name: qsTr("恢复出厂设置")
+                onTriggered: {app.modbusBusy=false;}//Qt.quit();}
             }
         ]
         backAction: navigationDrawer.action
@@ -407,15 +385,6 @@ Material.ApplicationWindow{
             Item{
                 anchors.fill: parent
                 //最后加载
-                GrooveCondition{
-                    id:grooveConditionPage
-                    settings: appSettings
-                    visible: page.selectedTab===0&&page0SelectedIndex===0
-                    message: snackBar
-                    onCurrentGrooveChanged:{
-                        app.currentGroove=currentGroove;
-                    }
-                }
                 TeachCondition{
                     id:teachConditionPage
                     message: snackBar
@@ -459,7 +428,6 @@ Material.ApplicationWindow{
                         }
                         onChangeWeldLength:{//改变焊接长度
                             teachConditionPage.selectedIndex=4;
-                            console.log(objectName+"changeText(value,true)");
                             teachConditionPage.changeText(value,false);
                         }
                     }
@@ -490,24 +458,23 @@ Material.ApplicationWindow{
                 GrooveCheck{
                     id:grooveCheckPage
                     visible: page.selectedTab===0&&page0SelectedIndex===3
-                    status: app.sysStatus
-                    message:snackBar
+                    status: app.sysStatus;message:snackBar
                     model:grooveTable
                     settings: appSettings
                     //状态为坡口检测态时不能更改 数据表
                     onStatusChanged: table.enabled=app.sysStatus!=="坡口检测态"?true:false
-                    currentGrooveName:app.currentGrooveName
-                    grooveName: app.grooveStyleName[currentGroove]
                     onCurrentRowChanged: app.grooveTableIndex=currentRow
                     currentGroove: app.currentGroove
-                    //改变坡口名称
-                    onChangedCurrentGroove: {
-                        app.currentGrooveName=name;
-                    }
                     //生成焊接规范
                     onGetWeldRules: {
-                        var temp1 =getGrooveAverage(false);
-                        console.log(temp1)
+                        //先切换界面
+                         page.selectedTab=1;
+                         app.page1SelectedIndex=0;
+                        //生成规范前先更新限制条件
+                        limitedConditionPage.setLimited();
+                        //计算坡口条件
+                        var temp1 =getGrooveAverage(app.sysStatus==="坡口检测完成态"?true:false);
+                        //计算焊接规范
                         WeldMath.setGrooveRules(temp1===-1?snackBar.open("坡口参数数据不存在！"):temp1);
                     }
                     //通过信号的方式交互Model数据而不影响到数据的绑定问题。
@@ -543,23 +510,57 @@ Material.ApplicationWindow{
                             }else
                                 snackBar.open("索引条目超过模型最大值！");
                         }
+                        onChangeWeldRules:{
+                            grooveCheckPage.getWeldRules();
+                        }
+                        onCurrentGrooveChanged:{
+                            grooveCheckPage.grooveNameList=app.grooveStyleName[app.currentGroove]+"坡口条件列表";
+                            grooveCheckPage.updateGrooveName(grooveCheckPage.getLastGrooveName());
+                        }
+                        onSaveData:{
+                            grooveCheckPage.save();
+                        }
                     }
                 }
                 LimitedCondition{
                     id:limitedConditionPage
                     settings: appSettings
                     visible: page.selectedTab===0&&(page0SelectedIndex===4)&&(app.superUser)
-                    limitedRulesName: app.weldRulesName.replace("焊接规范","限制条件")
+                    currentUserName: appSettings.currentUserName
                     message: snackBar
                     Connections{
                         target: weldConditionPage
-                        onChangeNum:{limitedConditionPage.num=value;}
+                        onChangeNum:{limitedConditionPage.limitedString=value;
+                            limitedConditionPage.limitedRulesNameList= app.grooveStyleName[app.currentGroove]+"限制条件列表"+limitedConditionPage.limitedString;
+                            limitedConditionPage.updateLimitedRulesName(limitedConditionPage.getLastRulesName());
+                        }
+                    }
+                    Connections{
+                        target: app
+                        onCurrentGrooveChanged:{
+                            if(limitedConditionPage.limitedString!==""){
+                                //更新焊接规范列表
+                                limitedConditionPage.limitedRulesNameList= app.grooveStyleName[app.currentGroove]+"限制条件列表"+limitedConditionPage.limitedString;
+                                //更新焊接规范
+                                limitedConditionPage.updateLimitedRulesName(limitedConditionPage.getLastRulesName());
+                            }
+                        }
+                    }
+                }
+                GrooveCondition{
+                    id:grooveConditionPage
+                    settings: appSettings
+                    visible: page.selectedTab===0&&page0SelectedIndex===0
+                    message: snackBar
+                    onCurrentGrooveChanged:{
+                        console.log(objectName+"onCurrentGrooveChanged")
+                        app.currentGroove=currentGroove;
                     }
                 }
             }
         }
         Material.Tab{
-            id:weldAnalyseTab
+            id:weldAnalyseTab   //自己更新自己的数据库
             title: qsTr("焊接分析(III)")
             iconName:"awesome/tasks"
             Item{
@@ -570,23 +571,8 @@ Material.ApplicationWindow{
                     status: app.sysStatus
                     message:snackBar
                     weldTableEx: app.superUser
-                    currentGrooveName: app.currentGrooveName
-                    weldRulesName: app.weldRulesName
                     currentUserName: appSettings.currentUserName
                     onChangeWeldData: app.sendWeldData();
-                    onUpdateWeldRulesName: {
-                        app.weldRulesName=str;
-                        weldTable.clear()
-                        var res=Material.UserData.getTableJson(str)
-                        if(res!==-1){
-                            for(var i=0;i<res.length;i++){
-                                if(res[i].ID!==null)
-                                    weldTable.append(res[i]);
-                            }
-                            currentRow=0;
-                            selectIndex(0);
-                        }
-                    }
                     onCurrentRowChanged: {
                         app.weldTableIndex=currentRow;
                     }
@@ -614,14 +600,29 @@ Material.ApplicationWindow{
                     //链接app的changeWeldIndex信号实现外部对数据模型索引的变更,优化绑定造成的影响
                     Connections{
                         target: app
-                        onChangeWeldIndex:{
+                        onChangeWeldIndex:{//改变索引
                             if(index<weldTable.count){
-                                console.log("weldDataPage.currentRow"+index)
                                 weldDataPage.currentRow=index;
                                 weldDataPage.selectIndex(index);
                             }else
                                 snackBar.open("索引条目超过模型最大值！");
                         }
+                        onCurrentGrooveChanged:{
+                            //更新焊接规范列表
+                            weldDataPage.weldRulesNameList=app.grooveStyleName[app.currentGroove]+"焊接规范列表";
+                            //更新焊接规范
+                            weldDataPage.updateWeldRulesName(weldDataPage.getLastRulesName());
+                        }
+                        onSaveData:{
+                            console.log(weldDataPage.objectName+"save");
+                            weldDataPage.save();
+                        }
+                    }
+                    Component.onCompleted: { //加载的时候 加载数据表格
+                        //更新焊接规范列表
+                        weldDataPage.weldRulesNameList=app.grooveStyleName[app.currentGroove]+"焊接规范列表";
+                        //更新焊接规范
+                        weldDataPage.updateWeldRulesName(weldDataPage.getLastRulesName());
                     }
                 }
             }
@@ -646,6 +647,7 @@ Material.ApplicationWindow{
                     visible: page.selectedTab===2&&page2SelectedIndex===1
                     status:sysStatus
                     onRemoveall:{
+                        errorCount=0;//清空
                         errorHistroy.clear();
                         //清楚数据表格
                         Material.UserData.clearTable("SysErrorHistroy","","");
@@ -703,6 +705,7 @@ Material.ApplicationWindow{
                     if(grooveTable.count>1)//删除多余点保留第一点
                         grooveTable.remove(1,grooveTable.count-1);
                     console.log(objectName+"grooveCheck teachPoint "+teachPoint.toString())
+                    grooveTable.setProperty(0,"ID","1");
                     for(var i=1;i<app.teachPoint;i++){
                         grooveTable.append(grooveTable.get(0))
                         grooveTable.setProperty(i,"ID",String(i+1));
@@ -720,7 +723,6 @@ Material.ApplicationWindow{
             app.page1SelectedIndex=0;
             changeWeldIndex(-1);
             weldTableIndex=-1;
-            //  weldTable.clear();
         }else if(sysStatus==="焊接态"){
             //启动焊接
             AppConfig.setleds("start");
@@ -778,7 +780,7 @@ Material.ApplicationWindow{
                 //查询系统状态
                 if(frame[1]==="0"){
                     if((sysStatus==="坡口检测态")&&(grooveTableIndex<(app.teachPoint-1))){ //如果当前检测的坡口数据与实际的不符合时则不更新坡口状态
-                       // console.log("Dont update sysStatus "+frame[2])
+                        // console.log("Dont update sysStatus "+frame[2])
                         if(frame[2]==="6"){
                             sysStatus=sysStatusList[6];
                         }
@@ -795,7 +797,7 @@ Material.ApplicationWindow{
                     MathError|=Number(frame[3]);
                     errorCode=MathError;
                 }else if((frame[1]==="150")&&(sysStatus==="坡口检测态")){
-                    //console.log(frame);
+                    console.log(frame);
                     //间隔跳示教点允许删除示教点操作尚未加入
                     if(frame[2]!=="0"){
                         var num=Number(frame[2])-1;
@@ -841,7 +843,7 @@ Material.ApplicationWindow{
                                 grooveTable.setProperty(num,"C3",(Number(frame[5])/10).toString())
                             }
                             //只有在T接头非水平角焊时更改脚长
-                                console.log("Enter IN.")
+                            console.log("Enter IN.")
                             if((appSettings.connectStyle===0)&&(appSettings.weldStyle!==3)){
                                 var tempNum=Number(grooveTable.get(num).C2);
                                 console.log("C2 IS "+tempNum);
@@ -859,8 +861,9 @@ Material.ApplicationWindow{
                 }else if((frame[1]==="104")&&(sysStatus=="坡口检测完成态")){
                     //如果坡口参数里面有数据 则进行计算数据
                     if(grooveTable.count!==0){
-                        var temp2 =getGrooveAverage(true);
-                        WeldMath.setGrooveRules(temp2===-1?snackBar.open("坡口参数数据不存在！"):temp2);
+                        changeWeldRules();//生成焊接规范
+                        // var temp2 =getGrooveAverage(true);
+                        // WeldMath.setGrooveRules(temp2===-1?snackBar.open("坡口参数数据不存在！"):temp2);
                     }
                 }else if((frame[1]==="10")&&(sysStatus==="焊接态")){
                     //记录焊接时间（焊接长度）
@@ -889,8 +892,7 @@ Material.ApplicationWindow{
                     }else if ((weldFix)&&(frame[2]!=="200")){
                         weldFix=false;
                     }
-                }
-                else if(frame[1]==="510"){
+                }else if(frame[1]==="510"){
                     if(!readTime){
                         //读取系统时间
                         ERModbus.setmodbusFrame(["R","510","6"])
@@ -901,6 +903,11 @@ Material.ApplicationWindow{
                     readTime=true;
                 }else if(frame[1]==="99"){//读取设置
                     changeTeachSet(frame.slice(2,8))
+                }else if(frame[1]==="1022"){
+                    moto.currentTravelPoint=String((Number(frame[2])|(Number(frame[3])<<16))/10);
+                    moto.currentSwingPoint=String(Number(frame[4])/10);
+                    moto.currentAvcPoint=String(Number(frame[5])/10);
+                    moto.currentRockPoint=String(Number(frame[6])/10)+"度 "+String(Number(frame[7])/10);
                 }
             }
         }
@@ -923,13 +930,15 @@ Material.ApplicationWindow{
                 snackBar.open("焊接规范已生成！")
                 // 切换状态为端部暂停
                 if(sysStatus==="坡口检测完成态"){
+                    //保存数据
+                    saveData();
                     //下发端部暂停态
                     ERModbus.setmodbusFrame(["W","0","1","5"]);
                 }
                 //选中焊接规范表格的第一行数据
                 if(weldTable.count){
-                    page.selectedTab=1;
-                    app.page1SelectedIndex=0;
+                   // page.selectedTab=1;
+                   // app.page1SelectedIndex=0;
                     changeWeldIndex(0);
                     //1目的是为了能够正常下发第一条规范。
                     weldTableIndex=1;
@@ -1021,36 +1030,43 @@ Material.ApplicationWindow{
     function errorMath(Start,Length,MathError,MathXor){
         //获取时间
         var errorTime=Material.UserData.getSysTime();
-        for(var i=Start;i<Length;i++){
-            //如果变化存在
-            if(MathXor&0x0001){
-                //错误存在
-                if(MathError&0x0001){
-                    //如果无错误存在则 移除无错误
-                    if(initialListModel.count){
-                        if(initialListModel.get(0).ID===0)
-                            initialListModel.remove(0,1);}
-                    initialListModel.insert(0,{"ID":Number(i+1),"C1":errorName[i],"C2":errorTime })
-                    console.log("C1",errorName[i])
-                    errorHistroy.insert(0,{"ID":String(errorHistroy.count+1),"C1":String(i+1),"C2":"发生","C4":errorName[i],"C3":appSettings.currentUserName,"C5": errorTime})
-                }else{
-                    for(var j=0;j<initialListModel.count;j++){
-                        //如果列表里面有则移除 解除错误
-                        if((i+1)===(initialListModel.get(j).ID)){
-                            initialListModel.remove(j,1);
-                            //向数据库中插入
-                            errorHistroy.insert(0,{"ID":String(errorHistroy.count+1),"C1":String(i+1),"C2":"解除","C4":errorName[i],"C3":appSettings.currentUserName,"C5": errorTime})
-                            if(errorTable.__listView.currentIndex>=initialListModel.count){
-                                errorTable.__listView.currentIndex=j;
-                                errorTable.selection.select(j);
+        if((Start===32)&&(MathXor&0x0001)){
+            //***********************************************************************钥开关打开或关闭
+        }else{
+            for(var i=Start;i<Length;i++){
+                //如果变化存在
+                if(MathXor&0x0001){
+                    errorCount++;//记录条目增加
+                    //错误存在
+                    if(MathError&0x0001){
+                        //如果无错误存在则 移除无错误
+                        if(initialListModel.count){
+                            if(initialListModel.get(0).ID===0)
+                                initialListModel.remove(0,1);}
+                        initialListModel.insert(0,{"ID":Number(i+1),"C1":errorName[i],"C2":errorTime })
+                        errorHistroy.insert(0,{"ID":String(errorCount),"C1":String(i+1),"C2":"发生","C4":errorName[i],"C3":appSettings.currentUserName,"C5": errorTime})
+                    }else{
+                        for(var j=0;j<initialListModel.count;j++){
+                            //如果列表里面有则移除 解除错误
+                            if((i+1)===(initialListModel.get(j).ID)){
+                                initialListModel.remove(j,1);
+                                //向数据库中插入
+                                errorHistroy.insert(0,{"ID":String(errorCount),"C1":String(i+1),"C2":"解除","C4":errorName[i],"C3":appSettings.currentUserName,"C5": errorTime})
+                                if(errorTable.__listView.currentIndex>=initialListModel.count){
+                                    errorTable.__listView.currentIndex=j;
+                                    errorTable.selection.select(j);
+                                }
                             }
                         }
                     }
+                    //插入数据表格
+                    Material.UserData.insertTable("SysErrorHistroy","(?,?,?,?,?,?)",[errorHistroy.get(0).ID,errorHistroy.get(0).C1,errorHistroy.get(0).C2,errorHistroy.get(0).C3,errorHistroy.get(0).C4,errorHistroy.get(0).C5])
+                    //数量不变 但是 ID号变大了
+                    errorHistroy.remove(400,errorHistroy.count-400);
                 }
-                Material.UserData.insertTable("SysErrorHistroy","(?,?,?,?,?,?)",[errorHistroy.get(0).ID,errorHistroy.get(0).C1,errorHistroy.get(0).C2,errorHistroy.get(0).C3,errorHistroy.get(0).C4,errorHistroy.get(0).C5])
+                MathXor>>=1;
+                MathError>>=1;
             }
-            MathXor>>=1;
-            MathError>>=1;
         }
     }
     onErrorCodeChanged: {
@@ -1131,7 +1147,11 @@ Material.ApplicationWindow{
         }
     }
 
-    MotoDialog{id:moto;settings: appSettings;errorCode: app.errorCode}
+    MotoDialog{id:moto;settings: appSettings;errorCode: app.errorCode
+        onChangeSelectedMoto: {
+            ERModbus.setmodbusFrame(["R","1022","6"]);  //获取各电机当前位置
+        }
+    }
     /*日历*/
     Material.Dialog {
         id:datePickerDialog;
@@ -1182,17 +1202,7 @@ Material.ApplicationWindow{
             ERModbus.setmodbusFrame(["W","510","6"].concat(timeDialog));
             AppConfig.setdateTime(timeDialog);
         }
-    }//计算错误报告
-    //    //显示math错误函数
-    //    function showMathError(text){
-    //        mathError.text=text;
-    //        mathError.open();
-    //    }
-    //    Material.Dialog{
-    //        id:mathError
-    //        title: qsTr("生成焊接规范异常");negativeButtonText:qsTr("取消");positiveButtonText: qsTr("确认");
-    //        negativeButton.visible: false;
-    //    }
+    }
     /*背光调节*/
     Material.Dialog{
         id:backlight
@@ -1455,73 +1465,101 @@ Material.ApplicationWindow{
         //Material.UserData.createTable("SysErrorHistroy","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT");
         res=Material.UserData.getTableJson("SysErrorHistroy")
         if(res!==-1){
-            for(i=res.length-1;i>=0;i--){
+           app.errorCount=res.length; //错误数目记录
+            for(i=res.length-1;i>=0;i--){  //只读取15条
                 errorHistroy.append(res[i])
-                if(res.length-i>50){
-                    break;
-                }
             }
         }
         var time=Material.UserData.getSysTime();
+     //   var weldCondition=Material.UserData.getValueFromFuncOfTable("WeldCondition","","");
+        //创建焊接条件
+   //     Material.UserData.createTable("焊接条件","NAME TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT,C17 TEXT,C18 TEXT,C19 TEXT,C20 TEXT,C21 TEXT,C22 TEXT,C23 TEXT,C24 TEXT,C25 TEXT,C26 TEXT,C27 TEXT,C28 TEXT,C29 TEXT,C30 TEXT,C31 TEXT,C32 TEXT,C33 TEXT,C34 TEXT,C35 TEXT,C36 TEXT")
         //创建9个表格
-        //for(i=0;i<9;i++){
-        //删除焊接规范列表
-        //      Material.UserData.deleteTable(grooveStyleName[i]+"焊接规范")
-        //重新创建该列表
-        //             Material.UserData.createTable(grooveStyleName[i]+"焊接规范","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT,C17 TEXT,C18 TEXT,C19 TEXT")
-        //   Material.UserData.insertTable("WeldCondition","(?,?)",[28+i,0])
+     /*  for(i=0;i<9;i++){
+            //初始化新的列表
+       //     Material.UserData.insertTable("焊接条件","(?,?,?,?,?)",[grooveStyleName[i]+"焊接条件",weldCondition[0],weldCondition[1],weldCondition[2],weldCondition[3],weldCondition[4],weldCondition[5],weldCondition[6],weldCondition[7],weldCondition[8],weldCondition[9],weldCondition[10],
+          //                                weldCondition[11],weldCondition[12],weldCondition[13],weldCondition[14],weldCondition[15],weldCondition[16],weldCondition[17],weldCondition[18],weldCondition[19],weldCondition[20],
+            //                              weldCondition[21],weldCondition[22],weldCondition[23],weldCondition[24],weldCondition[25],weldCondition[26],weldCondition[27],weldCondition[28],weldCondition[29],weldCondition[30],
+               //                           weldCondition[31],weldCondition[32],weldCondition[33],weldCondition[34],weldCondition[35],weldCondition[36]])
+            //删除列表
+            Material.UserData.deleteTable(grooveStyleName[i]+"列表")
+            //删除次列表
+            Material.UserData.deleteTable(grooveStyleName[i]+"次列表")
+            //创建坡口条件列表
+            Material.UserData.createTable(grooveStyleName[i]+"坡口条件列表","Name TEXT,CreatTime TEXT,Creator TEXT,EditTime TEXT,Editor TEXT");
+            //初始化新的列表
+            Material.UserData.insertTable(grooveStyleName[i]+"坡口条件列表","(?,?,?,?,?)",[grooveStyleName[i]+"坡口条件",time,"TKSW",time,"TKSW"])
+            //删除旧的坡口条件
+            Material.UserData.deleteTable(grooveStyleName[i])
+            //创建新的坡口条件
+            Material.UserData.createTable(grooveStyleName[i]+"坡口条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT");
+            //创建焊接规范列表
+            Material.UserData.createTable(grooveStyleName[i]+"焊接规范列表","Name TEXT,CreatTime TEXT,Creator TEXT,EditTime TEXT,Editor TEXT");
+            //初始化新的列表
+            Material.UserData.insertTable(grooveStyleName[i]+"焊接规范列表","(?,?,?,?,?)",[grooveStyleName[i]+"焊接规范",time,"TKSW",time,"TKSW"])
+            //限制条件相关动作
+            //创建焊接规范列表
+            Material.UserData.createTable(grooveStyleName[i]+"限制条件列表_药芯碳钢_脉冲无_CO2_12","Name TEXT,CreatTime TEXT,Creator TEXT,EditTime TEXT,Editor TEXT");
+            //初始化新的列表
+            Material.UserData.insertTable(grooveStyleName[i]+"限制条件列表_药芯碳钢_脉冲无_CO2_12","(?,?,?,?,?)",[grooveStyleName[i]+"限制条件_药芯碳钢_脉冲无_CO2_12",time,"TKSW",time,"TKSW"])
+            //创建坡口限制条件
+            Material.UserData.createTable(grooveStyleName[i]+"限制条件_药芯碳钢_脉冲无_CO2_12","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT")
+            //获取原坡口限制条件
+            res=Material.UserData.getLimitedTableJson(grooveStyleName[i]+"限制条件",68)
+            for(var j=0;j<res.length;j++){
+                //初始化新的列表
+                Material.UserData.insertTable(grooveStyleName[i]+"限制条件_药芯碳钢_脉冲无_CO2_12","(?,?,?,?,?,?,?,?,?,?,?,?)",
+                                              [res[j].ID,res[j].C1,res[j].C2,res[j].C3,res[j].C4,res[j].C5,res[j].C6,res[j].C7,res[j].C8,res[j].C9,res[j].C10,res[j].C11]);
+            }
 
-        //删除列表
-        //Material.UserData.deleteTable(grooveStyleName[i]+"列表")
-        //创建列表
-        //Material.UserData.createTable(grooveStyleName[i]+"列表","Teach TEXT,Weld TEXT,Groove TEXT,Data TEXT,CheckError TEXT,CreatTime TEXT,Creator TEXT,EditTime TEXT,Editor TEXT")
-        //清除数据
-        //Material.UserData.clearTable(grooveStyleName[i]+"列表","","")
-        //重命名列表
-        //Material.UserData.renameTable(grooveStyleName[i]+"列表",grooveStyleName[i].replace("型","形")+"列表")
-        //初始化列表
-        //Material.UserData.insertTable(grooveStyleName[i]+"列表","(?,?,?,?,?,?,?,?,?)",[grooveStyleName[i]+"示教条件",grooveStyleName[i]+"焊接条件",grooveStyleName[i],grooveStyleName[i]+"次列表",grooveStyleName[i]+"错误检测",time,"TKSW",time,"TKSW"])
-        //创建坡口条件
-        //Material.UserData.createTable(grooveStyleName[i],"ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT")
-        //重命名坡口条件
-        //Material.UserData.renameTable(grooveStyleName[i],grooveStyleName[i].replace("型","形"))
-        //删除坡口限制条件
-        // Material.UserData.createTable(grooveStyleName[i]+"限制条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT")
-        // Material.UserData.deleteTable(grooveStyleName[8]+"限制条件")
-        //创建坡口限制条件
-        //  Material.UserData.createTable(grooveStyleName[i]+"限制条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT")
-        //重命名限制条件
-        // Material.UserData.renameTable(grooveStyleName[i]+"限制条件",grooveStyleName[i].replace("型","形")+"限制条件")
-        // Material.UserData.alterTable(grooveStyleName[i].replace("型","形")+"限制条件","C10 TEXT")
-        //删除次列表
-        // Material.UserData.deleteTable(grooveStyleName[i]+"次列表")
-        //创建次列表
-        // Material.UserData.createTable(grooveStyleName[i]+"次列表","Rules TEXT,Limited TEXT,Analyse TEXT,Line TEXT,CreatTime TEXT,Creator TEXT,EditTime TEXT,Editor TEXT")
-        //清除次列表
-        //Material.UserData.clearTable(grooveStyleName[i]+"次列表","","")
-        //初始化次列表
-        //Material.UserData.insertTable(grooveStyleName[i]+"次列表","(?,?,?,?,?,?,?,?)",[grooveStyleName[i]+"焊接规范",grooveStyleName[i]+"限制条件",grooveStyleName[i]+"过程分析",grooveStyleName[i]+"焊接曲线",time,"TKSW",time,"TKSW"])
-        //重命名次列表
-        //  Material.UserData.renameTable(grooveStyleName[i]+"次列表",grooveStyleName[i].replace("型","形")+"次列表")
-        //创建过程分析列表
-        //  Material.UserData.createTable(grooveStyleName[i]+"过程分析","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT")
-        //重命名次列表
-        // Material.UserData.renameTable(grooveStyleName[i]+"过程分析",grooveStyleName[i].replace("型","形")+"过程分析")
-        //重命名焊接规范列表
-        //  Material.UserData.renameTable(grooveStyleName[i].replace("形","型")+"焊接规范",grooveStyleName[i]+"焊接规范")
-        //    }
+            //创建焊接规范列表
+            Material.UserData.createTable(grooveStyleName[i]+"限制条件列表_实芯碳钢_脉冲无_CO2_12","Name TEXT,CreatTime TEXT,Creator TEXT,EditTime TEXT,Editor TEXT");
+            //初始化新的列表
+            Material.UserData.insertTable(grooveStyleName[i]+"限制条件列表_实芯碳钢_脉冲无_CO2_12","(?,?,?,?,?)",[grooveStyleName[i]+"限制条件_实芯碳钢_脉冲无_CO2_12",time,"TKSW",time,"TKSW"])
+            //创建坡口限制条件
+            Material.UserData.createTable(grooveStyleName[i]+"限制条件_实芯碳钢_脉冲无_CO2_12","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT")
+            //获取原坡口限制条件
+            res=Material.UserData.getLimitedTableJson(grooveStyleName[i]+"限制条件",4)
+            for( j=0;j<res.length;j++){
+                //初始化新的列表
+                Material.UserData.insertTable(grooveStyleName[i]+"限制条件_实芯碳钢_脉冲无_CO2_12","(?,?,?,?,?,?,?,?,?,?,?,?)",[res[j].ID,res[j].C1,res[j].C2,res[j].C3,res[j].C4,res[j].C5,res[j].C6,res[j].C7,res[j].C8,res[j].C9,res[j].C10,res[j].C11]);
+            }
+
+            //创建焊接规范列表
+            Material.UserData.createTable(grooveStyleName[i]+"限制条件列表_实芯碳钢_脉冲无_MAG_12","Name TEXT,CreatTime TEXT,Creator TEXT,EditTime TEXT,Editor TEXT");
+            //初始化新的列表
+            Material.UserData.insertTable(grooveStyleName[i]+"限制条件列表_实芯碳钢_脉冲无_MAG_12","(?,?,?,?,?)",[grooveStyleName[i]+"限制条件_实芯碳钢_脉冲无_MAG_12",time,"TKSW",time,"TKSW"])
+            //创建坡口限制条件
+            Material.UserData.createTable(grooveStyleName[i]+"限制条件_实芯碳钢_脉冲无_MAG_12","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT")
+            //获取原坡口限制条件
+            res=Material.UserData.getLimitedTableJson(grooveStyleName[i]+"限制条件",260)
+            for( j=0;j<res.length;j++){
+                //初始化新的列表
+                Material.UserData.insertTable(grooveStyleName[i]+"限制条件_实芯碳钢_脉冲无_MAG_12","(?,?,?,?,?,?,?,?,?,?,?,?)",[res[j].ID,res[j].C1,res[j].C2,res[j].C3,res[j].C4,res[j].C5,res[j].C6,res[j].C7,res[j].C8,res[j].C9,res[j].C10,res[j].C11]);
+            }
+
+            //创建焊接规范列表
+            Material.UserData.createTable(grooveStyleName[i]+"限制条件列表_实芯碳钢_脉冲有_MAG_12","Name TEXT,CreatTime TEXT,Creator TEXT,EditTime TEXT,Editor TEXT");
+            //初始化新的列表
+            Material.UserData.insertTable(grooveStyleName[i]+"限制条件列表_实芯碳钢_脉冲有_MAG_12","(?,?,?,?,?)",[grooveStyleName[i]+"限制条件_实芯碳钢_脉冲有_MAG_12",time,"TKSW",time,"TKSW"])
+            //创建坡口限制条件
+            Material.UserData.createTable(grooveStyleName[i]+"限制条件_实芯碳钢_脉冲有_MAG_12","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT")
+            //获取原坡口限制条件
+            res=Material.UserData.getLimitedTableJson(grooveStyleName[i]+"限制条件",388)
+            for( j=0;j<res.length;j++){
+                //初始化新的列表
+                Material.UserData.insertTable(grooveStyleName[i]+"限制条件_实芯碳钢_脉冲有_MAG_12","(?,?,?,?,?,?,?,?,?,?,?,?)",[res[j].ID,res[j].C1,res[j].C2,res[j].C3,res[j].C4,res[j].C5,res[j].C6,res[j].C7,res[j].C8,res[j].C9,res[j].C10,res[j].C11]);
+            }
+
+            Material.UserData.deleteTable(grooveStyleName[i]+"限制条件")
+             Material.UserData.deleteTable(grooveStyleName[i]+"过程分析")
+
+        }*/
         //删除用户管理列表
         //   Material.UserData.deleteTable("accountTable");
-        //创建限制条件
-        Material.UserData.createLimitedTable();
         //创建用户管理列表
         //  Material.UserData.createTable("accountTable","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT")
-        //获取最近的坡口条件 包含名称
-        res=Material.UserData.getLastGrooveName(grooveStyleName[currentGroove]+"列表","EditTime")
-        if(res!==-1){currentGrooveName=res}
-        var  te,te1;
-        te=10;
-        te1=-1;
-        console.log((te|te1<<16).toString(2),(te|te1<<16));
+
+
     }
 }

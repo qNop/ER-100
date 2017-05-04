@@ -19,13 +19,15 @@ TableCard{
     //上次焊接规范名称
     property string weldRulesName;
     property bool weldTableEx
-    property string currentGrooveName
+    property string weldRulesNameList
 
     property string currentUserName
     //外部更新数据
     signal updateModel(string str,var data);
     signal updateWeldRulesName(string str);
     signal changeWeldData();
+
+    property bool saveAs:false
 
     ListModel{
         id:weldCondtion
@@ -63,27 +65,50 @@ TableCard{
         weldCondtion.setProperty(20,"show",weldTableEx?true:false);
     }
 
+
+
     ListModel{id:pasteModel;
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:"";C17:"";C18:"";C19:""}
     }
 
     function getLastRulesName(){
-        if((typeof(currentGrooveName)==="string")&&(currentGrooveName!=="")){
+        if((typeof(weldRulesNameList)==="string")&&(weldRulesNameList!=="")){
             //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
-            var res =UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
+            var res =UserData.getDataOrderByTime(weldRulesNameList,"EditTime")
             if((res!==-1)&&(typeof(res)==="object")){
-                return res[0].Rules;
+                return res[0].Name;
             }else
                 return -1;
         }
         return -1;
     }
+
     //当前页面关闭 则 关闭当前页面内 对话框
     onStatusChanged: {
         if(status==="坡口检测完成态"){
             currentRow=0;
             selectIndex(0);
         }
+    }
+    onUpdateWeldRulesName: {
+        if((typeof(str)==="string")&&(str!=="")){
+            var res=UserData.getTableJson(str)
+            if(res!==-1){
+                if(status!=="坡口检测完成态"){ //坡口检测完成态的时候要保存数据
+                    updateModel("Clear",{});
+                    for(var i=0;i<res.length;i++){
+                        if(res[i].ID!==null)
+                            updateModel("Append",res[i]);
+                    }
+                }
+                currentRow=0;
+                selectIndex(0);
+                weldRulesName=str;
+            }else{
+                message.open("焊接规范表格不存在或为空！")
+            }
+        } else
+            message.open("焊接规范列表内无数据！")
     }
     function selectIndex(index){
         if((index<model.count)&&(index>-1)){
@@ -94,56 +119,59 @@ TableCard{
             message.open("索引超过条目上限或索引无效！")
         }
     }
+
+    function save(){
+        if((typeof(weldRulesName)==="string")&&(weldRulesName!=="")){
+            //清除保存数据库
+            UserData.clearTable(weldRulesName,"","");          
+            for(var i=0;i<model.count;i++){
+                //插入新的数据
+                UserData.insertTable(weldRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[
+                                         model.get(i).ID,
+                                         model.get(i).C1,
+                                         model.get(i).C2,
+                                         model.get(i).C3,
+                                         model.get(i).C4,
+                                         model.get(i).C5,
+                                         model.get(i).C6,
+                                         model.get(i).C7,
+                                         model.get(i).C8,
+                                         model.get(i).C9,
+                                         model.get(i).C10,
+                                         model.get(i).C11,
+                                         model.get(i).C12,
+                                         model.get(i).C13,
+                                         model.get(i).C14,
+                                         model.get(i).C15,
+                                         model.get(i).C16,
+                                         model.get(i).C17,
+                                         model.get(i).C18,
+                                         model.get(i).C19])
+            }
+            message.open("焊接规范已保存。");}
+        else{
+            message.open("焊接规范名称格式不符，规范未保存！")
+        }
+    }
+
     footerText:"系统当前处于"+status.replace("态","状态。")
     tableRowCount:7
     headerTitle: weldRulesName
     table.__listView.interactive: status!=="焊接态"
     fileMenu: [
         Action{iconName:"awesome/calendar_plus_o";name:"新建";
-            onTriggered: newFile.show();},
+            onTriggered: {saveAs=false;newFile.show();}},
         Action{iconName:"awesome/folder_open_o";name:"打开";
             onTriggered: open.show();},
         Action{iconName:"awesome/save";name:"保存";
-            onTriggered: {
-                if((typeof(weldRulesName)==="string")&&(weldRulesName!=="")){
-                    //清除保存数据库
-                    UserData.clearTable(weldRulesName,"","");
-                    for(var i=0;i<table.rowCount;i++){
-                        //插入新的数据
-                        UserData.insertTable(weldRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[
-                                                 model.get(i).ID,
-                                                 model.get(i).C1,
-                                                 model.get(i).C2,
-                                                 model.get(i).C3,
-                                                 model.get(i).C4,
-                                                 model.get(i).C5,
-                                                 model.get(i).C6,
-                                                 model.get(i).C7,
-                                                 model.get(i).C8,
-                                                 model.get(i).C9,
-                                                 model.get(i).C10,
-                                                 model.get(i).C11,
-                                                 model.get(i).C12,
-                                                 model.get(i).C13,
-                                                 model.get(i).C14,
-                                                 model.get(i).C15,
-                                                 model.get(i).C16,
-                                                 model.get(i).C17,
-                                                 model.get(i).C18,
-                                                 model.get(i).C19])
-                    }
-                    message.open("焊接规范已保存。");}
-                else{
-                    message.open("焊接规范名称格式不符，规范未保存！")
-                }
-            }},
+            onTriggered: {save()}},
         Action{iconName:"awesome/credit_card";name:"另存为";
-            onTriggered: {
+            onTriggered: {saveAs=true;newFile.show();
                 //备份数据 新建表格
                 //插入表格数据
             }
         },
-        Action{iconName:"awesome/calendar_times_o";name:"删除";enabled: currentGrooveName+"焊接规范"===weldRulesName?false:true
+        Action{iconName:"awesome/calendar_times_o";name:"删除";enabled: weldRulesNameList.replace("列表","")===weldRulesName?false:true
             onTriggered: remove.show();}
     ]
     editMenu:[
@@ -200,7 +228,7 @@ TableCard{
         Action{iconName:"awesome/send_o";name:"下发规范"
             onTriggered:{
                 if(currentRow>-1){
-                  changeWeldData();
+                    changeWeldData();
                     message.open("已下发焊接规范。");
                 }else {
                     message.open("请选择下发焊接规范。")
@@ -235,7 +263,7 @@ TableCard{
 
     Dialog{
         id:open
-        title:qsTr("打开坡口参数")
+        title:qsTr("打开焊接规范")
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
         property var rulesList:[""]
@@ -250,12 +278,12 @@ TableCard{
             creatorList.length=0;
             editTimeList.length=0;
             editorList.length=0;
-            if((typeof(currentGrooveName)==="string")&&(currentGrooveName!=="")){
+            if((typeof(weldRulesNameList)==="string")&&(weldRulesNameList!=="")){
                 //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
-                var res =UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
+                var res =UserData.getDataOrderByTime(weldRulesNameList,"EditTime")
                 if((res!==-1)&&(typeof(res)==="object")){
                     for(var i=0;i<res.length;i++){
-                        rulesList.push(res[i].Rules);
+                        rulesList.push(res[i].Name.replace("焊接规范",""));
                         creatTimeList.push(res[i].CreatTime);
                         creatorList.push(res[i].Creator);
                         editTimeList.push(res[i].EditTime);
@@ -279,27 +307,27 @@ TableCard{
         onAccepted: {
             if(typeof(open.name)==="string")
             {
-                updateWeldRulesName(open.name)
+                updateWeldRulesName(open.name.concat("焊接规范"))
             }
         }
         onRejected: {
-            open.name=weldRulesName
+            open.name=weldRulesName.replace("焊接规范","")
         }
     }
     Dialog{
         id:newFile
-        title: qsTr("新建焊接规范")
+        title: saveAs?qsTr("另存焊接规范"):qsTr("新建焊接规范")
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
         property var nameList:[""]
         onOpened:{
-            if((typeof(currentGrooveName)==="string")&&(currentGrooveName!=="")){
+            if((typeof(weldRulesNameList)==="string")&&(weldRulesNameList!=="")){
                 //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
-                var res =UserData.getWeldRulesNameOrderByTime(currentGrooveName+"次列表","EditTime")
+                var res =UserData.getDataOrderByTime(weldRulesNameList,"EditTime")
                 if((res!==-1)&&(typeof(res)==="object")){
                     nameList.length=0;
                     for(var i=0;i<res.length;i++){
-                        nameList.push(res[i].Rules);
+                        nameList.push(res[i].Name.replace("焊接规范",""));
                     }
                 }
             }
@@ -311,7 +339,7 @@ TableCard{
             height:newFileTextField.actualHeight
             TextField{
                 id:newFileTextField
-                text:weldRulesName
+               // text:weldRulesName
                 helperText: "请输入新的焊接规范名称！"
                 width: Units.dp(300)
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -336,24 +364,28 @@ TableCard{
             }
         }
         onAccepted: {
-            //更新标题
-            var title=newFileTextField.text.toString();
-            updateWeldRulesName(title+"焊接规范");
-            //获取系统时间
-            var time=UserData.getSysTime();
-            var user=currentUserName
-            //在次列表插入新的数据
-            UserData.insertTable(currentGrooveName+"次列表","(?,?,?,?,?,?,?,?)",[title+"焊接规范",title+"限制条件",title+"过程分析",title+"焊接曲线",time,user,time,user])
-            //创建新的 焊接条件
-            UserData.createTable(title+"焊接规范","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT,C17 TEXT,C18 TEXT,C19 TEXT")
-            //创建新的 限制条件
-            UserData.createTable(title+"限制条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT")
-            //创建新的 曲线
-
-            //创建新的过程分析列表
-            UserData.createTable(title+"过程分析","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT")
-
+            if(positiveButtonEnabled){
+                //更新标题
+                var title=newFileTextField.text.toString();
+                //获取系统时间
+                var time=UserData.getSysTime();
+                var user=currentUserName
+                //在次列表插入新的数据
+                UserData.insertTable(weldRulesNameList,"(?,?,?,?,?)",[title+"焊接规范",time,user,time,user])
+                //创建新的 焊接条件
+                UserData.createTable(title+"焊接规范","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT,C17 TEXT,C18 TEXT,C19 TEXT")
+                if(saveAs){
+                    //保存焊接规范
+                    weldRulesName=title+"焊接规范";
+                    save();
+                }else{
+                    //更新焊接规范
+                    updateWeldRulesName(title+"焊接规范");
+                }
+            }
+            newFileTextField.text=""
         }
+        onRejected: newFileTextField.text=""
     }
     Dialog{
         id:remove
@@ -361,7 +393,7 @@ TableCard{
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
         onOpened:{
-            positiveButtonEnabled=currentGrooveName+"焊接规范"===weldRulesName?false:true
+            positiveButtonEnabled=weldRulesNameList.replace("列表","")===weldRulesName?false:true
         }
         dialogContent: Item{
             width: label.contentWidth
@@ -373,19 +405,15 @@ TableCard{
             }
         }
         onAccepted: {
-            UserData.deleteTable(weldRulesName);
-            //删除限制条件列表
-            UserData.deleteTable(weldRulesName.replace("焊接规范","限制条件"))
-            //删除曲线列表
-
-            //删除过程分析列表
-            UserData.deleteTable(weldRulesName.replace("焊接规范","过程分析"))
-            //清除次列表
-            UserData.clearTable(currentGrooveName+"次列表","Rules",weldRulesName);
-            //获取最新的数据表格
-            var res=getLastRulesName();
-            if(res!==-1){
-                updateWeldRulesName(res)
+            if(positiveButtonEnabled){
+                UserData.deleteTable(weldRulesName);
+                //清除次列表记录
+                UserData.clearTable(weldRulesNameList,"Name",weldRulesName);
+                //获取最新的数据表格
+                var res=getLastRulesName();
+                if(res!==-1){
+                    updateWeldRulesName(res)
+                }
             }
         }
     }
@@ -439,7 +467,8 @@ TableCard{
                     positiveButtonEnabled=false;
                 }
             }else{
-                for(var i=0;i<=weldCondtion.count;i++){
+                openText(0,String(model.count+1));
+                for(var i=1;i<=weldCondtion.count;i++){
                     openText(i,"0")
                 }
             }

@@ -10,14 +10,26 @@ TableCard {
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "LimitedConditon"
 
-/*    ListModel{id:pasteModel;
+    /*    ListModel{id:pasteModel;
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:""}
     }*/
     property bool swingWidthOrWeldWidth
 
     property Item message
     property var  settings
-    property string limitedRulesName
+    property string limitedRulesName:""
+    property string limitedRulesNameList:""
+
+    property string currentUserName
+
+    property bool addOrEdit: false
+
+    property bool saveAs: false
+
+
+    ListModel{id:pasteModel;
+        ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:""}
+    }
 
     ListModel{
         id:nameModel
@@ -44,28 +56,80 @@ TableCard {
 
     property int num: 0
 
-    function getTableData(index){
-        if((limitedRulesName!=="")&&(typeof(limitedRulesName)==="string")){
-            console.log(objectName+"limitedRulesName"+limitedRulesName)
-            var res=UserData.getLimitedTableJson(limitedRulesName,index)
-            limitedTable.clear();
-            if((typeof(res)==="object")&&(res.length)){
-                for(var i=0;i<res.length;i++){
-                    limitedTable.append(res[i])
-                }
-                WeldMath.setLimited(limitedMath(0,limitedTable.count));
-                headerTitle=limitedRulesName;
-            }else{
-                message.open(limitedRulesName+"数据不存在！")
-            }
+    property string limitedString: ""
+
+    function getLastRulesName(){
+        if((typeof(limitedRulesNameList)==="string")&&(limitedRulesNameList!=="")){
+            //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
+            var res =UserData.getDataOrderByTime(limitedRulesNameList,"EditTime")
+            if((res!==-1)&&(typeof(res)==="object")){
+                return res[0].Name;
+            }else
+                return -1;
+        }
+        return -1;
+    }
+
+    signal updateLimitedRulesName(string str);
+
+    function selectIndex(index){
+        if((index<model.count)&&(index>-1)){
+            table.selection.clear();
+            table.selection.select(index);
+        }
+        else{
+            message.open("索引超过条目上限或索引无效！")
         }
     }
 
-    onNumChanged: getTableData(num);
+    function setLimited(){
+        return WeldMath.setLimited(limitedMath(0,limitedTable.count));
+    }
+
+    onUpdateLimitedRulesName: {
+        if((typeof(str)==="string")&&(str!=="")){
+            var res=UserData.getTableJson(str)
+            if(res!==-1){
+                limitedTable.clear();
+                for(var i=0;i<res.length;i++){
+                    if(res[i].ID!==null)
+                        limitedTable.append(res[i]);
+                }
+                currentRow=0;
+                selectIndex(0);
+                limitedRulesName=str;
+
+            }else{
+                message.open("限制条件表格不存在或为空！")
+            }
+        } else
+            message.open("限制条件列表内无数据！")
+    }
+
+    //    function getTableData(index){
+    //        if((limitedRulesName!=="")&&(typeof(limitedRulesName)==="string")){
+    //            console.log(objectName+"limitedRulesName"+limitedRulesName)
+    //            var res=UserData.getLimitedTableJson(limitedRulesName,index)
+    //            limitedTable.clear();
+    //            if((typeof(res)==="object")&&(res.length)){
+    //                for(var i=0;i<res.length;i++){
+    //                    limitedTable.append(res[i])
+    //                }
+    //                WeldMath.setLimited(limitedMath(0,limitedTable.count));
+    //                headerTitle=limitedRulesName;
+    //            }else{
+    //                message.open(limitedRulesName+"数据不存在！")
+    //            }
+    //        }
+    //    }
+
+    //  onNumChanged: //getTableData(num);
+
+
     //规则改变时重新加载限制条件
-    onLimitedRulesNameChanged:getTableData(num);
+    //onLimitedRulesNameChanged:getTableData(num);
     //显示当前的页脚
-    onVisibleChanged: {
+    /*onVisibleChanged: {
         var str;
         var temp=num;
         if(visible){
@@ -97,7 +161,7 @@ TableCard {
             str+=String(num);
             root.footerText=str;
         }
-    }
+    }*/
 
     function limitedMath(start,end){
         var resArray=new Array(0);
@@ -172,48 +236,85 @@ TableCard {
         return resArray;
     }
 
+    function save(){
+        if(typeof(limitedRulesName)==="string"){
+            //清空数据表格
+            UserData.clearTable(limitedRulesName,"","")
+            //数据表格重新插入数据
+            for(var i=0;i<limitedTable.count;i++){
+                var temp=limitedTable.get(i);
+                UserData.insertTable(limitedRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?)",[
+                                         temp.ID,temp.C1,temp.C2,temp.C3,temp.C4,
+                                         temp.C5,temp.C6,temp.C7,temp.C8,temp.C9,temp.C10,temp.C11])
+            }
+            message.open("限制条件已保存！")
+        }
+    }
+
     ListModel{id:limitedTable;}
-
+    headerTitle: limitedRulesName.replace(limitedString,"");
     firstColumn.title: "限制条件\n      层"
-
+    footerText: limitedString
     tableRowCount:7
     model:limitedTable
     fileMenu: [
-        Action{iconName:"awesome/calendar_plus_o";name:"新建";enabled: false;
+        Action{iconName:"awesome/calendar_plus_o";name:"新建";enabled: true;
+            onTriggered:{ saveAs=false;newFile.open()}
         },
-        Action{iconName:"awesome/folder_open_o";name:"打开";enabled:false;
+        Action{iconName:"awesome/folder_open_o";name:"打开";enabled:true;
+            onTriggered: open1.open();
         },
         Action{iconName:"awesome/save";name:"保存";
-            onTriggered: { if(typeof(limitedRulesName)==="string"){
-                    var C11=String(num);
-                    //清空数据表格
-                    UserData.clearTable(limitedRulesName,"C11",C11)
-                    //数据表格重新插入数据
-                    for(var i=0;i<limitedTable.count;i++){
-                        var temp=limitedTable.get(i);
-                        UserData.insertTable(limitedRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?)",[
-                                                 temp.ID,temp.C1,temp.C2,temp.C3,temp.C4,
-                                                 temp.C5,temp.C6,temp.C7,temp.C8,temp.C9,temp.C10,temp.C11])
-                    }
-                    message.open("限制条件已保存！")
-                }
+            onTriggered: {save();}
+        },
+        Action{iconName:"awesome/credit_card";name:"另存为";
+            onTriggered: {saveAs=true;newFile.show();
+                //备份数据 新建表格
+                //插入表格数据
             }
         },
-        Action{iconName:"awesome/calendar_times_o";name:"删除";enabled: false;
+        Action{iconName:"awesome/calendar_times_o";name:"删除";enabled: limitedRulesNameList.replace("列表","")===limitedRulesName?false:true;
+            onTriggered: remove.open();
         }
     ]
     editMenu:[
+        Action{iconName:"awesome/edit";name:"添加";
+            onTriggered:{addOrEdit=true;edit.show();}
+        },
         Action{iconName:"awesome/edit";name:"编辑";
-            onTriggered: edit.show()
+            onTriggered: {addOrEdit=false;edit.show();}
         },
-        Action{iconName:"awesome/paste";name:"复制";enabled: false;
+        Action{iconName:"awesome/paste";name:"复制";
+            onTriggered:{ if(currentRow>=0){
+                    pasteModel.set(0,limitedTable.get(currentRow));
+                    message.open("已复制。");}
+                else{
+                    message.open("请选择要复制的行！")
+                }
+            }
         },
-        Action{iconName:"awesome/copy"; name:"粘帖";enabled: false
+        Action{iconName:"awesome/copy"; name:"粘帖";
+            onTriggered:{  if(currentRow>=0){
+                    pasteModel.setProperty(0,"ID",limitedTable.get(currentRow).ID)
+                    limitedTable.set(currentRow,pasteModel.get(0));
+                    selectIndex(currentRow);
+                    message.open("已粘帖。");}
+                else
+                    message.open("请选择要粘帖的行！")
+            }
         },
-        Action{iconName: "awesome/trash_o";  name:"移除" ;enabled: false
+        Action{iconName: "awesome/trash_o";  name:"移除";
+            onTriggered: {
+                if(currentRow>=0){
+                    selectIndex(currentRow-1);
+                    limitedTable.remove(currentRow);
+                    message.open("已移除。");}
+                else
+                    message.open("请选择要移除的行！")
+            }
         }]
-    inforMenu: [ Action{iconName: "awesome/trash_o";  name:"详细信息" ;
-        }]
+    inforMenu: [ //Action{iconName: "awesome/trash_o";  name:"详细信息" ; }
+    ]
     funcMenu: [ Action{iconName:"awesome/send_o";name:"更新算法";
             onTriggered: {
                 if(WeldMath.setLimited(limitedMath(0,limitedTable.count)))
@@ -236,9 +337,164 @@ TableCard {
         Controls.TableViewColumn{role: "C11";title:"代码";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: false}
     ]
 
+    Dialog{
+        id:open1
+        title:qsTr("打开限制条件")
+        negativeButtonText:qsTr("取消")
+        positiveButtonText:qsTr("确定")
+        property var rulesList:[""]
+        property var creatTimeList: [""]
+        property var creatorList:[""]
+        property var editTimeList: [""]
+        property var editorList:[""]
+        property string name
+        onOpened:{//打开对话框加载model
+            rulesList.length=0;
+            creatTimeList.length=0;
+            creatorList.length=0;
+            editTimeList.length=0;
+            editorList.length=0;
+            if((typeof(limitedRulesNameList)==="string")&&(limitedRulesNameList!=="")){
+                //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
+                var res =UserData.getDataOrderByTime(limitedRulesNameList,"EditTime")
+                if((res!==-1)&&(typeof(res)==="object")){
+                    for(var i=0;i<res.length;i++){
+                        rulesList.push(res[i].Name.replace("限制条件"+limitedString,""));
+                        creatTimeList.push(res[i].CreatTime);
+                        creatorList.push(res[i].Creator);
+                        editTimeList.push(res[i].EditTime);
+                        editorList.push(res[i].Editor);
+                    }
+                    menuField.model=rulesList
+                    menuField.selectedIndex=0;
+                    menuField.helperText="创建时间:"+creatTimeList[0]+"\n创建者:"+creatorList[0]+"\n修改时间:"+editTimeList[0]+"\n修改者:"+editorList[0];
+                    name=rulesList[0];
+                }
+            }
+        }
+        dialogContent: MenuField{id:menuField
+            width:Units.dp(300)
+            onItemSelected: {
+                open1.name=open1.rulesList[index];
+                menuField.helperText="创建时间:"+open1.creatTimeList[index]+"\n创建者:"+open1.creatorList[index]+"\n修改时间:"+open1.editTimeList[index]+"\n修改者:"+open1.editorList[index];
+                console.log("创建时间:"+open1.creatTimeList[index]+"\n创建者:"+open1.creatorList[index]+"\n修改时间:"+open1.editTimeList[index]+"\n修改者:"+open1.editorList[index])
+            }
+        }
+        onAccepted: {
+            if(typeof(open1.name)==="string")
+            {
+                updateLimitedRulesName(open1.name.concat("限制条件"+limitedString))
+            }
+        }
+        onRejected: {
+            open1.name=limitedRulesName.replace("限制条件"+limitedString,"");
+        }
+    }
+    Dialog{
+        id:newFile
+        title: saveAs?qsTr("另存限制条件"):qsTr("新建限制条件")
+        negativeButtonText:qsTr("取消")
+        positiveButtonText:qsTr("确定")
+        property var nameList:[""]
+        onOpened:{
+            if((typeof(limitedRulesNameList)==="string")&&(limitedRulesNameList!=="")){
+                //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
+                var res =UserData.getDataOrderByTime(limitedRulesNameList,"EditTime")
+                if((res!==-1)&&(typeof(res)==="object")){
+                    nameList.length=0;
+                    for(var i=0;i<res.length;i++){
+                        nameList.push(res[i].Name.replace("限制条件"+limitedString,""));
+                    }
+                }
+            }
+            newFileTextField.text=limitedRulesName.replace("限制条件"+limitedString,"")
+            newFileTextField.helperText=qsTr("请输入新的限制条件名称！")
+        }
+        dialogContent:Item{
+            width: Units.dp(300)
+            height:newFileTextField.actualHeight
+            TextField{
+                id:newFileTextField
+               // text:limitedRulesName.replace("限制条件"+limitedString,"")
+                helperText: "请输入新的限制条件名称！"
+                width: Units.dp(300)
+                anchors.horizontalCenter: parent.horizontalCenter
+                onTextChanged: {
+                    //检索数据库
+                    var check=false;
+                    for(var i=0;i<newFile.nameList.length;i++){
+                        if(newFile.nameList[i]===text){
+                            check=true;
+                        }
+                    }
+                    if(check){
+                        newFile.positiveButtonEnabled=false;
+                        helperText="该限制条件名称已存在！"
+                        hasError=true;
+                    }else{
+                        newFile.positiveButtonEnabled=true;
+                        helperText="限制条件名称有效！"
+                        hasError=false;
+                    }
+                }
+            }
+        }
+        onAccepted: {
+            if(positiveButtonEnabled){
+                //更新标题
+                var title=newFileTextField.text.toString();
+                //获取系统时间
+                var time=UserData.getSysTime();
+                var user=currentUserName
+                //在次列表插入新的数据
+                UserData.insertTable(limitedRulesNameList,"(?,?,?,?,?)",[title+"限制条件"+limitedString,time,user,time,user])
+                //创建新的 焊接条件
+                UserData.createTable(title+"限制条件"+limitedString,"ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT")
+                if(saveAs){
+                    limitedRulesName=title+"限制条件"+limitedString
+                    save();
+                }else{
+                    //更新焊接规范
+                    updateLimitedRulesName(title+"限制条件"+limitedString);
+                }
+            }
+            newFileTextField.text="";
+        }
+        onRejected: newFileTextField.text=""
+    }
+    Dialog{
+        id:remove
+        title: qsTr("删除限制条件")
+        negativeButtonText:qsTr("取消")
+        positiveButtonText:qsTr("确定")
+        onOpened:{
+            positiveButtonEnabled=limitedRulesNameList.replace("列表","")===limitedRulesName?false:true
+        }
+        dialogContent: Item{
+            width: label.contentWidth
+            height:Units.dp(48)
+            Label{
+                id:label
+                text:"确认删除\n"+limitedRulesName+"！"
+                style: "menu"
+            }
+        }
+        onAccepted: {
+            if(positiveButtonEnabled){
+                UserData.deleteTable(limitedRulesName);
+                //清除次列表记录
+                UserData.clearTable(limitedRulesNameList,"Name",limitedRulesName);
+                //获取最新的数据表格
+                var res=getLastRulesName();
+                if(res!==-1){
+                    updateLimitedRulesName(res)
+                }
+            }
+        }
+    }
     MyTextFieldDialog{
         id:edit
-        title: "编辑限制条件"
+        title: addOrEdit?"添加限制条件":"编辑限制条件"
         repeaterModel:nameModel
         message: root.message
         onOpened: {
@@ -250,19 +506,36 @@ TableCard {
             changeFocus(focusIndex)
         }
         onAccepted: {
-            model.set(currentRow,
-                      {"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
-                          "C2":getText(3)+"/"+getText(4),
-                          "C3":getText(5)+"/"+getText(6),
-                          "C4":getText(7)+"/"+getText(8),
-                          "C5":getText(9),
-                          "C6":getText(10),
-                          "C7":getText(11),
-                          "C8":getText(12),
-                          "C9":getText(13)+"/"+getText(14),
-                          "C10":getText(15),
-                          "C11":String(num)
-                      });
+            if(addOrEdit){
+                var str=model.count===0?"陶瓷衬垫":model.count===1?"打底层":model.count===2?"第二层":model.count===3?"填充层":model.count===4?"盖面层":"立板余高层"
+                model.append(
+                            {"ID":str,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
+                                "C2":getText(3)+"/"+getText(4),
+                                "C3":getText(5)+"/"+getText(6),
+                                "C4":getText(7)+"/"+getText(8),
+                                "C5":getText(9),
+                                "C6":getText(10),
+                                "C7":getText(11),
+                                "C8":getText(12),
+                                "C9":getText(13)+"/"+getText(14),
+                                "C10":getText(15),
+                                "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
+                            });
+            }else{
+                model.set(currentRow,
+                          {"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
+                              "C2":getText(3)+"/"+getText(4),
+                              "C3":getText(5)+"/"+getText(6),
+                              "C4":getText(7)+"/"+getText(8),
+                              "C5":getText(9),
+                              "C6":getText(10),
+                              "C7":getText(11),
+                              "C8":getText(12),
+                              "C9":getText(13)+"/"+getText(14),
+                              "C10":getText(15),
+                              "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
+                          });
+            }
         }
     }
 }

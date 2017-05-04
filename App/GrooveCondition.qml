@@ -254,7 +254,7 @@ MyConditionView{
                 }
                 spacing:Material.Units.dp(64)
                 Image{
-                    source: "../Pic/"+grooveStyleName[currentGroove]+".png"
+                    source: "../Pic/"+grooveStyleName[currentGroove>8?0:currentGroove]+".png"
                     sourceSize.width: Material.Units.dp(200)
                     mipmap: false
                     width: Material.Units.dp(260)

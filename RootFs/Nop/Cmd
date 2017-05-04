@@ -20,78 +20,198 @@ then
     echo "umount ER-100 OK !"
 fi
 
-if [ "$1" = "Material" ]
+if [ "$1" = "Init" ]
 then
-
-
-   echo "remount /dev/root read write " 
+   echo "Init By Windows or Ubuntu ?(w/u)"
+   read Cmd 
+   if [ "$Cmd" = "w" ]
+   then 
+	System="Windows"
+   else
+	System="Ubuntu"
+	if [ ! -d /mnt/RootFs/Nop ]
+	then
+		echo "mount -n -o nolock 192.168.1.101:/home/nop/ER-100 /mnt/"	
+		mount -n -o nolock 192.168.1.101:/home/nop/ER-100 /mnt/
+	fi	
+   fi
+   echo "remount /dev/root read write !"
    mount -n -o remount,rw /dev/root
-   echo "Send mnt/RootFs/opt/Qt5/qml/Material to /opt/Qt5/qml/Material"
-   cp -R /mnt/RootFs/opt/Qt5/qml/Material /opt/Qt5/qml
+   echo "Init TouchScreen ?(y/n)"
+   read Cmd 
+   if [ "$Cmd" = "y" ]
+   then 
+	echo "Calibrate TouchScreen !"
+	cd /opt/tslib/bin
+	./ts_calibrate
+	sync	
+   else
+	echo "Skip Init TouchScreen !"
+   fi
+   echo "Init Material ?(y/n)"	
+   read Cmd 
+   if [ "$Cmd" = "y" ]
+   then 
+	if [ "$System" = "Windows" ]
+	then 
+		if [ -d Material ]
+		then 
+			echo "mv Material /opt/Qt5/qml"
+			mv Material /opt/Qt5/qml
+		else
+			echo "Init Material fail ~"
+		fi 		
+	else
+		echo "cp mnt/RootFs/opt/Qt5/qml/Material to /opt/Qt5/qml/Material"
+		cp -R /mnt/RootFs/opt/Qt5/qml/Material /opt/Qt5/qml
+	fi
+   else
+	echo "Skip Init Material !"
+   fi
    echo "remount /dev/root read only "
    mount -n -o remount,ro /dev/root
+   echo "Init Databases ?(y/n)"	
+   read Cmd 
+   if [ "$Cmd" = "y" ]
+   then 
+	if [ ! -d .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage ]
+	then 
+		echo "mkdir -p .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage"
+		mkdir -p .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage
+	fi
+	if [ "$System" = "Windows" ]
+	then 
+		if [ -d Databases ]
+		then 
+			echo "mv Databases .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage"
+          		mv Databases .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage
+		else  
+	 		echo "Init Databases Fail !"
+		fi
+	else
+		echo "cp -R /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage"
+		cp -R /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage
+	fi
+   else
+	echo "Skip Init Databases !"
+   fi
+   echo "Init ER-100.conf ?(y/n)"	
+   read Cmd 
+   if [ "$Cmd" = "y" ]
+   then 
+	if [ ! -d .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd ]
+	then 
+ 		echo "mkdir -p .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd"
+		mkdir -p .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd
+	fi
+	if [ "$System" = "Windows" ]
+	then 
+		if [ -f ER-100.conf ]
+		then 
+			echo " mv ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd"
+          		mv ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd
+		else  
+	  		echo "Init ER-100.conf Fail !"
+		fi
+	else
+		echo "cp -R /mnt/RootFs/Nop/.config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd"
+		cp -R /mnt/RootFs/Nop/.config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd
+	fi
+   else
+	echo "Skip Init ER-100.conf !"
+   fi
+   echo "Init OK ! "
 fi
 
 if [ "$1" = "run" ]
 then
-    echo "Stop App ing !"
-    pgrep App | xargs kill -s 9
-    echo "If you want to send the App program, enter the send command, or exit"
-    read Cmd
-    if [ "$Cmd" = "send" ]
-	then 
-	echo "Send ER-100/App to /Nop ! "
-	cp /mnt/RootFs/Nop/App /usr/local/ER-100/Nop
-	chmod 777 /usr/local/ER-100/Nop/App	
-	echo "If you want to start the App program, enter the start command, or exit"
-	read start
-	if [ "$start" = "start" ]
-		then 
-		echo "Start App" 
+	echo "Stop App ing !"
+    	pgrep App | xargs kill -s 9
+	echo "Copy By Windows or Ubuntu ?(w/u)"
+   	read Cmd 
+   	if [ "$Cmd" = "w" ]
+   	then 
+		System="Windows"
+		echo "Start App ing !" 
 		cd /usr/local/ER-100/Nop 
 		./App
-	else
-		echo "exit !"
-	fi
-	else
-	echo "exit !"
-    fi
+   	else
+		System="Ubuntu"
+		if [ ! -d /mnt/RootFs/Nop ]
+		then
+			echo "mount -n -o nolock 192.168.1.101:/home/nop/ER-100 /mnt/"	
+			mount -n -o nolock 192.168.1.101:/home/nop/ER-100 /mnt/
+		fi	
+
+		echo "If you want to send the App program, enter the send command, or exit"
+    		read Cmd
+   		if [ "$Cmd" = "send" ]
+		then 
+			echo "Send ER-100/App to /Nop ! "
+			cp /mnt/RootFs/Nop/App /usr/local/ER-100/Nop
+			chmod 777 /usr/local/ER-100/Nop/App	
+			echo "If you want to start the App program, enter the start command, or exit"
+			read start
+			if [ "$start" = "start" ]
+			then 
+				echo "Start App" 
+				cd /usr/local/ER-100/Nop 
+				./App
+			else
+				echo "exit !"
+			fi
+		else
+			echo "exit !"
+		fi
+  	fi	
 fi
 
 if [ "$1" = "copy" ]
 then 
+	echo "Copy By Windows or Ubuntu ?(w/u)"
+   	read Cmd 
+   	if [ "$Cmd" = "w" ]
+   	then 
+		System="Windows"
+   	else
+		System="Ubuntu"
+		if [ ! -d /mnt/RootFs/Nop ]
+		then
+			echo "mount -n -o nolock 192.168.1.101:/home/nop/ER-100 /mnt/"	
+			mount -n -o nolock 192.168.1.101:/home/nop/ER-100 /mnt/
+		fi	
+  	fi
 	name=`date +%y%m%d-%H%M`
 	echo "copy /Nop/App to /ER-100/BackUp/$name !"
-	
-	mkdir /mnt/BackUp/$name
-	cp App /mnt/BackUp/$name
-	cp -R .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases /mnt/BackUp/$name
-	cp .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100.conf /mnt/BackUp/$name
-	chmod -R 777 /mnt/BackUp/$name
+	mkdir -p BackUp/$name
+	cp App BackUp/$name
+	cp -R .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases BackUp/$name
+	cp .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100.conf BackUp/$name
+	chmod -R 777 BackUp/$name
+	if [ "$System" = "Ubuntu" ]
+	then 
+		echo "cp -R BackUp /mnt"
+		cp -R BackUp /mnt
+		chmod -R 777 /mnt/BackUp/$name
+		echo "rm -R BackUp"
+		rm -R BackUp
+		echo "Replace Ubuntu Databases and ER-100.conf ?(y/n)"
+		read Cmd
+		if [ "$Cmd" = "y" ]
+		then
+			echo "Replace Databases !"
+			cp -R /mnt/BackUp/$name/Databases /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage
+			chmod -R 777 /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases
+			echo "Replace ER-100.conf !"
+			cp /mnt/BackUp/$name/ER-100.conf /mnt/RootFs/Nop/.config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd
+		else
+			echo "Skip Replace opt !"
+		fi	
+	fi
 	echo "copy OK !"
 fi
 
-if [ "$1" = "update" ]
-then 
-	echo "update Databases "
-	if [ -d Databases ]
-	then 
 
-          mv Databases .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage
-	  echo "Ok !"
-	else  
-	  echo "Fail !"
-	fi
-	echo "update ER-100.config"
-	if [ -f ER-100.conf ]
-	then
-
-	  mv ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd
-	  echo "Ok !"
-	else
-	  echo "Fail !"
-	fi  
-fi
 	  
 	
 	

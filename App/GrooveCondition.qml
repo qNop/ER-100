@@ -122,7 +122,7 @@ MyConditionView{
                 //无此种情况 立即更改
                 oldIndex=selectedIndex;
                 selectedIndex=1;
-                changeGroupCurrent(0,true)
+                changeGroupCurrent(0,false)
                 selectedIndex=oldIndex
             }else{ //平焊单边V
                 //平焊单边V形坡口平对接
@@ -154,7 +154,7 @@ MyConditionView{
                 }else{//无此种情况
                     oldIndex=selectedIndex;
                     selectedIndex=2;
-                    changeGroupCurrent(1,true)
+                    changeGroupCurrent(1,false)
                     selectedIndex=oldIndex
                 }
             }else{ //立焊单边V
@@ -224,7 +224,7 @@ MyConditionView{
             //下发规范
             ERModbus.setmodbusFrame(frame)
         }
-        console.log(frame)
+        //console.log(frame)
         //清空
         frame.length=0;
     }
@@ -298,7 +298,6 @@ MyConditionView{
         temp.push(settings.connectStyle)
         temp.push(settings.bottomStyle)
         condition=temp;
-        console.log(objectName+condition)
         //获取currentGroove 初始化enable
         doNum(root.condition[0],false);
         for(var i=3;i>0;i--){

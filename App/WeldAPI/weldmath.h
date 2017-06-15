@@ -84,6 +84,10 @@ public slots:
     void setStopInTime(int value);
     //设置层外停止时间
     void setStopOutTime(int value);
+    //设置起弧偏移
+  //  void setStartx(int value);
+    //设置收弧偏移
+    //void setStopx(int value);
     //根据电流获取送丝速度
     int getFeedSpeed(int current);
     //根据电流电压行走速度获取道面积

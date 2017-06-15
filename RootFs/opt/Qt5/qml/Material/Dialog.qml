@@ -236,7 +236,7 @@ PopupBase {
                 id: titleLabel
 
                 width: parent.width
-                wrapMode: Text.Wrap
+               // wrapMode: Text.Wrap
                 style: "dialog"
                 color: Theme.lightDark(titleview.backgroundColor,Theme.light.textColor,Theme.dark.textColor)
                 visible: title != ""
@@ -252,7 +252,7 @@ PopupBase {
                 id: textLabel
 
                 width: parent.width
-                wrapMode: Text.Wrap
+               // wrapMode: Text.Wrap
                 style: "dialog"
                 color: Theme.light.subTextColor
                 visible: text != ""

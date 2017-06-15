@@ -38,7 +38,7 @@ TableCard{
         ListElement{name:"           No.       :";show:true;min:0;max:100;isNum:true;step:1}
         ListElement{name:"板    厚δ(mm):";show:true;min:0;max:100;isNum:true;step:0.1}
         ListElement{name:"板厚差e(mm):";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"间    隙b(mm):";show:true;min:0;max:10;isNum:true;step:0.1}
+        ListElement{name:"间    隙b(mm):";show:true;min:0;max:100;isNum:true;step:0.1}
         ListElement{name:"角  度β1(deg):";show:true;min:-180;max:180;isNum:true;step:0.1}
         ListElement{name:"角  度β2(deg):";show:true;min:-180;max:180;isNum:true;step:0.1}
     }
@@ -144,14 +144,14 @@ TableCard{
                 myTextFieldDialog.show();}},
         Action{iconName:"awesome/edit";name:"编辑";onTriggered:{
                 myTextFieldDialog.title="编辑坡口条件";
-                if(currentRow>=0){
+                if((currentRow>=0)&&(table.rowCount)){
                     myTextFieldDialog.show();
                 }else
                     message.open("请选择要编辑的行！")
             }},
         Action{iconName:"awesome/paste";name:"复制";
             onTriggered: {
-                if(currentRow>=0){
+                if((currentRow>=0)&&(table.rowCount)){
                     pasteModel.set(0,model.get(currentRow));
                     message.open("已复制。");}
                 else{
@@ -160,7 +160,7 @@ TableCard{
             }},
         Action{iconName:"awesome/copy"; name:"粘帖";
             onTriggered: {
-                if(currentRow>=0){
+              if((currentRow>=0)&&(table.rowCount)){
                     updateModel("Set", pasteModel.get(0));
                     selectIndex(currentRow)
                     message.open("已粘帖。");}
@@ -170,7 +170,7 @@ TableCard{
         },
         Action{iconName: "awesome/calendar_times_o";  name:"移除" ;
             onTriggered: {
-                if(currentRow>=0){
+              if((currentRow>=0)&&(table.rowCount)){
                     updateModel("Remove",{})
                     message.open("已移除。");}
                 else
@@ -186,7 +186,7 @@ TableCard{
     funcMenu: [
         Action{iconName:"awesome/send_o";hoverAnimation:true;summary: "F4"; name:"生成规范";
             onTriggered:{
-                if(currentRow>-1){
+                if((currentRow>=0)&&(table.rowCount)){
                     getWeldRules();
                 }else {
                     message.open("请选择要生成规范的坡口信息。")
@@ -252,8 +252,7 @@ TableCard{
             width:Units.dp(300)
             onItemSelected: {
                 open.name=open.grooveList[index]
-                menuField.helperText="创建时间:"+open.creatTimeList[index]+"\n创建者:"+open.creatorList[index]+"\n修改时间:"+open.editTimeList[index]+"\n修改者:"+open.editorList[index];
-                console.log("创建时间:"+open.creatTimeList[index]+"\n创建者:"+open.creatorList[index]+"\n修改时间:"+open.editTimeList[index]+"\n修改者:"+open.editorList[index])
+                menuField.helperText="创建时间:"+open.creatTimeList[index]+"\n创建者:"+open.creatorList[index]+"\n修改时间:"+open.editTimeList[index]+"\n修改者:"+open.editorList[index];         
             }
         }
         onAccepted: {
@@ -341,6 +340,11 @@ TableCard{
                             newFile.positiveButtonEnabled=true;
                             helperText="坡口条件名称有效！"
                             hasError=false
+                        }
+                        if(!isNaN(Number(text.charAt(0)))){ //开头字母为数字
+                            newFile.positiveButtonEnabled=false;
+                            helperText="坡口条件名称开头不能数字！"
+                            hasError=true;
                         }
                     }
                 }

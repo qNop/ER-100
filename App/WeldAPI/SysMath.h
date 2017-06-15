@@ -83,8 +83,11 @@ public:
 
     int startArcZz;
     int startArcZx;
+    int startX;
+
     int stopArcZz;
     int stopArcZx;
+    int stopX;
 
     int stopInTime; //层内停止时间
     int stopOutTime; //层间停止时间

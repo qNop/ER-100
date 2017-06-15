@@ -56,13 +56,13 @@ then
 	then 
 		if [ -d Material ]
 		then 
-			echo "mv Material /opt/Qt5/qml"
+			#echo "mv Material /opt/Qt5/qml"
 			mv Material /opt/Qt5/qml
 		else
 			echo "Init Material fail ~"
 		fi 		
 	else
-		echo "cp mnt/RootFs/opt/Qt5/qml/Material to /opt/Qt5/qml/Material"
+		#echo "cp mnt/RootFs/opt/Qt5/qml/Material to /opt/Qt5/qml/Material"
 		cp -R /mnt/RootFs/opt/Qt5/qml/Material /opt/Qt5/qml
 	fi
    else
@@ -74,22 +74,23 @@ then
    read Cmd 
    if [ "$Cmd" = "y" ]
    then 
-	if [ ! -d .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage ]
+	if [ ! -d .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases ]
 	then 
-		echo "mkdir -p .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage"
-		mkdir -p .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage
+		#echo "mkdir -p .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases"
+		mkdir -p .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases
 	fi
 	if [ "$System" = "Windows" ]
 	then 
-		if [ -d Databases ]
+		if [ -f 433abb168a2ae7adeaa1ec24c2e3a59a ]
 		then 
-			echo "mv Databases .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage"
-          		mv Databases .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage
+			
+			#echo "mv 433abb168a2ae7adeaa1ec24c2e3a59a .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage"
+          		mv 433abb168a2ae7adeaa1ec24c2e3a59a .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases/433abb168a2ae7adeaa1ec24c2e3a59a.sqlite
 		else  
 	 		echo "Init Databases Fail !"
 		fi
 	else
-		echo "cp -R /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage"
+		#echo "cp -R /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage"
 		cp -R /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage
 	fi
    else
@@ -101,20 +102,20 @@ then
    then 
 	if [ ! -d .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd ]
 	then 
- 		echo "mkdir -p .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd"
+ 		#echo "mkdir -p .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd"
 		mkdir -p .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd
 	fi
 	if [ "$System" = "Windows" ]
 	then 
 		if [ -f ER-100.conf ]
 		then 
-			echo " mv ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd"
+			#echo " mv ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd"
           		mv ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd
 		else  
 	  		echo "Init ER-100.conf Fail !"
 		fi
 	else
-		echo "cp -R /mnt/RootFs/Nop/.config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd"
+		#echo "cp -R /mnt/RootFs/Nop/.config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd"
 		cp -R /mnt/RootFs/Nop/.config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100.conf .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd
 	fi
    else
@@ -185,7 +186,8 @@ then
 	echo "copy /Nop/App to /ER-100/BackUp/$name !"
 	mkdir -p BackUp/$name
 	cp App BackUp/$name
-	cp -R .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases BackUp/$name
+	cp .local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases/433abb168a2ae7adeaa1ec24c2e3a59a.sqlite BackUp/$name
+	mv  BackUp/$name/433abb168a2ae7adeaa1ec24c2e3a59a.sqlite BackUp/$name/433abb168a2ae7adeaa1ec24c2e3a59a
 	cp .config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100.conf BackUp/$name
 	chmod -R 777 BackUp/$name
 	if [ "$System" = "Ubuntu" ]
@@ -200,8 +202,8 @@ then
 		if [ "$Cmd" = "y" ]
 		then
 			echo "Replace Databases !"
-			cp -R /mnt/BackUp/$name/Databases /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage
-			chmod -R 777 /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases
+			cp  /mnt/BackUp/$name/433abb168a2ae7adeaa1ec24c2e3a59a /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases/433abb168a2ae7adeaa1ec24c2e3a59a.sqlite
+			chmod 777 /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases/433abb168a2ae7adeaa1ec24c2e3a59a.sqlite
 			echo "Replace ER-100.conf !"
 			cp /mnt/BackUp/$name/ER-100.conf /mnt/RootFs/Nop/.config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd
 		else

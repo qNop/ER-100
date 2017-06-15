@@ -17,7 +17,7 @@
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
-#include <json/json.h>
+
 
 class SqlThread:public QThread{
     Q_OBJECT

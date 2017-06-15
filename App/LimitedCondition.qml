@@ -16,7 +16,7 @@ TableCard {
     property bool swingWidthOrWeldWidth
 
     property Item message
-    property var  settings
+
     property string limitedRulesName:""
     property string limitedRulesNameList:""
 
@@ -43,11 +43,11 @@ TableCard {
         ListElement{name:"坡口侧    接近距离(mm)";show:true;min:-50;max:50;isNum:true;step:0.1}
         ListElement{name:"非坡口侧接近距离(mm)";show:true;min:-50;max:50;isNum:true;step:0.1}
         ListElement{name:"摆  动  宽  度  Max (mm)";show:true;min:1;max:100;isNum:true;step:0.1}
-        ListElement{name:"摆    动    间   隔     (mm)";show:true;min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"分    道    间   隔     (mm)";show:true;min:0;max:100;isNum:true;step:0.1}
         ListElement{name:"分    开    结   束  比   (%)";show:true;min:0;max:1;isNum:true;step:0.01}
         ListElement{name:"焊    接    电     压        (V)";show:true;min:0;max:50;isNum:true;step:0.1}
-        ListElement{name:"焊接速度Min   (cm/min)";show:true;min:0;max:2000;isNum:true;step:0.1}
-        ListElement{name:"焊接速度Max (cm/min)";show:true;min:0;max:2000;isNum:true;step:0.1}
+        ListElement{name:"焊接速度Min   (mm/min)";show:true;min:0;max:2000;isNum:true;step:0.1}
+        ListElement{name:"焊接速度Max (mm/min)";show:true;min:0;max:2000;isNum:true;step:0.1}
         ListElement{name:"层    填    充   系   数 (%)";show:true;min:0;max:1;isNum:true;step:0.01}
     }
     onSwingWidthOrWeldWidthChanged: {
@@ -98,70 +98,12 @@ TableCard {
                 currentRow=0;
                 selectIndex(0);
                 limitedRulesName=str;
-
             }else{
                 message.open("限制条件表格不存在或为空！")
             }
         } else
             message.open("限制条件列表内无数据！")
     }
-
-    //    function getTableData(index){
-    //        if((limitedRulesName!=="")&&(typeof(limitedRulesName)==="string")){
-    //            console.log(objectName+"limitedRulesName"+limitedRulesName)
-    //            var res=UserData.getLimitedTableJson(limitedRulesName,index)
-    //            limitedTable.clear();
-    //            if((typeof(res)==="object")&&(res.length)){
-    //                for(var i=0;i<res.length;i++){
-    //                    limitedTable.append(res[i])
-    //                }
-    //                WeldMath.setLimited(limitedMath(0,limitedTable.count));
-    //                headerTitle=limitedRulesName;
-    //            }else{
-    //                message.open(limitedRulesName+"数据不存在！")
-    //            }
-    //        }
-    //    }
-
-    //  onNumChanged: //getTableData(num);
-
-
-    //规则改变时重新加载限制条件
-    //onLimitedRulesNameChanged:getTableData(num);
-    //显示当前的页脚
-    /*onVisibleChanged: {
-        var str;
-        var temp=num;
-        if(visible){
-            var weldStyle=settings.weldStyle
-            swingWidthOrWeldWidth=weldStyle===1||weldStyle===4?false:true
-            if((temp&0x0f)===4){
-                str="焊丝直径为1.2mm/"
-            }else if((temp&0x0f)===6){
-                str="焊丝直径为1.6mm/"
-            }else
-                str="焊丝直径不存在/"
-            temp>>=4;
-            if((temp&0x07)===0){
-                str+="焊丝种类为实芯碳钢/"
-            }else if((temp&0x07)===4){
-                str+="焊丝种类为药芯碳钢/"
-            }else
-                str+="焊丝种类不存在/"
-            temp>>=3;
-            if((temp&0x01)===0){
-                str+="脉冲无/"
-            }else
-                str+="脉冲有/"
-            temp>>=1;
-            if((temp&0x01)===0){
-                str+="保护气体为CO2/代码"
-            }else
-                str+="保护气体为MAG/代码"
-            str+=String(num);
-            root.footerText=str;
-        }
-    }*/
 
     function limitedMath(start,end){
         var resArray=new Array(0);
@@ -177,32 +119,28 @@ TableCard {
                 resArray.push("0")
                 resArray.push("0")
                 resArray.push("0")
-            }
-            if((typeof(res.C2)==="string")&&(res.C2!=="")){
+            }if((typeof(res.C2)==="string")&&(res.C2!=="")){
                 temp=res.C2.split("/")
                 resArray.push(temp[0])
                 resArray.push(temp[1])
             }else{
                 resArray.push("0")
                 resArray.push("0")
-            }
-            if((typeof(res.C3)==="string")&&(res.C3!=="")){
+            }if((typeof(res.C3)==="string")&&(res.C3!=="")){
                 temp=res.C3.split("/")
                 resArray.push(temp[0])
                 resArray.push(temp[1])}
             else{
                 resArray.push("0")
                 resArray.push("0")
-            }
-            if((typeof(res.C4)==="string")&&(res.C4!=="")){
+            }if((typeof(res.C4)==="string")&&(res.C4!=="")){
                 temp=res.C4.split("/")
                 resArray.push(temp[0])
                 resArray.push(temp[1])
-            } else{
+            }else{
                 resArray.push("0")
                 resArray.push("0")
-            }
-            if((typeof(res.C5)==="string")&&(res.C5!==""))
+            }if((typeof(res.C5)==="string")&&(res.C5!==""))
                 resArray.push(res.C5)
             else
                 resArray.push("0");
@@ -232,7 +170,6 @@ TableCard {
                 resArray.push("0")
             }
         }
-        console.log(objectName+"resArray.length"+resArray.length)
         return resArray;
     }
 
@@ -330,7 +267,7 @@ TableCard {
         Controls.TableViewColumn{role: "C3";title: "层高Min/Max\n       (mm)";width:Units.dp(110);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C5";title: swingWidthOrWeldWidth?"摆动宽度Max\n       (mm)":"焊道宽度Max\n       (mm)";width:Units.dp(120);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
         Controls.TableViewColumn{role: "C6";title: "分道间隔\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
-        Controls.TableViewColumn{role: "C7";title: "结束开始比\n       (%)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+        Controls.TableViewColumn{role: "C7";title: "分开结束比\n       (%)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C8";title: "焊接电压\n     (V)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C10";title:"层填充系数\n       (%)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C9";title: "焊接速度Min/Max\n        (cm/min)";width:Units.dp(160);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
@@ -377,7 +314,6 @@ TableCard {
             onItemSelected: {
                 open1.name=open1.rulesList[index];
                 menuField.helperText="创建时间:"+open1.creatTimeList[index]+"\n创建者:"+open1.creatorList[index]+"\n修改时间:"+open1.editTimeList[index]+"\n修改者:"+open1.editorList[index];
-                console.log("创建时间:"+open1.creatTimeList[index]+"\n创建者:"+open1.creatorList[index]+"\n修改时间:"+open1.editTimeList[index]+"\n修改者:"+open1.editorList[index])
             }
         }
         onAccepted: {
@@ -415,7 +351,6 @@ TableCard {
             height:newFileTextField.actualHeight
             TextField{
                 id:newFileTextField
-               // text:limitedRulesName.replace("限制条件"+limitedString,"")
                 helperText: "请输入新的限制条件名称！"
                 width: Units.dp(300)
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -435,6 +370,11 @@ TableCard {
                         newFile.positiveButtonEnabled=true;
                         helperText="限制条件名称有效！"
                         hasError=false;
+                    }
+                    if(!isNaN(Number(text.charAt(0)))){ //开头字母为数字
+                        newFile.positiveButtonEnabled=false;
+                        helperText="限制条件名称开头不能数字！"
+                        hasError=true;
                     }
                 }
             }
@@ -506,35 +446,40 @@ TableCard {
             changeFocus(focusIndex)
         }
         onAccepted: {
-            if(addOrEdit){
-                var str=model.count===0?"陶瓷衬垫":model.count===1?"打底层":model.count===2?"第二层":model.count===3?"填充层":model.count===4?"盖面层":"立板余高层"
-                model.append(
-                            {"ID":str,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
-                                "C2":getText(3)+"/"+getText(4),
-                                "C3":getText(5)+"/"+getText(6),
-                                "C4":getText(7)+"/"+getText(8),
-                                "C5":getText(9),
-                                "C6":getText(10),
-                                "C7":getText(11),
-                                "C8":getText(12),
-                                "C9":getText(13)+"/"+getText(14),
-                                "C10":getText(15),
-                                "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
-                            });
-            }else{
-                model.set(currentRow,
-                          {"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
-                              "C2":getText(3)+"/"+getText(4),
-                              "C3":getText(5)+"/"+getText(6),
-                              "C4":getText(7)+"/"+getText(8),
-                              "C5":getText(9),
-                              "C6":getText(10),
-                              "C7":getText(11),
-                              "C8":getText(12),
-                              "C9":getText(13)+"/"+getText(14),
-                              "C10":getText(15),
-                              "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
-                          });
+            try{
+                if(addOrEdit){
+                    var str=model.count===0?"陶瓷衬垫":model.count===1?"打底层":model.count===2?"第二层":model.count===3?"填充层":model.count===4?"盖面层":"立板余高层"
+                    model.append(
+                                {"ID":str,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
+                                    "C2":getText(3)+"/"+getText(4),
+                                    "C3":getText(5)+"/"+getText(6),
+                                    "C4":getText(7)+"/"+getText(8),
+                                    "C5":getText(9),
+                                    "C6":getText(10),
+                                    "C7":getText(11),
+                                    "C8":getText(12),
+                                    "C9":getText(13)+"/"+getText(14),
+                                    "C10":getText(15),
+                                    "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
+                                });
+                }else{
+                    model.set(currentRow,
+                              {"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
+                                  "C2":getText(3)+"/"+getText(4),
+                                  "C3":getText(5)+"/"+getText(6),
+                                  "C4":getText(7)+"/"+getText(8),
+                                  "C5":getText(9),
+                                  "C6":getText(10),
+                                  "C7":getText(11),
+                                  "C8":getText(12),
+                                  "C9":getText(13)+"/"+getText(14),
+                                  "C10":getText(15),
+                                  "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388",
+                              });
+                }
+            }
+            catch(e){
+                message.open(objectName+"错误"+e.message)
             }
         }
     }

@@ -33,9 +33,9 @@ Material.Dialog{
     }
     onChangeSelectedMoto: {
         selectedMoto=index;
-        if(moto.selectedIndex<4)
+        if(moto.selectedIndex<5)
             moto.oldSelectedIndex=moto.selectedIndex;
-        moto.selectedIndex=5+moto.selectedMoto;
+        moto.selectedIndex= 6+moto.selectedMoto;
         moto.changeValue(moto.send[moto.selectedMoto][0],0)
         moto.changeValue(moto.send[moto.selectedMoto][1],1)
         moto.changeValue(moto.send[moto.selectedMoto][2],2)
@@ -108,7 +108,7 @@ Material.Dialog{
             moto.close();
             event.accpet=true;
         }else if(event.key===Qt.Key_Up){
-            if(moto.selectedIndex>4){
+            if(moto.selectedIndex>5){
                 if(moto.selectedMoto>0){
                     moto.selectedMoto--;
                     moto.selectedIndex--;
@@ -118,12 +118,12 @@ Material.Dialog{
                 moto.selectedIndex--;
             event.accpet=true;
         }else if(event.key===Qt.Key_Down){
-            if(moto.selectedIndex<4)
+            if(moto.selectedIndex<5)
                 moto.selectedIndex++;
-            else if(moto.selectedIndex===4){
+            else if(moto.selectedIndex===5){
 
             }
-            else if(moto.selectedIndex<9){
+            else if(moto.selectedIndex<11){
                 if(moto.selectedMoto<3){
                     moto.selectedMoto++;
                     moto.selectedIndex++;
@@ -132,21 +132,21 @@ Material.Dialog{
             }
             event.accpet=true;
         }else if(event.key===Qt.Key_Left){
-            if(moto.selectedIndex<5){
+            if(moto.selectedIndex<6){
                 moto.oldSelectedIndex=moto.selectedIndex;
-                moto.selectedIndex=5+moto.selectedMoto;
+                moto.selectedIndex=6+moto.selectedMoto;
             }
             event.accpet=true;
         }else if(event.key===Qt.Key_Right){
-            if(moto.selectedIndex>4){
+            if(moto.selectedIndex>5){
                 moto.selectedIndex=moto.oldSelectedIndex;
                 moto.oldSelectedIndex=0;
             }
             event.accpet=true;
         }else if(event.key===Qt.Key_VolumeUp){
-            if(moto.selectedIndex<5){
+            if(moto.selectedIndex<6){
                 var num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<4)
+                if(moto.selectedIndex<5)
                     if(num) num=0;
                     else num=1;
                 else
@@ -156,9 +156,9 @@ Material.Dialog{
             }
             event.accpet=true;
         }else if(event.key===Qt.Key_VolumeDown){
-            if(moto.selectedIndex<5){
+            if(moto.selectedIndex<6){
                 num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<4)
+                if(moto.selectedIndex<5)
                     if(num) num=0;
                     else num=1;
                 else
@@ -168,9 +168,9 @@ Material.Dialog{
             }
             event.accpet=true;
         }else if(event.key===Qt.Key_Plus){
-            if(moto.selectedIndex<5){
+            if(moto.selectedIndex<6){
                 num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<4)
+                if(moto.selectedIndex<5)
                     if(num) num=0;
                     else num=1;
                 else
@@ -180,9 +180,9 @@ Material.Dialog{
             }
             event.accpet=true;
         }else if(event.key===Qt.Key_Minus){
-            if(moto.selectedIndex<5){
+            if(moto.selectedIndex<6){
                 num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<4)
+                if(moto.selectedIndex<5)
                     if(num) num=0;
                     else num=1;
                 else
@@ -208,7 +208,7 @@ Material.Dialog{
                     Rectangle {
                         id: rect
                         anchors.fill: parent
-                        color:index===moto.selectedIndex-5?Material.Palette.colors["grey"]["400"] : "white"
+                        color:index===moto.selectedIndex-6?Material.Palette.colors["grey"]["400"] : "white"
                     }
                     Material.RadioButton{
                         id:radio
@@ -253,7 +253,8 @@ Material.Dialog{
                         enabled: sub.subIndex===1?moto.selectedMoto===0?
                                                        errorCode&0x00000080?true:false:moto.selectedMoto===1?
                                                                                  errorCode&0x00001000?true:false:moto.selectedMoto===2?
-                                                                                                           errorCode&0x00020000?true:false:errorCode&0x00400000?true:false:true
+                                                                                                           errorCode&0x00020000?true:false:errorCode&0x00400000?true:false:
+                                        sub.subIndex===2?false:true
                         onCheckedChanged: {
                             if(moto.selectedIndex<4)
                                 moto.changeSelectedIndex(sub.subIndex);

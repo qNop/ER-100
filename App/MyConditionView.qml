@@ -211,7 +211,7 @@ Item{
                             Repeater{
                                 id:re
                                 model:sub.subIndex<listValueName.length?listValueName[sub.subIndex]:listName.length
-                                delegate:Material.RadioButton{
+                                delegate:Material.RadioButton{                                    
                                     canToggle: false
                                     text:modelData
                                     checked:index===root.condition[sub.subIndex]

@@ -53,7 +53,6 @@ Controls.TableView{
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.horizontalCenter: checkbox.visible?undefined:parent.horizontalCenter
                 text:styleData.value
-                style:"body1"
                 color: Theme.light.shade(0.87)
             }
         }

@@ -26,7 +26,7 @@ MyConditionView{
 
     titleName: qsTr("焊接条件");
     condition: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-    listName: ["焊丝伸出长度:","头部摇动方式:","焊丝种类:","机头放置侧:","焊丝直径:","保护气体:","焊接脉冲状态:","焊接往返动作:","电弧跟踪:","预期余高:","溶敷系数:","焊接电流偏置:","焊接电压偏置:","提前送气时间:","滞后送气时间","起弧停留时间:","收弧停留时间","起弧电流:","起弧电压:","收弧电流:","收弧电压:"
+    listName: ["焊丝伸出长度:","头部摇动方式:","焊丝种类:","机头放置侧:","焊丝直径:","保护气体:","焊接脉冲状态:","焊接往返动作:","电弧跟踪:","预期余高:","溶敷系数:","焊接电流偏置:","焊接电压偏置:","提前送气时间:","滞后送气时间","起弧停留时间:","收弧停留时间","起弧电流衰减系数:","起弧电压衰减系数:","收弧电流衰减系数:","收弧电压衰减系数:"
         ,"层间起弧位置偏移:" ,"层间收弧位置偏移:" ,"层内起弧位置偏移:" ,"层内收弧位置偏移:","收弧回退距离:","收弧回退速度:","收弧回退停留时间:","回烧电压补偿:","回烧时间补偿1:","回烧时间补偿2:","顿边:","层间停止时间:","层内停止时间:","陶瓷衬垫打底起弧停留时间:","陶瓷衬垫打底起弧摆动速度:"]
     property var weldWireLengthModel:     ["15mm","20mm","25mm","30mm"];
     property var weldWireLengthEnable:    [true,true,true,true]
@@ -65,10 +65,10 @@ MyConditionView{
         "设定焊接滞后送气时间。",
         "设定焊接起弧停留时间。",
         "设定焊接收弧停留时间。",
-        "设定焊接起弧电流。",
-        "设定焊接起弧电压。",
-        "设定焊接收弧电流。",
-        "设定焊接收弧电压。",
+        "设定焊接起弧电流相对焊接电流的衰减系数。",
+        "设定焊接起弧电压相对焊接电压的衰减系数。",
+        "设定焊接收弧电流相对焊接电流的衰减系数。",
+        "设定焊接收弧电压相对焊接电压的衰减系数。",
         "设定每层之间起弧坐标Z行走轴偏移量,焊接方向为正反之则为负。",
         "设定每层之间收弧坐标Z行走轴偏移量,焊接方向为正反之则为负。",
         "设定层内每层焊道之间起弧坐标Z行走轴偏移量,焊接方向为正反之则为负。",
@@ -84,7 +84,7 @@ MyConditionView{
         "设定层内每层焊道之间焊接结束后停止焊接的时间(最长1小时)。",
         "设定陶瓷衬垫打底起弧两端停留时间。",
         "设定陶瓷衬垫打底起弧时摆动速度。"]
-    valueType: ["mm","%","A","V","S","S","S","S","A","V","A","V","mm","mm","mm","mm","mm","cm/min","S","","","","mm","S","S","S","cm/min"]
+    valueType: ["mm","%","A","V","S","S","S","S","%","%","%","%","mm","mm","mm","mm","mm","cm/min","S","","","","mm","S","S","S","cm/min"]
     //处理 数据
     onChangeGroup: {
         var str;
@@ -92,7 +92,7 @@ MyConditionView{
         case 2:
             changeGroupCurrent(index,flag);
             if(index){//切换到药芯碳钢
-                changeEnable(5,1,false);  //Mag按钮失效
+                changeEnable(5,1,false);//Mag按钮失效
                 changeEnable(6,1,false)//脉冲按钮失效
                 if(root.condition[5]){//如果此时是MAG则切换到CO2
                     selectedIndex=5;
@@ -281,7 +281,7 @@ MyConditionView{
             //回烧时间补偿2
         case 30:frame.push("302");frame.push("1");frame.push(String(num));break;
             //顿边
-        case 31:WeldMath.setRootFace(num);break;
+        case 31:WeldMath.setRootFace(num);frame.push("161");frame.push("1");frame.push(String(num*10));break;
             //层内停止时间
         case 32:WeldMath.setStopOutTime(num);break;
             //层内停止时间
@@ -302,9 +302,9 @@ MyConditionView{
                 frame.push("2");
                 switch(num){
                 case 0:frame.push("0");frame.push("0");break;
-                case 1:frame.push("35");frame.push("0");break;
-                case 2:frame.push("0");frame.push("35");break;
-                case 3:frame.push("35");frame.push("35");break;
+                case 1:frame.push("25");frame.push("0");break;
+                case 2:frame.push("0");frame.push("25");break;
+                case 3:frame.push("25");frame.push("25");break;
                 }
                 ERModbus.setmodbusFrame(frame);
             }
@@ -313,7 +313,7 @@ MyConditionView{
             //存储数据
             Material.UserData.setValueFromFuncOfTable(root.objectName,index,num)
         }
-        console.log(frame)
+        //console.log(frame)
         //清空
         frame.length=0;
     }
@@ -337,13 +337,13 @@ MyConditionView{
             //收弧停留时间
         case 7:num-=0.1;num=num.toFixed(1); if(num<0)num=0;break;
             //起弧电流
-        case 8:num-=1; if(num<0)num=0;break;
+        case 8:
             //起弧电压
-        case 9:num-=0.1;num=num.toFixed(1); if(num<0)num=0;break;
+        case 9:
             //收弧电流
-        case 10:num-=1; if(num<0)num=0;break;
+        case 10:
             //收弧电压
-        case 11:num-=0.1;num=num.toFixed(1); if(num<0)num=0;break;
+        case 11:num-=1; if(num<50)num=50;break;
             //层间起弧偏移
         case 12:
             //层间收弧偏移
@@ -400,13 +400,13 @@ MyConditionView{
             //收弧停留时间
         case 7:num+=0.1; num=num.toFixed(1);if(num>5)num=5;break;
             //起弧电流
-        case 8:num+=1; if(num>300)num=300;break;
+        case 8:
             //起弧电压
-        case 9:num+=0.1; num=num.toFixed(1);if(num>30)num=30;break;
+        case 9:
             //收弧电流
-        case 10:num+=1; if(num>300)num=300;break;
+        case 10:
             //收弧电压
-        case 11:num+=0.1;num=num.toFixed(1); if(num>30)num=30;break;
+        case 11:num+=1; if(num>130)num=130;break;
             //层间起弧偏移
         case 12:
             //层间收弧偏移
@@ -456,19 +456,19 @@ MyConditionView{
         changeEnable(0,3,false)//干伸长30mm disable
         //检查使能
         if(condition[2]){//药芯
-            changeEnable(2,1,true)//自己使能
-            changeEnable(5,1,false)//mag disable
-            changeEnable(6,1,false);//脉冲disable
+            changeEnable(2,1,true);//自己使能
+            changeEnable(5,1,false);//mag disable
+            changeEnable(6,1,false);//脉冲 disable
         }
         if(condition[5]){//mag
-            changeEnable(2,1,false)//药芯 disable
-            changeEnable(5,1,true)//mag disable
-            changeEnable(6,1,true);//脉冲disable
+            changeEnable(2,1,false);//药芯 disable
+            changeEnable(5,1,true);//mag disable
+            changeEnable(6,1,true);//脉冲 disable
         }
         if(condition[6]){//maichong
-            changeEnable(2,1,false) //药芯disable
-            changeEnable(5,1,false) //CO2disable
-            changeEnable(6,1,true);//脉冲disable
+            changeEnable(2,1,false) //药芯 disable
+            changeEnable(5,0,false) //CO2 disable
+            changeEnable(6,1,true);//脉冲 disable
         }
     }
 }

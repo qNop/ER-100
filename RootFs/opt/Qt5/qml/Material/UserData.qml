@@ -311,10 +311,8 @@ Object {
         if(!root.dataBase){ if(openDatabase()===-1) return -1;}
         var str="INSERT INTO "+tablename+" VALUES"+func;
         console.log(str+data)
-        try{
-            dataBase.transaction( function(tx) { tx.executeSql(str,data);});
-        }
-        catch(e){return e}
+        dataBase.transaction( function(tx) { tx.executeSql(str,data);});
+        
     }
     /*
         * 重命名表格

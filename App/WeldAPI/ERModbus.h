@@ -10,9 +10,10 @@
 #include "modbus-private.h"
 #include <QDebug>
 #include <QThread>
-#include <QMutex>
-#include <errno.h>
-#include <stdint.h>
+//#include <QMutex>
+#include "errno.h"
+#include "stdint.h"
+#include <QQueue>
 
 
 class ModbusThread:public QThread{
@@ -31,12 +32,16 @@ class ModbusThread:public QThread{
     /*缓存数组*/
     uint16_t data[260];
 
+    QQueue<QStringList> cmdBuf;
+
 public:
     ModbusThread();
     ~ModbusThread();
      QStringList frame;
-     QMutex* lockThread;
-       modbus_t *ER_Modbus;
+     //QMutex* lockThread;
+     modbus_t *ER_Modbus;
+    QQueue<QStringList> * pCmdBuf;
+
 signals:
     void ModbusThreadSignal(QStringList Frame);
 };
@@ -46,11 +51,11 @@ class ERModbus : public QObject
     Q_OBJECT
 private:
     QString status;
-   // ModbusThread* pModbusThread;
+    ModbusThread* pModbusThread;
     QStringList Frame;
     //槽
 public:
-      QMutex lockThread;
+      //QMutex lockThread;
        modbus_t *modbus;
        int *modbus_Cmd_count;
     explicit ERModbus(QObject* parent = 0);

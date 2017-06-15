@@ -43,7 +43,6 @@ void WeldMath::setGrooveRules(QStringList value){
 }
 
 void WeldMath::setCeramicBack(int value){
-
     sysMath.ceramicBack=value;
     sysMath.bottomFloor=sysMath.ceramicBack==1?&bottomFloor0:&bottomFloor;
 }

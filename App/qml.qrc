@@ -2,10 +2,10 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>WeldCondition.qml</file>
-        <file>WeldAnalyse.qml</file>
         <file>SystemInfor.qml</file>
         <file>InputPanel.qml</file>
         <file>TableStyle.qml</file>
+ 	<file>../Pic/erweima.png</file>
         <file>../Pic/横焊单边V形坡口T接头.png</file>
         <file>../Pic/横焊单边V形坡口平对接.png</file>
         <file>../Pic/立焊V形坡口平对接.png</file>
@@ -22,7 +22,6 @@
         <file>GrooveCondition.qml</file>
         <file>GrooveCheck.qml</file>
         <file>InputPanelButton.qml</file>
-        <file>RoboInfor.qml</file>
         <file>Table.qml</file>
         <file>LimitedCondition.qml</file>
         <file>MenuDropdown.qml</file>
@@ -30,7 +29,6 @@
         <file>TableCard.qml</file>
         <file>MyList.qml</file>
         <file>SysErrorHistroy.qml</file>
-        <file>SysTime.qml</file>
         <file>UserAccount.qml</file>
         <file>WeldData.qml</file>
         <file>MyTextFieldDialog.qml</file>

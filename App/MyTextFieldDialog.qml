@@ -118,10 +118,6 @@ Dialog{
                         Connections{
                             target:root
                             onOpenText:{
-                                root.min=min;
-                                root.max=max;
-                                root.isNum=isNum;
-                                root.step=step;
                                 if(index===row.rowIndex)
                                     if(isNum){
                                         if(Number(text)<min){

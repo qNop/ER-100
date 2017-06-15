@@ -30,7 +30,7 @@ Item {
 
     property var inforName: ["产品名称","产品代号",
         "系统版本号","控制器版本号","驱动器版本号","操作盒版本号","公司名称","公司地址","邮编","电话","网址"]
-    property var infor:  ["轨道式智能焊接系统","ER-100", "Version 1.0.0 Beta","Version 1.0.0","Version 1.0.0","Version 1.0.0","唐山开元特种焊接设备有限公司","河北省唐山市高新区庆南西道92号","063020","0315-6710298","www.spec-welding.com"]
+    property var infor:  ["轨道式智能焊接系统","ER-100", "Version 1.0.0 Beta1 / Version 1.0.0","Version 1.0.0","Version 1.0.0","Version 1.0.0","唐山开元特种焊接设备有限公司","河北省唐山市高新区庆南西道92号","063020","0315-6710298","www.spec-welding.com"]
     signal changeInfor(int selectedIndex,string str)
     Card{
         anchors{left:parent.left;right:parent.right;top:parent.top;bottom:parent.bottom;margins: Units.dp(12)}
@@ -39,10 +39,21 @@ Item {
             id:logo
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top:parent.top
-            anchors.topMargin: height
+            anchors.topMargin: height-10
             source: "../Pic/logo.png"
             height: 40
             width: 5.7*height
+            mipmap: true
+        }
+        Image{
+            id:logo2
+            anchors.bottom:parent.bottom
+            anchors.bottomMargin: 24
+            anchors.left: parent.left
+            anchors.leftMargin: 18
+            source: "../Pic/erweima.png"
+            height: 100
+            width: 100
             mipmap: true
         }
         ColumnLayout{

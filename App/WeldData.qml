@@ -37,15 +37,15 @@ TableCard{
         ListElement{name:"电      流  (A)    :";show:true;min:10;max:300;isNum:true;step:1}
         ListElement{name:"电      压  (V)    :";show:true;min:10;max:50;isNum:true;step:0.1}
         ListElement{name:"摆      幅(mm) :";show:true;min:0;max:1000;isNum:true;step:0.1}
-        ListElement{name:"摆速(cm/min) :";show:true;min:50;max:300;isNum:true;step:1}
-        ListElement{name:"焊速(cm/min) :";show:true;min:0;max:200;isNum:true;step:0.1}
+        ListElement{name:"摆速(cm/min) :";show:true;min:50;max:250;isNum:true;step:1}
+        ListElement{name:"焊速(cm/min) :";show:true;min:4;max:200;isNum:true;step:0.1}
         ListElement{name:"焊接线X(mm)  :";show:true;min:-100;max:100;isNum:true;step:0.1}
         ListElement{name:"焊接线Y(mm)  :";show:true;min:-10;max:100;isNum:true;step:0.1}
         ListElement{name:"前   停  留   (s) :";show:true;min:0;max:5;isNum:true;step:0.01}
         ListElement{name:"后   停  留   (s) :";show:true;min:0;max:5;isNum:true;step:0.01}
-        ListElement{name:"停  止 时 间(s) :";show:true;min:0;max:1000;isNum:true;step:1}
-        ListElement{name:"层       面     积 :";show:true;min:1;max:10000;isNum:true;step:0.1}
-        ListElement{name:"道       面     积 :";show:true;min:1;max:10000;isNum:true;step:0.1}
+        ListElement{name:"停  止 时 间(s) :";show:true;min:0;max:1000;isNum:true;step:0.1}
+        ListElement{name:"层       面     积 :";show:false;min:1;max:10000;isNum:true;step:0.1}
+        ListElement{name:"道       面     积 :";show:false;min:1;max:10000;isNum:true;step:0.1}
         ListElement{name:"起    弧   点   X :";show:true;min:-100;max:100;isNum:true;step:0.1}
         ListElement{name:"起    弧   点   Y :";show:true;min:-10;max:100;isNum:true;step:0.1}
         ListElement{name:"起    弧   点   Z :";show:true;min:-30000;max:30000;isNum:true;step:1}
@@ -55,8 +55,6 @@ TableCard{
     }
     onWeldTableExChanged: {
         weldCondtion.setProperty(6,"show",weldTableEx?true:false);
-        weldCondtion.setProperty(13,"show",weldTableEx?true:false);
-        weldCondtion.setProperty(14,"show",weldTableEx?true:false);
         weldCondtion.setProperty(15,"show",weldTableEx?true:false);
         weldCondtion.setProperty(16,"show",weldTableEx?true:false);
         weldCondtion.setProperty(17,"show",weldTableEx?true:false);
@@ -64,8 +62,6 @@ TableCard{
         weldCondtion.setProperty(19,"show",weldTableEx?true:false);
         weldCondtion.setProperty(20,"show",weldTableEx?true:false);
     }
-
-
 
     ListModel{id:pasteModel;
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:"";C17:"";C18:"";C19:""}
@@ -116,14 +112,15 @@ TableCard{
             table.selection.select(index);
         }
         else{
-            message.open("索引超过条目上限或索引无效！")
+            if(model.count>0)
+                message.open("索引超过条目上限或索引无效！")
         }
     }
 
     function save(){
         if((typeof(weldRulesName)==="string")&&(weldRulesName!=="")){
             //清除保存数据库
-            UserData.clearTable(weldRulesName,"","");          
+            UserData.clearTable(weldRulesName,"","");
             for(var i=0;i<model.count;i++){
                 //插入新的数据
                 UserData.insertTable(weldRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[
@@ -167,8 +164,6 @@ TableCard{
             onTriggered: {save()}},
         Action{iconName:"awesome/credit_card";name:"另存为";
             onTriggered: {saveAs=true;newFile.show();
-                //备份数据 新建表格
-                //插入表格数据
             }
         },
         Action{iconName:"awesome/calendar_times_o";name:"删除";enabled: weldRulesNameList.replace("列表","")===weldRulesName?false:true
@@ -180,7 +175,7 @@ TableCard{
                 myTextFieldDialog.title="添加焊接规范";
                 myTextFieldDialog.show();}},
         Action{iconName:"awesome/edit";name:"编辑";onTriggered: {myTextFieldDialog.title="编辑焊接规范"
-                if(currentRow!==-1){
+                if((currentRow>=0)&&(table.rowCount)){
                     myTextFieldDialog.show()
                 }else{
                     message.open("请选择要编辑的行！")
@@ -189,7 +184,7 @@ TableCard{
         },
         Action{iconName:"awesome/copy";name:"复制";
             onTriggered: {
-                if(currentRow>=0){
+                if((currentRow>=0)&&(table.rowCount)){
                     pasteModel.set(0,model.get(currentRow));
                     message.open("已复制。");}
                 else{
@@ -198,7 +193,7 @@ TableCard{
             }},
         Action{iconName:"awesome/paste"; name:"粘帖"
             onTriggered: {
-                if(currentRow>=0){
+                if((currentRow>=0)&&(table.rowCount)){
                     updateModel("Set", pasteModel.get(0));
                     message.open("已粘帖。");}
                 else
@@ -207,7 +202,7 @@ TableCard{
         },
         Action{iconName: "awesome/trash_o";  name:"移除";
             onTriggered: {
-                if(currentRow>=0){
+                if((currentRow>=0)&&(table.rowCount)){
                     updateModel("Remove",{})
                     message.open("已移除。");}
                 else
@@ -227,7 +222,7 @@ TableCard{
     funcMenu: [
         Action{iconName:"awesome/send_o";name:"下发规范"
             onTriggered:{
-                if(currentRow>-1){
+                if((currentRow>=0)&&(table.rowCount)){
                     changeWeldData();
                     message.open("已下发焊接规范。");
                 }else {
@@ -236,7 +231,7 @@ TableCard{
             }
         },
         Action{iconName:"awesome/send_o";name:"填充面积"
-            onTriggered: {weldArea.show()}
+            onTriggered: {}//{weldArea.show()}
         }
     ]
     tableData:[
@@ -251,8 +246,8 @@ TableCard{
         Controls.TableViewColumn{role: "C9";title: "前停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
         Controls.TableViewColumn{role: "C10";title: "后停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C11";title: "停止\n时间";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-        Controls.TableViewColumn{role: "C12";title: "层面积";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
-        Controls.TableViewColumn{role: "C13";title: "道面积";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
+        Controls.TableViewColumn{role: "C12";title: "层面积";width:Units.dp(70);movable:false;resizable:false;visible: false},
+        Controls.TableViewColumn{role: "C13";title: "道面积";width:Units.dp(70);movable:false;resizable:false;visible: false},
         Controls.TableViewColumn{role: "C14";title: "起弧x";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
         Controls.TableViewColumn{role: "C15";title: "起弧y";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
         Controls.TableViewColumn{role: "C16";title: "起弧z";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx},
@@ -301,7 +296,7 @@ TableCard{
             onItemSelected: {
                 open.name=open.rulesList[index]
                 menuField.helperText="创建时间:"+open.creatTimeList[index]+"\n创建者:"+open.creatorList[index]+"\n修改时间:"+open.editTimeList[index]+"\n修改者:"+open.editorList[index];
-                console.log("创建时间:"+open.creatTimeList[index]+"\n创建者:"+open.creatorList[index]+"\n修改时间:"+open.editTimeList[index]+"\n修改者:"+open.editorList[index])
+                //console.log("创建时间:"+open.creatTimeList[index]+"\n创建者:"+open.creatorList[index]+"\n修改时间:"+open.editTimeList[index]+"\n修改者:"+open.editorList[index])
             }
         }
         onAccepted: {
@@ -339,7 +334,7 @@ TableCard{
             height:newFileTextField.actualHeight
             TextField{
                 id:newFileTextField
-               // text:weldRulesName
+                // text:weldRulesName
                 helperText: "请输入新的焊接规范名称！"
                 width: Units.dp(300)
                 anchors.horizontalCenter: parent.horizontalCenter
@@ -359,6 +354,11 @@ TableCard{
                         newFile.positiveButtonEnabled=true;
                         helperText="焊接规范名称有效！"
                         hasError=false;
+                    }
+                    if(!isNaN(Number(text.charAt(0)))){ //开头字母为数字
+                        newFile.positiveButtonEnabled=false;
+                        helperText="焊接规范名称开头不能数字！"
+                        hasError=true;
                     }
                 }
             }
@@ -437,10 +437,16 @@ TableCard{
                     var index=currentRow
                     var obj=model.get(index);
                     openText(0,obj.ID);
+
                     var temp=obj.C1;
-                    temp=temp.split("/")
-                    openText(1,temp[0])
-                    openText(2,temp[1]);
+                    if(temp!==""){
+                        temp=temp.split("/")
+                        openText(1,temp[0])
+                        openText(2,temp[1]);
+                    }else{
+                        openText(1,"0")
+                        openText(2,"0");
+                    }
                     openText(3,obj.C2);
                     openText(4,obj.C3);
                     openText(5,obj.C4);

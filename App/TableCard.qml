@@ -83,7 +83,7 @@ Card{
             style:"subheading"
             color: Theme.light.shade(0.87)
             text:headerTitle
-            wrapMode: Text.WordWrap
+           // wrapMode: Text.WordWrap
             width: Units.dp(400)
         }
         Row{
@@ -196,7 +196,7 @@ Card{
             anchors.left: parent.left
             anchors.leftMargin: footerItem.width-width-Units.dp(16)
             anchors.verticalCenter: parent.verticalCenter
-            style:"body1"
+            style:"menu"
             text:footerText
         }
     }

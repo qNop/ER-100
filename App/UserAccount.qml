@@ -16,6 +16,16 @@ TableCard {
     property Item message;
     signal userUpdate();
 
+    function selectIndex(index){
+        if((index<model.count)&&(index>-1)){
+            table.selection.clear();
+            table.selection.select(index);
+        }
+        else{
+            message.open("索引超过条目上限或索引无效！")
+        }
+    }
+
     ListModel{id:pasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:""}}
 
     footerText:  "只有超级用户拥有添加、编辑、移除用户的权限。"
@@ -53,14 +63,16 @@ TableCard {
         Action{iconName:"awesome/paste"; name:"粘帖";enabled: false;},
         Action{iconName: "awesome/trash_o";  name:"移除";enabled:superUser
             onTriggered: {
-                if(currentRow>=0){
-                    model.remove(currentRow);
+               if((currentRow>=0)&&(table.rowCount)){
+                   selectIndex(currentRow-1)
+                   model.remove(currentRow);
+                  //  selectIndex(currentRow-1);
                     message.open("已移除。");}
                 else
                     message.open("请选择要移除的行！")
             }
         }]
-    inforMenu: [ Action{iconName: "awesome/info";  name:"详细信息" ;enabled: false
+    inforMenu: [ Action{iconName: "awesome/info";  name:"详细信息" ;enabled:false
             //onTriggered: {info.show();}
         }]
     funcMenu: [
@@ -111,7 +123,7 @@ TableCard {
             }
         }
         onAccepted: {
-            var js={"C1":getText(1),"C2":getText(2),"C3":getText(3),"C4":getText(4),"C5":getText(5),"C6":getText(6)};
+            var js={"ID":String(table.rowCount+1),"C1":getText(0),"C2":getText(1),"C3":getText(2),"C4":getText(3),"C5":getText(4),"C6":getText(5)};
             if(addOrEdit)
                 model.set(currentRow,js)
             else

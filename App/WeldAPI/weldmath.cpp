@@ -115,7 +115,7 @@ float WeldMath::getWeldVoltage(int current){
 }
 
 float WeldMath::getWeldArea(int current, float weldSpeed,float k,float met){
-    return  GET_WELDFILL_AREA(met,(sysMath.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4,sysMath.getFeedSpeed(current),weldSpeed,k);
+    return  GET_WELDFILL_AREA(met,(sysMath.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4,sysMath.getFeedSpeed(current),weldSpeed);
 }
 
 float WeldMath::getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed){
@@ -155,7 +155,7 @@ bool WeldMath::setLimited(QStringList value){
         bottomFloor0.weldSwingSpacing=value.at(BOTTOM_0+SWING_SPACING).toFloat();
         bottomFloor0.maxWeldSpeed=value.at(BOTTOM_0+MAX_SPEED).toFloat();
         bottomFloor0.minWeldSpeed=value.at(BOTTOM_0+MIN_SPEED).toFloat();
-        bottomFloor0.fillCoefficient=value.at(BOTTOM_0+FILL_COE).toFloat();
+      //  bottomFloor0.fillCoefficient=value.at(BOTTOM_0+FILL_COE).toFloat();
         bottomFloor0.voltage=value.at(BOTTOM_0+VOLTAGE).toFloat();
         bottomFloor0.current=bottomFloor0.current_left;
         //底层限制条件 选取电流中间侧
@@ -176,7 +176,7 @@ bool WeldMath::setLimited(QStringList value){
         bottomFloor.weldSwingSpacing=value.at(BOTTOM_1+SWING_SPACING).toFloat();
         bottomFloor.maxWeldSpeed=value.at(BOTTOM_1+MAX_SPEED).toFloat();
         bottomFloor.minWeldSpeed=value.at(BOTTOM_1+MIN_SPEED).toFloat();
-        bottomFloor.fillCoefficient=value.at(BOTTOM_1+FILL_COE).toFloat();
+       // bottomFloor.fillCoefficient=value.at(BOTTOM_1+FILL_COE).toFloat();
         bottomFloor.current=bottomFloor.current_left;
         bottomFloor.voltage=value.at(BOTTOM_1+VOLTAGE).toFloat();
         //第二层限制条件
@@ -196,7 +196,7 @@ bool WeldMath::setLimited(QStringList value){
         secondFloor.totalStayTime=float(qRound(10*secondFloor.totalStayTime));
         secondFloor.totalStayTime=secondFloor.totalStayTime/10;
         secondFloor.weldSwingSpacing=value.at(SECOND+SWING_SPACING).toFloat();
-        secondFloor.fillCoefficient=value.at(SECOND+FILL_COE).toFloat();;
+       // secondFloor.fillCoefficient=value.at(SECOND+FILL_COE).toFloat();;
         secondFloor.current=secondFloor.current_left;
         secondFloor.maxWeldSpeed=value.at(SECOND+MAX_SPEED).toFloat();
         secondFloor.minWeldSpeed=value.at(SECOND+MIN_SPEED).toFloat();
@@ -217,7 +217,7 @@ bool WeldMath::setLimited(QStringList value){
         fillFloor.totalStayTime=fillFloor.swingLeftStayTime+fillFloor.swingRightStayTime;
         fillFloor.totalStayTime=float(qRound(fillFloor.totalStayTime*10))/10;
         fillFloor.weldSwingSpacing=value.at(FILL+SWING_SPACING).toFloat();
-        fillFloor.fillCoefficient=value.at(FILL+FILL_COE).toFloat();;
+     //   fillFloor.fillCoefficient=value.at(FILL+FILL_COE).toFloat();;
         fillFloor.current= fillFloor.current_left;
         fillFloor.maxWeldSpeed=value.at(FILL+MAX_SPEED).toFloat();
         fillFloor.minWeldSpeed=value.at(FILL+MIN_SPEED).toFloat();
@@ -238,7 +238,7 @@ bool WeldMath::setLimited(QStringList value){
         topFloor.totalStayTime=topFloor.swingLeftStayTime+topFloor.swingRightStayTime;
         topFloor.totalStayTime=float(qRound(topFloor.totalStayTime*10))/10;
         topFloor.weldSwingSpacing=value.at(TOP+SWING_SPACING).toFloat();
-        topFloor.fillCoefficient=value.at(TOP+FILL_COE).toFloat();;
+       // topFloor.fillCoefficient=value.at(TOP+FILL_COE).toFloat();;
         topFloor.maxWeldSpeed=value.at(TOP+MAX_SPEED).toFloat();
         topFloor.minWeldSpeed=value.at(TOP+MIN_SPEED).toFloat();
         topFloor.voltage=value.at(TOP+VOLTAGE).toFloat();
@@ -261,7 +261,7 @@ bool WeldMath::setLimited(QStringList value){
 
             overFloor.totalStayTime=float(qRound(overFloor.totalStayTime*10))/10;
             overFloor.weldSwingSpacing=value.at(OVER+SWING_SPACING).toFloat();
-            overFloor.fillCoefficient=value.at(OVER+FILL_COE).toFloat();;
+      //      overFloor.fillCoefficient=value.at(OVER+FILL_COE).toFloat();;
             overFloor.maxWeldSpeed=value.at(OVER+MAX_SPEED).toFloat();
             overFloor.minWeldSpeed=value.at(OVER+MIN_SPEED).toFloat();
             overFloor.voltage=value.at(OVER+VOLTAGE).toFloat();

@@ -61,7 +61,12 @@ TableCard {
     function getLastRulesName(){
         if((typeof(limitedRulesNameList)==="string")&&(limitedRulesNameList!=="")){
             //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
-            var res =UserData.getDataOrderByTime(limitedRulesNameList,"EditTime")
+            try{
+                var res =UserData.getDataOrderByTime(limitedRulesNameList,"EditTime")
+            }catch(e){
+                console.log(objectName+" get Last Rules Name Error "+e.message);
+                message.open(objectName+" get Last Rules Name Error "+e.message);
+            }
             if((res!==-1)&&(typeof(res)==="object")){
                 return res[0].Name;
             }else
@@ -108,67 +113,71 @@ TableCard {
     function limitedMath(start,end){
         var resArray=new Array(0);
         var temp;
-        for(var i=start;i<end;i++){
-            var res=limitedTable.get(i);
-            if((typeof(res.C1)==="string")&&(res.C1!=="")){
-                temp=res.C1.split("/")
-                resArray.push(temp[0])
-                resArray.push(temp[1])
-                resArray.push(temp[2])
-            }else{
-                resArray.push("0")
-                resArray.push("0")
-                resArray.push("0")
-            }if((typeof(res.C2)==="string")&&(res.C2!=="")){
-                temp=res.C2.split("/")
-                resArray.push(temp[0])
-                resArray.push(temp[1])
-            }else{
-                resArray.push("0")
-                resArray.push("0")
-            }if((typeof(res.C3)==="string")&&(res.C3!=="")){
-                temp=res.C3.split("/")
-                resArray.push(temp[0])
-                resArray.push(temp[1])}
-            else{
-                resArray.push("0")
-                resArray.push("0")
-            }if((typeof(res.C4)==="string")&&(res.C4!=="")){
-                temp=res.C4.split("/")
-                resArray.push(temp[0])
-                resArray.push(temp[1])
-            }else{
-                resArray.push("0")
-                resArray.push("0")
-            }if((typeof(res.C5)==="string")&&(res.C5!==""))
-                resArray.push(res.C5)
-            else
-                resArray.push("0");
-            if((typeof(res.C6)==="string")&&(res.C6!==""))
-                resArray.push(res.C6)
-            else
-                resArray.push("0");
-            if((typeof(res.C7)==="string")&&(res.C7!==""))
-                resArray.push(res.C7)
-            else
-                resArray.push("0");
-            if((typeof(res.C8)==="string")&&(res.C8!==""))
-                resArray.push(res.C8)
-            else
-                resArray.push("0");
-            if((typeof(res.C9)==="string")&&(res.C9!=="")){
-                temp=res.C9.split("/")
-                resArray.push(temp[0])
-                resArray.push(temp[1])
-            }else{
-                resArray.push("0")
-                resArray.push("0")
+        try{
+            for(var i=start;i<end;i++){
+                var res=limitedTable.get(i);
+                if((typeof(res.C1)==="string")&&(res.C1!=="")){
+                    temp=res.C1.split("/")
+                    resArray.push(temp[0])
+                    resArray.push(temp[1])
+                    resArray.push(temp[2])
+                }else{
+                    resArray.push("0")
+                    resArray.push("0")
+                    resArray.push("0")
+                }if((typeof(res.C2)==="string")&&(res.C2!=="")){
+                    temp=res.C2.split("/")
+                    resArray.push(temp[0])
+                    resArray.push(temp[1])
+                }else{
+                    resArray.push("0")
+                    resArray.push("0")
+                }if((typeof(res.C3)==="string")&&(res.C3!=="")){
+                    temp=res.C3.split("/")
+                    resArray.push(temp[0])
+                    resArray.push(temp[1])}
+                else{
+                    resArray.push("0")
+                    resArray.push("0")
+                }if((typeof(res.C4)==="string")&&(res.C4!=="")){
+                    temp=res.C4.split("/")
+                    resArray.push(temp[0])
+                    resArray.push(temp[1])
+                }else{
+                    resArray.push("0")
+                    resArray.push("0")
+                }if((typeof(res.C5)==="string")&&(res.C5!==""))
+                    resArray.push(res.C5)
+                else
+                    resArray.push("0");
+                if((typeof(res.C6)==="string")&&(res.C6!==""))
+                    resArray.push(res.C6)
+                else
+                    resArray.push("0");
+                if((typeof(res.C7)==="string")&&(res.C7!==""))
+                    resArray.push(res.C7)
+                else
+                    resArray.push("0");
+                if((typeof(res.C8)==="string")&&(res.C8!==""))
+                    resArray.push(res.C8)
+                else
+                    resArray.push("0");
+                if((typeof(res.C9)==="string")&&(res.C9!=="")){
+                    temp=res.C9.split("/")
+                    resArray.push(temp[0])
+                    resArray.push(temp[1])
+                }else{
+                    resArray.push("0")
+                    resArray.push("0")
+                }
+                if((typeof(res.C10)==="string")&&(res.C10!=="")){
+                    resArray.push(res.C10)
+                }else{
+                    resArray.push("0")
+                }
             }
-            if((typeof(res.C10)==="string")&&(res.C10!=="")){
-                resArray.push(res.C10)
-            }else{
-                resArray.push("0")
-            }
+        }catch(e){
+            message.open(objectName+"error"+e.message);
         }
         return resArray;
     }
@@ -435,6 +444,7 @@ TableCard {
     MyTextFieldDialog{
         id:edit
         title: addOrEdit?"添加限制条件":"编辑限制条件"
+        objectName: "editDialog"
         repeaterModel:nameModel
         message: root.message
         onOpened: {
@@ -479,7 +489,7 @@ TableCard {
                 }
             }
             catch(e){
-                message.open(objectName+"错误"+e.message)
+                message.open(objectName+"error"+e.message)
             }
         }
     }

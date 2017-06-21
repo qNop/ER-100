@@ -4,7 +4,7 @@ import Material.Extras 0.1
 import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
-import WeldSys.SQL 1.0
+//import WeldSys.MySQL 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
 import QtQuick.LocalStorage 2.0
@@ -1500,6 +1500,13 @@ Material.ApplicationWindow{
            snackBar.open("系统初始化进度"+String((i+1)*10)+"%！请耐心等待~");
         }
     }
+//    Connections{
+//        target: MySQL
+//        onMySqlChanged:{
+//            console.log(jsonObject);
+//        }
+//    }
+
     Component.onCompleted: {
         theme.accentColor=appSettings.accentColor
         theme.primaryColor=appSettings.primaryColor
@@ -1510,6 +1517,7 @@ Material.ApplicationWindow{
         ERModbus.setmodbusFrame(["W","98","1","0"]);
         /*打开数据库*/
         var res = Material.UserData.getTableJson("AccountTable");
+  //      MySQL.setSqlCommand(["AccountTable","getTableJson"]);
         var i;
         if(res!==-1){
             for( i=0;i<res.length;i++){

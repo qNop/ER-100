@@ -47,6 +47,7 @@ Card{
             onTriggered: {
                 //source为triggered的传递参数
                 dropDown.actions=fileMenu;
+                dropDown.loadView()
                 dropDown.open(source,0,source.height+3);
                 dropDown.place=0;
             }
@@ -54,6 +55,7 @@ Card{
         Action{iconName:"awesome/edit"; name:"修改";hoverAnimation:true;summary: "F2";
             onTriggered:{
                 dropDown.actions=editMenu;
+                dropDown.loadView()
                 dropDown.open(source,0,source.height+3);
                 dropDown.place=1;
             }
@@ -61,6 +63,7 @@ Card{
         Action{iconName:"awesome/sticky_note_o";name:"信息";hoverAnimation:true;summary: "F3"
             onTriggered:{
                 dropDown.actions=inforMenu;
+                dropDown.loadView()
                 dropDown.open(source,0,source.height+3);
                 dropDown.place=2;
             }
@@ -68,6 +71,7 @@ Card{
         Action{iconName:"awesome/stack_overflow";  name:"工具";hoverAnimation:true;summary: "F4"
             onTriggered:{
                 dropDown.actions=funcMenu;
+                dropDown.loadView()
                 dropDown.open(source,0,source.height+3);
                 dropDown.place=3;
             }

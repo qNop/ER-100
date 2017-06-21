@@ -12,7 +12,7 @@ SOURCES += main.cpp \
     WeldAPI/AppConfig.cpp \
     WeldAPI/weldmath.cpp \
     WeldAPI/SysMath.cpp \
-    WeldAPI/SQL.cpp \
+    WeldAPI/MySQL.cpp
 
 RESOURCES += \
     qml.qrc
@@ -26,7 +26,7 @@ HEADERS += \
     WeldAPI/AppConfig.h \
     WeldAPI/weldmath.h \
     WeldAPI/SysMath.h \
-    WeldAPI/SQL.h \
+    WeldAPI/MySQL.h
 
 INCLUDEPATH +=libmodbus \
               libmodbus/src \

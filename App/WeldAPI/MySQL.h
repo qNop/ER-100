@@ -17,6 +17,8 @@
 #include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
+#include <QQueue>
+#include <QJsonObject>
 
 
 class SqlThread:public QThread{
@@ -24,37 +26,32 @@ class SqlThread:public QThread{
     /*重写该函数*/
     void run()Q_DECL_OVERRIDE;
 private:
-    QTimer* timer;
+    QQueue<QStringList> cmdBuf;
+    int getTableJson(QString tableName,QList<QJsonObject>*pQJson);
 public:
     SqlThread();
     ~SqlThread();
-    QMutex* lockThread;
-    QString function;
-    QSqlDatabase myDataBases;
+    QQueue<QStringList>  *pCmdBuf;
 signals:
-    void sqlThreadSignal(QStringList record);
+    void sqlThreadSignal(QList<QJsonObject> jsonObject);
 };
 
-class SQL:public QObject
+class MySQL:public QObject
 {
     Q_OBJECT
 private:
 
 public:
-    SQL();
-    ~SQL();
-    //信号量
-    QMutex lockThread;
+    MySQL();
+    ~MySQL();
     QSqlDatabase myDataBases;
+    SqlThread *pSqlThread;
 public  slots:
-    void setSqlCommand(QString Cmd);
-    void openDatabases();
+    void setSqlCommand(QStringList Cmd);
     //信号
 signals:
-    //发送命令改变
-    void sqlSignalChanged(QStringList record);
-
-
+    // void mySqlChanged(QString tableName,QJsonObject* jsonObject);
+     void mySqlChanged(QList<QJsonObject> jsonObject);
 };
 
 #endif // SQLITE3_H

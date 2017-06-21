@@ -268,12 +268,13 @@ MyConditionView{
         case 23:WeldMath.setStartArcZx(num);break;
             //层间收弧X位置偏移
         case 24:WeldMath.setStopArcZx(num);break;
+        //收弧回退相关 屏蔽掉
             //收弧回退距离
-        case 25:frame.push("303");frame.push("1");frame.push(String(num*10));break;
+   //     case 25:frame.push("303");frame.push("1");frame.push(String(num*10));break;
             //收弧回退速度
-        case 26:frame.push("304");frame.push("1");frame.push(String(num*10));break;
+      //  case 26:frame.push("304");frame.push("1");frame.push(String(num*10));break;
             //收弧回退时间
-        case 27:frame.push("305");frame.push("1");frame.push(String(num*10));break;
+  //      case 27:frame.push("305");frame.push("1");frame.push(String(num*10));break;
             //回烧电压补偿
         case 28:frame.push("300");frame.push("1");frame.push(String(num));break;
             //回烧时间补偿1

@@ -59,13 +59,9 @@ ERModbus::~ERModbus(){
 
 void ERModbus::setmodbusFrame(QStringList frame){
   //  qDebug()<<"ERModbus::setmodbusFrame"<<frame;
-    //任务上锁保护插入队列时不受影响
-//    lockThread.lock();
     //加入缓存队列
     pModbusThread->pCmdBuf->enqueue(frame);
     //qDebug()<<"pModbusThread::pCmdBuf count en"<<pModbusThread->pCmdBuf->count();
-    //任务解锁
-//    lockThread.unlock();
 }
 
 void ModbusThread::run(){
@@ -110,9 +106,10 @@ void ModbusThread::run(){
                 emit ModbusThreadSignal(modbusData);
                 //  qDebug()<<"ModbusThread::ANSWER "<<modbusData;
             }else{
-                qDebug()<<"*Modbus is not exist !";
+
+               // qDebug()<<"*Modbus is not exist !";
             }
-        }else{
+        }else{//队列内部无数据则 线程休眠
             msleep(50);
         }
     }

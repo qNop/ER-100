@@ -36,18 +36,35 @@ Dialog{
     onChangeFocusIndex: {
         focusIndex=index;
     }
+    onOpenText: {
+        var minTest,maxTest;
+        if(index<repeater.count){
+            minTest=repeater.itemAt(index).minRead
+            maxTest=repeater.itemAt(index).maxRead
+            if(repeater.itemAt(index).isNumRead){
+                if(Number(text)<minTest){
+                    repeater.itemAt(index).text=String(minTest);
+                }else if(Number(text)>maxTest){
+                    repeater.itemAt(index).text=String(maxTest);
+                }else
+                    repeater.itemAt(index).text=text;
+            }else
+                repeater.itemAt(index).text=text;
+        }
+    }
+
     Keys.onUpPressed: {
         if((focusIndex>0)&&(focusIndex<repeaterModel.count)){
             focusIndex--;
             keyStatus=false;
-            changeFocus(focusIndex);
+           changeFocus(focusIndex);
         }
     }
     Keys.onDownPressed: {
         if(focusIndex<(repeaterModel.count-1)){
             focusIndex++;
             keyStatus=true;
-            changeFocus(focusIndex);
+           changeFocus(focusIndex);
         }
     }
     Keys.onVolumeDownPressed: {
@@ -109,38 +126,25 @@ Dialog{
                     id:row
                     property int rowIndex:index
                     property alias text: textField.text
+                    property bool isNumRead: isNum
+                    property double minRead:min
+                    property double maxRead:max
                     visible: show
                     spacing:Units.dp(8)
                     Label{text:name;anchors.bottom: parent.bottom;style: "button"}
                     TextField{
                         id:textField
-                        property string lastText
                         Connections{
                             target:root
-                            onOpenText:{
-                                if(index===row.rowIndex)
-                                    if(isNum){
-                                        if(Number(text)<min){
-                                            textField.text=String(min);
-                                        }else if(Number(text)>max){
-                                            textField.text=String(max);
-                                        }else
-                                            textField.text=text;
-                                    }else
-                                        textField.text=text;
-                            }
                             onChangeFocus:{
                                 if(index===row.rowIndex){
-                                    if(show) //如果当前值为有效则对焦但前值否则index+1 激活下一个控件
-                                        textField.forceActiveFocus();
-                                    else
-                                        root.changeFocus(keyStatus?index+1>repeater.model.count?0:index+1:index-1<0?0:index-1);
+                                        textField.forceActiveFocus(); //激活
                                 }
                             }
                         }
                         onActiveFocusChanged: {
                             if(activeFocus){
-                                root.changeFocusIndex(index)
+                                root.focusIndex=index;
                                 root.min=min;
                                 root.max=max;
                                 root.isNum=isNum;

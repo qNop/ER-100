@@ -7,9 +7,8 @@
 #include <QDebug>
 #include "gloabldefine.h"
 #include <QLocale>
-#include <SQL.h>
-//#include <QLabel>
-//#include <QMovie>
+#include <MySQL.h>
+
 
 //==============================================================================
 QObject* ERModbusEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
@@ -38,7 +37,7 @@ QObject* SQLEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
-    SQL *p=new SQL();
+    MySQL *p=new MySQL();
     return p;
 }
 
@@ -60,7 +59,7 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonType<AppConfig>("WeldSys.AppConfig",1,0,"AppConfig",AppConfigEngineProvider);
     qmlRegisterSingletonType<ERModbus>("WeldSys.ERModbus",1,0,"ERModbus",ERModbusEngineProvider);
     qmlRegisterSingletonType<WeldMath>("WeldSys.WeldMath",1,0,"WeldMath",WeldMathEngineProvider);
-    qmlRegisterSingletonType<SQL>("WeldSys.SQL",1,0,"SQL",SQLEngineProvider);
+   // qmlRegisterSingletonType<MySQL>("WeldSys.MySQL",1,0,"MySQL",SQLEngineProvider);
     app.setOrganizationName("TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd");
     app.setOrganizationDomain("www.spec-welding.com");
     app.setApplicationName("ER-100");

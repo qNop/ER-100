@@ -17,7 +17,7 @@ Material.ApplicationWindow{
     id: app;title: "app";
     objectName: "App"
     visible: false
-    /*主题默认颜色*/
+    /*主题默认颜色  */
     theme.tabHighlightColor: theme.accentColor
     //不需要解释
     property var grooveStyleName: [ "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接", "平焊V形坡口平对接","横焊单边V形坡口T接头",  "横焊单边V形坡口平对接", "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接","水平角焊"]
@@ -483,6 +483,7 @@ Material.ApplicationWindow{
                         limitedConditionPage.setLimited();
                         //计算坡口条件
                         var temp1 =getGrooveAverage(app.sysStatus==="坡口检测完成态"?true:false);
+                        count1.restart();console.log("timer start")
                         //计算焊接规范
                         WeldMath.setGrooveRules(temp1===-1?snackBar.open("坡口参数数据不存在！"):temp1);
                     }
@@ -533,7 +534,7 @@ Material.ApplicationWindow{
                 }
                 LimitedCondition{
                     id:limitedConditionPage
-                   swingWidthOrWeldWidth: appSettings.weldStyle===1||appSettings.weldStyle===3?false:true
+                    swingWidthOrWeldWidth: appSettings.weldStyle===1||appSettings.weldStyle===3?false:true
                     visible: page.selectedTab===0&&(page0SelectedIndex===4)&&(app.superUser)
                     currentUserName: appSettings.currentUserName
                     message: snackBar
@@ -562,7 +563,6 @@ Material.ApplicationWindow{
                     visible: page.selectedTab===0&&page0SelectedIndex===0
                     message: snackBar
                     onCurrentGrooveChanged:{
-                        //console.log(objectName+"onCurrentGrooveChanged")
                         app.currentGroove=currentGroove;
                     }
                 }
@@ -776,6 +776,10 @@ Material.ApplicationWindow{
             lastFocusedItem.forceActiveFocus();
         }
     }
+    Timer{id:count1;interval:1;repeat:true;
+        property int numx:0
+      onTriggered:{numx++;console.log("numx="+numx)}
+    }
     Connections{
         target: ERModbus
         //frame[0] 代表状态 1代读取的寄存器地址 2代表返回的 第一个数据 3代表返回的第二个数据 依次递推
@@ -939,6 +943,8 @@ Material.ApplicationWindow{
                 changeWeldIndex(-1);
                 weldTable.clear();
             }else if(value[0]==="Finish"){
+                console.log("The Math used time is : "+count1.numx+" ms!");
+                count1.stop();
                 snackBar.open("焊接规范已生成！")
                 // 切换状态为端部暂停
                 if(sysStatus==="坡口检测完成态"){
@@ -1171,7 +1177,7 @@ Material.ApplicationWindow{
     MotoDialog{id:moto;settings: appSettings;errorCode: app.errorCode
         Timer{ interval:400;running:visible;repeat: true;
             onTriggered:{
-                     ERModbus.setmodbusFrame(["R","1022","6"]);  //获取各电机当前位置
+                ERModbus.setmodbusFrame(["R","1022","6"]);  //获取各电机当前位置
             }
         }
     }
@@ -1497,15 +1503,15 @@ Material.ApplicationWindow{
                 Material.UserData.clearTable(grooveStyleName[i]+tableName[k],"","");//清除列表
                 Material.UserData.insertTable(grooveStyleName[i]+tableName[k],"(?,?,?,?,?)",[res[0].Name,res[0].CreatTime,"TKSW",res[0].EditTime,"TKSW"])//插入新的列表
             }
-           snackBar.open("系统初始化进度"+String((i+1)*10)+"%！请耐心等待~");
+            snackBar.open("系统初始化进度"+String((i+1)*10)+"%！请耐心等待~");
         }
     }
-//    Connections{
-//        target: MySQL
-//        onMySqlChanged:{
-//            console.log(jsonObject);
-//        }
-//    }
+    //    Connections{
+    //        target: MySQL
+    //        onMySqlChanged:{
+    //            console.log(jsonObject);
+    //        }
+    //    }
 
     Component.onCompleted: {
         theme.accentColor=appSettings.accentColor
@@ -1517,7 +1523,7 @@ Material.ApplicationWindow{
         ERModbus.setmodbusFrame(["W","98","1","0"]);
         /*打开数据库*/
         var res = Material.UserData.getTableJson("AccountTable");
-  //      MySQL.setSqlCommand(["AccountTable","getTableJson"]);
+        //      MySQL.setSqlCommand(["AccountTable","getTableJson"]);
         var i;
         if(res!==-1){
             for( i=0;i<res.length;i++){

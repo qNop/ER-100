@@ -8,6 +8,37 @@
 #include <QtGlobal>
 #include "gloabldefine.h"
 
+/*焊接相关数据结构*/
+typedef struct {
+    //焊接电流
+    int weldCurrent;
+    //焊接电压
+    float weldVoltage;
+    //送丝速度
+    float weldFeedSpeed;
+    //焊接速度
+    float weldTravelSpeed;
+    //摆动速度
+    float swingSpeed;
+    //前停留
+    float beforeSwingStayTime;
+    //后停留
+    float afterSwingStayTime;
+    //摆动频率
+    float swingHz;
+    //摆动宽度
+    float swingLength;
+    //填充量
+    float weldFill;
+    //当前道
+ //   int currentWeldNum;
+    //当前层总道数
+  //  int weldNum;
+    //当前层数
+   // int weldFloor;
+}weldDataType;
+
+
 class SysMath:public QObject
 {
     Q_OBJECT
@@ -101,7 +132,7 @@ public:
     //函数 有电流求电压
     float getVoltage(int current);
     //求解A
-    void solveA(float *pFill,FloorCondition *p,int num,float s);
+    void solveA(weldDataType *pWeldData,FloorCondition *p,int num,float s);
     //选取道电流
     int solveI(FloorCondition *p,int num,int total);
     //求层数 输入参数 h剩余层高 各层层高上下限, 输出参数 层数/层高 打底层高是否需要修改的标记
@@ -111,12 +142,15 @@ public:
     //计算坐标点函数
     //int getPoint(float *lineX,float *lineY,float *startArcX,float *startArcY,int weldNum,FloorCondition *pF);
     //计算 分道
-    float getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,QString *status,float *swingHz);
+    // float getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,QString *status,float *swingHz);
+    float getTravelSpeed(FloorCondition *pF,QString str,weldDataType *pWeldData,QString *status);
     int getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *weldLineYUesd,int *currentFloor,int *currentWeldNum);
-    int getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed, float *weldTravelSpeed,float *weldFill,float *s,int count,int weldNum,int weldFloor,QString *status);
+    // int getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed, float *weldTravelSpeed,float *weldFill,float *s,int count,int weldNum,int weldFloor,QString *status);
+    int getWeldNum(FloorCondition *pF,weldDataType *pWeldData,float *s,int currentWeldNum,int weldNum,int weldFloor,QString *status);
     int setGrooveRules(QStringList value);
     //获取横焊和平焊的 摆动频率
-    float getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed,float *swingHz);
+   // float getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed,float *swingHz);
+    float getSwingSpeed(weldDataType *pWeldData,float maxSpeed);
 signals:
     void weldRulesChanged(QStringList value);
 };

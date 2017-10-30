@@ -25,9 +25,6 @@ FocusScope {
     property int horizontalSpacing: verticalSpacing
     property int rowHeight: column.height/5 -verticalSpacing
     property int buttonWidth:  column.width/10 - horizontalSpacing
-    MouseArea{
-        anchors.fill: parent;
-    }
     /**
     *键盘显示数据
    */
@@ -67,9 +64,8 @@ FocusScope {
         ListElement { letter: "m"; firstSymbol: "+"}
     }
     onVisibleChanged: {
-            //无论打开或者关闭都关闭掉pop
-            pop.close()
-    }
+        //无论打开或者关闭都关闭掉pop
+        pop.close()    }
 
     Rectangle{
         id:pop
@@ -101,22 +97,17 @@ FocusScope {
             if(typeof(offsetY) === "undefined")
                 offsetY = 0
             var position = button.mapToItem(inputPanel, 0, 0)
-          //  var rootParent = Utils.findRoot(pop);
-            pop.x = Qt.binding(function() {
-                var x = position.x + (button.width / 2 - pop.width / 2) - offsetX
-                if(x + width > 640)
-                    x = 640 - width
-                if (x < 0)
-                    x = 0
-                return x
-            })
-            pop.y = Qt.binding(function() {
-                var y = y = position.y - height - offsetY
-                if (y + pop.height > 480) {
-                    y = position.y - pop.height - offsetY
-                }
-                return y
-            })
+            var x1 = position.x + (button.width / 2 - pop.width / 2) - offsetX
+            if(x1 + width > root.width)
+                x1 = root.width - width
+            if (x1 < 0)
+                x1 = 0
+            pop.x=x1;
+            var  y1 = position.y - height - offsetY
+            if (y1 + pop.height > 480) {
+                y1= position.y - pop.height - offsetY
+            }
+            pop.y=y1;
             visible=true;
             if(button.hasOwnProperty("source"))
                 pop.source=button.source
@@ -125,7 +116,7 @@ FocusScope {
         }
         function close(){
             visible=false;
-             pop.source="";
+            pop.source="";
         }
     }
     /**
@@ -139,7 +130,7 @@ FocusScope {
             radius: 2
             width: buttonWidth;
             height:rowHeight;
-            backgroundColor:"white"
+            backgroundColor: ink.pressed&&pop.visible?Theme.accentColor:"white"
             elevation:1
             MouseArea{
                 id:ink
@@ -163,14 +154,6 @@ FocusScope {
                         pop.close();
                     }
                 }
-            }
-            Rectangle {
-                id: rect1
-                anchors.fill: parent
-                color: ink.pressed&&pop.visible?Theme.accentColor:"white"
-                radius: parent.radius
-                antialiasing: parent.rotation || radius > 0 ? true : false
-                clip: true
             }
             Label{
                 id:label
@@ -244,7 +227,7 @@ FocusScope {
                 InputPanelButton{
                     id:rightButton;
                     height:parent.height
-                     elevation:1
+                    elevation:1
                     width:buttonWidth
                     onClicked: {listView.incrementCurrentIndex()}
                     source:"icon://hardware/keyboard_arrow_right"
@@ -256,9 +239,12 @@ FocusScope {
                     id: hide
                     width: buttonWidth
                     height: rowHeight
-                     elevation:1
+                    elevation:1
                     source: "icon://hardware/keyboard_hide"
-                    onClicked:Qt.inputMethod.hide()
+                    onClicked:{
+                        Qt.inputMethod.hide()
+
+                    }
                     input:root
                     pop:pop
                 }

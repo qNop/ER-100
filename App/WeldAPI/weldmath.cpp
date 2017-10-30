@@ -114,18 +114,18 @@ float WeldMath::getWeldVoltage(int current){
     return sysMath.getVoltage(current);
 }
 
-float WeldMath::getWeldArea(int current, float weldSpeed,float k,float met){
+float WeldMath::getWeldArea(int current, float weldSpeed,float met){
     return  GET_WELDFILL_AREA(met,(sysMath.wireDValue==4?1.2*1.2:1.6*1.6)*PI/4,sysMath.getFeedSpeed(current),weldSpeed);
 }
-
+/*
 float WeldMath::getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed){
     float swingHz=0;
-    return  sysMath.getSwingSpeed(swing,swingLeftStayTime,swingRightStayTime,weldSpeed*10,maxSpeed,&swingHz);
-}
+    return swingHz; //sysMath.getSwingSpeed(swing,swingLeftStayTime,swingRightStayTime,weldSpeed*10,maxSpeed,&swingHz);
+}*/
 //获取 高度 底面宽度 mm 角度0.1度且均为正值 电流A 行走速度cm/min ba 是底部矩形高度
-float WeldMath::getWeldHeight(float deep,float bottomWidth, float leftAngel, float rightAngel, int current, float weldSpeed, float k, float met)
+float WeldMath::getWeldHeight(float deep,float bottomWidth, float leftAngel, float rightAngel, int current, float weldSpeed, float met)
 {
-    float s=getWeldArea(current,weldSpeed,k,met);
+    float s=getWeldArea(current,weldSpeed,met);
     float grooveAngel1Tan=qTan(leftAngel*PI/180);
     float grooveAngel2Tan=qTan(rightAngel*PI/180);
     float aa=(grooveAngel1Tan+grooveAngel2Tan)/2;

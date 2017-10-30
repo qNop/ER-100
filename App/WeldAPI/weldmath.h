@@ -8,10 +8,6 @@
 #include <QtCore>
 #include <QtGlobal>
 #include "gloabldefine.h"
-#include "verticalmath.h"
-#include "flatmath.h"
-#include "horizontalmath.h"
-#include "filletmath.h"
 #include "SysMath.h"
 
 class WeldMath:public QObject
@@ -91,11 +87,11 @@ public slots:
     //根据电流获取送丝速度
     int getFeedSpeed(int current);
     //根据电流电压行走速度获取道面积
-    float getWeldArea(int current,float weldSpeed,float k,float met);
+    float getWeldArea(int current,float weldSpeed,float met);
     //求摆动距离
-    float getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed);
+   // float getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed);
     //求填充高度
-    float getWeldHeight(float deep,float bottomWidth,float leftAngel,float rightAngel,int current,float weldSpeed,float k,float met);
+    float getWeldHeight(float deep,float bottomWidth,float leftAngel,float rightAngel,int current,float weldSpeed,float met);
 signals:
     void grooveRulesChanged(QStringList value);
     void weldRulesChanged(QStringList value);

@@ -93,8 +93,6 @@ public slots:
 
     void setInputPanel(QObject* Object);
 
-
-
 signals:
 
     /**

@@ -229,10 +229,10 @@ TableCard{
                     message.open("请选择下发焊接规范。")
                 }
             }
-        },
+        }/*,
         Action{iconName:"awesome/send_o";name:"填充面积"
             onTriggered: {}//{weldArea.show()}
-        }
+        }*/
     ]
     tableData:[
         Controls.TableViewColumn{role: "C1";title:"   焊接\n层道数";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
@@ -487,6 +487,7 @@ TableCard{
         positiveButtonText:qsTr("确定")
         globalMouseAreaEnabled:false
     }
+/*
     Dialog{
         id:weldArea
         title: qsTr("计算填充面积")
@@ -511,7 +512,7 @@ TableCard{
         onAccepted: {
             var temp
             if((current!==0)&&(weldSpeed!==0)&&(k!==0)&&(met!=0)){
-                weldArea.area=Math.round(WeldMath.getWeldArea(weldArea.current,weldArea.weldSpeed,weldArea.k,weldArea.met));
+                weldArea.area=Math.round(WeldMath.getWeldArea(weldArea.current,weldArea.weldSpeed,weldArea.met));
                 weldArea.voltage=Math.round(WeldMath.getWeldVoltage(weldArea.current))
             }
             else
@@ -565,6 +566,6 @@ TableCard{
                 }
             }
         }
-    }
+    }*/
 }
 

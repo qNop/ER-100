@@ -233,7 +233,7 @@ MyConditionView{
             WeldMath.setPulse(num);
             break;
             //电弧跟踪
-        case 8:frame.push("127");frame.push("1");frame.push(String(num));break;
+      //  case 8:frame.push("127");frame.push("1");frame.push(String(num));break;
             //预期余高
         case 9: WeldMath.setReinforcement(num);
             break;

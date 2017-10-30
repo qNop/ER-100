@@ -16,7 +16,7 @@ View {
     height: icon.height
     opacity: enabled ? 1 : 0.6
     elevation:0
-    backgroundColor: "white"
+    backgroundColor: ink.pressed&&pop.visible?Theme.accentColor:"white"
 
     MouseArea{
         id:ink
@@ -41,14 +41,6 @@ View {
                 pop.close();
             }
         }
-    }
-    Rectangle {
-        id: rect1
-        anchors.fill: parent
-        color:ink.pressed&&pop.visible?Theme.accentColor:"white"
-        radius: parent.radius
-        antialiasing: parent.rotation || radius > 0 ? true : false
-        clip: true
     }
     Icon {
         id: icon

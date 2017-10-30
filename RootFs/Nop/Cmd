@@ -202,7 +202,7 @@ then
 		if [ "$Cmd" = "y" ]
 		then
 			echo "Replace Databases !"
-			cp  /mnt/BackUp/$name/433abb168a2ae7adeaa1ec24c2e3a59a /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases/433abb168a2ae7adeaa1ec24c2e3a59a.sqlite
+			cp  /mnt/BackUp/$name/433abb168a2ae7adeaa1ec24c2e3a59a /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases
 			chmod 777 /mnt/RootFs/Nop/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases/433abb168a2ae7adeaa1ec24c2e3a59a.sqlite
 			echo "Replace ER-100.conf !"
 			cp /mnt/BackUp/$name/ER-100.conf /mnt/RootFs/Nop/.config/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd

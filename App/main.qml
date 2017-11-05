@@ -22,7 +22,7 @@ Material.ApplicationWindow{
     //不需要解释
     property var grooveStyleName: [ "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接", "平焊V形坡口平对接","横焊单边V形坡口T接头",  "横焊单边V形坡口平对接", "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接","水平角焊"]
     property var preset:["GrooveCondition","TeachCondition","WeldCondition","GrooveCheck","LimitedConditon"]
-    property var presetName: ["坡口条件","示教条件","焊接条件","坡口条件","限制条件"]
+    property var presetName: ["坡口条件","示教条件","焊接条件","坡口参数","限制条件"]
     property var presetIcon: ["awesome/road","action/android","user/MAG","awesome/road","awesome/sliders"]
     property var analyse: ["WeldData"]//,"WeldAnalyse"]
     property var analyseName:["焊接参数"]//,"过程分析"]
@@ -303,8 +303,8 @@ Material.ApplicationWindow{
                 onTriggered: {snackBar.open("截屏操作将在10秒钟后启动！");camera.start()}
             },
             /*恢复出厂设置*/
-            Material.Action {iconName: "awesome/power_off";name: qsTr("恢复出厂设置");enabled: false
-                onTriggered: {initAllTable();}//Qt.quit();}
+            Material.Action {iconName: "awesome/power_off";name: qsTr("关机");
+                onTriggered: {Qt.quit();}
             }
         ]
         backAction: navigationDrawer.action
@@ -461,6 +461,20 @@ Material.ApplicationWindow{
                                 Material.UserData.setValueFromFuncOfTable(teachConditionPage.objectName,1,Number(value[0]))
                                 snackBar.open(weldConditionPage.listName[1]+"切换为"+weldConditionPage.listValueName[1][Number(value[0])]+"。")
                             }
+                        }
+                    }
+                    Connections{
+                        target: grooveConditionPage
+                        onChangeV:{
+                            console.log("get change v");
+                               if(index==0){//!v
+                                weldConditionPage.changeEnable(3,1,true);
+                            }else{//V
+                                weldConditionPage.changeEnable(3,1,false);
+                                 weldConditionPage.selectedIndex=3;
+                                   //改变显示同时下发数据
+                                   weldConditionPage.changeGroupCurrent(0,false);
+                               }
                         }
                     }
                 }

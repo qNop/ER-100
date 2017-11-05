@@ -46,14 +46,32 @@ MyConditionView{
             changeGroupCurrent(index,flag);
             if(index===2){//手动
                 changeEnable(1,0,false)//始终端 手动
+                changeEnable(1,1,true);
+                changeEnable(5,0,false);// 坡口检测点左有效
+                changeEnable(6,0,false);
                 if(root.condition[1]===0){
                     selectedIndex=1;
                     changeGroupCurrent(1,false);
                     selectedIndex=0;
                     message.open("示教模式为手动时，始终端检测切换为手动。")
                 }
-            }else
-                changeEnable(1,0,true)
+            }else if(index===1){
+                changeEnable(1,0,true);
+                changeEnable(1,1,false)//始终端 手动
+                changeEnable(5,0,false);// 坡口检测点左有效
+                changeEnable(6,0,false);
+                if(root.condition[1]===1){
+                    selectedIndex=1;
+                    changeGroupCurrent(0,false);
+                    selectedIndex=0;
+                    message.open("示教模式为半自动时，始终端检测切换为自动。")
+                }
+            }else{
+                changeEnable(1,0,true);
+                changeEnable(1,1,true);//始终端 自动
+                changeEnable(5,0,true);// 坡口检测点左有效
+                changeEnable(6,0,true);
+            }
             break;
         default :
             changeGroupCurrent(index,flag);break;

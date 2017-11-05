@@ -61,6 +61,8 @@ MyConditionView{
 
     descriptionCardHeight: Material.Units.dp(225);
 
+   signal changeV(int index);
+
     function doNum(index,flag){
         var oldIndex;
         var temp;
@@ -184,6 +186,8 @@ MyConditionView{
                 currentGroove=8;
             break;
         }
+        changeV(root.condition[1]);
+        console.log("change v");
     }
     onChangeGroup: {
         root.condition[selectedIndex]=index;

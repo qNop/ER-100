@@ -5,7 +5,7 @@
 #-------------------------------------------------
 TEMPLATE = lib
 
-QT       += qml quick quick-private gui-private widgets
+QT  += qml quick quick-private gui-private widgets
 
 CONFIG += plugin
 
@@ -15,7 +15,7 @@ linux-g++{
     DESTDIR = $$[QT_INSTALL_PLUGINS]/platforminputcontexts
 }else{
 #存储位置为 downloadfiles
-    DESTDIR =/home/nop/ER-100/RootFs/opt/Qt5/plugins/platforminputcontexts
+    DESTDIR =/home/nop/ER-100/RootFs/Nop/Qt5/plugins/platforminputcontexts
 }
 
 SOURCES += \

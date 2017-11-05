@@ -37,11 +37,12 @@ linux-g++{
     CONFIG += console qml_debug
 }else{
 #存储位置为 downloadfiles
-    DESTDIR = /home/nop/ER-100/RootFs/Nop/
+    DESTDIR = /home/nop/ER-100/RootFs/Nop/Update
 }
 
 target.path=/ER-100
 INSTALLS += target
+
 
 #DISTFILES += \
 # TeachEnv.qml

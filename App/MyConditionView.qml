@@ -61,6 +61,7 @@ Item{
     //负责处理enable subIndex 第几行 index第几列 value 数值
     signal changeEnable(int subIndex,int index,bool value)
     signal changeEnableList(int subIndex,int index,bool value)
+    signal changeTextEnable(int index,bool value)
     //描述空间
     property var description:null
 
@@ -69,8 +70,12 @@ Item{
     }
 
     onChangeEnable: {
-        if(getEnable(subIndex,index,value)!==value)
-            changeEnableList(subIndex,index,value)
+        if(subIndex<listValueName.length){
+         if(getEnable(subIndex,index,value)!==value)
+             changeEnableList(subIndex,index,value)
+        }else if(subIndex<listName.length){
+            changeTextEnable(subIndex,value)
+        }
     }
 
     onChangeSelectedIndex: {
@@ -242,6 +247,10 @@ Item{
                                 if(downSub.selected){
                                     valueLabel.text=String(value);
                                 }
+                            }
+                            onChangeTextEnable:{
+                                if(index===downSub.num)
+                                    valueLabel.color=value?Material.Theme.light.textColor:Material.Theme.alpha(Material.Theme.light.textColor,0.5);
                             }
                         }
                         secondaryItem:Row{

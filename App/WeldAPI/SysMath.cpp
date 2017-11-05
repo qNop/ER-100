@@ -119,7 +119,6 @@ float SysMath::getTravelSpeed(FloorCondition *pF,QString str,weldDataType *pWeld
     if(weldStyleName=="立焊"){
         //焊速必须有数 否则无法进入 求摆速函数
         temp1=pF->swingLength>6?qMax(1570-31*pF->swingLength,float(600)):WAVE_MAX_VERTICAL_SPEED;
-
         if(pF->swingLength!=0){//不摆动 的情况算作特例
             temp=getSwingSpeed(pF->swingLength/2,pF->swingLeftStayTime,pF->swingRightStayTime,100,temp1,swingHz);
             //判断返回数据
@@ -142,8 +141,9 @@ float SysMath::getTravelSpeed(FloorCondition *pF,QString str,weldDataType *pWeld
     (*pWeldData).weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,(*pWeldData).weldFeedSpeed,(*pWeldData).weldFill);
     qDebug()<<"meltingCoefficientValue "<<meltingCoefficientValue<<" weldFeedSpeed "<<(*pWeldData).weldFeedSpeed<<" s "<<(*pWeldData).weldFill<<" weldTravelSpeed "<<(*pWeldData).weldTravelSpeed;
 #endif
-    if((*pWeldData).weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
-    else
+    if((*pWeldData).weldTravelSpeed<=0) {
+        *status=str+"焊接速度出现负值。";return -1;
+    }else
         return 1;
 }
 //优化函数输入参数结构
@@ -174,7 +174,6 @@ int SysMath::getWeldNum(FloorCondition *pF,weldDataType *pWeldData,float *s,int 
         }
     }
     if((*pWeldData).weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
-    // (*pWeldData).weldTravelSpeed=qRound((*pWeldData).weldTravelSpeed);
     //计算摆速
     if(weldStyleName=="立焊"){
         //最大摆速1400  900   6之后 开始衰减 到 30
@@ -283,41 +282,12 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         status=str+"焊道数超过100！";
         return -1;
     }
-    //创建 weldnum  的数组 必须要加3 否则 数组溢出
-    // float *weldFill=new float[weldNum];
     //焊接参数
     weldDataType *pWeldData=new weldDataType[weldNum];
     //初始化数组
     solveA(pWeldData,pF,weldNum,s);
-    /*分道还是用 摆宽来限制，对于用户来说好理解。可以允许适当的突破最大最小填充量。
-    qDebug()<<"pF->maxFillMetal"<<pF->maxFillMetal<<"weldFill"<<(*pWeldData).weldFill;
-    if((*pWeldData).weldFill>pF->maxFillMetal*1.15){//填充量超过最大填充量的10% 才分道 不超过则不分 由下面速度的环节来调整电流
-        weldNum+=1;
-        //数组发生改变则 相应的也要发生改变 防止数组越界；
-        *pWeldData=array(pWeldData,weldNum);
-        solveA(pWeldData,pF,weldNum,s);
-    }
-    if((*(pWeldData+weldNum-1)).weldFill<pF->minFillMetal*0.85){ //小于最小填充量的10%
-        if(weldNum>1){
-            weldNum-=1;
-            *pWeldData=array(pWeldData,weldNum);
-            solveA(pWeldData,pF,weldNum,s);
-        }else{
-            //填充量过小允许调整层高 以最小填充量计算层高  或者加减电流
-            *weldFill=pF->minFillMetal;
-            pF->height=getFloorHeight(pF,grooveAngel1,grooveAngel2,*hused,*sused,weldFill,rootFace,rootGap);
-            if(pF->height>=12){
-                status=str+"以最小填充量来计算层高，层高超过10mm。";
-                return -1;
-            }else{
-                //重新计算摆宽 tempHeight  要变化
-                swingLength=(*hused+tempHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-pF->swingLeftLength-pF->swingRightLength;
-            }
-        }
-    }*/
-    //计算单道摆宽
-    //pF->swingLength=float(qRound(5*(swingLength-(weldNum-1)*pF->weldSwingSpacing)/weldNum))/5;
-    pF->swingLength=(swingLength-(weldNum-1)*pF->weldSwingSpacing)/weldNum;
+    //计算单道摆宽0.2 倍数
+    pF->swingLength=float(qRound(5*(swingLength-(weldNum-1)*pF->weldSwingSpacing)/weldNum))/5;
     s=0;
     for(i=0;i<weldNum;i++){
         (*(pWeldData+i)).swingLength=pF->swingLength;
@@ -420,7 +390,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         //
         if(weldStyleName=="水平角焊"){
             if(grooveDirValue){ //非坡口测将X值变负值
-                temp =i;
+                temp=i;
                 *(weldLineX+i)=-*(weldLineX+i);
                 *(startArcX+i)=*(weldLineX+i);
             }else    //坡口侧颠倒Y值
@@ -430,12 +400,14 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         }else{
             temp=i;
         }
-        //打底摆宽最好不要超过 根部间隙
-        if((pF->swingLength>rootGap*0.8)&&((pF->name=="ceramicBackFloor")||(pF->name=="bottomFloor")))
-            pF->swingLength=rootGap*0.8;
+        //陶瓷衬垫打底摆宽最好不要超过 根部间隙 -2mm否则容易出现底部成型不良
+        if((pF->swingLength>(rootGap-2))&&(pF->name=="ceramicBackFloor"))
+            pF->swingLength=(rootGap-2)>0?rootGap-2:0;
         //横焊
-        if(((weldStyleName=="横焊")&&((pF->name!="bottomFloor")&&(pF->name!="ceramicBackFloor")))||(weldStyleName=="水平角焊")||(pF->swingLength<1.5))
+        if(((weldStyleName=="横焊")&&((pF->name!="bottomFloor")&&(pF->name!="ceramicBackFloor")))||(weldStyleName=="水平角焊")||(pF->swingLength<2))
             pF->swingLength=0;
+        if((*(pWeldData+i)).swingSpeed<=(WAVE_MIN_SPEED/10))//最小摆速 800
+            (*(pWeldData+i)).swingSpeed=WAVE_MIN_SPEED/10;
         value.clear();
         //全部参数计算完成
         value<<status<<QString::number(*currentWeldNum)
@@ -465,57 +437,6 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     *hused+=pF->height;
     *sused+=s;
     *currentFloor=*currentFloor+1;
-    return 1;
-}
-//弱化填充量限制
-int SysMath::getFillMetal(FloorCondition *pF){
-    pF->current=pF->current_middle;
-    //获取送丝速度
-    int feedSpeed=getFeedSpeed(pF->current);
-    if(feedSpeed!=-1){
-#ifdef DEBUG_VERTICAL
-        float swingHz=0;
-        int temp;
-        QString str;
-        if(weldStyleName=="立焊"){
-            //求最小摆频 最大摆宽/2
-            temp=getSwingSpeed(pF->maxSwingLength/2,pF->swingLeftStayTime,pF->swingRightStayTime,pF->minWeldSpeed,1000,&swingHz);
-            //判断返回数据
-            if(temp==-1){
-                QString tempStr=status;
-                str=((pF->name=="bottomFloor")||(pF->name=="ceramicBackFloor"))?"打底层":pF->name=="secondFloor"?"第二层":pF->name=="fillFloor"?"填充层":"盖面层";
-                str+="层计算最大填充量时";
-                tempStr.insert(0,str);
-                status=tempStr;
-                return -1;
-            }
-            pF->maxFillMetal=GET_VERTICAL_WELDFILL_AREA(meltingCoefficientValue,weldWireSquare,feedSpeed,pF->minWeldSpeed,swingHz,pF->totalStayTime);
-        }else
-            pF->maxFillMetal=GET_WELDFILL_AREA(meltingCoefficientValue,weldWireSquare,feedSpeed,pF->minWeldSpeed);
-        if(weldStyleName=="立焊"){
-            //求最大摆频 最小摆宽/2
-            temp=getSwingSpeed(0.5,pF->swingLeftStayTime,pF->swingRightStayTime,pF->maxWeldSpeed,WAVE_MAX_VERTICAL_SPEED,&swingHz);
-            //判断返回数据
-            if(temp==-1){
-                QString tempStr=status;
-                str=((pF->name=="bottomFloor")||(pF->name=="ceramicBackFloor"))?"打底层":pF->name=="secondFloor"?"第二层":pF->name=="fillFloor"?"填充层":"盖面层";
-                str+="层计算最大填充量时";
-                tempStr.insert(0,str);
-                status=tempStr;
-                return -1;
-            }
-            pF->minFillMetal=GET_VERTICAL_WELDFILL_AREA(meltingCoefficientValue,weldWireSquare,feedSpeed,pF->maxWeldSpeed,swingHz,pF->totalStayTime);
-        }else
-            pF->minFillMetal=GET_WELDFILL_AREA(meltingCoefficientValue,weldWireSquare,feedSpeed,pF->maxWeldSpeed);
-#else
-        pF->maxFillMetal=GET_WELDFILL_AREA(meltingCoefficientValue,weldWireSquare,feedSpeed,pF->minWeldSpeed);
-        pF->minFillMetal=GET_WELDFILL_AREA(meltingCoefficientValue,weldWireSquare,feedSpeed,pF->maxWeldSpeed);
-#endif
-    }else{
-        status=((pF->name=="bottomFloor")||(pF->name=="ceramicBackFloor"))?"打底层":pF->name=="secondFloor"?"第二层":pF->name=="fillFloor"?"填充层":"盖面层";
-        status+="层计算充量时获取送丝速度错误！";
-        return -1;
-    }
     return 1;
 }
 
@@ -572,10 +493,6 @@ int SysMath::weldMath(){
         } else{
             currentMax=300;
             currentMin=80;}
-    if(getFillMetal(bottomFloor)==-1) return -1;
-    if(getFillMetal(secondFloor)==-1) return -1;
-    if(getFillMetal(fillFloor)==-1) return -1;
-    if(getFillMetal(topFloor)==-1) return -1;
 
     bottomFloor->height=bottomFloor->maxHeight;
 
@@ -609,13 +526,12 @@ int SysMath::weldMath(){
 /*
  * swing  摆动幅度  pf 当前层条件  weldSpeed 焊接速度
  */
-//float SysMath::getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed,float *swingHz){
 float SysMath::getSwingSpeed(weldDataType *pWeldData,float maxSpeed){
     //定义摆动间隔
     float A;
     //定义总时间
     float t;
-    //定义停留时间
+    //定义停留时间 单位MS
     float t_temp0 = (((*pWeldData).beforeSwingStayTime+(*pWeldData).afterSwingStayTime)*1000)/4;
     //定义加速度时间
     float t_temp1=0;
@@ -626,8 +542,8 @@ float SysMath::getSwingSpeed(weldDataType *pWeldData,float maxSpeed){
     if(((*pWeldData).swingLength<=0)||((*pWeldData).weldTravelSpeed<=0)){
         return  0;
     }
-    //脉冲叠加数量
-    float S_MAX=(*pWeldData).swingLength*10*WAVE_CODE_NUM;
+    //脉冲叠加数量  半个摆幅 对应脉冲数 = 摆幅(mm)/2*(10)*(0.1mm 对应脉冲数)
+    float S_MAX=(*pWeldData).swingLength*10*WAVE_CODE_NUM/2;
     for(;;){
         //定义加速度时间
         t_temp1=0;
@@ -636,6 +552,7 @@ float SysMath::getSwingSpeed(weldDataType *pWeldData,float maxSpeed){
         //求取到达最大速度的时间及路程
         for(int i=0;;i++){
             swingSpeed=WAVE_SPEED_START_STOP+WAVE_SPEED_ACCE_DECE*i;
+            //maxPulse 7666
             if(swingSpeed>GET_WAVE_PULSE(maxSpeed)){
                 t_temp1+=10000/swingSpeed;
                 t_temp2=(S_MAX-(i+1)*10)*1000/swingSpeed;
@@ -651,12 +568,13 @@ float SysMath::getSwingSpeed(weldDataType *pWeldData,float maxSpeed){
                 return GET_WAVE_SPEED(swingSpeed);
             }
         }
-        //t_temp2 存在 则证明 匀速存在
+        //t_temp2 存在 则证明 匀速存在  ms转换成min
         t=((t_temp0+t_temp1+t_temp2)*4)/60000;
         if(t==0)
             return 0;
         (*pWeldData).swingHz=1/t;
         A=t*(*pWeldData).weldTravelSpeed;
+        A=float(qRound(A*10))/10;
         // qDebug()<<"SysMath::getSwingSpeed::T"<<t<<" t_temp0"<<t_temp0<<" t_temp1"<<t_temp1<<" t_temp2"<<t_temp2;
         qDebug()<<"SysMath::getSwingSpeed::swingSpeed"<<GET_WAVE_SPEED(swingSpeed);
         qDebug()<<"SysMath::getSwingSpeed::Hz"<<1/(t);

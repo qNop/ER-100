@@ -72,7 +72,7 @@
 #define  WAVE_SPEED_ACCE_DECE       300        //步进电机加减速（每10个脉冲）
 
 #define WAVE_CODE_NUM                    20   //20个脉冲对应0.1mm
-#define WAVE_MAX_SPEED                    2300   //2400mm/min
+#define WAVE_MAX_SPEED                    2500   //2400mm/min
 #define GET_WAVE_PULSE(X)                                       (X/6)*WAVE_CODE_NUM   //最高转速对应的脉冲频率
 
 #define GET_WAVE_SPEED(X)                                       (X/WAVE_CODE_NUM)*6     //通过脉冲数求速度

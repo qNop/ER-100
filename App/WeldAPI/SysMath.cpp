@@ -344,8 +344,8 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
                     *(startArcX+i)=*(weldLineX+i)+pF->swingLength/2 ;
             }else{
                 *(startArcX+i)=*(weldLineX+i);
-                *(startArcY+i)=*(weldLineY+i);
             }
+            *(startArcY+i)=*(weldLineY+i);
         }
         if(weldStyleName=="水平角焊"){//角焊翻转坐标系  尚未翻转
             getXYPosition(angel,startArcX+i,startArcY+i,*(weldLineX+i),*(weldLineY+i));
@@ -369,14 +369,15 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
                 *(startWeldLineZ+i)=weldLength+(*currentFloor-1)*stopArcZz+i*stopArcZx; //焊接长度+当前层外偏移+当前道偏移
             }
         }
-        //*(startWeldLineZ+i)=float(qRound(10*(*(startWeldLineZ+i))))/10;
-        //*(stopWeldLineZ+i)=float(qRound(10*(*(stopWeldLineZ+i))))/10;
     }
-    //全算完了之后重新调整 摆宽
+    //全算完了之后重新调整 摆宽 摆宽这个时候调整 会影响到摆频的计算
     if(weldConnectName=="T接头"){
         pF->swingLength*=qCos(angel*PI/180);
-        //pF->swingLength=float(qRound(10*(pF->swingLength)))/10;
     }
+    //陶瓷衬垫打底摆宽最好不要超过 根部间隙 -2mm否则容易出现底部成型不良
+    if((pF->swingLength>(rootGap-2))&&(pF->name=="ceramicBackFloor"))
+        pF->swingLength=(rootGap-2)>0?rootGap-2:0;
+
     for(i=0;i<weldNum;i++){
         int temp;
         //外负内正
@@ -400,9 +401,6 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         }else{
             temp=i;
         }
-        //陶瓷衬垫打底摆宽最好不要超过 根部间隙 -2mm否则容易出现底部成型不良
-        if((pF->swingLength>(rootGap-2))&&(pF->name=="ceramicBackFloor"))
-            pF->swingLength=(rootGap-2)>0?rootGap-2:0;
         //横焊
         if(((weldStyleName=="横焊")&&((pF->name!="bottomFloor")&&(pF->name!="ceramicBackFloor")))||(weldStyleName=="水平角焊")||(pF->swingLength<2))
             pF->swingLength=0;

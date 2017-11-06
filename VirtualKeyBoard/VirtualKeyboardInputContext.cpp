@@ -239,12 +239,13 @@ void VirtualKeyboardInputContext::ensureFocusedObjectVisible()
     qDebug() << "VirtualKeyboardInputContext::ensureFocusedObjectVisible";
     QRectF FocusItemRect(0, 0, d->FocusItem->width(), d->FocusItem->height());
     FocusItemRect = d->Flickable->mapRectFromItem(d->FocusItem, FocusItemRect);
-    //qDebug()<<"VirtualKeyboardInputContext::FocusItemRect"<<FocusItemRect;
+    qDebug()<<"VirtualKeyboardInputContext::FocusItemRect"<<FocusItemRect;
     d->FlickableContentScrollAnimation->setTargetObject(d->Flickable);
     qreal ContentY = d->Flickable->contentY();
+     qDebug()<<"VirtualKeyboardInputContext::ContentY"<<ContentY;
     if (FocusItemRect.bottom() >= d->Flickable->height())
     {
-        //   qDebug() << "Item outside!!!  FocusItemRect.bottom() >= d->Flickable->height()";
+        //qDebug() << "Item outside!!!  FocusItemRect.bottom() >= d->Flickable->height()";
         ContentY = d->Flickable->contentY() + (FocusItemRect.bottom() - d->Flickable->height()) + 20;
         d->FlickableContentScrollAnimation->setEndValue(ContentY);
         d->FlickableContentScrollAnimation->start();
@@ -268,7 +269,7 @@ void VirtualKeyboardInputContext::ensureFocusedObjectVisible()
                 ContentY+= FocusItemRect.bottom()-keyboardRect.y()+20;
             else
                 ContentY+= FocusItemRect.bottom()-keyboardRect.y()+keyboardRect.height() +20;
-         //   qDebug()<<"ContentY"<<ContentY;
+            qDebug()<<"VirtualKeyboardInputContext::ContentY"<<ContentY;
             d->FlickableContentScrollAnimation->setEndValue(ContentY);
             d->FlickableContentScrollAnimation->start();
         }

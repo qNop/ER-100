@@ -56,15 +56,23 @@ Dialog{
     Keys.onUpPressed: {
         if((focusIndex>0)&&(focusIndex<repeaterModel.count)){
             focusIndex--;
+            //如果该选项不显示则跳过寻找显示菜单
+            while(repeater.itemAt(focusIndex).visible===false){
+                focusIndex--;
+            }
             keyStatus=false;
-           changeFocus(focusIndex);
+            changeFocus(focusIndex);
         }
     }
     Keys.onDownPressed: {
         if(focusIndex<(repeaterModel.count-1)){
-            focusIndex++;
+            focusIndex++;//
+            //如果该选项不显示则跳过寻找显示菜单
+            while(repeater.itemAt(focusIndex).visible===false){
+                focusIndex++;
+            }
             keyStatus=true;
-           changeFocus(focusIndex);
+            changeFocus(focusIndex);
         }
     }
     Keys.onVolumeDownPressed: {
@@ -138,7 +146,8 @@ Dialog{
                             target:root
                             onChangeFocus:{
                                 if(index===row.rowIndex){
-                                        textField.forceActiveFocus(); //激活
+                                    textField.forceActiveFocus(); //激活
+                                    console.log("text is "+text)
                                 }
                             }
                         }

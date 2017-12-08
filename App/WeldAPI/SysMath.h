@@ -109,7 +109,7 @@ public:
     //焊丝种类 0 碳钢实芯 1药芯
     int wireTypeValue;
     int grooveValue;
-
+   //是在顿边里面吗
     int returnWay;
 
     int startArcZz;

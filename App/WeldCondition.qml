@@ -303,9 +303,9 @@ MyConditionView{
                 frame.push("2");
                 switch(num){
                 case 0:frame.push("0");frame.push("0");break;
-                case 1:frame.push("25");frame.push("0");break;
-                case 2:frame.push("0");frame.push("25");break;
-                case 3:frame.push("25");frame.push("25");break;
+                case 1:frame.push("22");frame.push("0");break;
+                case 2:frame.push("0");frame.push("22");break;
+                case 3:frame.push("22");frame.push("22");break;
                 }
                 ERModbus.setmodbusFrame(frame);
             }
@@ -429,7 +429,7 @@ MyConditionView{
             //回烧时间补偿
         case 21:num+=1;if(num>50)num=50;break;
             //顿边
-        case 22:num+=0.1;num=num.toFixed(1);if(num>10)num=10;break;
+        case 22:num+=0.1;num=num.toFixed(1);if(num>20)num=20;break;
             //层间
         case 23:
             //层内

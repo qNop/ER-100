@@ -110,7 +110,7 @@ MyConditionView{
             //存储数据
             Material.UserData.setValueFromFuncOfTable(root.objectName,index,num)
         }
-        //console.log(frame)
+        console.log(frame)
         //清空
         frame.length=0;
     }

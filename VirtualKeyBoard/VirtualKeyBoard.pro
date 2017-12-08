@@ -15,7 +15,7 @@ linux-g++{
     DESTDIR = $$[QT_INSTALL_PLUGINS]/platforminputcontexts
 }else{
 #存储位置为 downloadfiles
-    DESTDIR =/home/nop/ER-100/RootFs/Nop/Qt5/plugins/platforminputcontexts
+    DESTDIR =$$_PRO_FILE_PWD_/../RootFs/Nop/Update/Qt5/plugins/platforminputcontexts
 }
 
 SOURCES += \

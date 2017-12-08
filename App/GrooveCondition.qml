@@ -187,7 +187,6 @@ MyConditionView{
             break;
         }
         changeV(root.condition[1]);
-        console.log("change v");
     }
     onChangeGroup: {
         root.condition[selectedIndex]=index;

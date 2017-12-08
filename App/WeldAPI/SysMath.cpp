@@ -43,8 +43,8 @@ float getFloorHeight(FloorCondition *pF,float leftAngel,float rightAngel,float h
     float grooveAngel1Tan=qTan(leftAngel*PI/180);
     float grooveAngel2Tan=qTan(rightAngel*PI/180);
     float aa=(grooveAngel1Tan+grooveAngel2Tan)/2;
-    float bb=rootGap+(hused-rootFace)*(grooveAngel1Tan+grooveAngel2Tan);
-    float cc=(hused-rootFace)*(hused-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*hused-sused-*s;
+    float bb=rootGap+qMax(float(0),(hused-rootFace)*(grooveAngel1Tan+grooveAngel2Tan));
+    float cc=qMax(float(0),(hused-rootFace))*qMax(float(0),(hused-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2)+rootGap*hused-sused-*s;
     return (qSqrt(bb*bb-4*aa*cc)-bb)/(2*aa);
 }
 /**
@@ -174,6 +174,29 @@ int SysMath::getWeldNum(FloorCondition *pF,weldDataType *pWeldData,float *s,int 
         }
     }
     if((*pWeldData).weldTravelSpeed<=0) {*status=str+"焊接速度出现负值。";return -1;}
+    //分道后 两侧停留时间发生位置变化， 靠近破口侧 停留时间大于 中间位置
+    if(weldNum<2){//单层单道
+        if(grooveStyleName=="单边V形坡口"){
+            (*pWeldData).beforeSwingStayTime=!grooveDirValue?pF->swingRightStayTime:pF->swingLeftStayTime; // 非坡口侧:坡口侧
+            (*pWeldData).afterSwingStayTime=!grooveDirValue?pF->swingLeftStayTime:pF->swingRightStayTime;    //坡口侧:非坡口侧
+        }else{//V形坡口 两边停留时间一致且为坡口侧 停留时间。
+            (*pWeldData).beforeSwingStayTime=pF->swingLeftStayTime;// 坡口侧
+            (*pWeldData).afterSwingStayTime=pF->swingLeftStayTime;    //坡口侧
+        }
+    }else{//分道处理
+        if(grooveStyleName=="单边V形坡口"){
+            (*pWeldData).beforeSwingStayTime=!grooveDirValue?pF->swingRightStayTime:pF->swingLeftStayTime; // 非坡口侧:坡口侧
+            (*pWeldData).afterSwingStayTime=!grooveDirValue?pF->swingLeftStayTime:pF->swingRightStayTime;    //坡口侧:非坡口侧
+        }else{//V形坡口
+            if((currentWeldNum+1)<(weldNum)){//不是最后一道
+                (*pWeldData).beforeSwingStayTime=pF->swingLeftStayTime;// 坡口侧
+                (*pWeldData).afterSwingStayTime=pF->swingRightStayTime;//非坡口侧
+            }else{
+                (*pWeldData).beforeSwingStayTime=pF->swingLeftStayTime;//坡口侧
+                (*pWeldData).afterSwingStayTime=pF->swingLeftStayTime;    //坡口侧
+            }
+        }
+    }
     //计算摆速
     if(weldStyleName=="立焊"){
         //最大摆速1400  900   6之后 开始衰减 到 30
@@ -181,29 +204,6 @@ int SysMath::getWeldNum(FloorCondition *pF,weldDataType *pWeldData,float *s,int 
         // 900=22*x+Y  ->500=-16X ->X=-31 ->Y=1570
         temp=pF->swingLength>6?qMax(1570-31*pF->swingLength,float(600)):WAVE_MAX_VERTICAL_SPEED;
     }else{
-        //分道后 两侧停留时间发生位置变化， 靠近破口侧 停留时间大于 中间位置
-        if(weldNum<2){//单层单道
-            if(grooveStyleName=="单边V形坡口"){
-                (*pWeldData).beforeSwingStayTime=!grooveDirValue?pF->swingRightStayTime:pF->swingLeftStayTime; // 非坡口侧:坡口侧
-                (*pWeldData).afterSwingStayTime=!grooveDirValue?pF->swingLeftStayTime:pF->swingRightStayTime;    //坡口侧:非坡口侧
-            }else{//V形坡口 两边停留时间一致且为坡口侧 停留时间。
-                (*pWeldData).beforeSwingStayTime=pF->swingLeftStayTime;// 坡口侧
-                (*pWeldData).afterSwingStayTime=pF->swingLeftStayTime;    //坡口侧
-            }
-        }else{//分道处理
-            if(grooveStyleName=="单边V形坡口"){
-                (*pWeldData).beforeSwingStayTime=!grooveDirValue?pF->swingRightStayTime:pF->swingLeftStayTime; // 非坡口侧:坡口侧
-                (*pWeldData).afterSwingStayTime=!grooveDirValue?pF->swingLeftStayTime:pF->swingRightStayTime;    //坡口侧:非坡口侧
-            }else{//V形坡口
-                if((currentWeldNum+1)<(weldNum)){//不是最后一道
-                    (*pWeldData).beforeSwingStayTime=pF->swingLeftStayTime;// 坡口侧
-                    (*pWeldData).afterSwingStayTime=pF->swingRightStayTime;//非坡口侧
-                }else{
-                    (*pWeldData).beforeSwingStayTime=pF->swingLeftStayTime;//坡口侧
-                    (*pWeldData).afterSwingStayTime=pF->swingLeftStayTime;    //坡口侧
-                }
-            }
-        }
         temp=getSwingSpeed(pWeldData,WAVE_MAX_SPEED);
     }
     //判断返回数据
@@ -255,8 +255,10 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
                 s+=(reinforcementValue)*(2*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap+ba);
             }else
                 s+=(reinforcementValue)*(2*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap+ba)/2;
-    }else
-        s=((*hused+pF->height-rootFace)*(*hused+pF->height-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap*(*hused+pF->height)-*sused);
+    }else{
+        //计算面积
+        s=(qMax(float(0),(*hused+pF->height-rootFace))*qMax(float(0),(*hused+pF->height-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2)+rootGap*(*hused+pF->height)-*sused);
+    }
     if(pF->name=="ceramicBackFloor"){
         //陶瓷衬垫 的面积计算
         s+=GET_CERAMICBACK_AREA(rootGap,1.5);
@@ -264,7 +266,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     float tempHeight;
     tempHeight=pF->height/2;
     //计算h/2处摆宽
-    swingLength=(*hused+tempHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap;
+    swingLength=qMax(float(0),(*hused+tempHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan))+rootGap;
     //如果摆宽小于两端间隔则 不摆
     if(swingLength>(pF->swingLeftLength+pF->swingRightLength))
         swingLength-=pF->swingLeftLength+pF->swingRightLength;
@@ -288,6 +290,9 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     solveA(pWeldData,pF,weldNum,s);
     //计算单道摆宽0.2 倍数
     pF->swingLength=float(qRound(5*(swingLength-(weldNum-1)*pF->weldSwingSpacing)/weldNum))/5;
+    //计算单道摆宽小于2 则清零
+    if(((weldStyleName=="横焊")&&((pF->name!="bottomFloor")&&(pF->name!="ceramicBackFloor")))||(weldStyleName=="水平角焊")||(pF->swingLength<2))
+        pF->swingLength=0;
     s=0;
     for(i=0;i<weldNum;i++){
         (*(pWeldData+i)).swingLength=pF->swingLength;
@@ -295,8 +300,8 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             return -1;
         }
     }
-    //重新计算层高
-    pF->height=getFloorHeight(pF,grooveAngel1,grooveAngel2,*hused,*sused,&s,rootFace,rootGap);
+    //没有必要重新计算层高
+   // pF->height=getFloorHeight(pF,grooveAngel1,grooveAngel2,*hused,*sused,&s,rootFace,rootGap);
     float *weldLineX=new float[weldNum];
     float *startArcX=new float[weldNum];
     float *startArcY=new float[weldNum];
@@ -304,8 +309,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     float *startWeldLineZ=new float[weldNum];
     float *stopWeldLineZ=new float[weldNum];
     //重新计算 摆幅距离非坡口侧距离
-    reSwingRightLength= (((*hused+tempHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)+rootGap-weldNum*pF->swingLength-(weldNum-1)*pF->weldSwingSpacing)*(pF->swingRightLength))/(pF->swingLeftLength+pF->swingRightLength);
-    //针对单边V先从非坡口侧起弧
+    reSwingRightLength= ((qMax(float(0),(*hused+tempHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan))+rootGap-weldNum*pF->swingLength-(weldNum-1)*pF->weldSwingSpacing)*(pF->swingRightLength))/(pF->swingLeftLength+pF->swingRightLength);
     for(i=0;i<weldNum;i++){
         //Y轴偏移 填充量太大则抬枪
         if(pF->height>4)
@@ -314,22 +318,22 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             *(weldLineY+i)=*weldLineYUesd;
         //中线偏移X 取一位小数 已经确定坡口侧非坡口侧
         if(grooveDirValue)//非坡口侧
-            *(weldLineX+i)=-((reSwingRightLength+pF->swingLength/2+(pF->swingLength+pF->weldSwingSpacing)*(i)-(*hused+tempHeight-rootFace)*grooveAngel1Tan)-rootGap/2);
+            *(weldLineX+i)=-((reSwingRightLength+pF->swingLength/2+(pF->swingLength+pF->weldSwingSpacing)*(i)-\
+                              qMax(float(0),(*hused+tempHeight-rootFace)*grooveAngel1Tan))-rootGap/2);
         else
-            *(weldLineX+i)=((reSwingRightLength+pF->swingLength/2+(pF->swingLength+pF->weldSwingSpacing)*(i)-(*hused+tempHeight-rootFace)*grooveAngel2Tan)-rootGap/2);
+            *(weldLineX+i)=((reSwingRightLength+pF->swingLength/2+(pF->swingLength+pF->weldSwingSpacing)*(i)-\
+                             qMax(float(0),(*hused+tempHeight-rootFace)*grooveAngel2Tan))-rootGap/2);
         qDebug()<<"*(weldLineX+"<<i<<")"<<*(weldLineX+i);
         //如果是陶瓷衬垫且为打底层 横焊打底不进入
         if((pF->name=="ceramicBackFloor")&&(weldStyleName!="横焊")){
             //如果在坡口侧
             if(!grooveDirValue){
                 //外为- 内侧为正
-                *(startArcX+i)=rootGap/2+(pF->height/2-rootFace)*grooveAngel1Tan;
+                *(startArcX+i)=rootGap/2+qMax(float(0),(pF->height/2-rootFace)*grooveAngel1Tan);
             }else{
-                *(startArcX+i)=0-rootGap/2-(pF->height/2-rootFace)*grooveAngel2Tan;
+                *(startArcX+i)=0-rootGap/2-qMax(float(0),(pF->height/2-rootFace)*grooveAngel2Tan);
             }
-            //*(startArcX+i)=float(qRound(10**(startArcX+i)))/10;
             *(startArcY+i)=*(weldLineY+i)+qMax(float(0),(pF->height/2-rootFace));
-            //*(startArcY+i)=float(qRound(10**(startArcY+i)))/10;
         }else{
             //从侧边起弧不从中间起弧
             if(i==0){//两侧的从两个侧壁起弧
@@ -377,7 +381,6 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     //陶瓷衬垫打底摆宽最好不要超过 根部间隙 -2mm否则容易出现底部成型不良
     if((pF->swingLength>(rootGap-2))&&(pF->name=="ceramicBackFloor"))
         pF->swingLength=(rootGap-2)>0?rootGap-2:0;
-
     for(i=0;i<weldNum;i++){
         int temp;
         //外负内正
@@ -401,9 +404,6 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         }else{
             temp=i;
         }
-        //横焊
-        if(((weldStyleName=="横焊")&&((pF->name!="bottomFloor")&&(pF->name!="ceramicBackFloor")))||(weldStyleName=="水平角焊")||(pF->swingLength<2))
-            pF->swingLength=0;
         if((*(pWeldData+i)).swingSpeed<=(WAVE_MIN_SPEED/10))//最小摆速 800
             (*(pWeldData+i)).swingSpeed=WAVE_MIN_SPEED/10;
         value.clear();
@@ -411,7 +411,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         value<<status<<QString::number(*currentWeldNum)
             <<QString::number(*currentFloor)+"/"+QString::number(i+1)
            <<QString::number((*(pWeldData+i)).weldCurrent)
-          <<QString::number((*(pWeldData+i)).weldVoltage)
+          <<QString::number(float(qRound((*(pWeldData+i)).weldVoltage*10))/10)
          <<QString::number(float(qRound(pF->swingLength*5))/10)
         <<QString::number(float(qRound((*(pWeldData+i)).swingSpeed*10))/10)
         <<QString::number(float(qRound((*(pWeldData+i)).weldTravelSpeed))/10)

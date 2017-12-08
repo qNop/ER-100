@@ -35,14 +35,14 @@ Material.ApplicationWindow{
     property var sectionsIcon:[presetIcon,analyseIcon,inforIcon]
     property var sectionTitles: ["预置条件", "焊接分析", "系统信息"]
     property var tabiconname: ["action/settings_input_composite","awesome/tasks","awesome/windows"]
-    property var errorName:["主控制器异常","CAN通讯异常","急停报警","摇动电机过热过流","摇动电机右限位","摇动电机左限位","摇动电机原点搜索","摇动电机堵转", "摆动电机过热过流","摆动电机内限位",
+    property var errorName:["主控制器错误","CAN通讯错误","急停报警","摇动电机过热过流","摇动电机右限位","摇动电机左限位","摇动电机原点搜索","摇动电机堵转", "摆动电机过热过流","摆动电机内限位",
         "摆动电机外限位","摆动电机原点搜索","摆动电机堵转", "上下电机过热过流","上下电机下限位","上下电机上限位","上下电机原点搜索","上下电机堵转", "行走电机过热过流","行走电机右限位",
-        "行走电机左限位","行走电机原点搜索","行走电机堵转","驱动器急停报警","手持盒通讯异常","示教器通讯异常","焊接电源通讯异常","焊接电源粘丝异常","焊接电源其他异常","坡口参数表格内无数据",
-        "生成焊接规范异常","焊接规范表格内无数据",
-        "未插入钥匙","坡口检测未检测到工件异常","坡口检测碰触工件异常","机头未接入异常","坡口检测摆动速度异常","未定义异常","未定义异常","未定义异常", "未定义异常","未定义异常",
-        "未定义异常","未定义异常","未定义异常", "未定义异常","未定义异常","未定义异常","未定义异常","未定义异常", "未定义异常","未定义异常",
-        "未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常","未定义异常",
-        "未定义异常","未定义异常"]
+        "行走电机左限位","行走电机原点搜索","行走电机堵转","驱动器急停报警","手持盒通讯错误","示教器通讯错误","焊接电源通讯错误","焊接电源粘丝错误","焊接电源其他错误","坡口参数表格内无数据",
+        "生成焊接规范错误","焊接规范表格内无数据",
+        "未插入钥匙","坡口检测未检测到工件错误","坡口检测碰触工件错误","机头未接入错误","坡口检测摆动速度错误","未定义错误","未定义错误","未定义错误", "未定义错误","未定义错误",
+        "未定义错误","未定义错误","未定义错误", "未定义错误","未定义错误","未定义错误","未定义错误","未定义错误", "未定义错误","未定义错误",
+        "未定义错误","未定义错误","未定义错误","未定义错误","未定义错误","未定义错误","未定义错误","未定义错误","未定义错误","未定义错误",
+        "未定义错误","未定义错误"]
     property int  page0SelectedIndex:0
     property int  page1SelectedIndex:0
     property int  page2SelectedIndex:0
@@ -449,14 +449,14 @@ Material.ApplicationWindow{
                     Connections{
                         target:app
                         onChangeTeachSet:{
-                            if(Number(value[0])!==weldConditionPage.condition[1]){//始终端改变
+                            if(Number(value[0])!==weldConditionPage.condition[1]){//头部摇动
                                 page.selectedTab=0;
                                 page0SelectedIndex=2;
                                 lastFocusedItem=weldConditionPage;//聚焦lastFocusedItem
                                 lastFocusedItem.forceActiveFocus();
                                 weldConditionPage.selectedIndex=1;
                                 //只改变显示不下发数据不存储
-                                weldConditionPage.changeGroupCurrent(Number(value[0]),true);
+                                weldConditionPage.changeGroupCurrent(Number(value[0]),false);
                                 //存储数据
                                 Material.UserData.setValueFromFuncOfTable(teachConditionPage.objectName,1,Number(value[0]))
                                 snackBar.open(weldConditionPage.listName[1]+"切换为"+weldConditionPage.listValueName[1][Number(value[0])]+"。")
@@ -466,15 +466,14 @@ Material.ApplicationWindow{
                     Connections{
                         target: grooveConditionPage
                         onChangeV:{
-                            console.log("get change v");
-                               if(index==0){//!v
+                            if(index==0){//!v
                                 weldConditionPage.changeEnable(3,1,true);
                             }else{//V
                                 weldConditionPage.changeEnable(3,1,false);
-                                 weldConditionPage.selectedIndex=3;
-                                   //改变显示同时下发数据
-                                   weldConditionPage.changeGroupCurrent(0,false);
-                               }
+                                weldConditionPage.selectedIndex=3;
+                                //改变显示同时下发数据
+                                weldConditionPage.changeGroupCurrent(0,false);
+                            }
                         }
                     }
                 }
@@ -497,7 +496,6 @@ Material.ApplicationWindow{
                         limitedConditionPage.setLimited();
                         //计算坡口条件
                         var temp1 =getGrooveAverage(app.sysStatus==="坡口检测完成态"?true:false);
-                        count1.restart();console.log("timer start")
                         //计算焊接规范
                         WeldMath.setGrooveRules(temp1===-1?snackBar.open("坡口参数数据不存在！"):temp1);
                     }
@@ -598,6 +596,7 @@ Material.ApplicationWindow{
                     onChangeWeldData: app.sendWeldData();
                     onCurrentRowChanged: {
                         app.weldTableIndex=currentRow;
+                        console.log("app.weldTableIndex is "+app.weldTableIndex);
                     }
                     model: weldTable
                     //外部更改模型数据 避免绑定过程中解除绑定的操作存在而影响数据与模型内容不一致
@@ -629,6 +628,7 @@ Material.ApplicationWindow{
                                 weldDataPage.selectIndex(index);
                             }else
                                 snackBar.open("索引条目超过模型最大值！");
+                            console.log("weldDataPage.currentRow "+weldDataPage.currentRow);
                         }
                         onCurrentGrooveChanged:{
                             //更新焊接规范列表
@@ -777,9 +777,7 @@ Material.ApplicationWindow{
             AppConfig.setleds("ready");
             //切换提示信息
             snackBar.open(weldFix?"焊接系统修补焊接中间暂停。":"焊接系统焊接中间暂停。")
-        }/*else if(sysStatus==="未登录态"){
-                changeuser.show();//弹出登陆对话框
-            }*/
+        }
         /*找出本次选择的焦点*/
         lastFocusedItem=Utils.findChild(page.selectedTab === 0 ?preConditionTab:page.selectedTab===1?
                                                                      weldAnalyseTab: systemInforTab
@@ -789,10 +787,6 @@ Material.ApplicationWindow{
         if (lastFocusedItem !== null) {
             lastFocusedItem.forceActiveFocus();
         }
-    }
-    Timer{id:count1;interval:1;repeat:true;
-        property int numx:0
-      onTriggered:{numx++;console.log("numx="+numx)}
     }
     Connections{
         target: ERModbus
@@ -808,7 +802,6 @@ Material.ApplicationWindow{
                 //查询系统状态
                 if(frame[1]==="0"){
                     if((sysStatus==="坡口检测态")&&(grooveTableIndex<(app.teachPoint-1))){ //如果当前检测的坡口数据与实际的不符合时则不更新坡口状态
-                        // console.log("Dont update sysStatus "+frame[2])
                         if(frame[2]==="6"){
                             sysStatus=sysStatusList[6];
                         }
@@ -887,16 +880,16 @@ Material.ApplicationWindow{
                     //如果坡口参数里面有数据 则进行计算数据
                     if(grooveTable.count!==0){
                         changeWeldRules();//生成焊接规范
-                        // var temp2 =getGrooveAverage(true);
-                        // WeldMath.setGrooveRules(temp2===-1?snackBar.open("坡口参数数据不存在！"):temp2);
                     }
                 }else if((frame[1]==="10")&&(sysStatus==="焊接态")){
                     //记录焊接时间（焊接长度）
                 }else  if((frame[1]==="200")&&((sysStatus==="焊接端部暂停态")||(sysStatus==="焊接中间暂停态"))){
                     if((frame[2]!==weldTableIndex.toString())&&(!weldFix)){
+                        console.log("frame[2] is "+frame[2])
                         if(frame[2]!=="200"){
                             //当前焊道号与实际焊道号不符 更换当前焊道
-                            if(weldTable.count>Number(frame[2])){
+                            if(weldTable.count>=Number(frame[2])){
+                                //Index
                                 changeWeldIndex(Number(frame[2]));
                                 weldTableIndex=Number(frame[2]);
                             }
@@ -904,8 +897,12 @@ Material.ApplicationWindow{
                         }else{
                             weldFix=true;
                         }
+                        console.log("here! 200 reg")
+                        console.log("weldTable.count is "+weldTable.count)
+                        console.log("weldTableIndex is "+weldTableIndex)
                         //选择行数据有效
                         if((weldTableIndex<weldTable.count)&&(weldTableIndex>-1)){
+                            console.log("send guifan ")
                             //分离层/道
                             sendWeldData();
                         }else{
@@ -946,7 +943,6 @@ Material.ApplicationWindow{
     Connections{
         target: WeldMath
         onWeldRulesChanged:{
-            //console.log(value)
             //确保数组数值正确
             if((typeof(value)==="object")&&(value.length===21)&&(value[0]==="Successed")){
                 weldTable.set(Number(value[1])-1,{"ID":value[1], "C1":value[2],"C2":value[3],"C3":value[4],"C4":value[5],"C5":value[6],
@@ -957,24 +953,27 @@ Material.ApplicationWindow{
                 changeWeldIndex(-1);
                 weldTable.clear();
             }else if(value[0]==="Finish"){
-                console.log("The Math used time is : "+count1.numx+" ms!");
-                count1.stop();
                 snackBar.open("焊接规范已生成！")
+                console.log("weld guifan ok")
+                //选中焊接规范表格的第一行数据
+                if(weldTable.count){
+                    console.log("changeWeldIndex")
+                    //先改变 Table 然后在改变App
+                    changeWeldIndex(0);
+                    //下发第一条规范
+                    weldTableIndex=weldTable.count;
+                }else{
+                    errorCode|=0x40000000;
+                    ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
+                }
                 // 切换状态为端部暂停
                 if(sysStatus==="坡口检测完成态"){
+
                     //保存数据
                     saveData();
                     //下发端部暂停态
                     ERModbus.setmodbusFrame(["W","0","1","5"]);
-                }
-                //选中焊接规范表格的第一行数据
-                if(weldTable.count){
-                    changeWeldIndex(0);
-                    //目的是为了能够正常下发第一条规范。
-                    weldTableIndex=1;
-                }else{
-                    errorCode|=0x40000000;
-                    ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
+                    console.log("check ok!")
                 }
             }else{
                 //输出错误
@@ -982,7 +981,6 @@ Material.ApplicationWindow{
                 //写入错误
                 errorCode|=0x40000000;
                 ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
-                //console.log("errorCode is "+errorCode)
             }
         }
     }
@@ -1520,13 +1518,6 @@ Material.ApplicationWindow{
             snackBar.open("系统初始化进度"+String((i+1)*10)+"%！请耐心等待~");
         }
     }
-    //    Connections{
-    //        target: MySQL
-    //        onMySqlChanged:{
-    //            console.log(jsonObject);
-    //        }
-    //    }
-
     Component.onCompleted: {
         theme.accentColor=appSettings.accentColor
         theme.primaryColor=appSettings.primaryColor

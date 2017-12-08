@@ -147,7 +147,6 @@ Dialog{
                             onChangeFocus:{
                                 if(index===row.rowIndex){
                                     textField.forceActiveFocus(); //激活
-                                    console.log("text is "+text)
                                 }
                             }
                         }

@@ -103,6 +103,8 @@ void ModbusThread::run(){
                     qDebug()<<"ModbusThread::Cmd is not support .";
                 }
                 modbusData.insert(0,modbus_strerror(errno));
+                if(errno)
+                    qDebug()<<modbus_strerror(errno);
                 emit ModbusThreadSignal(modbusData);
                 //  qDebug()<<"ModbusThread::ANSWER "<<modbusData;
             }else{

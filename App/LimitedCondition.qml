@@ -64,7 +64,7 @@ TableCard {
             try{
                 var res =UserData.getDataOrderByTime(limitedRulesNameList,"EditTime")
             }catch(e){
-                console.log(objectName+" get Last Rules Name Error "+e.message);
+                //console.log(objectName+" get Last Rules Name Error "+e.message);
                 message.open(objectName+" get Last Rules Name Error "+e.message);
             }
             if((res!==-1)&&(typeof(res)==="object")){

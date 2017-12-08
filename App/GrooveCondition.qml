@@ -204,8 +204,9 @@ MyConditionView{
         case 0:  //焊接位置
             if(flag)
                 settings.weldStyle=num
-            WeldMath.setWeldStyle(num);//立焊模式改为平焊
-            frame.push("88");frame.push("1");frame.push(String(num));break;///frame.push(String(num===2?0:num));break;
+            WeldMath.setWeldStyle(num);
+            //立焊模式改为平焊
+            frame.push("88");frame.push("1");frame.push(String(num===2?0:num));break;
         case 1://坡口形式
             if(flag)
                 settings.grooveStyle=num

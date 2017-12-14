@@ -4,7 +4,9 @@ import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.2 as Controls
 import QtQuick.Window 2.2
 import WeldSys.WeldMath 1.0
+import WeldSys.MySQL 1.0
 import QtQuick.Layouts 1.1
+import "MyMath.js" as MyMath
 TableCard {
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
@@ -33,22 +35,22 @@ TableCard {
 
     ListModel{
         id:nameModel
-        ListElement{name:"坡口侧          电流       (A)";show:true;min:10;max:300;isNum:true;step:1}
-        ListElement{name:"中间              电流       (A)";show:true;min:10;max:300;isNum:true;step:1}
-        ListElement{name:"非坡口侧      电流       (A)";show:true;min:10;max:300;isNum:true;step:1}
-        ListElement{name:"坡口侧      停留时间    (s)";show:true;min:0;max:5;isNum:true;step:0.01}
-        ListElement{name:"非坡口侧  停留时间    (s)";show:true;min:0;max:5;isNum:true;step:0.01}
-        ListElement{name:"层      高      Min     (mm)";show:true;min:1;max:10;isNum:true;step:0.1}
-        ListElement{name:"层      高      Max    (mm)";show:true;min:1;max:10;isNum:true;step:0.1}
-        ListElement{name:"坡口侧    接近距离(mm)";show:true;min:-50;max:50;isNum:true;step:0.1}
-        ListElement{name:"非坡口侧接近距离(mm)";show:true;min:-50;max:50;isNum:true;step:0.1}
-        ListElement{name:"摆  动  宽  度  Max (mm)";show:true;min:1;max:100;isNum:true;step:0.1}
-        ListElement{name:"分    道    间   隔     (mm)";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"分    开    结   束  比   (%)";show:true;min:0;max:1;isNum:true;step:0.01}
-        ListElement{name:"焊    接    电     压        (V)";show:true;min:0;max:50;isNum:true;step:0.1}
-        ListElement{name:"焊接速度Min   (mm/min)";show:true;min:0;max:2000;isNum:true;step:0.1}
-        ListElement{name:"焊接速度Max (mm/min)";show:true;min:0;max:2000;isNum:true;step:0.1}
-        ListElement{name:"层    填    充   系   数 (%)";show:true;min:0;max:1;isNum:true;step:0.01}
+        ListElement{name:"坡口侧          电流       (A)";value:"";show:true;min:10;max:300;isNum:true;step:1}
+        ListElement{name:"中间              电流       (A)";value:"";show:true;min:10;max:300;isNum:true;step:1}
+        ListElement{name:"非坡口侧      电流       (A)";value:"";show:true;min:10;max:300;isNum:true;step:1}
+        ListElement{name:"坡口侧      停留时间    (s)";value:"";show:true;min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"非坡口侧  停留时间    (s)";value:"";show:true;min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"层      高      Min     (mm)";value:"";show:true;min:1;max:10;isNum:true;step:0.1}
+        ListElement{name:"层      高      Max    (mm)";value:"";show:true;min:1;max:10;isNum:true;step:0.1}
+        ListElement{name:"坡口侧    接近距离(mm)";value:"";show:true;min:-50;max:50;isNum:true;step:0.1}
+        ListElement{name:"非坡口侧接近距离(mm)";value:"";show:true;min:-50;max:50;isNum:true;step:0.1}
+        ListElement{name:"摆  动  宽  度  Max (mm)";value:"";show:true;min:1;max:100;isNum:true;step:0.1}
+        ListElement{name:"分    道    间   隔     (mm)";value:"";show:true;min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"分    开    结   束  比   (%)";value:"";show:true;min:0;max:1;isNum:true;step:0.01}
+        ListElement{name:"焊    接    电     压        (V)";value:"";show:true;min:0;max:50;isNum:true;step:0.1}
+        ListElement{name:"焊接速度Min  (mm/min)";value:"";show:true;min:0;max:2000;isNum:true;step:0.1}
+        ListElement{name:"焊接速度Max (mm/min)";value:"";show:true;min:0;max:2000;isNum:true;step:0.1}
+        ListElement{name:"层    填    充   系   数 (%)";value:"";show:true;min:0;max:1;isNum:true;step:0.01}
     }
     onSwingWidthOrWeldWidthChanged: {
         nameModel.setProperty(9,"name",swingWidthOrWeldWidth?"摆  动  宽  度  Max (mm)":"焊  道  宽  度  Max (mm)")
@@ -58,24 +60,40 @@ TableCard {
 
     property string limitedString: ""
 
-    function getLastRulesName(){
-        if((typeof(limitedRulesNameList)==="string")&&(limitedRulesNameList!=="")){
-            //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
-            try{
-                var res =UserData.getDataOrderByTime(limitedRulesNameList,"EditTime")
-            }catch(e){
-                //console.log(objectName+" get Last Rules Name Error "+e.message);
-                message.open(objectName+" get Last Rules Name Error "+e.message);
-            }
-            if((res!==-1)&&(typeof(res)==="object")){
-                return res[0].Name;
-            }else
-                return -1;
-        }
-        return -1;
+    ListModel{id:limitedRulesNameListModel
+        ListElement{Name:"";CreatTime:"";Creater:"";EditTime:"";Editor:"";}
     }
 
-    signal updateLimitedRulesName(string str);
+    Connections{
+        target: MySQL
+        onMySqlChanged:{
+            var i;
+            //更新列表
+            if(tableName===limitedRulesNameList){
+                for(i=0;i<jsonObject.length;i++){
+                    if(limitedRulesNameListModel.count<jsonObject.length)
+                        limitedRulesNameListModel.append(jsonObject[i]);
+                    else
+                        limitedRulesNameListModel.set(i,jsonObject[i]);
+                }
+                if(limitedRulesNameListModel.count>jsonObject.length)
+                    limitedRulesNameListModel.remove(jsonObject.length,limitedRulesNameListModel.count-jsonObject.length)
+                limitedRulesName=jsonObject[0].Name;
+                MySQL.getJsonTable(limitedRulesName);
+            }else if(tableName===limitedRulesName){//更新数据表
+                limitedTable.clear();
+                for(i=0;i<jsonObject.length;i++){
+                    limitedTable.append(jsonObject[i])
+                }
+                currentRow=0;
+                selectIndex(0);
+            }
+        }
+    }
+
+    function getLastRulesName(){
+        MySQL.getDataOrderByTime(limitedRulesNameList,"EditTime");
+    }
 
     function selectIndex(index){
         if((index<model.count)&&(index>-1)){
@@ -88,26 +106,9 @@ TableCard {
     }
 
     function setLimited(){
-        return WeldMath.setLimited(limitedMath(0,limitedTable.count));
-    }
-
-    onUpdateLimitedRulesName: {
-        if((typeof(str)==="string")&&(str!=="")){
-            var res=UserData.getTableJson(str)
-            if(res!==-1){
-                limitedTable.clear();
-                for(var i=0;i<res.length;i++){
-                    if(res[i].ID!==null)
-                        limitedTable.append(res[i]);
-                }
-                currentRow=0;
-                selectIndex(0);
-                limitedRulesName=str;
-            }else{
-                message.open("限制条件表格不存在或为空！")
-            }
-        } else
-            message.open("限制条件列表内无数据！")
+        for(var i=0;i<limitedTable.count;i++){
+            WeldMath.setLimited(limitedTable.get(i));
+        }
     }
 
     function limitedMath(start,end){
@@ -184,16 +185,18 @@ TableCard {
 
     function save(){
         if(typeof(limitedRulesName)==="string"){
-            //清空数据表格
-            UserData.clearTable(limitedRulesName,"","")
-            //数据表格重新插入数据
+            //清除保存数据库
+            MySQL.clearTable(limitedRulesName,"","");
             for(var i=0;i<limitedTable.count;i++){
-                var temp=limitedTable.get(i);
-                UserData.insertTable(limitedRulesName,"(?,?,?,?,?,?,?,?,?,?,?,?)",[
-                                         temp.ID,temp.C1,temp.C2,temp.C3,temp.C4,
-                                         temp.C5,temp.C6,temp.C7,temp.C8,temp.C9,temp.C10,temp.C11])
+                //插入新的数据
+                MySQL.insertTable(limitedRulesName,limitedTable.get(i));
             }
+            //更新数据库保存时间
+            MySQL.setValue(limitedRulesNameList,"Name",limitedRulesName,"EditTime",MyMath.getSysTime());
+            MySQL.setValue(limitedRulesNameList,"Name",limitedRulesName,"Editor",currentUserName);
             message.open("限制条件已保存！")
+        }else{
+            message.open("限制条件格式不是字符串！")
         }
     }
 
@@ -208,7 +211,7 @@ TableCard {
             onTriggered:{ saveAs=false;newFile.open()}
         },
         Action{iconName:"awesome/folder_open_o";name:"打开";enabled:true;
-            onTriggered: open1.open();
+            onTriggered: open.open();
         },
         Action{iconName:"awesome/save";name:"保存";
             onTriggered: {save();}
@@ -284,55 +287,39 @@ TableCard {
     ]
 
     Dialog{
-        id:open1
+        id:open
         title:qsTr("打开限制条件")
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
-        property var rulesList:[""]
-        property var creatTimeList: [""]
-        property var creatorList:[""]
-        property var editTimeList: [""]
-        property var editorList:[""]
+        property var nameList: [""]
         property string name
         onOpened:{//打开对话框加载model
-            rulesList.length=0;
-            creatTimeList.length=0;
-            creatorList.length=0;
-            editTimeList.length=0;
-            editorList.length=0;
-            if((typeof(limitedRulesNameList)==="string")&&(limitedRulesNameList!=="")){
-                //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
-                var res =UserData.getDataOrderByTime(limitedRulesNameList,"EditTime")
-                if((res!==-1)&&(typeof(res)==="object")){
-                    for(var i=0;i<res.length;i++){
-                        rulesList.push(res[i].Name.replace("限制条件"+limitedString,""));
-                        creatTimeList.push(res[i].CreatTime);
-                        creatorList.push(res[i].Creator);
-                        editTimeList.push(res[i].EditTime);
-                        editorList.push(res[i].Editor);
-                    }
-                    menuField.model=rulesList
-                    menuField.selectedIndex=0;
-                    menuField.helperText="创建时间:"+creatTimeList[0]+"\n创建者:"+creatorList[0]+"\n修改时间:"+editTimeList[0]+"\n修改者:"+editorList[0];
-                    name=rulesList[0];
-                }
-            }
+            nameList.length=0;
+            for(var i=0;i<limitedRulesNameListModel.count;i++)
+                nameList.push(limitedRulesNameListModel.get(i).Name);
+            menuField.model=nameList;
+            name=limitedRulesNameListModel.get(0).Name;
+            menuField.helperText="创建时间:"+limitedRulesNameListModel.get(0).CreatTime+
+                    "\n创建者:"+limitedRulesNameListModel.get(0).Creator+
+                    "\n修改时间:"+limitedRulesNameListModel.get(0).EditTime+
+                    "\n修改者:"+limitedRulesNameListModel.get(0).Editor;
         }
         dialogContent: MenuField{id:menuField
             width:Units.dp(300)
             onItemSelected: {
-                open1.name=open1.rulesList[index];
-                menuField.helperText="创建时间:"+open1.creatTimeList[index]+"\n创建者:"+open1.creatorList[index]+"\n修改时间:"+open1.editTimeList[index]+"\n修改者:"+open1.editorList[index];
+                open.name=limitedRulesNameListModel.get(index).Name;
+                menuField.helperText="创建时间:"+limitedRulesNameListModel.get(index).CreatTime+
+                        "\n创建者:"+limitedRulesNameListModel.get(index).Creator+
+                        "\n修改时间:"+limitedRulesNameListModel.get(index).EditTime+
+                        "\n修改者:"+limitedRulesNameListModel.get(index).Editor;
             }
         }
         onAccepted: {
-            if(typeof(open1.name)==="string")
-            {
-                updateLimitedRulesName(open1.name.concat("限制条件"+limitedString))
+            if(typeof(open.name)==="string"){
+                limitedRulesName=open.name;
+                //打开最新的数据库
+                MySQL.getJsonTable(limitedRulesName);
             }
-        }
-        onRejected: {
-            open1.name=limitedRulesName.replace("限制条件"+limitedString,"");
         }
     }
     Dialog{
@@ -344,12 +331,9 @@ TableCard {
         onOpened:{
             if((typeof(limitedRulesNameList)==="string")&&(limitedRulesNameList!=="")){
                 //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
-                var res =UserData.getDataOrderByTime(limitedRulesNameList,"EditTime")
-                if((res!==-1)&&(typeof(res)==="object")){
-                    nameList.length=0;
-                    for(var i=0;i<res.length;i++){
-                        nameList.push(res[i].Name.replace("限制条件"+limitedString,""));
-                    }
+                nameList.length=0;
+                for(var i=0;i<limitedRulesNameListModel.count;i++){
+                    nameList.push(limitedRulesNameListModel.get(i).Name.replace("限制条件",""));
                 }
             }
             newFileTextField.text=limitedRulesName.replace("限制条件"+limitedString,"")
@@ -393,19 +377,20 @@ TableCard {
                 //更新标题
                 var title=newFileTextField.text.toString();
                 //获取系统时间
-                var time=UserData.getSysTime();
+                var time=MyMath.getSysTime();
                 var user=currentUserName
-                //在次列表插入新的数据
-                UserData.insertTable(limitedRulesNameList,"(?,?,?,?,?)",[title+"限制条件"+limitedString,time,user,time,user])
-                //创建新的 焊接条件
-                UserData.createTable(title+"限制条件"+limitedString,"ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT")
+                message.open("正在创建限制条件数据库！")
+                limitedRulesName=title+"限制条件"+limitedString;
+                //插入新的list
+                MySQL.insertTableByJson(limitedRulesNameList,{"Name":limitedRulesName,"CreatTime":time,"Creator":user,"EditTime":time,"Editor":user});
+                limitedRulesNameListModel.append({"Name":limitedRulesName,"CreatTime":time,"Creator":user,"EditTime":time,"Editor":user});
+                //创建新的 坡口条件
+                MySQL.createTable(limitedRulesName,"ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT");
                 if(saveAs){
-                    limitedRulesName=title+"限制条件"+limitedString
                     save();
-                }else{
-                    //更新焊接规范
-                    updateLimitedRulesName(title+"限制条件"+limitedString);
-                }
+                }else
+                    MySQL.getJsonTable(limitedRulesName);
+                message.open("已创建限制条件数据库！")
             }
             newFileTextField.text="";
         }
@@ -430,14 +415,16 @@ TableCard {
         }
         onAccepted: {
             if(positiveButtonEnabled){
-                UserData.deleteTable(limitedRulesName);
-                //清除次列表记录
-                UserData.clearTable(limitedRulesNameList,"Name",limitedRulesName);
-                //获取最新的数据表格
-                var res=getLastRulesName();
-                if(res!==-1){
-                    updateLimitedRulesName(res)
-                }
+                //搜寻最近列表 删除本次列表 更新 最近列表如model
+                message.open(qsTr("正在删除限制条件表格！"));
+                //删除坡口条件表格
+                MySQL.deleteTable(limitedRulesName)
+                //删除在坡口条件列表链接
+                MySQL.clearTable(limitedRulesNameList,"Name",limitedRulesName)
+                //选择最新的表格替换
+                getLastRulesName();
+                //提示
+                message.open(qsTr("已删除限制条件表格！"))
             }
         }
     }
@@ -450,46 +437,42 @@ TableCard {
         onOpened: {
             var res=limitedMath(currentRow,currentRow+1);
             for(var i=0;i<res.length;i++){
-                openText(i,res[i])
+                nameModel.setProperty(i,"value",res[i])
             }
+            updateText()
             focusIndex=0;
             changeFocus(focusIndex)
         }
         onAccepted: {
-            try{
-                if(addOrEdit){
-                    var str=model.count===0?"陶瓷衬垫":model.count===1?"打底层":model.count===2?"第二层":model.count===3?"填充层":model.count===4?"盖面层":"立板余高层"
-                    model.append(
-                                {"ID":str,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
-                                    "C2":getText(3)+"/"+getText(4),
-                                    "C3":getText(5)+"/"+getText(6),
-                                    "C4":getText(7)+"/"+getText(8),
-                                    "C5":getText(9),
-                                    "C6":getText(10),
-                                    "C7":getText(11),
-                                    "C8":getText(12),
-                                    "C9":getText(13)+"/"+getText(14),
-                                    "C10":getText(15),
-                                    "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
-                                });
-                }else{
-                    model.set(currentRow,
-                              {"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
-                                  "C2":getText(3)+"/"+getText(4),
-                                  "C3":getText(5)+"/"+getText(6),
-                                  "C4":getText(7)+"/"+getText(8),
-                                  "C5":getText(9),
-                                  "C6":getText(10),
-                                  "C7":getText(11),
-                                  "C8":getText(12),
-                                  "C9":getText(13)+"/"+getText(14),
-                                  "C10":getText(15),
-                                  "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388",
-                              });
-                }
-            }
-            catch(e){
-                message.open(objectName+"error"+e.message)
+            if(addOrEdit){
+                var str=model.count===0?"陶瓷衬垫":model.count===1?"打底层":model.count===2?"第二层":model.count===3?"填充层":model.count===4?"盖面层":"立板余高层"
+                model.append(
+                            {"ID":str,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
+                                "C2":getText(3)+"/"+getText(4),
+                                "C3":getText(5)+"/"+getText(6),
+                                "C4":getText(7)+"/"+getText(8),
+                                "C5":getText(9),
+                                "C6":getText(10),
+                                "C7":getText(11),
+                                "C8":getText(12),
+                                "C9":getText(13)+"/"+getText(14),
+                                "C10":getText(15),
+                                "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
+                            });
+            }else{
+                model.set(currentRow,
+                          {"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
+                              "C2":getText(3)+"/"+getText(4),
+                              "C3":getText(5)+"/"+getText(6),
+                              "C4":getText(7)+"/"+getText(8),
+                              "C5":getText(9),
+                              "C6":getText(10),
+                              "C7":getText(11),
+                              "C8":getText(12),
+                              "C9":getText(13)+"/"+getText(14),
+                              "C10":getText(15),
+                              "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388",
+                          });
             }
         }
     }

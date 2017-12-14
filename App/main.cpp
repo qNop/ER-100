@@ -60,7 +60,7 @@ int main(int argc, char *argv[])
     qmlRegisterSingletonType<AppConfig>("WeldSys.AppConfig",1,0,"AppConfig",AppConfigEngineProvider);
     qmlRegisterSingletonType<ERModbus>("WeldSys.ERModbus",1,0,"ERModbus",ERModbusEngineProvider);
     qmlRegisterSingletonType<WeldMath>("WeldSys.WeldMath",1,0,"WeldMath",WeldMathEngineProvider);
-   // qmlRegisterSingletonType<MySQL>("WeldSys.MySQL",1,0,"MySQL",SQLEngineProvider);
+    qmlRegisterSingletonType<MySQL>("WeldSys.MySQL",1,0,"MySQL",SQLEngineProvider);
     app.setOrganizationName("TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd");
     app.setOrganizationDomain("www.spec-welding.com");
     app.setApplicationName("ER-100");

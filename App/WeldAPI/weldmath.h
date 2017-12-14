@@ -28,7 +28,7 @@ private:
     //顶层限制条件
     FloorCondition overFloor;
 
-    SysMath sysMath;
+    SysMath* sysMath;
 
     int grooveValue;
 public slots:
@@ -42,8 +42,6 @@ public slots:
     void setReinforcement(float value);
     //溶敷系数
     void setMeltingCoefficient(int value);
-    //model
-    void setWeldRules(QStringList value);
     //设置坡口参数
     void setGrooveRules(QStringList value);
     //设置气体
@@ -59,7 +57,7 @@ public slots:
     //设置坡口侧非坡口侧  陶瓷衬垫起弧时必须在坡口侧
     void setGrooveDir(bool value);
     //设置限制条件
-    bool setLimited(QStringList value);
+    bool setLimited(QObject* value);
     //获取电压
     float getWeldVoltage(int current);
     //设置坡口
@@ -94,7 +92,7 @@ public slots:
     float getWeldHeight(float deep,float bottomWidth,float leftAngel,float rightAngel,int current,float weldSpeed,float met);
 signals:
     void grooveRulesChanged(QStringList value);
-    void weldRulesChanged(QStringList value);
+    void weldRulesChanged(QString status,QJsonObject value);
     void updateWeldMathChanged();
 };
 

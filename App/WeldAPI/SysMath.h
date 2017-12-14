@@ -46,6 +46,7 @@ public:
     SysMath();
     ~SysMath();
     int weldMath();
+    QJsonObject pJson;
     //焊接位置  平焊 立焊 横焊 水平角焊
     QString weldStyleName;
     //接头形式 T接头 平对接
@@ -152,7 +153,7 @@ public:
    // float getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed,float *swingHz);
     float getSwingSpeed(weldDataType *pWeldData,float maxSpeed);
 signals:
-    void weldRulesChanged(QStringList value);
+    void weldRulesChanged(QString status,QJsonObject value);
 };
 
 #endif // MATH_H

@@ -139,7 +139,6 @@ float SysMath::getTravelSpeed(FloorCondition *pF,QString str,weldDataType *pWeld
         *weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,*weldFeedSpeed,*weldFill);
 #else
     (*pWeldData).weldTravelSpeed=GET_TRAVELSPEED(meltingCoefficientValue,weldWireSquare,(*pWeldData).weldFeedSpeed,(*pWeldData).weldFill);
-    qDebug()<<"meltingCoefficientValue "<<meltingCoefficientValue<<" weldFeedSpeed "<<(*pWeldData).weldFeedSpeed<<" s "<<(*pWeldData).weldFill<<" weldTravelSpeed "<<(*pWeldData).weldTravelSpeed;
 #endif
     if((*pWeldData).weldTravelSpeed<=0) {
         *status=str+"焊接速度出现负值。";return -1;
@@ -225,7 +224,6 @@ int SysMath::getWeldNum(FloorCondition *pF,weldDataType *pWeldData,float *s,int 
 int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *weldLineYUesd,int *currentFloor,int *currentWeldNum){
     float s,swingLength,reSwingRightLength;
     int weldNum,i;
-    QStringList value;
     //打底层清空
     if((pF->name=="bottomFloor")||(pF->name=="ceramicBackFloor")){
         *currentWeldNum=0;
@@ -275,8 +273,8 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     //计算分多少道
     for(weldNum=1;weldNum<100;weldNum++){
         if(swingLength<((pF->weldSwingSpacing)*(weldNum-1)+pF->maxSwingLength*weldNum)){
-            qDebug()<<"pF->weldSwingSpacing"<<pF->weldSwingSpacing<<"pF->maxSwingLength"<<pF->maxSwingLength
-                   <<"swingLength"<<swingLength<<"weldNum"<<weldNum;
+            // qDebug()<<"pF->weldSwingSpacing"<<pF->weldSwingSpacing<<"pF->maxSwingLength"<<pF->maxSwingLength
+            //    <<"swingLength"<<swingLength<<"weldNum"<<weldNum;
             break;
         }
     }
@@ -301,7 +299,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         }
     }
     //没有必要重新计算层高
-   // pF->height=getFloorHeight(pF,grooveAngel1,grooveAngel2,*hused,*sused,&s,rootFace,rootGap);
+    // pF->height=getFloorHeight(pF,grooveAngel1,grooveAngel2,*hused,*sused,&s,rootFace,rootGap);
     float *weldLineX=new float[weldNum];
     float *startArcX=new float[weldNum];
     float *startArcY=new float[weldNum];
@@ -323,7 +321,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         else
             *(weldLineX+i)=((reSwingRightLength+pF->swingLength/2+(pF->swingLength+pF->weldSwingSpacing)*(i)-\
                              qMax(float(0),(*hused+tempHeight-rootFace)*grooveAngel2Tan))-rootGap/2);
-        qDebug()<<"*(weldLineX+"<<i<<")"<<*(weldLineX+i);
+        //qDebug()<<"*(weldLineX+"<<i<<")"<<*(weldLineX+i);
         //如果是陶瓷衬垫且为打底层 横焊打底不进入
         if((pF->name=="ceramicBackFloor")&&(weldStyleName!="横焊")){
             //如果在坡口侧
@@ -338,14 +336,14 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             //从侧边起弧不从中间起弧
             if(i==0){//两侧的从两个侧壁起弧
                 if(grooveDirValue)
-                    *(startArcX+i)=*(weldLineX+i)+pF->swingLength/2;
-                else
-                    *(startArcX+i)=*(weldLineX+i)-pF->swingLength/2 ;
-            }else if((i+1)==weldNum){
-                if(grooveDirValue)
                     *(startArcX+i)=*(weldLineX+i)-pF->swingLength/2;
                 else
                     *(startArcX+i)=*(weldLineX+i)+pF->swingLength/2 ;
+            }else if((i+1)==weldNum){
+                if(grooveDirValue)
+                    *(startArcX+i)=*(weldLineX+i)+pF->swingLength/2;
+                else
+                    *(startArcX+i)=*(weldLineX+i)-pF->swingLength/2 ;
             }else{
                 *(startArcX+i)=*(weldLineX+i);
             }
@@ -406,29 +404,28 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         }
         if((*(pWeldData+i)).swingSpeed<=(WAVE_MIN_SPEED/10))//最小摆速 800
             (*(pWeldData+i)).swingSpeed=WAVE_MIN_SPEED/10;
-        value.clear();
         //全部参数计算完成
-        value<<status<<QString::number(*currentWeldNum)
-            <<QString::number(*currentFloor)+"/"+QString::number(i+1)
-           <<QString::number((*(pWeldData+i)).weldCurrent)
-          <<QString::number(float(qRound((*(pWeldData+i)).weldVoltage*10))/10)
-         <<QString::number(float(qRound(pF->swingLength*5))/10)
-        <<QString::number(float(qRound((*(pWeldData+i)).swingSpeed*10))/10)
-        <<QString::number(float(qRound((*(pWeldData+i)).weldTravelSpeed))/10)
-        <<QString::number(float(qRound(*(weldLineX+temp)*10))/10)
-        <<QString::number(float(qRound(*(weldLineY+temp)*10))/10)
-        <<QString::number(float(qRound((*(pWeldData+i)).beforeSwingStayTime*10))/10)
-        <<QString::number(float(qRound((*(pWeldData+i)).afterSwingStayTime*10))/10)
-        <<str
-        <<QString::number(float(qRound(s*10))/10)
-        <<QString::number(float(qRound((*(pWeldData+i)).weldFill*10))/10)
-        <<QString::number(float(qRound(*(startArcX+temp)*10))/10)
-        <<QString::number(float(qRound(*(startArcY+temp)*10))/10)
-        <<QString::number(float(qRound(*(startWeldLineZ+i)*10))/10)
-        <<QString::number(float(qRound(*(weldLineX+temp)*10))/10)
-        <<QString::number(float(qRound(*(weldLineY+temp)*10))/10)
-        <<QString::number(float(qRound(*(stopWeldLineZ+i)*10))/10);
-        emit weldRulesChanged(value);
+        pJson.insert("ID",QJsonValue(QString::number(*currentWeldNum)));
+        pJson.insert("C1",QJsonValue(QString::number(*currentFloor)+"/"+QString::number(i+1)));
+        pJson.insert("C2",QJsonValue(QString::number((*(pWeldData+i)).weldCurrent)));
+        pJson.insert("C3",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).weldVoltage*10))/10)));
+        pJson.insert("C4",QJsonValue(QString::number(float(qRound(pF->swingLength*5))/10)));
+        pJson.insert("C5",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).swingSpeed*10))/10)));
+        pJson.insert("C6",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).weldTravelSpeed))/10)));
+        pJson.insert("C7",QJsonValue(QString::number(float(qRound(*(weldLineX+temp)*10))/10)));
+        pJson.insert("C8",QJsonValue(QString::number(float(qRound(*(weldLineY+temp)*10))/10)));
+        pJson.insert("C9",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).beforeSwingStayTime*10))/10)));
+        pJson.insert("C10",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).afterSwingStayTime*10))/10)));
+        pJson.insert("C11",QJsonValue(str));
+        pJson.insert("C12",QJsonValue(QString::number(float(qRound(s*10))/10)));
+        pJson.insert("C13",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).weldFill*10))/10)));
+        pJson.insert("C14",QJsonValue(QString::number(float(qRound(*(startArcX+temp)*10))/10)));
+        pJson.insert("C15",QJsonValue(QString::number(float(qRound(*(startArcY+temp)*10))/10)));
+        pJson.insert("C16",QJsonValue(QString::number(float(qRound(*(startWeldLineZ+i)*10))/10)));
+        pJson.insert("C17",QJsonValue(QString::number(float(qRound(*(weldLineX+temp)*10))/10)));
+        pJson.insert("C18",QJsonValue(QString::number(float(qRound(*(weldLineY+temp)*10))/10)));
+        pJson.insert("C19",QJsonValue(QString::number(float(qRound(*(stopWeldLineZ+i)*10))/10)));
+        emit weldRulesChanged(status,pJson);
     }
     //迭代中线偏移Y
     *weldLineYUesd+=pF->height;
@@ -447,7 +444,7 @@ int SysMath::weldMath(){
     //起弧z位置 每次都往里面缩进3mm
     float weldLineYUesd=0;
     controlWeld=false;
-    QStringList value;
+
     //状态为successed
     status="Successed";
     if(secondFloor->name!="secondFloor"){
@@ -515,9 +512,7 @@ int SysMath::weldMath(){
             return -1;
         }
     }
-    value.clear();
-    value.append("Finish");
-    emit weldRulesChanged(value);
+    emit weldRulesChanged("Finish",pJson);
     return 1;
 }
 
@@ -903,8 +898,6 @@ int SysMath::setGrooveRules(QStringList value){
         //获取焊接长度
         weldLength=value.at(7).toFloat();
     }
-    value.clear();
-    value.append("Clear");
-    emit weldRulesChanged(value);
+    emit weldRulesChanged("Clear",pJson);
     return weldMath();
 }

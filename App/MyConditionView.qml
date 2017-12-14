@@ -5,7 +5,6 @@ import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as QuickControls
-import QtQuick.LocalStorage 2.0
 import QtQuick.Window 2.2
 
 Item{
@@ -26,6 +25,8 @@ Item{
     property bool superUser
     //作为数据的临时缓存数组 condition必须在加载后一次性赋值。
     property var condition:[]
+
+    property  var jsonData
     //选定的行
     property int selectedIndex
     //行名称
@@ -62,6 +63,7 @@ Item{
     signal changeEnable(int subIndex,int index,bool value)
     signal changeEnableList(int subIndex,int index,bool value)
     signal changeTextEnable(int index,bool value)
+    signal update();
     //描述空间
     property var description:null
 
@@ -209,6 +211,9 @@ Item{
                                     listValueNameEnable[subIndex][index]=value;
                                 }
                             }
+                            onUpdate:{
+                                    group.current=re.itemAt(root.condition[sub.subIndex]);
+                            }
                         }
                         secondaryItem:Row{
                             anchors.verticalCenter: parent.verticalCenter
@@ -219,7 +224,7 @@ Item{
                                 delegate:Material.RadioButton{                                    
                                     canToggle: false
                                     text:modelData
-                                    checked:index===root.condition[sub.subIndex]
+                                   // checked:index===root.condition[sub.subIndex]
                                     onClicked:{
                                         //改变选择行
                                         changeSelectedIndex(sub.subIndex);
@@ -241,23 +246,26 @@ Item{
                         height: Material.Units.dp(44)
                         selected: selectedIndex===num
                         onPressed: changeSelectedIndex(num)
-                        Connections{
-                            target: root
-                            onChangeText:{
-                                if(downSub.selected){
-                                    valueLabel.text=String(value);
-                                }
-                            }
-                            onChangeTextEnable:{
-                                if(index===downSub.num)
-                                    valueLabel.color=value?Material.Theme.light.textColor:Material.Theme.alpha(Material.Theme.light.textColor,0.5);
-                            }
-                        }
                         secondaryItem:Row{
                             spacing: Material.Units.dp(16)
                             anchors.verticalCenter: parent.verticalCenter
                             Material.Label{id:valueLabel;
-                                text:String(root.condition[downSub.num]);
+                               // text:String(root.condition[downSub.num]);
+                                Connections{
+                                    target: root
+                                    onChangeText:{
+                                        if(downSub.selected){
+                                            valueLabel.text=String(value);
+                                        }
+                                    }
+                                    onChangeTextEnable:{
+                                        if(index===downSub.num)
+                                            valueLabel.color=value?Material.Theme.light.textColor:Material.Theme.alpha(Material.Theme.light.textColor,0.5);
+                                    }
+                                    onUpdate:{
+                                            valueLabel.text=String(root.condition[downSub.num]);
+                                    }
+                                }
                             }
                             Material.Label{ text:valueType[index] }
                         }

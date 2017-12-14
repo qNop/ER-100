@@ -9,7 +9,6 @@ Dropdown{
     property list<Action>  actions;
     property int rootIndex:0;
     property Item columnViewItem;
-   // height: Units.dp(40)*(actions.length) + Units.dp(16)
     width: Units.dp(168)
     function loadView(){
          columnViewItem=componetView.createObject(internalView,{});

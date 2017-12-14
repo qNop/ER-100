@@ -4,8 +4,8 @@ import Material.Extras 0.1 as JS
 import WeldSys.ERModbus 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as QuickControls
-import QtQuick.LocalStorage 2.0
 import QtQuick.Window 2.2
+import WeldSys.MySQL 1.0
 
 MyConditionView{
     id:root
@@ -82,7 +82,7 @@ MyConditionView{
         frame.push("W");
         var num=Number(root.condition[index]);
         if(isNaN(num)){
-                num=0;
+            num=0;
         }
         switch(index){
             //示教模式
@@ -108,7 +108,7 @@ MyConditionView{
         }
         if(flag){
             //存储数据
-            Material.UserData.setValueFromFuncOfTable(root.objectName,index,num)
+            MySQL.setValue(root.objectName,"id",index.toString(),"value",num.toString());
         }
         console.log(frame)
         //清空
@@ -150,12 +150,25 @@ MyConditionView{
             changeText(num,true);
         }
     }
-    Component.onCompleted: {
-        condition=Material.UserData.getValueFromFuncOfTable(objectName,"","");
-        for(var i=0;i<listName.length;i++){
-            work(i,false);
+    Connections{
+        target: MySQL
+        onMySqlChanged:{
+            if(tableName===root.objectName){
+                condition.length=0;
+                for(var i=0;i<jsonObject.length;i++){
+                    condition.push(Number(jsonObject[i].value));
+                }
+                update();
+                //下发数据
+                for( i=0;i<listName.length;i++){
+                    work(i,false);
+                }
+                if(root.condition[0]===2)
+                    changeEnable(1,0,false);
+            }
         }
-        if(root.condition[0]===2)
-            changeEnable(1,0,false)
+    }
+    Component.onCompleted: {
+        MySQL.getJsonTable(objectName);
     }
 }

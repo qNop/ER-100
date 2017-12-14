@@ -214,6 +214,7 @@ Card{
             if(dropDown.showing)
                 dropDown.close();
             else{
+                console.log("triggered !")
                 actions[0].triggered(repeater.itemAt(0));
                 dropDown.place=0;
             }

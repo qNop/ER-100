@@ -1,12 +1,12 @@
 TEMPLATE = app
 
-QT +=  quick sql serialport  widgets
+QT +=  quick  sql serialport  widgets
 
 #CONFIG+=staticlib
 
 SOURCES += main.cpp \
     libmodbus/src/modbus.c \
-   libmodbus/src/modbus-data.c \
+    libmodbus/src/modbus-data.c \
     libmodbus/src/modbus-rtu.c \
     WeldAPI/ERModbus.cpp \
     WeldAPI/AppConfig.cpp \

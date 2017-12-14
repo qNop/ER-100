@@ -228,7 +228,6 @@ MyConditionView{
             //下发规范
             ERModbus.setmodbusFrame(frame)
         }
-        //console.log(frame)
         //清空
         frame.length=0;
     }

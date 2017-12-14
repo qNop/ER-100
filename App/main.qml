@@ -4,10 +4,9 @@ import Material.Extras 0.1
 import WeldSys.AppConfig 1.0
 import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
-//import WeldSys.MySQL 1.0
+import WeldSys.MySQL 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Layouts 1.1
-import QtQuick.LocalStorage 2.0
 import QtQuick.Controls 1.4
 import QtQuick.Window 2.2
 import "MyMath.js" as MyMath
@@ -88,7 +87,6 @@ Material.ApplicationWindow{
     /*app加载完毕*/
     property bool completed:false
     /*当前用户名*/
-    // property string currentUser: appSettings.currentUserName
     property string  weldRulesName
     //
     property bool superUser
@@ -140,6 +138,7 @@ Material.ApplicationWindow{
             timec+=":"+timee[1];
             timec+=Number(timee[0])>11?" PM":" AM"
             time.name=timec;
+            delete Date;
         }
     }
     Timer{id:camera
@@ -227,36 +226,39 @@ Material.ApplicationWindow{
             return -1;
     }
     function sendWeldData(){
-        var index=weldTableIndex;
-        var floor=weldTable.get(index).C1.split("/");
-        var z1=Number(weldTable.get(index).C16);
-        var z2=Number(weldTable.get(index).C19);
-        if(firstPointLeftOrRight){
-            z1=-Math.round(z1);
-            z2=-Math.round(z2);
-        }
-        ERModbus.setmodbusFrame(["W","201","20",
-                                 (Number(floor[0])*100+Number(floor[1])).toString(),
-                                 weldTable.get(index).C2,
-                                 weldTable.get(index).C3*10,
-                                 weldTable.get(index).C4*10,
-                                 weldTable.get(index).C5*10,
-                                 weldTable.get(index).C6*10,
-                                 weldTable.get(index).C7*10,
-                                 weldTable.get(index).C8*10,
-                                 weldTable.get(index).C9*10,
-                                 weldTable.get(index).C10*10,
-                                 weldTable.get(index).C11==="永久"?"0":weldTable.get(index).C11,
-                                                                  weldTable.get(index).C12*10,//层面积
-                                                                  weldTable.get(index).C13*10,//单道面积
-                                                                  weldTable.get(index).C14*10,//起弧位置偏移
-                                                                  weldTable.get(index).C15*10,//起弧
-                                                                  z1.toString(),//起弧
-                                                                  weldTable.count,//总共焊道号
-                                                                  weldTable.get(index).C17*10,//起弧位置偏移
-                                                                  weldTable.get(index).C18*10,//起弧
-                                                                  z2.toString()//起弧
-                                ]);
+        if((weldTable.count)&&((weldTableIndex>-1)&&(weldTableIndex<weldTable.count))){
+            var index=weldTableIndex;
+            var floor=weldTable.get(index).C1.split("/");
+            var z1=Number(weldTable.get(index).C16);
+            var z2=Number(weldTable.get(index).C19);
+            if(firstPointLeftOrRight){
+                z1=-Math.round(z1);
+                z2=-Math.round(z2);
+            }
+            ERModbus.setmodbusFrame(["W","201","20",
+                                     (Number(floor[0])*100+Number(floor[1])).toString(),
+                                     weldTable.get(index).C2,
+                                     weldTable.get(index).C3*10,
+                                     weldTable.get(index).C4*10,
+                                     weldTable.get(index).C5*10,
+                                     weldTable.get(index).C6*10,
+                                     weldTable.get(index).C7*10,
+                                     weldTable.get(index).C8*10,
+                                     weldTable.get(index).C9*10,
+                                     weldTable.get(index).C10*10,
+                                     weldTable.get(index).C11==="永久"?"0":weldTable.get(index).C11,
+                                                                      weldTable.get(index).C12*10,//层面积
+                                                                      weldTable.get(index).C13*10,//单道面积
+                                                                      weldTable.get(index).C14*10,//起弧位置偏移
+                                                                      weldTable.get(index).C15*10,//起弧
+                                                                      z1.toString(),//起弧
+                                                                      weldTable.count,//总共焊道号
+                                                                      weldTable.get(index).C17*10,//起弧位置偏移
+                                                                      weldTable.get(index).C18*10,//起弧
+                                                                      z2.toString()//起弧
+                                    ]);
+        }else
+            return -1;
     }
     /*初始化Tabpage*/
     initialPage: Material.TabbedPage {
@@ -417,7 +419,7 @@ Material.ApplicationWindow{
                                         lastFocusedItem=teachConditionPage;//聚焦lastFocusedItem
                                         lastFocusedItem.forceActiveFocus();
                                         teachConditionPage.selectedIndex=i-1;//切换选中栏
-                                        Material.UserData.setValueFromFuncOfTable(teachConditionPage.objectName,i-1,Number(value[i]))//存储数据
+                                        MySQL.setValue(teachConditionPage.objectName,"id",String(i-1),"value",String(value[i]));
                                         if(i<=teachConditionPage.listValueName.length){
                                             //只改变显示不下发数据不存储
                                             teachConditionPage.changeGroupCurrent(Number(value[i]),true);
@@ -458,7 +460,7 @@ Material.ApplicationWindow{
                                 //只改变显示不下发数据不存储
                                 weldConditionPage.changeGroupCurrent(Number(value[0]),false);
                                 //存储数据
-                                Material.UserData.setValueFromFuncOfTable(teachConditionPage.objectName,1,Number(value[0]))
+                                MySQL.setValue(teachConditionPage.objectName,"id",1,"value",String(value[0]));
                                 snackBar.open(weldConditionPage.listName[1]+"切换为"+weldConditionPage.listValueName[1][Number(value[0])]+"。")
                             }
                         }
@@ -537,7 +539,7 @@ Material.ApplicationWindow{
                         }
                         onCurrentGrooveChanged:{
                             grooveCheckPage.grooveNameList=app.grooveStyleName[app.currentGroove]+"坡口条件列表";
-                            grooveCheckPage.updateGrooveName(grooveCheckPage.getLastGrooveName());
+                            grooveCheckPage.getLastGrooveName();
                         }
                         onSaveData:{
                             grooveCheckPage.save();
@@ -554,7 +556,7 @@ Material.ApplicationWindow{
                         target: weldConditionPage
                         onChangeNum:{limitedConditionPage.limitedString=value;
                             limitedConditionPage.limitedRulesNameList= app.grooveStyleName[app.currentGroove]+"限制条件列表"+limitedConditionPage.limitedString;
-                            limitedConditionPage.updateLimitedRulesName(limitedConditionPage.getLastRulesName());
+                            limitedConditionPage.getLastRulesName();
                         }
                     }
                     Connections{
@@ -564,7 +566,7 @@ Material.ApplicationWindow{
                                 //更新焊接规范列表
                                 limitedConditionPage.limitedRulesNameList= app.grooveStyleName[app.currentGroove]+"限制条件列表"+limitedConditionPage.limitedString;
                                 //更新焊接规范
-                                limitedConditionPage.updateLimitedRulesName(limitedConditionPage.getLastRulesName());
+                                limitedConditionPage.getLastRulesName();
                             }
                         }
                     }
@@ -595,8 +597,7 @@ Material.ApplicationWindow{
                     currentUserName: appSettings.currentUserName
                     onChangeWeldData: app.sendWeldData();
                     onCurrentRowChanged: {
-                        app.weldTableIndex=currentRow;
-                        console.log("app.weldTableIndex is "+app.weldTableIndex);
+                        app.weldTableIndex=currentRow;                     
                     }
                     model: weldTable
                     //外部更改模型数据 避免绑定过程中解除绑定的操作存在而影响数据与模型内容不一致
@@ -634,7 +635,7 @@ Material.ApplicationWindow{
                             //更新焊接规范列表
                             weldDataPage.weldRulesNameList=app.grooveStyleName[app.currentGroove]+"焊接规范列表";
                             //更新焊接规范
-                            weldDataPage.updateWeldRulesName(weldDataPage.getLastRulesName());
+                           weldDataPage.getLastweldRulesName();
                         }
                         onSaveData:{
                             weldDataPage.save();
@@ -644,7 +645,7 @@ Material.ApplicationWindow{
                         //更新焊接规范列表
                         weldDataPage.weldRulesNameList=app.grooveStyleName[app.currentGroove]+"焊接规范列表";
                         //更新焊接规范
-                        weldDataPage.updateWeldRulesName(weldDataPage.getLastRulesName());
+                        weldDataPage.getLastweldRulesName();
                     }
                 }
             }
@@ -673,13 +674,13 @@ Material.ApplicationWindow{
                         errorCount=0;//清空
                         errorHistroy.clear();
                         //清楚数据表格
-                        //Material.UserData.clearTable("SysErrorHistroy","","");
+
                         snackBar.open("错误历史记录已被清空！");
                     }
                     onRemove:{
                         if(currentRow!==-1){
                             var index=currentRow;
-                            // Material.UserData.clearTable("SysErrorHistroy","ID",errorHistroy.get(index).ID);
+
                             errorHistroy.remove(index);
                             snackBar.open("本条错误已移除！");
                         }else
@@ -897,12 +898,8 @@ Material.ApplicationWindow{
                         }else{
                             weldFix=true;
                         }
-                        console.log("here! 200 reg")
-                        console.log("weldTable.count is "+weldTable.count)
-                        console.log("weldTableIndex is "+weldTableIndex)
                         //选择行数据有效
-                        if((weldTableIndex<weldTable.count)&&(weldTableIndex>-1)){
-                            console.log("send guifan ")
+                        if((weldTableIndex<weldTable.count)&&(weldTableIndex>-1)){                        
                             //分离层/道
                             sendWeldData();
                         }else{
@@ -944,15 +941,13 @@ Material.ApplicationWindow{
         target: WeldMath
         onWeldRulesChanged:{
             //确保数组数值正确
-            if((typeof(value)==="object")&&(value.length===21)&&(value[0]==="Successed")){
-                weldTable.set(Number(value[1])-1,{"ID":value[1], "C1":value[2],"C2":value[3],"C3":value[4],"C4":value[5],"C5":value[6],
-                                  "C6":value[7],"C7":value[8],"C8":value[9],"C9":value[10],"C10":value[11],"C11":value[12],"C12":value[13],
-                                  "C13":value[14],"C14":value[15],"C15":value[16],"C16":value[17],"C17":value[18],"C18":value[19],"C19":value[20]})
-            }else if(value[0]==="Clear"){
+            if(status==="Successed"){
+                weldTable.set(Number(value.ID)-1,value)
+            }else if(status==="Clear"){
                 weldTableIndex=-1;
                 changeWeldIndex(-1);
                 weldTable.clear();
-            }else if(value[0]==="Finish"){
+            }else if(status==="Finish"){
                 snackBar.open("焊接规范已生成！")
                 console.log("weld guifan ok")
                 //选中焊接规范表格的第一行数据
@@ -968,7 +963,6 @@ Material.ApplicationWindow{
                 }
                 // 切换状态为端部暂停
                 if(sysStatus==="坡口检测完成态"){
-
                     //保存数据
                     saveData();
                     //下发端部暂停态
@@ -977,7 +971,7 @@ Material.ApplicationWindow{
                 }
             }else{
                 //输出错误
-                snackBar.open(value[0])
+                snackBar.open(status)
                 //写入错误
                 errorCode|=0x40000000;
                 ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
@@ -1057,7 +1051,7 @@ Material.ApplicationWindow{
     }
     function errorMath(Start,Length,MathError,MathXor){
         //获取时间
-        var errorTime=Material.UserData.getSysTime();
+        var errorTime=MyMath.getSysTime();
         for(var i=Start;i<Length;i++){
             //如果变化存在
             if(MathXor&0x0001){
@@ -1099,7 +1093,6 @@ Material.ApplicationWindow{
                     }
                 }
                 //插入数据表格
-                // Material.UserData.insertTable("SysErrorHistroy","(?,?,?,?,?,?)",[errorHistroy.get(0).ID,errorHistroy.get(0).C1,errorHistroy.get(0).C2,errorHistroy.get(0).C3,errorHistroy.get(0).C4,errorHistroy.get(0).C5])
             }
             MathXor>>=1;
             MathError>>=1;
@@ -1492,7 +1485,7 @@ Material.ApplicationWindow{
                 }
             }
         }
-    }
+    }/*
     //初始化所有数据
     function initAllTable(){
         grooveTable.clear()//删除坡口参数
@@ -1517,6 +1510,23 @@ Material.ApplicationWindow{
             }
             snackBar.open("系统初始化进度"+String((i+1)*10)+"%！请耐心等待~");
         }
+    }*/
+    Connections{
+        target: MySQL
+        onMySqlChanged:{
+            if(tableName==="AccountTable"){
+                for(var i=0;i<jsonObject.length;i++){
+                    if(i<accountmodel.count)
+                        accountmodel.set(i,jsonObject[i]);
+                    else
+                        accountmodel.append(jsonObject[i]);
+                }
+            }
+        }
+        onMySqlStatusChanged:{
+            if(!status)
+                snackBar.open("操作"+tableName+"失败！")
+        }
     }
     Component.onCompleted: {
         theme.accentColor=appSettings.accentColor
@@ -1526,19 +1536,7 @@ Material.ApplicationWindow{
         AppConfig.setleds("all");
         ERModbus.setmodbusFrame(["R","510","6"]);
         ERModbus.setmodbusFrame(["W","98","1","0"]);
-        /*打开数据库*/
-        var res = Material.UserData.getTableJson("AccountTable");
-        //      MySQL.setSqlCommand(["AccountTable","getTableJson"]);
-        var i;
-        if(res!==-1){
-            for( i=0;i<res.length;i++){
-                if(i<accountmodel.count)
-                    accountmodel.set(i,res[i]);
-                else
-                    accountmodel.append(res[i]);
-            }
-        }
-        var time=Material.UserData.getSysTime();
+        MySQL.getJsonTable("AccountTable")
         sysStatus="未登录态";//系统处于未登陆状态
         changeuser.show();
     }

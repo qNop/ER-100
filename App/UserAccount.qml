@@ -3,6 +3,7 @@ import Material 0.1
 import Material.Extras 0.1
 import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
+import WeldSys.MySQL 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.2 as Controls
 
@@ -37,19 +38,12 @@ TableCard {
         Action{iconName:"awesome/folder_open_o";name:"打开";enabled: false;},
         Action{iconName:"awesome/save";name:"保存";enabled:superUser
             onTriggered: {
+                message.open("正在保存用户信息！");
                 //保存用户信息
-                //清除保存数据库
-                UserData.clearTable("AccountTable","","");
+                MySQL.clearTable("AccountTable","","");
                 //删除条目
                 for(var i=0;i<model.count;i++){
-                    UserData.insertTable("AccountTable","(?,?,?,?,?,?,?)",[
-                                             model.get(i).ID,
-                                             model.get(i).C1,
-                                             model.get(i).C2,
-                                             model.get(i).C3,
-                                             model.get(i).C4,
-                                             model.get(i).C5,
-                                             model.get(i).C6 ])
+                    MySQL.insertTable("AccountTable",model.get(i));
                 }
                 message.open("用户信息已保存！");}
         },
@@ -99,24 +93,25 @@ TableCard {
         }
         ListModel{
             id:textModel
-            ListElement{name:"工        号：";show:true;min:1;max:1000;isNum:true;step:1}
-            ListElement{name:"用  户  名：";show:true;min:10;max:300;isNum:false;step:1}
-            ListElement{name:"密        码：";show:true;min:10;max:300;isNum:false;step:1}
-            ListElement{name:"用  户  组：";show:true;min:10;max:300;isNum:false;step:1}
-            ListElement{name:"所在班组：";show:true;min:10;max:300;isNum:false;step:1}
-            ListElement{name:"备        注：";show:true;min:10;max:300;isNum:false;step:1}
+            ListElement{name:"工        号：";value:"";show:true;min:1;max:1000;isNum:true;step:1}
+            ListElement{name:"用  户  名：";value:"";show:true;min:10;max:300;isNum:false;step:1}
+            ListElement{name:"密        码：";value:"";show:true;min:10;max:300;isNum:false;step:1}
+            ListElement{name:"用  户  组：";value:"";show:true;min:10;max:300;isNum:false;step:1}
+            ListElement{name:"所在班组：";value:"";show:true;min:10;max:300;isNum:false;step:1}
+            ListElement{name:"备        注：";value:"";show:true;min:10;max:300;isNum:false;step:1}
         }
         repeaterModel:textModel
         onOpened: {
             if((currentRow>-1)||(!addOrEdit)){
                 //复制数据到 editData
                 var index=currentRow
-                openText(0,addOrEdit?model.get(index).C1:"");
-                openText(1,addOrEdit?model.get(index).C2:"");
-                openText(2,addOrEdit?model.get(index).C3:"");
-                openText(3,addOrEdit?model.get(index).C4:"");
-                openText(4,addOrEdit?model.get(index).C5:"");
-                openText(5,addOrEdit?model.get(index).C6:"");
+                textModel.setProperty(0,"value",addOrEdit?model.get(index).C1:"0");
+                textModel.setProperty(1,"value",addOrEdit?model.get(index).C2:"0");
+                textModel.setProperty(2,"value",addOrEdit?model.get(index).C3:"0");
+                textModel.setProperty(3,"value",addOrEdit?model.get(index).C4:"0");
+                textModel.setProperty(4,"value",addOrEdit?model.get(index).C5:"0");
+                textModel.setProperty(5,"value",addOrEdit?model.get(index).C6:"0");
+               updateText()
             }
             else{
                 message.open("请选择要编辑的行！")

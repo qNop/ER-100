@@ -21,5 +21,9 @@ function subMath(arg1,arg2) {
        return ((arg1 * m - arg2 * m) / m).toFixed(n);
 }
 
+function getSysTime(){
+        return new Date().toLocaleString(Qt.locale("ch_ZN"),"yyyy-MM-dd h:mm:ss")
+}
+
 
 

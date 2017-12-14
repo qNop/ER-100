@@ -5,7 +5,9 @@ import QtQuick.Controls 1.2 as Controls
 import QtQuick.Window 2.2
 import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
+import WeldSys.MySQL 1.0
 import QtQuick.Layouts 1.1
+import "MyMath.js" as MyMath
 /*
   * tableView 选中当前行时必需 要更改__listview.currentrow 然后在选择要选择的行单纯的只选择 选中的行无效
   * 能不使用 ProgressCircle 不要使用 太耗费cpu 能够达到30% 使用率 获取当前位置 工具有 生成焊接规范 获取当前位置
@@ -34,13 +36,16 @@ TableCard{
     ListModel{id:pasteModel
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"0";C7:"0";C8:"0"}
     }
+    ListModel{id:grooveNameListModel
+        ListElement{Name:"";CreatTime:"";Creater:"";EditTime:"";Editor:"";}
+    }
     ListModel{id:grooveRules
-        ListElement{name:"           No.       :";show:true;min:0;max:100;isNum:true;step:1}
-        ListElement{name:"板    厚δ(mm):";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"板厚差e(mm):";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"间    隙b(mm):";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"角  度β1(deg):";show:true;min:-180;max:180;isNum:true;step:0.1}
-        ListElement{name:"角  度β2(deg):";show:true;min:-180;max:180;isNum:true;step:0.1}
+        ListElement{name:"          No.       :";value:"";show:true;min:0;max:100;isNum:true;step:1}
+        ListElement{name:"板    厚δ(mm):";value:"";show:true;min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"板厚差e(mm):";value:"";show:true;min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"间    隙b(mm):";value:"";show:true;min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"角  度β1(deg):";value:"";show:true;min:-180;max:180;isNum:true;step:0.1}
+        ListElement{name:"角  度β2(deg):";value:"";show:true;min:-180;max:180;isNum:true;step:0.1}
     }
     onCurrentGrooveChanged: {
         grooveRules.setProperty(1,"name",currentGroove===8?"脚   长ι1(mm):":"板    厚δ(mm):")
@@ -59,60 +64,49 @@ TableCard{
         }
     }
 
-    function getLastGrooveName(){
-        if((typeof(grooveNameList)==="string")&&(grooveNameList!=="")){
-            //名称存在且格式正确  那么 重新更新 表名称参数 找出最新的表
-            var res =UserData.getDataOrderByTime(grooveNameList,"EditTime")
-            if((res!==-1)&&(typeof(res)==="object")){
-                return res[0].Name;
-            }else
-                return -1;
-        }
-        return -1;
-    }
-
-    function updateGrooveName(str){
-        if((typeof(str)==="string")&&(str!=="")){
-            //获取坡口数据
-            var res=UserData.getTableJson(str)
-            //插入数据到grooveTableInit
-            if(typeof(res)!==-1){
-                //清空坡口数据
+    Connections{
+        target: MySQL
+        onMySqlChanged:{
+            var i;
+            //更新列表
+            if(tableName===grooveNameList){
+                for(i=0;i<jsonObject.length;i++){
+                    console.log(jsonObject[i]);
+                    if(grooveNameListModel.count<jsonObject.length)
+                        grooveNameListModel.append(jsonObject[i]);
+                    else
+                        grooveNameListModel.set(i,jsonObject[i]);
+                }
+                if(grooveNameListModel.count>jsonObject.length)
+                    grooveNameListModel.remove(jsonObject.length,grooveNameListModel.count-jsonObject.length)
+                grooveName=jsonObject[0].Name;
+                MySQL.getJsonTable(grooveName);
+            }else if(tableName===grooveName){//更新数据表
                 updateModel("Clear",{});
-                for(var i=0;i<res.length;i++){
-                    if(res[i].ID!==null)
-                        updateModel("Append",res[i])
+                for(i=0;i<jsonObject.length;i++){
+                    updateModel("Append",jsonObject[i]);
                 }
                 currentRow=0;
                 selectIndex(0);
-                grooveName=str;
-            }else{
-                message.open("坡口条件表格不存在或为空！");
             }
-        }else
-            message.open("坡口条件列表无数据！")
+        }
+    }
+
+    function getLastGrooveName(){
+        MySQL.getDataOrderByTime(grooveNameList,"EditTime");
     }
 
     function save(){
         if(typeof(grooveName)==="string"){
             //清除保存数据库
-            UserData.clearTable(grooveName,"","");
+            MySQL.clearTable(grooveName,"","");
             for(var i=0;i<model.count;i++){
                 //插入新的数据
-                UserData.insertTable(grooveName,"(?,?,?,?,?,?,?,?,?)",[
-                                         model.get(i).ID,
-                                         model.get(i).C1,
-                                         model.get(i).C2,
-                                         model.get(i).C3,
-                                         model.get(i).C4,
-                                         model.get(i).C5,
-                                         model.get(i).C6,
-                                         model.get(i).C7,
-                                         model.get(i).C8])}
+                MySQL.insertTable(grooveName,model.get(i));
+            }
             //更新数据库保存时间
-            UserData.setValueWanted(grooveNameList,"Name",grooveName,"EditTime",UserData.getSysTime())
-            //更新数据库保存
-            UserData.setValueWanted(grooveNameList,"Name",grooveName,"Editor",settings.currentUserName)
+            MySQL.setValue(grooveNameList,"Name",grooveName,"EditTime",MyMath.getSysTime());
+            MySQL.setValue(grooveNameList,"Name",grooveName,"Editor",settings.currentUserName);
             message.open("坡口条件已保存。");
         }else{
             message.open("坡口名称格式不是字符串！")
@@ -160,7 +154,7 @@ TableCard{
             }},
         Action{iconName:"awesome/copy"; name:"粘帖";
             onTriggered: {
-              if((currentRow>=0)&&(table.rowCount)){
+                if((currentRow>=0)&&(table.rowCount)){
                     updateModel("Set", pasteModel.get(0));
                     selectIndex(currentRow)
                     message.open("已粘帖。");}
@@ -170,7 +164,7 @@ TableCard{
         },
         Action{iconName: "awesome/calendar_times_o";  name:"移除" ;
             onTriggered: {
-              if((currentRow>=0)&&(table.rowCount)){
+                if((currentRow>=0)&&(table.rowCount)){
                     updateModel("Remove",{})
                     message.open("已移除。");}
                 else
@@ -219,50 +213,35 @@ TableCard{
         title:qsTr("打开坡口条件")
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
-        property var grooveList:[""]
-        property var creatTimeList: [""]
-        property var creatorList:[""]
-        property var editTimeList: [""]
-        property var editorList:[""]
-        property string name
+        property string name;
+        property var nameList: [""]
         onOpened:{//打开对话框加载model
-            grooveList.length=0;
-            creatTimeList.length=0;
-            creatorList.length=0;
-            editTimeList.length=0;
-            editorList.length=0;
-            if((typeof(grooveNameList)==="string")&&(grooveNameList!=="")){
-                var res=UserData.getDataOrderByTime(grooveNameList,"EditTime")
-                if((res!==-1)&&(typeof(res)==="object")){
-                    for(var i=0;i<res.length;i++){
-                        grooveList.push(res[i].Name.replace("坡口条件",""));
-                        creatTimeList.push(res[i].CreatTime);
-                        creatorList.push(res[i].Creator);
-                        editTimeList.push(res[i].EditTime);
-                        editorList.push(res[i].Editor);
-                    }
-                    menuField.model=grooveList
-                    menuField.selectedIndex=0;
-                    menuField.helperText="创建时间:"+creatTimeList[0]+"\n创建者:"+creatorList[0]+"\n修改时间:"+editTimeList[0]+"\n修改者:"+editorList[0];
-                    name=grooveList[0];
-                }
-            }
+            nameList.length=0;
+            for(var i=0;i<grooveNameListModel.count;i++)
+                nameList.push(grooveNameListModel.get(i).Name);
+            menuField.model=nameList;
+            name=grooveNameListModel.get(0).Name;
+            menuField.helperText="创建时间:"+grooveNameListModel.get(0).CreatTime+
+                    "\n创建者:"+grooveNameListModel.get(0).Creator+
+                    "\n修改时间:"+grooveNameListModel.get(0).EditTime+
+                    "\n修改者:"+grooveNameListModel.get(0).Editor;
         }
         dialogContent: MenuField{id:menuField
             width:Units.dp(300)
             onItemSelected: {
-                open.name=open.grooveList[index]
-                menuField.helperText="创建时间:"+open.creatTimeList[index]+"\n创建者:"+open.creatorList[index]+"\n修改时间:"+open.editTimeList[index]+"\n修改者:"+open.editorList[index];         
+                open.name=grooveNameListModel.get(index).Name;
+                menuField.helperText="创建时间:"+grooveNameListModel.get(index).CreatTime+
+                        "\n创建者:"+grooveNameListModel.get(index).Creator+
+                        "\n修改时间:"+grooveNameListModel.get(index).EditTime+
+                        "\n修改者:"+grooveNameListModel.get(index).Editor;
             }
         }
         onAccepted: {
-            if(typeof(open.name)==="string")
-            {
-                updateGrooveName(open.name.concat("坡口条件"))
+            if(typeof(open.name)==="string"){
+                grooveName=open.name;
+                //打开最新的数据库
+                MySQL.getJsonTable(grooveName);
             }
-        }
-        onRejected: {
-            open.name=grooveName.replace("焊接规范","")
         }
     }
     Dialog{
@@ -287,12 +266,12 @@ TableCard{
             if(positiveButtonEnabled){
                 //搜寻最近列表 删除本次列表 更新 最近列表如model
                 message.open(qsTr("正在删除坡口条件表格！"));
-                //删除在坡口条件列表链接
-                UserData.clearTable(grooveNameList,"Name",grooveName)
                 //删除坡口条件表格
-                UserData.deleteTable(grooveName);
+                MySQL.deleteTable(grooveName)
+                //删除在坡口条件列表链接
+                MySQL.clearTable(grooveNameList,"Name",grooveName)
                 //选择最新的表格替换
-                updateGrooveName(getLastGrooveName());
+                getLastGrooveName();
                 //提示
                 message.open(qsTr("已删除坡口条件表格！"))
             }
@@ -307,12 +286,9 @@ TableCard{
         onOpened:{
             newFileTextField.text=grooveName.replace("坡口条件","");
             newFileTextField.helperText="请输入新的坡口条件"
-            var res=UserData.getDataOrderByTime(grooveNameList,"EditTime")
-            if(typeof(res)==="object"){
-                grooveList.length=0;
-                for(var i=0;i<res.length;i++){
-                    grooveList[i]=res[i].Name.replace("坡口条件","");
-                }
+            grooveList.length=0;
+            for(var i=0;i<grooveNameListModel.count;i++){
+                grooveList.push(grooveNameListModel.get(i).Name.replace("坡口条件",""));
             }
         }
         dialogContent:[Item{
@@ -320,8 +296,7 @@ TableCard{
                 height:newFileTextField.actualHeight
                 TextField{
                     id:newFileTextField
-                  //  text:grooveName.replace("坡口条件","")
-                    helperText: "请输入新的坡口条件"//new Date().toLocaleString("yyMd hh:mm")
+                    helperText: "请输入新的坡口条件"
                     width: Units.dp(300)
                     anchors.horizontalCenter: parent.horizontalCenter
                     onTextChanged: {
@@ -355,18 +330,18 @@ TableCard{
                 var name = newFileTextField.text
                 if((name!==grooveName)&&(typeof(name)==="string")){
                     var user=settings.currentUserName;
-                    var Time=UserData.getSysTime();
+                    var Time=MyMath.getSysTime();
                     message.open("正在创建坡口条件数据库！")
                     //插入新的list
-                    UserData.insertTable(grooveNameList,"(?,?,?,?,?)",[name+"坡口条件",Time,user,Time,user])
+                    MySQL.insertTableByJson(grooveNameList,{"Name":name+"坡口条件","CreatTime":Time,"Creator":user,"EditTime":Time,"Editor":user});
+                    grooveNameListModel.append({"Name":name+"坡口条件","CreatTime":Time,"Creator":user,"EditTime":Time,"Editor":user});
                     //创建新的 坡口条件
-                    UserData.createTable(name+"坡口条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT")
+                    MySQL.createTable(name+"坡口条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT");
+                    grooveName=name+"坡口条件";
                     if(saveAs){
-                        grooveName=name+"坡口条件";
                         save();
-                    }else{
-                        updateGrooveName(name+"坡口条件")
-                    }
+                    }else
+                        MySQL.getJsonTable(grooveName);
                     message.open("已创建坡口条件数据库！")
                 }
             }
@@ -395,14 +370,14 @@ TableCard{
             if(title==="编辑坡口条件"){
                 if(currentRow>-1){
                     //复制数据到 editData
-                    var index=currentRow
-                    var obj=model.get(index);
-                    openText(0,obj.ID);
-                    openText(1,obj.C1);
-                    openText(2,obj.C2);
-                    openText(3,obj.C3);
-                    openText(4,obj.C4);
-                    openText(5,obj.C5);
+                    var obj=model.get(currentRow);
+                    grooveRules.setProperty(0,"value",obj.ID);
+                    grooveRules.setProperty(1,"value",obj.C1);
+                    grooveRules.setProperty(2,"value",obj.C2);
+                    grooveRules.setProperty(3,"value",obj.C3);
+                    grooveRules.setProperty(4,"value",obj.C4);
+                    grooveRules.setProperty(5,"value",obj.C5);
+                    updateText();
                     focusIndex=0;
                     changeFocus(focusIndex)
                 }else{
@@ -410,10 +385,11 @@ TableCard{
                     positiveButtonEnabled=false;
                 }
             }else{
-                openText(0,String(model.count+1))
+                grooveRules.setProperty(0,"value",String(model.count+1));
                 for(var i=1;i<grooveRules.count;i++){
-                    openText(i,"0")
+                    grooveRules.setProperty(i,"value","0");
                 }
+                 updateText();
             }
         }
     }

@@ -1,33 +1,6 @@
 #include "MySQL.h"
 /*
- * 定义StringList
- *  [0] 代表读写的状态  成功和失败两种
- *  [1] 代表 文件名 写入的文件名，哪个文件写入的返还给哪个文件
- *  [2] 代表 field
- *  [3] 代表 name
- *  [...]仿上述
- *
- *
- * 定义Cmd
- *
- * [0] 代表文件名
- * [..] 代表命令
- *
- *
- *
- * 一种想法 可不可以用文件名区分 而生成不同的信号
- * 1 TeachConditon
- * 2 WeldConditon
- * 3 GrooveTable
- * 4 WeldTable
- * 5 AccountTable
- * 6 ErrorTable(已经没有了)
- * 7 LimitedTable
- * 8 坡口名称+次列表
- * 9 坡口名称+列表
- * 10 检测错误表
- *
- */
+*/
 
 SqlThread::SqlThread(){
     pCmdBuf=&cmdBuf;
@@ -36,39 +9,49 @@ SqlThread::~SqlThread(){
     qDebug()<<"SqlThread::~SqlThread()";
 }
 
-int SqlThread::getTableJson(QString tableName,QList<QJsonObject> *pQJson){
-    if(tableName!=""){
-        QString str="SELECT * FROM "+tableName;
-        QSqlQuery query(str); //获取数据库
-        QSqlRecord res;
-        QJsonObject pJson;
-        while (query.next()) {
-            res=query.record();//获取记录
-            for(int i=0;i<res.count();i++){
-                qDebug()<<res.fieldName(i)<<res.field(i).value();
-            }
-            pQJson->append(pJson);
-        }
-        return 1;
-    }else
-        return -1;
-}
-
 void SqlThread::run(){
+    QString cmd;
+    QSqlQuery query;
+    bool status;
+    QString tableName;
     for(;;){
-        //qDebug()<<"SqlThread run";
         if(cmdBuf.count()){//如果存在命令则 执行命令行
-            QStringList cmd=cmdBuf.dequeue();
-            QList<QJsonObject> qJsonList;
-            qJsonList.clear();
-            if(cmd[1]=="getTableJson"){
-                getTableJson(cmd[0],&qJsonList);
-                emit sqlThreadSignal(qJsonList);
-            }else{//命令不被支持
-
+            QStringList list=cmdBuf.dequeue().split("+");
+            cmd=list.at(0);
+            tableName=list.at(1);
+            if(cmd.startsWith("SELECT")){//包含选择命令
+                QList<QVariant> qJsonList;
+                QSqlRecord res;
+                QJsonObject pJson;
+                status=query.exec(cmd);
+                if(status){ //获取数据库
+                    while (query.next()) {
+                        res=query.record();//获取记录
+                        for(int i=0;i<res.count();i++){ //组织成Json
+                            pJson.insert(res.fieldName(i),QJsonValue(res.field(i).value().toString()));
+                        }
+                        qJsonList.append(QVariant(pJson));
+                    }
+                    emit sqlThreadSignal(qJsonList,tableName);
+                }
+            }else if(cmd.startsWith("CREATE")){//创建数据库
+                status=query.exec(cmd);
+            }else if(cmd.startsWith("INSERT")){//插入数据库
+                status=query.exec(cmd);
+            }else if(cmd.startsWith("UPDATE")){//插入数据库
+                status=query.exec(cmd);
+            }else if(cmd.startsWith("DELETE")){//删除数据库
+                status=query.exec(cmd);
+            }else if(cmd.startsWith("ALTER")){//重命名数据库或添加字段
+                status=query.exec(cmd);
+            }else if(cmd.startsWith("DROP")){//重命名数据库或添加字段
+                status=query.exec(cmd);
+            }else{//不支持的命令
+                status=false;
             }
-        }else{//线程挂起50ms
-            msleep(50);
+            emit sqlThreadFinished(status,tableName);
+        }else{//线程挂起20ms
+            msleep(20);
         }
     }
 }
@@ -81,20 +64,125 @@ MySQL::MySQL(){
     myDataBases.setDatabaseName(qgetenv("HOME")+"/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases/433abb168a2ae7adeaa1ec24c2e3a59a.sqlite");//"ER-100.sqlite");
     //myDataBases.setUserName("");
     //myDataBases.setPassword("");
-    qDebug()<<"open myDataBases"<<myDataBases.open();
+    myDataBases.open();
     pSqlThread = new SqlThread();
-     connect(pSqlThread,&SqlThread::sqlThreadSignal,this,&MySQL::mySqlChanged);
-
+    connect(pSqlThread,&SqlThread::sqlThreadSignal,this,&MySQL::mySqlChanged);
+    connect(pSqlThread,&SqlThread::sqlThreadFinished,this,&MySQL::mySqlStatusChanged);
     pSqlThread->start();
 }
 MySQL::~MySQL(){
     myDataBases.close();
     myDataBases.removeDatabase(qgetenv("HOME")+"/.local/share/TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd/ER-100/QML/OfflineStorage/Databases/433abb168a2ae7adeaa1ec24c2e3a59a.sqlite");
 }
-
-void MySQL::setSqlCommand(QStringList Cmd){
-    //队列插入命令
-    pSqlThread->pCmdBuf->enqueue(Cmd);
+/*以下为命令的解析*/
+void MySQL::getJsonTable(QString tableName){
+    if(!tableName.isEmpty())
+        pSqlThread->pCmdBuf->enqueue("SELECT * FROM "+tableName+"+"+tableName);
+    else
+        emit mySqlStatusChanged(false,tableName);
 }
+
+void MySQL::alterTable(QString tableName, QString columnName){
+    if((!tableName.isEmpty())&&(!columnName.isEmpty()))
+        pSqlThread->pCmdBuf->enqueue("ALTER TABLE "+tableName+" ADD COLUMN "+columnName+"+"+tableName);
+    else
+        emit mySqlStatusChanged(false,tableName);
+}
+
+void MySQL::renameTable(QString oldName, QString newName){
+    if((!oldName.isEmpty())&&(!newName.isEmpty()))
+        pSqlThread->pCmdBuf->enqueue("ALTER TABLE "+oldName+" RENAME TO "+newName+"+"+oldName);
+    else
+        emit mySqlStatusChanged(false,oldName);
+}
+
+void MySQL::insertTable(QString tableName,QObject* data){
+    if(!tableName.isEmpty()&&data){
+        const QMetaObject* meta= data->metaObject();
+        QString s=" (";
+        QString s1=" (";
+        for(int i=1;i<meta->propertyCount();i++){
+            QVariant value=data->property(meta->property(i).name());
+            s1+=meta->property(i).name();
+            s1+=",";
+            s+="\'"+value.toString()+"\'";
+            s+=",";
+        }
+        s.remove(s.length()-1,1);
+        s+=")";
+        s1.remove(s1.length()-1,1);
+        s1+=")";
+        pSqlThread->pCmdBuf->enqueue("INSERT INTO "+tableName+s1+" VALUES"+s+"+"+tableName);
+    }else
+        emit mySqlStatusChanged(false,tableName);
+}
+
+void MySQL::insertTableByJson(QString tableName,QJsonObject data){
+    if(!tableName.isEmpty()){
+        QStringList sList=data.keys();
+        QString s=" (";
+        QString s1=" (";
+        for(int i=0;i<sList.length();i++){
+            QJsonValue value=data.value(sList.at(i));
+            s1+=sList.at(i);
+            s1+=",";
+            s+="\'"+value.toString()+"\'";
+            s+=",";
+        }
+        s.remove(s.length()-1,1);
+        s+=")";
+        s1.remove(s1.length()-1,1);
+        s1+=")";
+        pSqlThread->pCmdBuf->enqueue("INSERT INTO "+tableName+s1+" VALUES"+s+"+"+tableName);
+    }else
+        emit mySqlStatusChanged(false,tableName);
+}
+
+void MySQL::deleteTable(QString tableName){
+    if(!tableName.isEmpty())
+        pSqlThread->pCmdBuf->enqueue("DROP TABLE "+tableName+"+"+tableName);
+    else
+        emit mySqlStatusChanged(false,tableName);
+}
+
+void MySQL::createTable(QString tableName,QString format){
+    if((!tableName.isEmpty())&&(!format.isEmpty()))
+        pSqlThread->pCmdBuf->enqueue("CREATE TABLE IF NOT EXISTS "+tableName+"("+format+")"+"+"+tableName);
+    else
+        emit mySqlStatusChanged(false,tableName);
+}
+
+void MySQL::clearTable(QString tableName, QString func,QString value){
+    if(!tableName.isEmpty()){
+        if((!func.isEmpty())&&(!value.isEmpty()))
+            pSqlThread->pCmdBuf->enqueue("DELETE FROM "+tableName+" WHERE "+func+" = "+"\'"+value+"\'"+"+"+tableName);
+        else
+            pSqlThread->pCmdBuf->enqueue("DELETE FROM "+tableName+"+"+tableName);
+    }
+    else
+        emit mySqlStatusChanged(false,tableName);
+}
+
+void MySQL::getDataOrderByTime(QString tableName,QString func){
+    if((!tableName.isEmpty())&&(!func.isEmpty()))
+        pSqlThread->pCmdBuf->enqueue("SELECT * FROM "+tableName+" ORDER BY "+func+" DESC"+"+"+tableName);
+    else
+        emit mySqlStatusChanged(false,tableName);
+}
+
+void MySQL::setValue(QString tableName,QString funcI,QString id,QString funcV,QString value){
+    if((!tableName.isEmpty())&&(!id.isEmpty())&&(!value.isEmpty())&&(!funcI.isEmpty())&&(!funcV.isEmpty()))
+        pSqlThread->pCmdBuf->enqueue("UPDATE "+tableName+" SET "+funcV+ " = "+"\'"+value+"\'"+" WHERE "+funcI+" = "+"\'"+id+"\'"+"+"+tableName);
+    else
+        emit mySqlStatusChanged(false,tableName);
+}
+
+void MySQL::getValue(QString tableName,QString func,QString id){
+    if((!tableName.isEmpty())&&(!id.isEmpty())&&(!func.isEmpty()))
+        pSqlThread->pCmdBuf->enqueue("SELECT * FROM "+tableName+" WHERE "+func+" ="+"\'"+id+"\'"+"+"+tableName);
+    else
+        emit mySqlStatusChanged(false,tableName);
+}
+
 
 

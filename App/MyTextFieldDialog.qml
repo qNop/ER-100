@@ -12,20 +12,16 @@ Dialog{
     property int focusIndex: 0
     property bool isTextInput:false
     property alias sourceComponent: loader.sourceComponent
-
-    property double min;
-    property double max;
-    property double step;
-    property bool isNum;
     property bool keyStatus: false
 
     property Item message
 
-    signal openText(int index,string text)
     signal changeFocus(int index)
     signal changeFocusIndex(int index)
+    signal updateText()
 
     function getText(index){
+        console.log("index "+index+"  text"+repeater.itemAt(index).text)
         return String(index<repeater.count?repeater.itemAt(index).text:"0")
     }
 
@@ -35,22 +31,6 @@ Dialog{
 
     onChangeFocusIndex: {
         focusIndex=index;
-    }
-    onOpenText: {
-        var minTest,maxTest;
-        if(index<repeater.count){
-            minTest=repeater.itemAt(index).minRead
-            maxTest=repeater.itemAt(index).maxRead
-            if(repeater.itemAt(index).isNumRead){
-                if(Number(text)<minTest){
-                    repeater.itemAt(index).text=String(minTest);
-                }else if(Number(text)>maxTest){
-                    repeater.itemAt(index).text=String(maxTest);
-                }else
-                    repeater.itemAt(index).text=text;
-            }else
-                repeater.itemAt(index).text=text;
-        }
     }
 
     Keys.onUpPressed: {
@@ -75,40 +55,7 @@ Dialog{
             changeFocus(focusIndex);
         }
     }
-    Keys.onVolumeDownPressed: {
-        var num,temp;
-        if(focusIndex<(repeaterModel.count)){
-            Qt.inputMethod.hide()
-            num=Number(repeater.itemAt(focusIndex).text)
-            if(!isNaN(num)&&isNum){//是数值进行加减操作
-                if(event.isAutoRepeat)
-                    temp=step*10;
-                else
-                    temp=step;
-                num=MyMath.subMath(num,temp);
-                if(num>max) num=max;
-                if(num<min) num=min;
-                openText(focusIndex,String(num))
-            }
-        }
-    }
-    Keys.onVolumeUpPressed:{
-        var num,temp;
-        if(focusIndex<(repeaterModel.count)){
-            Qt.inputMethod.hide()
-            num=Number(repeater.itemAt(focusIndex).text)
-            if(!isNaN(num)&&isNum) {//是数值进行加减操作
-                if(event.isAutoRepeat)
-                    temp=step*10;
-                else
-                    temp=step;
-                num=MyMath.addMath(num,temp);
-                if(num>max) num=max;
-                if(num<min) num=min;
-                openText(focusIndex,String(num))
-            }
-        }
-    }
+
     RowLayout{
         spacing: Units.dp(24)
         Loader {
@@ -134,14 +81,12 @@ Dialog{
                     id:row
                     property int rowIndex:index
                     property alias text: textField.text
-                    property bool isNumRead: isNum
-                    property double minRead:min
-                    property double maxRead:max
                     visible: show
                     spacing:Units.dp(8)
                     Label{text:name;anchors.bottom: parent.bottom;style: "button"}
                     TextField{
                         id:textField
+                        property string tempValue: value
                         Connections{
                             target:root
                             onChangeFocus:{
@@ -149,14 +94,44 @@ Dialog{
                                     textField.forceActiveFocus(); //激活
                                 }
                             }
+                            onUpdateText:{
+                                textField.text=textField.tempValue;
+                                console.log("index "+index+"text "+textField.text)
+                            }
                         }
                         onActiveFocusChanged: {
                             if(activeFocus){
                                 root.focusIndex=index;
-                                root.min=min;
-                                root.max=max;
-                                root.isNum=isNum;
-                                root.step=step;
+                            }
+                        }
+                        Keys.onVolumeDownPressed: {
+                            var num,temp;
+                            Qt.inputMethod.hide()
+                            num=Number(text)
+                            if(!isNaN(num)&&isNum){//是数值进行加减操作
+                                if(event.isAutoRepeat)
+                                    temp=step*10;
+                                else
+                                    temp=step;
+                                num=MyMath.subMath(num,temp);
+                                if(num>max) num=max;
+                                if(num<min) num=min;
+                                text=String(num);
+                            }
+                        }
+                        Keys.onVolumeUpPressed:{
+                            var num,temp;
+                            Qt.inputMethod.hide()
+                            num=Number(text)
+                            if(!isNaN(num)&&isNum){//是数值进行加减操作
+                                if(event.isAutoRepeat)
+                                    temp=step*10;
+                                else
+                                    temp=step;
+                                num=MyMath.addMath(num,temp);
+                                if(num>max) num=max;
+                                if(num<min) num=min;
+                                text=String(num);
                             }
                         }
                         horizontalAlignment:TextInput.AlignHCenter

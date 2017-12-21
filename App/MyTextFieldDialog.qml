@@ -96,7 +96,6 @@ Dialog{
                             }
                             onUpdateText:{
                                 textField.text=textField.tempValue;
-                                console.log("index "+index+"text "+textField.text)
                             }
                         }
                         onActiveFocusChanged: {

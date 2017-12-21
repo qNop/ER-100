@@ -1,4 +1,4 @@
-import QtQuick 2.4
+import QtQuick 2.0
 import Material 0.1 as Material
 import Material.Extras 0.1
 import WeldSys.AppConfig 1.0
@@ -10,6 +10,8 @@ import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.4
 import QtQuick.Window 2.2
 import "MyMath.js" as MyMath
+import QtQuick.Enterprise.VirtualKeyboard 1.3
+
 
 /*应用程序窗口 */
 Material.ApplicationWindow{
@@ -597,7 +599,7 @@ Material.ApplicationWindow{
                     currentUserName: appSettings.currentUserName
                     onChangeWeldData: app.sendWeldData();
                     onCurrentRowChanged: {
-                        app.weldTableIndex=currentRow;                     
+                        app.weldTableIndex=currentRow;
                     }
                     model: weldTable
                     //外部更改模型数据 避免绑定过程中解除绑定的操作存在而影响数据与模型内容不一致
@@ -635,7 +637,7 @@ Material.ApplicationWindow{
                             //更新焊接规范列表
                             weldDataPage.weldRulesNameList=app.grooveStyleName[app.currentGroove]+"焊接规范列表";
                             //更新焊接规范
-                           weldDataPage.getLastweldRulesName();
+                            weldDataPage.getLastweldRulesName();
                         }
                         onSaveData:{
                             weldDataPage.save();
@@ -899,7 +901,7 @@ Material.ApplicationWindow{
                             weldFix=true;
                         }
                         //选择行数据有效
-                        if((weldTableIndex<weldTable.count)&&(weldTableIndex>-1)){                        
+                        if((weldTableIndex<weldTable.count)&&(weldTableIndex>-1)){
                             //分离层/道
                             sendWeldData();
                         }else{
@@ -1040,12 +1042,56 @@ Material.ApplicationWindow{
         z:5
         objectName: "InputPanelOverLayer"
         InputPanel{
-            id:input
-            objectName: "InputPanel"
-            visible: Qt.inputMethod.visible
-            y: Qt.inputMethod.visible ? parent.height - input.height:parent.height
-            Behavior on y{
-                NumberAnimation { duration: 200 }
+            id:inputPanel
+            y: app.height
+            anchors.left: parent.left
+            anchors.right: parent.right
+            states: State {
+                name: "visible"
+                when: Qt.inputMethod.visible
+                PropertyChanges {
+                    target: inputPanel
+                    y: app.height - inputPanel.height
+                }
+            }
+            transitions: Transition {
+                from: ""
+                to: "visible"
+                reversible: true
+                ParallelAnimation {
+                    NumberAnimation {
+                        properties: "y"
+                        duration: 250
+                        easing.type: Easing.InOutQuad
+                    }
+                }
+            }
+            Connections{
+                target: InputContext
+                onFocusEditorChanged:{
+                    //控件能否输入
+                    if((inputPanel.visible)&&(InputContext.inputItem.hasOwnProperty("inputMethodHints"))){
+                        var flickable=InputContext.inputItem;
+                        while(flickable){
+                            if(flickable.hasOwnProperty("flicking")){
+                                var inputItemRect=flickable.mapFromItem(InputContext.inputItem,0,0,InputContext.inputItem.width,InputContext.inputItem.height)
+                                var keyboardRect=flickable.mapFromItem(inputPanel,0,0,inputPanel.width,inputPanel.height)
+                                 var contentY=flickable.contentY
+                                //尚未加载时算法
+                                if((inputPanel.y===app.height)&&((keyboardRect.top-keyboardRect.height)<(inputItemRect.bottom+20))){
+                                       contentY+= inputItemRect.bottom-keyboardRect.y+keyboardRect.height +20;
+                                 }
+                                //加载后算法
+                                 if(keyboardRect.top<(inputItemRect.bottom+20)){
+                                        contentY+= inputItemRect.bottom-keyboardRect.y+20;
+                                 }
+                                flickable.contentY=contentY;
+                                break;
+                            }
+                           flickable=flickable.parent;
+                        }
+                    }
+                }
             }
         }
     }

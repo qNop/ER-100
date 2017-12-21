@@ -266,10 +266,9 @@ TableCard {
     ]
     funcMenu: [ Action{iconName:"awesome/send_o";name:"更新算法";
             onTriggered: {
-                if(WeldMath.setLimited(limitedMath(0,limitedTable.count)))
-                    message.open("更新限制条件成功！")
-                else
-                    message.open("限制条件数量不符。更新限制条件失败！")
+                for(var i=0;i<limitedTable.count;i++){
+                    WeldMath.setLimited(limitedTable.get(i));
+                }
             }
         }]
     tableData:[

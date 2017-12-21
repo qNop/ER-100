@@ -44,18 +44,18 @@ QObject* SQLEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 int main(int argc, char *argv[])
 {
     //必须声明在APP之前声明环境变量。
-    qputenv("QT_IM_MODULE", QByteArray("VirtualKeyboard"));
+    //qputenv("QT_IM_MODULE", QByteArray("VirtualKeyboard"));
+    qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
     //配置文件存储目录
    if(qgetenv("QTDIR")=="/usr/local/Qt-5.5.0"){
         qputenv("HOME",QByteArray("/mnt/hgfs/linuxwin7共享/ER-100/RootFs/Nop/Update"));
     }else
         qputenv("HOME",QByteArray("/usr/local/ER-100/Nop"));
-    qDebug()<<qgetenv("HOME");
+    //qDebug()<<qgetenv("QT_IM_MODULE");
     //显示插件调试信息
-     //qputenv("QT_DEBUG_PLUGINS", QByteArray("1"));
+    // qputenv("QT_DEBUG_PLUGINS", QByteArray("1"));
     // AppConfig.language();
     // QLocale.setDefault();
-    //d
     QApplication app(argc, argv);
     qmlRegisterSingletonType<AppConfig>("WeldSys.AppConfig",1,0,"AppConfig",AppConfigEngineProvider);
     qmlRegisterSingletonType<ERModbus>("WeldSys.ERModbus",1,0,"ERModbus",ERModbusEngineProvider);

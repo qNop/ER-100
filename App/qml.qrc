@@ -3,9 +3,8 @@
         <file>main.qml</file>
         <file>WeldCondition.qml</file>
         <file>SystemInfor.qml</file>
-        <file>InputPanel.qml</file>
         <file>TableStyle.qml</file>
- 	<file>../Pic/erweima.png</file>
+        <file>../Pic/erweima.png</file>
         <file>../Pic/横焊单边V形坡口T接头.png</file>
         <file>../Pic/横焊单边V形坡口平对接.png</file>
         <file>../Pic/立焊V形坡口平对接.png</file>

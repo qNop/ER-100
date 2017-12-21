@@ -118,3 +118,4 @@ bool AppConfig::screenShot(QQuickWindow *widget){
     }else
         return false;
 }
+

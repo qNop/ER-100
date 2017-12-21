@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/pinyin">
-        <file>pinyinEx.ini</file>
-    </qresource>
-</RCC>

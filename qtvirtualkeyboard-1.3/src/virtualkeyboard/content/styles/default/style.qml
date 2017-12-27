@@ -24,7 +24,7 @@ KeyboardStyle {
     id: currentStyle
     readonly property bool pinyinMode: InputContext.inputEngine.inputMode === InputEngine.Pinyin
     readonly property string fontFamily: "Sans"
-    readonly property real keyBackgroundMargin: Math.round(13 * scaleHint)
+    readonly property real keyBackgroundMargin: Math.round(11 * scaleHint)
     readonly property real keyContentMargin: Math.round(45 * scaleHint)
     readonly property real keyIconScale: scaleHint * 0.6
     readonly property string resourcePrefix: "qrc:/content/styles/default/"
@@ -41,11 +41,11 @@ KeyboardStyle {
     }
 
     keyboardDesignWidth: 2560
-    keyboardDesignHeight: 800
-    keyboardRelativeLeftMargin: 114 / keyboardDesignWidth
-    keyboardRelativeRightMargin: 114 / keyboardDesignWidth
+    keyboardDesignHeight: 720
+    keyboardRelativeLeftMargin: 24 / keyboardDesignWidth
+    keyboardRelativeRightMargin: 24 / keyboardDesignWidth
     keyboardRelativeTopMargin: 13 / keyboardDesignHeight
-    keyboardRelativeBottomMargin: 86 / keyboardDesignHeight
+    keyboardRelativeBottomMargin: 32 / keyboardDesignHeight
 
     keyboardBackground: Rectangle {
         color: "black"
@@ -69,7 +69,7 @@ KeyboardStyle {
                 font {
                     family: fontFamily
                     weight: Font.Normal
-                    pixelSize: 52 * scaleHint
+                    pixelSize: 60 * scaleHint
                     capitalization: control.uppercased ? Font.AllUppercase : Font.MixedCase
                 }
             }
@@ -224,7 +224,7 @@ KeyboardStyle {
                 font {
                     family: fontFamily
                     weight: Font.Normal
-                    pixelSize: 44 * scaleHint
+                    pixelSize: 60 * scaleHint
                     capitalization: Font.AllUppercase
                 }
                 anchors.fill: parent
@@ -389,7 +389,7 @@ KeyboardStyle {
                 font {
                     family: fontFamily
                     weight: Font.Normal
-                    pixelSize: 48 * scaleHint
+                    pixelSize: 60 * scaleHint
                 }
             }
         }
@@ -431,7 +431,7 @@ KeyboardStyle {
                 font {
                     family: fontFamily
                     weight: Font.Normal
-                    pixelSize: 44 * scaleHint
+                    pixelSize: 60 * scaleHint
                     capitalization: Font.AllUppercase
                 }
             }
@@ -504,7 +504,7 @@ KeyboardStyle {
             font {
                 family: fontFamily
                 weight: Font.Normal
-                pixelSize: 52 * scaleHint
+                pixelSize: 60 * scaleHint
             }
             anchors.centerIn: parent
         }
@@ -526,7 +526,7 @@ KeyboardStyle {
         radius: 5
     }
 
-    selectionListHeight: 85 * scaleHint
+    selectionListHeight: 120 * scaleHint
     selectionListDelegate: SelectionListItem {
         id: selectionListItem
         width: Math.round(selectionListLabel.width + selectionListLabel.anchors.leftMargin * 2)
@@ -540,7 +540,7 @@ KeyboardStyle {
             font {
                 family: fontFamily
                 weight: Font.Normal
-                pixelSize: 44 * scaleHint
+                pixelSize: 60 * scaleHint
             }
             function decorateText(text, wordCompletionLength) {
                 if (wordCompletionLength > 0) {
@@ -552,7 +552,7 @@ KeyboardStyle {
         Rectangle {
             id: selectionListSeparator
             width: 4 * scaleHint
-            height: 36 * scaleHint
+            height: 49 * scaleHint
             radius: 2
             color: "#35322f"
             anchors.verticalCenter: parent.verticalCenter
@@ -582,6 +582,6 @@ KeyboardStyle {
     navigationHighlight: Rectangle {
         color: "transparent"
         border.color: "yellow"
-        border.width: 5
+        border.width: 2
     }
 }

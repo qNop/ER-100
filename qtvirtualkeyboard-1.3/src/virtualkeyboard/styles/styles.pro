@@ -29,3 +29,4 @@ win32 {
     CONFIG += skip_target_version_ext
     VERSION = $$QT_VERSION
 }
+

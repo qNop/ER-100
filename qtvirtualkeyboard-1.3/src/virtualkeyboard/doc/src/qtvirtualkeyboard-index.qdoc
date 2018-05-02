@@ -1,0 +1,103 @@
+/******************************************************************************
+**
+** Copyright (C) 2015 The Qt Company Ltd
+** All rights reserved.
+** For any questions to The Qt Company, please use contact form at http://qt.io
+**
+** This file is part of the Qt Virtual Keyboard module.
+**
+** Licensees holding valid commercial license for Qt may use this file in
+** accordance with the Qt License Agreement provided with the Software
+** or, alternatively, in accordance with the terms contained in a written
+** agreement between you and The Qt Company.
+**
+** If you have questions regarding the use of this file, please use
+** contact form at http://qt.io
+**
+******************************************************************************/
+
+/*!
+    \title Qt Virtual Keyboard
+    \page index.html
+
+    The Qt Virtual Keyboard project provides an input framework and reference
+    keyboard frontend for Qt 5 on Linux Desktop/X11 or Boot2Qt targets.
+
+    The input framework makes it easy to write custom input methods or to
+    integrate 3rd party input engines. The input methods can be implemented
+    in C++ or QML.
+
+    \section1 Supported Languages
+
+    The Virtual Keyboard supports the following languages:
+
+    \list
+        \li Arabic
+        \li Danish
+        \li English
+        \li Finnish
+        \li French
+        \li German
+        \li Hindi
+        \li Italian
+        \li Japanese
+        \li Korean
+        \li Norwegian
+        \li Persian/Farsi
+        \li Polish
+        \li Portugese
+        \li Russian
+        \li Simplified Chinese
+        \li Spanish
+        \li Swedish
+    \endlist
+
+    To add support for an additional language, see
+    \l {Adding New Keyboard Layouts}.
+
+    \section1 Guides
+
+    \list
+    \li \l {Building Qt Virtual Keyboard}
+    \li \l {Deployment Guide}
+    \li \l {Technical Guide}
+    \endlist
+
+    \section1 C++ Classes
+
+    \generatelist {classesbymodule qtvirtualkeyboard}
+
+    \section1 QML Types
+
+    \annotatedlist qtvirtualkeyboard-qml
+
+    Styling components:
+
+    \annotatedlist qtvirtualkeyboard-styles-qml
+
+    \section1 Examples
+
+     \list
+      \li \l{Qt Virtual Keyboard Examples}
+     \endlist
+*/
+
+/*!
+\page qt-virtual-keyboard-classes.html
+\title Qt Virtual Keyboard C++ Classes
+\inmodule qtvirtualkeyboard
+
+\generatelist {classesbymodule qtvirtualkeyboard}
+*/
+
+/*!
+\page qt-virtual-keyboard-qmltypes.html
+\title Qt Virtual Keyboard QML Types
+\inmodule qtvirtualkeyboard
+
+\annotatedlist qtvirtualkeyboard-qml
+
+Styling components:
+
+\annotatedlist qtvirtualkeyboard-styles-qml
+*/

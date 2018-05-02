@@ -1,0 +1,40 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>WeldCondition.qml</file>
+        <file>SystemInfor.qml</file>
+        <file>TableStyle.qml</file>
+        <file>../Pic/erweima.png</file>
+        <file>../Pic/横焊单边V形坡口T接头.png</file>
+        <file>../Pic/横焊单边V形坡口平对接.png</file>
+        <file>../Pic/立焊V形坡口平对接.png</file>
+        <file>../Pic/立焊V形坡口平对接陶瓷衬垫.png</file>
+        <file>../Pic/立焊单边V形坡口T接头.png</file>
+        <file>../Pic/立焊单边V形坡口平对接.png</file>
+        <file>../Pic/平焊V形坡口平对接.png</file>
+        <file>../Pic/平焊V形坡口平对接陶瓷衬垫.png</file>
+        <file>../Pic/平焊单边V形坡口T接头.png</file>
+        <file>../Pic/平焊单边V形坡口平对接.png</file>
+        <file>../Pic/坡口参数图.png</file>
+        <file>../Pic/水平角焊.png</file>
+        <file>TeachCondition.qml</file>
+        <file>GrooveCondition.qml</file>
+        <file>GrooveCheck.qml</file>
+        <file>InputPanelButton.qml</file>
+        <file>Table.qml</file>
+        <file>LimitedCondition.qml</file>
+        <file>MenuDropdown.qml</file>
+        <file>MyNavigationDrawer.qml</file>
+        <file>TableCard.qml</file>
+        <file>MyList.qml</file>
+        <file>SysErrorHistroy.qml</file>
+        <file>UserAccount.qml</file>
+        <file>WeldData.qml</file>
+        <file>MyTextFieldDialog.qml</file>
+        <file>MotoDialog.qml</file>
+        <file>MyConditionView.qml</file>
+        <file>../Pic/logo.png</file>
+        <file>MySettings.qml</file>
+        <file>MyMath.js</file>
+    </qresource>
+</RCC>

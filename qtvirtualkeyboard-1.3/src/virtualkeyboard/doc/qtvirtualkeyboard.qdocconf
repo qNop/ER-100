@@ -1,0 +1,58 @@
+include($QT_INSTALL_DOCS/global/macros.qdocconf)
+include($QT_INSTALL_DOCS/global/compat.qdocconf)
+include($QT_INSTALL_DOCS/global/fileextensions.qdocconf)
+include($QT_INSTALL_DOCS/global/qt-html-templates-offline.qdocconf)
+include($QT_INSTALL_DOCS/global/qt-cpp-defines.qdocconf)
+
+project = QtVirtualKeyboard
+description = Qt Virtual Keyboard
+
+version = 1.3
+
+headerdirs  += ..
+sourcedirs  += ..
+excludedirs += ../content/layouts \
+    ../3rdparty
+
+# Specify the install path under QT_INSTALL_EXAMPLES
+# Examples will be installed under quick/enterprise/virtualkeyboard -
+# 'enterprise/virtualkeyboard' subdirectory is given as part of \example commands
+exampledirs += ../../../examples/quick \
+    snippets
+examplesinstallpath = quick
+imagedirs += images
+
+depends += qtcore qtgui qtquick
+
+qhp.projects = QtVirtualKeyboard
+
+qhp.QtVirtualKeyboard.file          = qtvirtualkeyboard.qhp
+qhp.QtVirtualKeyboard.namespace     = com.digia.qtvirtualkeyboard.130
+qhp.QtVirtualKeyboard.virtualFolder = qtvirtualkeyboard
+qhp.QtVirtualKeyboard.indexTitle    = Qt Virtual Keyboard
+qhp.QtVirtualKeyboard.indexRoot     =
+
+qhp.QtVirtualKeyboard.filterAttributes                  = qtvirtualkeyboard 1.3 qtrefdoc
+qhp.QtVirtualKeyboard.customFilters.Qt.name             = QtVirtualKeyboard 1.3
+qhp.QtVirtualKeyboard.customFilters.Qt.filterAttributes = qtvirtualkeyboard 1.3
+
+qhp.QtVirtualKeyboard.subprojects = classes qmltypes examples
+
+qhp.QtVirtualKeyboard.subprojects.classes.title = C++ Classes
+qhp.QtVirtualKeyboard.subprojects.classes.indexTitle = Qt Virtual Keyboard C++ Classes
+qhp.QtVirtualKeyboard.subprojects.classes.selectors = class
+qhp.QtVirtualKeyboard.subprojects.classes.sortPages = true
+
+qhp.QtVirtualKeyboard.subprojects.qmltypes.title      = QML Types
+qhp.QtVirtualKeyboard.subprojects.qmltypes.indexTitle = Qt Virtual Keyboard QML Types
+qhp.QtVirtualKeyboard.subprojects.qmltypes.selectors  = fake:qmlclass
+qhp.QtVirtualKeyboard.subprojects.qmltypes.sortPages  = true
+
+qhp.QtVirtualKeyboard.subprojects.examples.title = Examples
+qhp.QtVirtualKeyboard.subprojects.examples.indexTitle = Qt Virtual Keyboard Examples
+qhp.QtVirtualKeyboard.subprojects.examples.selectors = fake:example
+qhp.QtVirtualKeyboard.subprojects.examples.sortPages = true
+
+navigation.landingpage = "Qt Virtual Keyboard"
+navigation.qmltypespage = "Qt Virtual Keyboard QML Types"
+navigation.cppclassespage = "Qt Virtual Keyboard C++ Classes"

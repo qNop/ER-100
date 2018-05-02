@@ -1,0 +1,2 @@
+module QtQuick.Enterprise.VirtualKeyboard.Styles
+plugin qtvirtualkeyboardstylesplugin

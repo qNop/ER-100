@@ -1,7 +1,6 @@
 import QtQuick 2.4
 import Material 0.1 as Material
-import WeldSys.ERModbus 1.0
-import WeldSys.WeldMath 1.0
+import WeldSys.WeldControl 1.0
 import WeldSys.MySQL 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as QuickControls
@@ -193,82 +192,72 @@ MyConditionView{
         }
     }
     onWork: {
-        var frame=new Array(0);
-        frame.push("W");
         var num=Number(root.condition[index]);
         switch(index){
             //干伸长
-        case 0: frame.push("120");frame.push("1");frame.push(num ===0?"3":num===1?"4":num===2?"6":"7");break;
+        case 0: WeldControl.setWeldOutLength(num===0?3:num===1?4:num===2?6:7);break;
             //头部摆动方式
-        case 1:frame.push("99");frame.push("1");frame.push(String(num));break;
+        case 1:WeldControl.setSwingWay(num);break;
             // 焊丝种类
-        case 2:frame.push("126");frame.push("1");frame.push(num ===0?"0":"4");
+        case 2:
             if(flag)
                 makeNum();
-            WeldMath.setWireType(num===0?0:4);
-            break;
+            WeldControl.setWireType(num===0?0:4);break;
             //机头放置侧
-        case 3:frame.push("122");frame.push("1");frame.push(String(num));
-            WeldMath.setGrooveDir(num);
-            break;
+        case 3:
+            WeldControl.setGrooveDir(num);break;
             //焊丝直径
-        case 4:frame.push("123");frame.push("1");frame.push(num ===0?"4":"6");
+        case 4:
             if(flag)
                 makeNum();
-            WeldMath.setWireD(num===0?4:6);
-            break;
+            WeldControl.setWireD(num===0?4:6);break;
             //保护气体
-        case 5:frame.push("124");frame.push("1");frame.push(String(num));
+        case 5:
             if(flag)
                 makeNum();
-            WeldMath.setGas(num);
-            break;
+            WeldControl.setGas(num);break;
             //往返动作
         case 7:
-            WeldMath.setReturnWay(num);break;
-            //frame.push("125");frame.push("1");frame.push(String(num));break;
+            WeldControl.setReturnWay(num);break;
             //电源特性
-        case 6:frame.push("119");frame.push("1");frame.push(String(num ));
+        case 6:
             if(flag)
                 makeNum();
-            WeldMath.setPulse(num);
-            break;
+            WeldControl.setPulse(num);break;
             //电弧跟踪
             //  case 8:frame.push("127");frame.push("1");frame.push(String(num));break;
             //预期余高
-        case 9: WeldMath.setReinforcement(num);
-            break;
+        case 9: WeldControl.setReinforcement(num);break;
             //溶敷系数
-        case 10: WeldMath.setMeltingCoefficient(num);
-            break;
+        case 10: WeldControl.setMeltingCoefficient(num);break;
             //焊接电流偏置
-        case 11:frame.push("128");frame.push("1");frame.push(String(num));break;
+        case 11:WeldControl.setWeldCurrentOffset(num);break;
             //焊接电压偏置
-        case 12:frame.push("129");frame.push("1");frame.push(String(num*10));break;
+        case 12:WeldControl.setWeldVoltageOffset(num*10);break;
             //提前送气时间
-        case 13:frame.push("132");frame.push("1");frame.push(String(num*10));break;
+        case 13:WeldControl.setGasBeforeWeld(num*10);break;
             //滞后送气时间
-        case 14:frame.push("133");frame.push("1");frame.push(String(num*10));break;
+        case 14:WeldControl.setGasAfterWeld(num*10);break;
             //起弧停留时间
-        case 15:frame.push("134");frame.push("1");frame.push(String(num*10));break;
+        case 15:WeldControl.setStartArcStatyTime(num*10);break;
             //收弧停留时间
-        case 16:frame.push("135");frame.push("1");frame.push(String(num*10));break;
+        case 16:WeldControl.setStopArcStatyTime(num*10);break;
             //起弧电流
-        case 17:frame.push("136");frame.push("1");frame.push(String(num));break;
+        case 17:WeldControl.setStartArcCurrent(num);break;
             //起弧电压
-        case 18:frame.push("137");frame.push("1");frame.push(String(num*10));break;
+        case 18:WeldControl.setStartArcVoltage(num*10);break;
             //收弧电流
-        case 19:frame.push("138");frame.push("1");frame.push(String(num));break;
+        case 19:WeldControl.setStopArcCurrent(num);break;
             //收弧电压
-        case 20:frame.push("139");frame.push("1");frame.push(String(num*10));break;
+        case 20:WeldControl.setStopArcVoltgae(num*10);break;
             //层内起弧X位置偏移
-        case 21:WeldMath.setStartArcZz(num);break;
+        case 21:WeldControl.setStartArcZz(num);break;
             //层内收弧X位置偏移
-        case 22:WeldMath.setStopArcZz(num);break;
+        case 22:WeldControl.setStopArcZz(num);break;
             //层间起弧X位置偏移
-        case 23:WeldMath.setStartArcZx(num);break;
+        case 23:WeldControl.setStartArcZx(num);break;
             //层间收弧X位置偏移
-        case 24:WeldMath.setStopArcZx(num);break;
+        case 24:WeldControl.setStopArcZx(num);break;
             //收弧回退相关 屏蔽掉
             //收弧回退距离
             //     case 25:frame.push("303");frame.push("1");frame.push(String(num*10));break;
@@ -277,47 +266,26 @@ MyConditionView{
             //收弧回退时间
             //      case 27:frame.push("305");frame.push("1");frame.push(String(num*10));break;
             //回烧电压补偿
-        case 28:frame.push("300");frame.push("1");frame.push(String(num));break;
+        case 28:WeldControl.setBrunBackVoltage(num);break;
             //回烧时间补偿1
-        case 29:frame.push("301");frame.push("1");frame.push(String(num));break;
+        case 29:WeldControl.setBrunBackTime1(num);break;
             //回烧时间补偿2
-        case 30:frame.push("302");frame.push("1");frame.push(String(num));break;
+        case 30:WeldControl.setBrunBackTime2(num);break;
             //顿边
-        case 31:WeldMath.setRootFace(num);frame.push("161");frame.push("1");frame.push(String(num*10));break;
+        case 31:WeldControl.setRootFace(num);break;
             //层内停止时间
-        case 32:WeldMath.setStopOutTime(num);break;
+        case 32:WeldControl.setStopOutTime(num);break;
             //层内停止时间
-        case 33:WeldMath.setStopInTime(num);break;
+        case 33:WeldControl.setStopInTime(num);break;
             //设定起弧停留时间
-        case 34:frame.push("148");frame.push("1");frame.push(String(num*10));break;
+        case 34:WeldControl.setStartArcTime(num*10);break;
             //设定起弧摆动速度
-        case 35:frame.push("149");frame.push("1");frame.push(String(num*10));break;
-        default:frame.length=0;break;
-        }
-        if(frame.length===4){
-            //下发规范
-            ERModbus.setmodbusFrame(frame)
-            if(index===1){//头部摇动
-                frame.length=0;
-                frame.push("W");
-                frame.push("130");
-                frame.push("2");
-                switch(num){
-                case 0:frame.push("0");frame.push("0");break;
-                case 1:frame.push("22");frame.push("0");break;
-                case 2:frame.push("0");frame.push("22");break;
-                case 3:frame.push("22");frame.push("22");break;
-                }
-                ERModbus.setmodbusFrame(frame);
-            }
+        case 35:WeldControl.setStartArcSwingSpeed(num*10);break;
         }
         if(flag){
             //存储数据
             MySQL.setValue(root.objectName,"id",index.toString(),"value",num.toString());
         }
-        //console.log(frame)
-        //清空
-        frame.length=0;
     }
     onKeyDec:{
         var num=Number(root.condition[selectedIndex]);
@@ -447,38 +415,36 @@ MyConditionView{
     }
     Connections{
         target: MySQL
-        onMySqlChanged:{
-            if(tableName===root.objectName){
-                condition.length=0;
-                for(var i=0;i<jsonObject.length;i++){
-                    condition.push(Number(jsonObject[i].value));
-                }
-                update();
-                //下发数据
-                for( i=0;i<listName.length;i++){
-                    work(i,false);
-                }
-                makeNum();
-                //关闭1.6丝径
-                changeEnable(4,1,false) //关闭1.6丝径
-                changeEnable(0,2,false)//干伸长25mm disable
-                changeEnable(0,3,false)//干伸长30mm disable
-                //检查使能
-                if(condition[2]){//药芯
-                    changeEnable(2,1,true);//自己使能
-                    changeEnable(5,1,false);//mag disable
-                    changeEnable(6,1,false);//脉冲 disable
-                }
-                if(condition[5]){//mag
-                    changeEnable(2,1,false);//药芯 disable
-                    changeEnable(5,1,true);//mag disable
-                    changeEnable(6,1,true);//脉冲 disable
-                }
-                if(condition[6]){//maichong
-                    changeEnable(2,1,false) //药芯 disable
-                    changeEnable(5,0,false) //CO2 disable
-                    changeEnable(6,1,true);//脉冲 disable
-                }
+        onWeldConditionChanged:{
+            condition.length=0;
+            for(var i=0;i<jsonObject.length;i++){
+                condition.push(Number(jsonObject[i].value));
+            }
+            update();
+            //下发数据
+            for( i=0;i<listName.length;i++){
+                work(i,false);
+            }
+            makeNum();
+            //关闭1.6丝径
+            changeEnable(4,1,false) //关闭1.6丝径
+            changeEnable(0,2,false)//干伸长25mm disable
+            changeEnable(0,3,false)//干伸长30mm disable
+            //检查使能
+            if(condition[2]){//药芯
+                changeEnable(2,1,true);//自己使能
+                changeEnable(5,1,false);//mag disable
+                changeEnable(6,1,false);//脉冲 disable
+            }
+            if(condition[5]){//mag
+                changeEnable(2,1,false);//药芯 disable
+                changeEnable(5,1,true);//mag disable
+                changeEnable(6,1,true);//脉冲 disable
+            }
+            if(condition[6]){//maichong
+                changeEnable(2,1,false) //药芯 disable
+                changeEnable(5,0,false) //CO2 disable
+                changeEnable(6,1,true);//脉冲 disable
             }
         }
     }

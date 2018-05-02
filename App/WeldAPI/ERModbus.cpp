@@ -3,6 +3,7 @@
 ModbusThread::ModbusThread(){
     pCmdBuf=&cmdBuf;
 }
+
 ModbusThread::~ModbusThread(){
 
 }
@@ -31,15 +32,13 @@ ERModbus::ERModbus(QObject *parent)
         modbus_free(modbus);
         modbus=NULL;
     }
-    qDebug()<<"ModbusThread::INSTALL->"<<modbus_strerror(errno);
+    //qDebug()<<"ModbusThread::INSTALL->"<<modbus_strerror(errno);
     /*创建任务线程*/
     pModbusThread = new ModbusThread();
     /*连接 线程*/
-    connect(pModbusThread,&ModbusThread::ModbusThreadSignal,this,&ERModbus::modbusFrameChanged);
+    connect(pModbusThread,SIGNAL(ModbusThreadSignal(QList<int>)),this,SIGNAL(modbusFrameChanged(QList<int>)));
     //对其modbus赋值
     pModbusThread->ER_Modbus=modbus;
-    //互斥信号
- //   pModbusThread->lockThread= &lockThread;
     //启动线程
     pModbusThread->start();
 }
@@ -52,16 +51,16 @@ ERModbus::~ERModbus(){
         /*清楚modbus指针*/
         modbus = NULL;
     }
-    qDebug()<<"ModbusThread::REMOVE";
 }
 
 /*R REG NUM */
-
-void ERModbus::setmodbusFrame(QStringList frame){
-  //  qDebug()<<"ERModbus::setmodbusFrame"<<frame;
+void ERModbus::setmodbusFrame(modbusDataType frame){
     //加入缓存队列
     pModbusThread->pCmdBuf->enqueue(frame);
-    //qDebug()<<"pModbusThread::pCmdBuf count en"<<pModbusThread->pCmdBuf->count();
+}
+//获取Modbus状态
+const char* ERModbus::getModbusStatus(int error){
+    return modbus_strerror(error);
 }
 
 void ModbusThread::run(){
@@ -70,49 +69,37 @@ void ModbusThread::run(){
     for(;;){
         //队列内有数则 传输数据
         if(cmdBuf.count()){
-            res=0;
-            frame=cmdBuf.dequeue();
-        //    qDebug()<<"pModbusThread::pCmdBuf count de"<<cmdBuf.count();
+            modbusDataType cmd=cmdBuf.dequeue();
+            QList< int > reply;
+            reply<<cmd.rw<<cmd.reg<<cmd.num;
             if(ER_Modbus){
                 //R读命令
-                modbusCmd=frame.at(0);
-                modbusReg=frame.at(1);
-                modbusNum=frame.at(2);
-                modbusData.clear();
-                if(modbusCmd=="R"){
-                    res= modbus_read_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
+                if(cmd.rw){
+                    res=modbus_read_registers(ER_Modbus,cmd.reg,cmd.num,&cmd.data[0]);
+                    reply<<errno;
                     if(res!=-1){
-                        modbusData.append(modbusReg);
-                        for(i=0;i<modbusNum.toInt();i++){
-                            if((modbusReg=="0")||((i==6)&&(modbusReg=="150"))||((i==0)&&(modbusReg=="1022")))//此处用来转换32位拆分错误
-                                modbusData.append(QString::number(uint16_t(data[i])));
+                        for(i=0;i<cmd.num;i++){
+                         /*   if((modbusReg==0)||((i==6)&&(modbusReg==150))||((i==0)&&(modbusReg==1022)))//此处用来转换32位拆分错误
+                                modbusData.append(uint16_t(data[i]));
                             else
-                                modbusData.append(QString::number(int16_t(data[i])));
+                                modbusData.append(int16_t(data[i]));*/
+                                reply<<cmd.data[i];
                         }
                     }
-                }else if(modbusCmd=="W"){
-                    for(i=0;i<modbusNum.toInt();i++){
-                        //先转换成浮点然后四舍5入求整最后转换成int
-                        data[i]=int16_t(qRound(frame.at(3+i).toFloat()));
-                    }
-                    if(modbusNum.toInt()!=1)
-                        res= modbus_write_registers(ER_Modbus,modbusReg.toInt(),modbusNum.toInt(),data);
+                }else {
+                    if(cmd.num!=1)
+                        modbus_write_registers(ER_Modbus,cmd.reg,cmd.num,&cmd.data[0]);
                     else
-                        res= modbus_write_register(ER_Modbus,modbusReg.toInt(),data[0]);
-                }else{
-                    qDebug()<<"ModbusThread::Cmd is not support .";
+                        modbus_write_register(ER_Modbus,cmd.reg,cmd.data[0]);
                 }
-                modbusData.insert(0,modbus_strerror(errno));
-                if(errno)
-                    qDebug()<<modbus_strerror(errno);
-                emit ModbusThreadSignal(modbusData);
-                //  qDebug()<<"ModbusThread::ANSWER "<<modbusData;
+                reply<<errno;
             }else{
-
-               // qDebug()<<"*Modbus is not exist !";
+                //系统错误No such device or address
+                reply<<6;
             }
-        }else{//队列内部无数据则 线程休眠
-            msleep(50);
+            emit ModbusThreadSignal(reply);
+        }else{//队列内部无数据则 线程休眠25ms一个命令
+            msleep(25);
         }
     }
 }

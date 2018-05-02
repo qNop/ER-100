@@ -2,8 +2,8 @@
 #define GLOABLDEFINE
 
 #include <QtCore>
-#include <QtGlobal>
-
+#include <QtGlobal>	
+#include "stdint.h"
 /***********************************************************************/
 
 #define EROBOWELDSYS_DIR                                             ""
@@ -75,7 +75,7 @@
 #define WAVE_MAX_SPEED                    2500   //2400mm/min
 #define GET_WAVE_PULSE(X)                                       (X/6)*WAVE_CODE_NUM   //最高转速对应的脉冲频率
 
-#define GET_WAVE_SPEED(X)                                       (X/WAVE_CODE_NUM)*6     //通过脉冲数求速度
+#define GET_WAVE_SPEED(X)                                       (X/WAVE_CODE_NUM)*6    //通过脉冲数求速度0.1
 
 #define GET_CERAMICBACK_R(WIDTH,DEEP)             (WIDTH*WIDTH+4*DEEP*DEEP)/(8*DEEP)
 
@@ -91,12 +91,19 @@
 
 #define WAVE_MAX_VERTICAL_SPEED                 1500
 
-#define GET_TRAVELSPEED(COEFFICIENT,WIRE_D,FEEDSPEED,S)                        (COEFFICIENT*WIRE_D*FEEDSPEED)/(S*100)
-#define GET_WELDFILL_AREA(COEFFICIENT,WIRE_D,FEEDSPEED,TRAVELSPEED)      (COEFFICIENT*WIRE_D*FEEDSPEED)/(TRAVELSPEED*100)
+#define GET_TRAVELSPEED(COEFFICIENT,WIRE_D,FEEDSPEED,S)                                (COEFFICIENT*WIRE_D*FEEDSPEED)/(S*100)
+#define GET_WELDFILL_AREA(COEFFICIENT,WIRE_D,FEEDSPEED,TRAVELSPEED)       (COEFFICIENT*WIRE_D*FEEDSPEED)/(TRAVELSPEED*100)
 
 #define GET_VERTICAL_TRAVERLSPEED(COEFFICIENT,WIRE_D,FEEDSPEED,S,SWINGHZ,STAYTIME)   (COEFFICIENT*WIRE_D*FEEDSPEED*60)/(S*100*SWINGHZ*STAYTIME)
 #define GET_VERTICAL_WELDFILL_AREA(COEFFICIENT,WIRE_D,FEEDSPEED,TRAVELSPEED,SWINGHZ,STAYTIME)      (COEFFICIENT*WIRE_D*60*FEEDSPEED)/(TRAVELSPEED*SWINGHZ*STAYTIME*100)
 
+
+#define MAX_POINT_NUM                                   30
+#define MAX_WELD_NUM                                     25
+#define MAX_FLOOR_NUM                                   50
+
+#define READ                                                           true
+#define WRITE                                                         false
 //#define DEBUG_VERTICAL
 
 struct FloorCondition
@@ -123,7 +130,7 @@ struct FloorCondition
     //摆动距离坡口右侧距离
     float swingRightLength;
     //摆动宽度
-    float swingLength;
+    //  float swingLength;
     //最大摆动宽度
     float maxSwingLength;
     //分道摆动间隔 同一层 不同焊道之间间隔距离
@@ -141,18 +148,136 @@ struct FloorCondition
     //最小填充量
     float minFillMetal;
     //最大摆动频率
-  //  float maxSwingHz;
+    //  float maxSwingHz;
     //最小摆动频率
-//    float minSwingHz;
+    //    float minSwingHz;
     //最大焊接速度
     float maxWeldSpeed;
     //最小焊接速度
     float minWeldSpeed;
     //填充系数
-  //  float fillCoefficient;
+    //  float fillCoefficient;
     //NAME
     QString name;
 };
+//坡口参数
+typedef struct{
+    int index;
+    float grooveHeight;
+    float grooveHeightError;
+    float rootGap;
+    float grooveAngel1;
+    float grooveAngel1Tan;
+    float grooveAngel2;
+    float grooveAngel2Tan;
+    float x;
+    float y;
+    float z;
+    float angel;
+}grooveRulesType;
+//焊接参数
+typedef struct{
+    //索引
+    int index;
+    //层号
+    int floor;
+    //道号
+    int num;
+    //焊接电流
+    int weldCurrent;
+    //焊接电压
+    float weldVoltage;
+    //摆动宽度
+    float swingLength;
+    //层内摆动宽度
+    float floorSwingLength;
+    //摆动速度
+    float swingSpeed;
+    //焊接速度
+    float weldTravelSpeed;
+    //前停留
+    float beforeSwingStayTime;
+    //后停留
+    float afterSwingStayTime;
+    //停止时间
+    float stopTime;
+    //层填充量
+    float s;
+    //当前道填充量
+    float weldFill;
+    //焊接中心线x
+    float weldLineX;
+    //焊接中心线y
+    float weldLineY;
 
+    //送丝速度
+    int weldFeedSpeed;
+    //摆动频率
+    float swingHz;
+
+}weldDataType;
+
+typedef struct{
+    //起弧坐标x
+    float startArcX;
+    //起弧坐标Y
+    float startArcY;
+    //起弧坐标Z
+    float startArcZ;
+    //收弧坐标X
+    float stopArcX;
+    //收弧坐标Y
+    float stopArcY;
+    //收弧坐标Z
+    float stopArcZ;
+}weldCoordinateType;
+
+typedef struct {
+    bool rw;
+    int reg;
+    int num;
+    uint16_t data[40];
+    int error;
+}modbusDataType;
+
+typedef struct{
+    grooveRulesType groove;//坡口数据
+    int weldRulesLength;
+    weldDataType weldRules[150];//焊接规范
+}pointRules;
+
+typedef struct{
+    grooveRulesType* pGrooveRules;
+    weldDataType* pWeldRules;
+}weldRulesType;
+
+typedef struct{
+    int weldRulesLength;
+    weldRulesType weldRulesData[MAX_POINT_NUM];
+}oneWeldRules;
+
+typedef struct{
+    int weldDataTableLength;
+    oneWeldRules weldDataTable[MAX_WELD_NUM];
+}oneFloorRules;
+
+typedef struct
+{
+    int floorRulesTableLength;
+    oneFloorRules floorRulesTable[MAX_FLOOR_NUM];
+}floorRules;
+
+typedef struct
+{
+    int weldNum;
+    weldRulesType weldRulesData[MAX_WELD_NUM];
+    weldCoordinateType weldCoordinates[MAX_WELD_NUM]; //焊接起弧收弧坐标系统
+}weldFloorRules;
+
+typedef struct
+{
+    int floorNum;
+    weldFloorRules floorRules[MAX_FLOOR_NUM];
+}weldFloorTableRules;
 
 #endif // GLOABLDEFINE

@@ -3,8 +3,6 @@ import Material 0.1
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.2 as Controls
 import QtQuick.Window 2.2
-import WeldSys.ERModbus 1.0
-import WeldSys.WeldMath 1.0
 import QtQuick.Layouts 1.1
 
 Card{
@@ -15,7 +13,6 @@ Card{
         top:parent.top;
         leftMargin:visible?Units.dp(12):Units.dp(250)
         topMargin: Units.dp(12)
-
     }
     width:parent.width-2*Units.dp(12);
 
@@ -34,13 +31,17 @@ Card{
     property alias currentRow: tableView.currentRow
     property alias __listview: tableView.__listView
 
-    property alias header: title
-    property alias footer: footerItem
+    property alias header:title
+    property alias footer:footerItem
+
+     property Item message
 
     property list<Action> fileMenu;
     property list<Action> editMenu;
     property list<Action> inforMenu;
     property list<Action> funcMenu;
+
+/*    property var dropDown;
 
     property list<Action>  actions: [
         Action{iconName:"awesome/file_text_o";name:"文件";hoverAnimation:true;summary: "F1"
@@ -76,7 +77,21 @@ Card{
                 dropDown.place=3;
             }
         }
-    ]
+    ]*/
+
+    //外部更新数据
+    signal updateModel(string str,var data);
+    signal updateListModel(string str,var data);
+
+    function selectIndex(index){
+        if((index<model.count)&&(index>-1)){
+            table.selection.clear();
+            table.selection.select(index);
+        }
+        else{
+            message.open("索引超过条目上限或索引无效！")
+        }
+    }
 
     Item{
         id:title
@@ -89,7 +104,7 @@ Card{
             text:headerTitle
            // wrapMode: Text.WordWrap
             width: Units.dp(400)
-        }
+        }/*
         Row{
             anchors{right: parent.right;rightMargin: Units.dp(14);verticalCenter: parent.verticalCenter}
             spacing: Units.dp(4);
@@ -135,7 +150,7 @@ Card{
                     }
                 }
             }
-        }
+        }*/
     }
     Controls.TableView{
         id:tableView
@@ -204,49 +219,45 @@ Card{
             text:footerText
         }
     }
-    MenuDropdown{
-        id:dropDown
-        property int place: 0
-    }
     Keys.onPressed: {
         switch(event.key){
+            /*
         case Qt.Key_F1:
-            if(dropDown.showing)
+            if((dropDown.showing)&&dropDown.place==0){
                 dropDown.close();
-            else{
-                console.log("triggered !")
+            }else{
                 actions[0].triggered(repeater.itemAt(0));
-                dropDown.place=0;
+                //dropDown.place=0;
             }
             event.accepted=true;
             break;
         case Qt.Key_F2:
-            if(dropDown.showing)
+            if((dropDown.showing)&&(dropDown.place==1))
                 dropDown.close();
             else{
                 actions[1].triggered(repeater.itemAt(1));
-                dropDown.place=1;
+                //dropDown.place=1;
             }
             event.accepted=true;
             break;
         case Qt.Key_F3:
-            if(dropDown.showing)
+            if((dropDown.showing)&&(dropDown.place==2))
                 dropDown.close();
             else{
                 actions[2].triggered(repeater.itemAt(2));
-                dropDown.place=2;
+                //dropDown.place=2;
             }
             event.accepted=true;
             break;
         case Qt.Key_F4:
-            if(dropDown.showing)
+            if((dropDown.showing)&&(dropDown.place==3))
                 dropDown.close();
             else{
                 actions[3].triggered(repeater.itemAt(3));
-                dropDown.place=3;
+                //dropDown.place=3;
             }
             event.accepted=true;
-            break;
+            break;*/
         case Qt.Key_Down:
             tableView.forceActiveFocus();
             if(tableView.currentRow<(tableView.rowCount-1))

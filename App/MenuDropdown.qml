@@ -8,11 +8,12 @@ Dropdown{
     objectName: "Dropdown"
     property list<Action>  actions;
     property int rootIndex:0;
+    property int place: 0
     property Item columnViewItem;
     width: Units.dp(168)
     function loadView(){
-         columnViewItem=componetView.createObject(internalView,{});
-         height=columnViewItem.height+ Units.dp(16)
+        columnViewItem=componetView.createObject(internalView,{});
+        height=columnViewItem.height+ Units.dp(16)
     }
     onVisibleChanged: {
         //找到第一个使能的index
@@ -34,7 +35,7 @@ Dropdown{
         }
     }
 
-   Component{
+    Component{
         id:componetView
         ColumnLayout {
             objectName: "test"
@@ -97,10 +98,12 @@ Dropdown{
                 break;
             case Qt.Key_Escape:
                 root.close();
-                event.accept=true;break;
+                event.accept=true;
+                break;
             default :
                 root.close();
-                event.accept=true;;break;
+                event.accept=true;
+                break;
             }
         }
     }//上按下

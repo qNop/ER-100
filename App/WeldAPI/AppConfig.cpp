@@ -31,7 +31,7 @@ AppConfig::AppConfig(){
 }
 
 AppConfig::~AppConfig(){
-    qDebug()<<"AppConfig::REMOVE";
+    //qDebug()<<"AppConfig::REMOVE";
 }
 
 /*
@@ -46,7 +46,7 @@ void AppConfig::setbackLight(int value){
     //TKSW内核
     s+=EROBOWELDSYS_PLATFORM?" > /sys/devices/platform/pwm-backlight.2/backlight/pwm-backlight.2/brightness":" > /sys/devices/platform/pwm-backlight.0/backlight/pwm-backlight.0/brightness";
     system(s.toLatin1().data());
-    qDebug() <<"AppConfig::Backlight Value = "<<value;
+    //qDebug() <<"AppConfig::Backlight Value = "<<value;
 }
 /*
  * set led status
@@ -71,7 +71,7 @@ void AppConfig::setleds(QString status){
         s+="/brightness";
         flag>>=1;
         system(s.toLatin1().data());
-        qDebug()<<s;
+        //qDebug()<<s;
     }
 }
 /*
@@ -96,7 +96,7 @@ void AppConfig::setdateTime(QStringList time){
 
 
 void AppConfig::setlanguage(QString str){
-    qDebug()<<"AppConfig::setlanguage "<<str;
+    //qDebug()<<"AppConfig::setlanguage "<<str;
     if(str=="EN"){
         QLocale::setDefault(QLocale(QLocale::English,QLocale::UnitedStates));
     }else if(str=="CH"){
@@ -107,10 +107,10 @@ void AppConfig::setlanguage(QString str){
 
 bool AppConfig::screenShot(QQuickWindow *widget){
     QPixmap pixmap = QPixmap::fromImage(widget->grabWindow());
-    QString dateTime=QDateTime::currentDateTime().toString("yyMMdd-hhmm");
+    QString dateTime=QDateTime::currentDateTime().toString("yyMMdd-hhmmss");
     QString name="screenShot/"+dateTime+".png";
     QFile f(name);
-    qDebug()<<name;
+    //qDebug()<<name;
     f.open(QIODevice::WriteOnly);
     if(f.isOpen()) {
         pixmap.save(&f, "PNG");

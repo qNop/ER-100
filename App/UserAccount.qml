@@ -1,8 +1,8 @@
 import QtQuick 2.0
 import Material 0.1
 import Material.Extras 0.1
-import WeldSys.ERModbus 1.0
-import WeldSys.WeldMath 1.0
+//import WeldSys.ERModbus 1.0
+//import WeldSys.WeldMath 1.0
 import WeldSys.MySQL 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.2 as Controls
@@ -14,7 +14,6 @@ TableCard {
 
     property bool superUser
 
-    property Item message;
     signal userUpdate();
 
     function selectIndex(index){
@@ -51,8 +50,7 @@ TableCard {
     ]
     editMenu:[
         Action{iconName:"awesome/plus_square_o";onTriggered:dialog.openWith(false);name:"添加";enabled:superUser},
-        Action{iconName:"awesome/edit";onTriggered: dialog.openWith(true);name:"编辑";enabled:superUser
-        },
+        Action{iconName:"awesome/edit";onTriggered: dialog.openWith(true);name:"编辑";enabled:superUser},
         Action{iconName:"awesome/copy";name:"复制";enabled: false},
         Action{iconName:"awesome/paste"; name:"粘帖";enabled: false;},
         Action{iconName: "awesome/trash_o";  name:"移除";enabled:superUser
@@ -118,11 +116,15 @@ TableCard {
             }
         }
         onAccepted: {
-            var js={"ID":String(table.rowCount+1),"C1":getText(0),"C2":getText(1),"C3":getText(2),"C4":getText(3),"C5":getText(4),"C6":getText(5)};
-            if(addOrEdit)
+            var js;
+            if(addOrEdit){
+                js={"ID":String(root.currentRow+1),"C1":getText(0),"C2":getText(1),"C3":getText(2),"C4":getText(3),"C5":getText(4),"C6":getText(5)};
                 model.set(currentRow,js)
-            else
+            }
+            else{
+                js={"ID":String(table.rowCount+1),"C1":getText(0),"C2":getText(1),"C3":getText(2),"C4":getText(3),"C5":getText(4),"C6":getText(5)};
                 model.append(js)
+            }
         }
     }
 }

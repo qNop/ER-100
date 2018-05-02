@@ -2,7 +2,8 @@ import QtQuick 2.0
 import Material 0.1 as Material
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.4
-import WeldSys.ERModbus 1.0
+import WeldSys.WeldControl 1.0
+import "MyMath.js" as MyMath
 
 Material.Dialog{
     id:moto
@@ -25,9 +26,10 @@ Material.Dialog{
     negativeButtonText:qsTr("取消");
     positiveButtonText: qsTr("完成");
     signal changeSelectedMoto(int index);
-    signal  changeSelectedIndex(int index);
+    signal changeSelectedIndex(int index);
     signal changeModbus(int index,var value);
-    signal  changeValue(int value,int index)
+    signal changeValue(int value,int index)
+
     onChangeSelectedIndex: {
         moto.selectedIndex=index;
     }
@@ -46,6 +48,16 @@ Material.Dialog{
     onChangeValue: {
         moto.send[moto.selectedMoto][index]=value;
     }
+    Connections{
+        target: WeldControl
+        onUpdateMotoPoint:{
+            currentTravelPoint=jsonObject.TravelPoint;
+            currentAvcPoint=jsonObject.AvcPoint;
+            currentSwingPoint=jsonObject.SwingPoint;
+            currentRockPoint=jsonObject.RockPoint;
+        }
+    }
+
     onOpened:{
         moto.oldSelectedIndex=0;
         for(var i=0;i<4;i++){
@@ -64,38 +76,39 @@ Material.Dialog{
     }
     onAccepted:{
         //下发数据
-        var res=new Array(20);
-        res[0]=String(moto.send[0][4])
-        res[1]=String(moto.send[1][4])
-        res[2]=String(moto.send[2][4])
-        res[3]=String(moto.send[3][4])
+        var res=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+        res[0]=moto.send[0][4]
+        res[1]=moto.send[1][4]
+        res[2]=moto.send[2][4]
+        res[3]=moto.send[3][4]
 
-        res[4]=String(moto.send[0][0])
-        res[5]=String(moto.send[1][0])
-        res[6]=String(moto.send[2][0])
-        res[7]=String(moto.send[3][0])
+        res[4]=moto.send[0][0]
+        res[5]=moto.send[1][0]
+        res[6]=moto.send[2][0]
+        res[7]=moto.send[3][0]
 
-        res[8]=String(moto.send[0][1])
-        res[9]=String(moto.send[1][1])
-        res[10]=String(moto.send[2][1])
-        res[11]=String(moto.send[3][1])
+        res[8]=moto.send[0][1]
+        res[9]=moto.send[1][1]
+        res[10]=moto.send[2][1]
+        res[11]=moto.send[3][1]
 
-        res[12]=String(moto.send[0][2])
-        res[13]=String(moto.send[1][2])
-        res[14]=String(moto.send[2][2])
-        res[15]=String(moto.send[3][2])
+        res[12]=moto.send[0][2]
+        res[13]=moto.send[1][2]
+        res[14]=moto.send[2][2]
+        res[15]=moto.send[3][2]
 
-        res[16]=String(moto.send[0][3])
-        res[17]=String(moto.send[1][3])
-        res[18]=String(moto.send[2][3])
-        res[19]=String(moto.send[3][3])
+        res[16]=moto.send[0][3]
+        res[17]=moto.send[1][3]
+        res[18]=moto.send[2][3]
+        res[19]=moto.send[3][3]
 
-        ERModbus.setmodbusFrame(["W","26","20"].concat(res));
+        //ERModbus.setmodbusFrame(["W","26","20"].concat(res));
+        WeldControl.setMotoInfo(res);
         //同时也保存数据
         settings.swingSpeed=Number(send[0][4]);
-         settings.zSpeed=Number(send[1][4]);
-         settings.ySpeed=Number(send[2][4]);
-         settings.xSpeed=Number(send[3][4]);
+        settings.zSpeed=Number(send[1][4]);
+        settings.ySpeed=Number(send[2][4]);
+        settings.xSpeed=Number(send[3][4]);
 
         settings.swingMoto=Number(send[0][3]);
         settings.zMoto=Number(send[1][3]);
@@ -146,48 +159,48 @@ Material.Dialog{
         }else if(event.key===Qt.Key_VolumeUp){
             if(moto.selectedIndex<6){
                 var num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<5)
+                if(moto.selectedIndex<4)
                     if(num) num=0;
                     else num=1;
                 else
                     if(num<700)
-                        num+=10;
+                        num=MyMath.addMath(num,10);
                 moto.changeValue(num,moto.selectedIndex)
             }
             event.accpet=true;
         }else if(event.key===Qt.Key_VolumeDown){
             if(moto.selectedIndex<6){
                 num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<5)
+                if(moto.selectedIndex<4)
                     if(num) num=0;
                     else num=1;
                 else
                     if(num>0)
-                        num-=10;
+                        num=MyMath.subMath(num,10);
                 moto.changeValue(num,moto.selectedIndex)
             }
             event.accpet=true;
         }else if(event.key===Qt.Key_Plus){
             if(moto.selectedIndex<6){
                 num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<5)
+                if(moto.selectedIndex<4)
                     if(num) num=0;
                     else num=1;
                 else
                     if(num<700)
-                        num+=10;
+                        num=MyMath.addMath(num,10);
                 moto.changeValue(num,moto.selectedIndex)
             }
             event.accpet=true;
         }else if(event.key===Qt.Key_Minus){
             if(moto.selectedIndex<6){
                 num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<5)
+                if(moto.selectedIndex<4)
                     if(num) num=0;
                     else num=1;
                 else
                     if(num>0)
-                        num-=10;
+                        num=MyMath.subMath(num,10)
                 moto.changeValue(num,moto.selectedIndex)
             }
             event.accpet=true;
@@ -254,7 +267,7 @@ Material.Dialog{
                                                        errorCode&0x00000080?true:false:moto.selectedMoto===1?
                                                                                  errorCode&0x00001000?true:false:moto.selectedMoto===2?
                                                                                                            errorCode&0x00020000?true:false:errorCode&0x00400000?true:false:
-                                        sub.subIndex===2?false:true
+                        sub.subIndex===2?false:true
                         onCheckedChanged: {
                             if(moto.selectedIndex<4)
                                 moto.changeSelectedIndex(sub.subIndex);

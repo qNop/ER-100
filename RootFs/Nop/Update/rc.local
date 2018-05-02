@@ -1,0 +1,142 @@
+#!/bin/sh
+#
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here
+if [ -x "/usr/bin/rpm" -a -e "/tmp/ltib" ]
+then
+    echo "rebuilding rpm database"
+    rm -rf /tmp/ltib
+    rpm --rebuilddb
+fi
+
+# fix up permissions
+if [ -d /home/user ]
+then
+    chown -R user.user /home/user
+fi
+
+# Add nodes when running under the hypervisor and static devices
+if [ -r /sys/class/misc/fsl-hv/dev -a ! -r /dev/fsl-hv ]
+then
+   echo "creating hypervisor nodes"
+   DEVID=`cat /sys/class/misc/fsl-hv/dev`
+   if [ -n "$DEVID" ]
+   then
+       MAJOR="${DEVID%:*}"
+       MINOR="${DEVID##*:}"
+
+       if [ \( "$MAJOR" -gt 0 \) -a \( "$MINOR" -gt 0 \) ]
+       then
+	   rm -f /dev/fsl-hv
+	   mknod /dev/fsl-hv c $MAJOR $MINOR
+       fi
+   fi
+   for i in 0 1 2 3 4 5 6 7
+   do
+       mknod /dev/hvc$i c 229 $i
+   done
+fi
+
+# add the fm device nodes
+if [ -n "$(cat /proc/devices | grep fm | sed 's/\([0-9]*\).*/\1/')" -a ! -r /dev/fm0 ]
+then
+    echo "creating fman device nodes"
+    cd /usr/share/doc/fmd-uspace-01.01/test/
+    sh fm_dev_create
+    cd -
+fi
+
+for i in 0 1 2; do
+    if [ -e /sys/class/graphics/fb$i ]; then
+        chmod 0666 /sys/class/graphics/fb$i/pan
+    fi
+done
+
+export TSLIB_ROOT=/opt/tslib
+export TSLIB_TSDEVICE=/dev/input/event1 
+export TSLIB_CALIBFILE=/etc/pointercal   
+export TSLIB_CONFFILE=$TSLIB_ROOT/etc/ts.conf 
+export TSLIB_PLUGINDIR=$TSLIB_ROOT/lib/ts 
+export TSLIB_FBDEVICE=/dev/fb0   
+export QTDIR=/opt/Qt5
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$QTDIR/lib:$TSLIB_ROOT/lib
+export PATH=$PATH:$QTDIR/bin:$TSLIB_ROOT
+export QT_QPA_PLATFORM_PLUGIN_PATH=$QTDIR/plugins #:$TSLIB_PLUGINDIR
+export QT_QPA_PLATFORM=eglfs:tty=/dev/fb0
+export QT_QPA_FONTDIR=$QTDIR/lib/fonts
+export QT_QPA_GENERIC_PLUGINS=tslib:$TSLIB_TSDEVICE
+export QT_QPA_EVDEV_KEYBOARD_PARAMETERS=/dev/input/event0
+
+export QT_EGLFS_IMX6_NO_FB_MULTI_BUFFER=1
+export QT_QPA_EGLFS_PHYSICAL_WIDTH=132.48
+export QT_QPA_EGLFS_PHYSICAL_HEIGHT=99.36
+
+export LD_PRELOAD=$LD_PRELOAD:/opt/tslib/lib/libts.so
+
+if [ -e /usr/local/ER-100/Nop/Update.tar.gz ];then 
+	cp /usr/local/ER-100/Nop/Update.tar.gz /usr/local/ER-100
+        rm -r /usr/local/ER-100/Nop
+	mkdir /usr/local/ER-100/Nop
+	touch /usr/local/ER-100/Nop/status.txt
+	cd /usr/local/ER-100/Nop
+        openssl des3 -d -k 0123456789 -salt -in /usr/local/ER-100/Update.tar.gz | tar xzf -
+	echo "openssl des3 -d -k 0123456789 -salt -in /usr/local/ER-100/Update.tar.gz | tar xvzf -">/usr/local/ER-100/Nop/status.txt/status.txt  
+	if [ -d /usr/local/ER-100/Nop/Update ];then
+		echo "ok!">>/usr/local/ER-100/Nop/status.txt
+		rm /usr/local/ER-100/Update.tar.gz
+		echo "rm /usr/local/ER-100/Update.tar.gz">>/usr/local/ER-100/Nop/status.txt
+		cd /usr/local/ER-100/Nop/Update
+		echo "cp /usr/local/ER-100/Nop/Update/App cp /usr/local/ER-100/Nop">>/usr/local/ER-100/Nop/status.txt
+		if [ -e /usr/local/ER-100/Nop/Update/App ];then
+			cp /usr/local/ER-100/Nop/Update/App /usr/local/ER-100/Nop
+			echo "ok!">>/usr/local/ER-100/Nop/status.txt		
+		else
+			echo "fail!">>/usr/local/ER-100/Nop/status.txt
+		fi
+		echo "cp -r /usr/local/ER-100/Nop/Update/.config /usr/local/ER-100/Nop">>/usr/local/ER-100/Nop/status.txt
+		if [ -d /usr/local/ER-100/Nop/Update/.config ];then			
+			cp -r /usr/local/ER-100/Nop/Update/.config /usr/local/ER-100/Nop
+			echo "ok!">>/usr/local/ER-100/Nop/status.txt
+		else
+			echo "fail!">>/usr/local/ER-100/Nop/status.txt
+		fi
+		echo "cp -r /usr/local/ER-100/Nop/Update/.local /usr/local/ER-100/Nop">>/usr/local/ER-100/Nop/status.txt
+		if [ -d /usr/local/ER-100/Nop/Update/.local ];then		
+			cp -r /usr/local/ER-100/Nop/Update/.local /usr/local/ER-100/Nop
+			echo "ok!">>/usr/local/ER-100/Nop/status.txt
+		else
+			echo "fail!">>/usr/local/ER-100/Nop/status.txt
+		fi
+		echo "cp -r /usr/local/ER-100/Nop/Update/Qt5 /opt">>/usr/local/ER-100/Nop/status.txt
+		if [ -d /usr/local/ER-100/Nop/Update/Qt5 ];then			
+			cp -r /usr/local/ER-100/Nop/Update/Qt5 /opt
+			echo "ok!">>/usr/local/ER-100/Nop/status.txt
+		else
+			echo "fail!">>/usr/local/ER-100/Nop/status.txt	
+		fi
+		echo "./ts_calibrate">>/usr/local/ER-100/Nop/status.txt
+		cd /opt/tslib/bin
+		./ts_calibrate
+		sync
+	else
+		echo "fail!">>/usr/local/ER-100/Nop/status.txt
+	fi
+fi
+
+mount -n -o remount,ro /dev/root
+
+if [ -e /usr/local/ER-100/Nop/App ];then
+	if [ -d /usr/local/ER-100/Nop/Update ];then
+		rm -r /usr/local/ER-100/Nop/Update
+		echo "ER-100 Updated !">>/usr/local/ER-100/Nop/status.txt
+	else
+		echo "ER-100 App start!">/usr/local/ER-100/Nop/status.txt
+	fi
+	chown -R root /usr/local/ER-100/Nop
+        chgrp -R root /usr/local/ER-100/Nop
+	cd /usr/local/ER-100/Nop
+        if [ ! -x App ];then
+         chmod 777 App
+        fi
+	./App
+fi

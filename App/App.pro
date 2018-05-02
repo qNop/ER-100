@@ -10,9 +10,11 @@ SOURCES += main.cpp \
     libmodbus/src/modbus-rtu.c \
     WeldAPI/ERModbus.cpp \
     WeldAPI/AppConfig.cpp \
-    WeldAPI/weldmath.cpp \
     WeldAPI/SysMath.cpp \
-    WeldAPI/MySQL.cpp
+    WeldAPI/MySQL.cpp \
+    WeldAPI/WeldMath.cpp \
+    WeldAPI/Weldcontrol.cpp \
+    WeldAPI/DoError.cpp
 
 RESOURCES += \
     qml.qrc
@@ -24,9 +26,11 @@ HEADERS += \
     libmodbus/src/modbus-rtu-private.h \
     WeldAPI/ERModbus.h \
     WeldAPI/AppConfig.h \
-    WeldAPI/weldmath.h \
     WeldAPI/SysMath.h \
-    WeldAPI/MySQL.h
+    WeldAPI/MySQL.h \
+    WeldAPI/WeldMath.h \
+    WeldAPI/WeldControl.h \
+    WeldAPI/DoError.h
 
 INCLUDEPATH +=libmodbus \
               libmodbus/src \
@@ -42,6 +46,9 @@ linux-g++{
 
 target.path=/ER-100
 INSTALLS += target
+
+DISTFILES += \
+    MathLimited.txt
 
 
 

@@ -21,7 +21,6 @@ Dialog{
     signal updateText()
 
     function getText(index){
-        console.log("index "+index+"  text"+repeater.itemAt(index).text)
         return String(index<repeater.count?repeater.itemAt(index).text:"0")
     }
 
@@ -135,7 +134,7 @@ Dialog{
                         }
                         horizontalAlignment:TextInput.AlignHCenter
                         width:isTextInput? Units.dp(150):Units.dp(60)
-                        inputMethodHints: Qt.ImhDigitsOnly
+                        inputMethodHints: isTextInput?Qt.ImhNone:Qt.ImhDigitsOnly
                     }
                 }
             }

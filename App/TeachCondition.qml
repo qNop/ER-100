@@ -1,11 +1,12 @@
 import QtQuick 2.4
 import Material 0.1 as Material
 import Material.Extras 0.1 as JS
-import WeldSys.ERModbus 1.0
+//import WeldSys.ERModbus 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as QuickControls
 import QtQuick.Window 2.2
 import WeldSys.MySQL 1.0
+import WeldSys.WeldControl 1.0
 
 MyConditionView{
     id:root
@@ -78,41 +79,32 @@ MyConditionView{
         }
     }
     onWork: {
-        var frame=new Array(0);
-        frame.push("W");
         var num=Number(root.condition[index]);
         if(isNaN(num)){
             num=0;
         }
         switch(index){
             //示教模式
-        case 0: frame.push("100");frame.push("1");frame.push(String(num));changeTeachModel(num);break;
+        case 0:WeldControl.setTeachMode(num);changeTeachModel(num);break;
             //焊接始终端检测
-        case 1:frame.push("101");frame.push("1");frame.push(String(num));break;
+        case 1:WeldControl.setWeldStartStop(num);break;
             // 示教第一点位置
-        case 2:frame.push("102");frame.push("1");frame.push(String(num));changeFirstPointLeftOrRight(num);break;
+        case 2:WeldControl.setTeachFirstPoint(num);changeFirstPointLeftOrRight(num);break;
             //示教点数
-        case 3:frame.push("103");frame.push("1");frame.push(String(num));changeTeachPoint(num);break;
+        case 3:WeldControl.setTeachPointNum(num);changeTeachPoint(num);break;
             //焊接长度
-        case 4:frame.push("104");frame.push("1");frame.push(String(num));changeWeldLength(num);break;
+        case 4:WeldControl.setWeldLength(num);changeWeldLength(num);break;
             //坡口检测点左
-        case 5:frame.push("105");frame.push("1");frame.push(String(num));break;
+        case 5:WeldControl.setGrooveCheckLeftLength(num);break;
             //坡口检测点右
-        case 6:frame.push("106");frame.push("1");frame.push(String(num));break;
-
-        default:frame.length=0;break;
-        }
-        if(frame.length===4){
-            //下发规范
-            ERModbus.setmodbusFrame(frame)
+        case 6:WeldControl.setGrooveCheckRightLength(num);break;
+            //
+        default:break;
         }
         if(flag){
             //存储数据
             MySQL.setValue(root.objectName,"id",index.toString(),"value",num.toString());
         }
-        console.log(frame)
-        //清空
-        frame.length=0;
     }
     onKeyDec:{
         var num=Number(root.condition[selectedIndex]);
@@ -152,22 +144,50 @@ MyConditionView{
     }
     Connections{
         target: MySQL
-        onMySqlChanged:{
-            if(tableName===root.objectName){
-                condition.length=0;
-                for(var i=0;i<jsonObject.length;i++){
-                    condition.push(Number(jsonObject[i].value));
-                }
-                update();
-                //下发数据
-                for( i=0;i<listName.length;i++){
-                    work(i,false);
-                }
-                if(root.condition[0]===2)
-                    changeEnable(1,0,false);
+        onTeachConditionChanged:{
+            condition.length=0;
+            for(var i=0;i<jsonObject.length;i++){
+                condition.push(Number(jsonObject[i].value));
+            }
+            update();
+            //下发数据
+            for( i=0;i<listName.length;i++){
+                work(i,false);
+            }
+            if(root.condition[0]===2)
+                changeEnable(1,0,false);
+        }
+    }
+    Connections{
+        target: WeldControl
+        onUpdateTeachSet:{
+            if(jsonObject.StartStop!==condition[1]){
+                root.selectedIndex=1;
+                root.changeGroupCurrent(jsonObject.StartStop,true);
+                MySQL.setValue(root.objectName,"id","1","value",String(jsonObject.StartStop));
+                message.open(root.listName[1]+"设置为"+root.listValueName[1][Number(jsonObject.StartStop)]+"。")
+            }else if(jsonObject.FirstPointLeftOrRight!==condition[2]){
+                root.selectedIndex=2;
+                root.changeGroupCurrent(jsonObject.FirstPointLeftOrRight,true);
+                MySQL.setValue(root.objectName,"id","2","value",String(jsonObject.FirstPointLeftOrRight));
+                root.changeFirstPointLeftOrRight(jsonObject.FirstPointLeftOrRight)
+                message.open(root.listName[2]+"设置为"+root.listValueName[2][Number(jsonObject.FirstPointLeftOrRight)]+"。")
+            }else if(jsonObject.TeachPoint!==condition[3]){
+                root.selectedIndex=3;
+                root.changeText(jsonObject.TeachPoint,true);
+                MySQL.setValue(root.objectName,"id","3","value",String(jsonObject.TeachPoint));
+                root.changeTeachPoint(jsonObject.TeachPoint)
+                message.open(root.listName[3]+"设置为"+String(jsonObject.TeachPoint)+"点。")
+            }else if(jsonObject.WeldLength!==condition[4]){
+                root.selectedIndex=4;
+                root.changeText(jsonObject.WeldLength,true);
+                MySQL.setValue(root.objectName,"id","4","value",String(jsonObject.WeldLength));
+                root.changeWeldLength(jsonObject.WeldLength)
+                message.open(root.listName[4]+"设置为"+String(jsonObject.WeldLength)+"mm。")
             }
         }
     }
+
     Component.onCompleted: {
         MySQL.getJsonTable(objectName);
     }

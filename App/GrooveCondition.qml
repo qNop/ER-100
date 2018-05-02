@@ -1,8 +1,7 @@
 import QtQuick 2.4
 import Material 0.1 as Material
 import Material.Extras 0.1 as JS
-import WeldSys.ERModbus 1.0
-import WeldSys.WeldMath 1.0
+import WeldSys.WeldControl 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as Controls
 import QtQuick.Layouts 1.1
@@ -61,7 +60,7 @@ MyConditionView{
 
     descriptionCardHeight: Material.Units.dp(225);
 
-   signal changeV(int index);
+    signal changeV(int index);
 
     function doNum(index,flag){
         var oldIndex;
@@ -197,39 +196,29 @@ MyConditionView{
             changeGroupCurrent(index,flag);
     }
     onWork:{
-        var frame=new Array(0);
-        frame.push("W");
         var num=Number(root.condition[index]);
         switch(index){
         case 0:  //焊接位置
             if(flag)
-                settings.weldStyle=num
-            WeldMath.setWeldStyle(num);
-            //立焊模式改为平焊
-            frame.push("88");frame.push("1");frame.push(String(num===2?0:num));break;
+                settings.weldStyle=num;
+            WeldControl.setWeldStyle(num);
+            break;
         case 1://坡口形式
             if(flag)
-                settings.grooveStyle=num
-            WeldMath.setGrooveStyle(num)
-            frame.push("89");frame.push("1");frame.push(String(num));break;
+                settings.grooveStyle=num;
+            WeldControl.setGrooveStyle(num);
+            break;
         case 2: //接头形式
             if(flag)
-                settings.connectStyle=num
-            WeldMath.setConnectStyle(num)
-            frame.push("90");frame.push("1");frame.push(String(num));break;
+                settings.connectStyle=num;
+            WeldControl.setConnectStyle(num);
+            break;
         case 3: //衬垫形式
             if(flag)
                 settings.bottomStyle=num;
-            WeldMath.setCeramicBack(num);
-            frame.push("91");frame.push("1");frame.push(String(num));break;
-        default:frame.length=0;break;
+            WeldControl.setCeramicBack(num);
+            break;
         }
-        if(frame.length===4){
-            //下发规范
-            ERModbus.setmodbusFrame(frame)
-        }
-        //清空
-        frame.length=0;
     }
     Component{
         id:file

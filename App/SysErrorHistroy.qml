@@ -1,8 +1,7 @@
 import QtQuick 2.4
 import Material 0.1
 import Material.Extras 0.1
-import WeldSys.ERModbus 1.0
-import WeldSys.WeldMath 1.0
+import WeldSys.WeldControl 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.3 as Controls
 
@@ -10,15 +9,17 @@ TableCard {
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "SysErrorHistroy"
+    //错误历史信息 ID：条数 C1 错误代码 C2 错误状态 C3 错误信息 C4: 操作用户 C5 错误发生/解除时刻
 
     signal remove
     signal removeall
 
     property string status: ""
+    property var settings
 
     headerTitle:"系统错误历史信息"
     tableRowCount:7
-    footerText:"总计："+model.count+"条错误信息"
+    footerText:"总计："+String(model.count)+"条错误信息"
     table.__listView.interactive:status!=="焊接态"
     fileMenu: [
         Action{iconName:"awesome/calendar_plus_o";name:"新建"; enabled: false},

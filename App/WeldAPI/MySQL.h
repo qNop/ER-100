@@ -10,6 +10,7 @@
 #include "modbus-private.h"
 #include <QDebug>
 #include <QThread>
+#include <QTimer>
 #include <QMutex>
 #include <errno.h>
 #include <stdint.h>
@@ -27,14 +28,32 @@ class SqlThread:public QThread{
     void run()Q_DECL_OVERRIDE;
 private:
     QQueue<QString> cmdBuf;
+    QList<QVariant> qJsonList;
 public:
     SqlThread();
     ~SqlThread();
     QQueue<QString>  *pCmdBuf;
-
 signals:
-    void sqlThreadSignal(QList<QVariant> jsonObject,QString tableName);
+   // void sqlThreadSignal(QList<QVariant> jsonObject,QString tableName);
     void sqlThreadFinished(bool res,QString tableName);
+    //获取账户列表
+    void sqlAccountTable(QList<QVariant> jsonObject);
+    //获取示教条件
+    void sqlTeachCondition(QList<QVariant> jsonObject);
+    //获取焊接条件
+    void sqlWeldCondition(QList<QVariant> jsonObject);
+    //获取坡口信息
+    void sqlGrooveTable(QList<QVariant> jsonObject);
+    //获取限制条件信息
+    void sqlLimitedTable(QList<QVariant> jsonObject);
+    //获取焊接条件信息
+    void sqlWeldTable(QList<QVariant> jsonObject);
+    //获取坡口信息
+    void sqlGrooveTableList(QList<QVariant> jsonObject);
+    //获取限制条件信息
+    void sqlLimitedTableList(QList<QVariant> jsonObject);
+    //获取焊接条件信息
+    void sqlWeldTableList(QList<QVariant> jsonObject);
 };
 
 class MySQL:public QObject
@@ -71,8 +90,27 @@ public  slots:
     //获取value值
     void getValue(QString tableName,QString func,QString id);
 signals:
-     void mySqlChanged(QList<QVariant> jsonObject,QString tableName);
-     void mySqlStatusChanged(bool status,QString tableName);
+ //   void mySqlChanged(QList<QVariant> jsonObject,QString tableName);
+    void mySqlStatusChanged(bool status,QString tableName);
+    //获取账户列表
+    void accountTableChanged(QList<QVariant> jsonObject);
+    //获取示教条件
+    void teachConditionChanged(QList<QVariant> jsonObject);
+    //获取焊接条件
+    void weldConditionChanged(QList<QVariant> jsonObject);
+    //获取坡口信息
+    void grooveTableChanged(QList<QVariant> jsonObject);
+    //获取限制条件信息
+    void limitedTableChanged(QList<QVariant> jsonObject);
+    //获取焊接条件信息
+    void weldTableChanged(QList<QVariant> jsonObject);
+    //获取坡口信息
+    void grooveTableListChanged(QList<QVariant> jsonObject);
+    //获取限制条件信息
+    void limitedTableListChanged(QList<QVariant> jsonObject);
+    //获取焊接条件信息
+    void weldTableListChanged(QList<QVariant> jsonObject);
+
 };
 
 #endif // SQLITE3_H

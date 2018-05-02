@@ -1,12 +1,13 @@
 #include "MySQL.h"
 /*
-*/
+    */
 
 SqlThread::SqlThread(){
     pCmdBuf=&cmdBuf;
+
 }
 SqlThread::~SqlThread(){
-    qDebug()<<"SqlThread::~SqlThread()";
+    //qDebug()<<"SqlThread::~SqlThread()";
 }
 
 void SqlThread::run(){
@@ -20,10 +21,12 @@ void SqlThread::run(){
             cmd=list.at(0);
             tableName=list.at(1);
             if(cmd.startsWith("SELECT")){//包含选择命令
-                QList<QVariant> qJsonList;
                 QSqlRecord res;
                 QJsonObject pJson;
+                //清空列表
+                qJsonList.clear();
                 status=query.exec(cmd);
+                //qDebug()<<tableName<<timer->interval()-timer->remainingTime();
                 if(status){ //获取数据库
                     while (query.next()) {
                         res=query.record();//获取记录
@@ -32,7 +35,28 @@ void SqlThread::run(){
                         }
                         qJsonList.append(QVariant(pJson));
                     }
-                    emit sqlThreadSignal(qJsonList,tableName);
+                    //判断是哪个数据库
+                    if(tableName.contains("AccountTable")){
+                        emit sqlAccountTable(qJsonList);
+                    }else if(tableName.endsWith("坡口条件")){
+                        emit sqlGrooveTable(qJsonList);
+                    }else if(tableName.contains("限制条件")&&!tableName.contains("限制条件列表")){
+                        emit sqlLimitedTable(qJsonList);
+                    }else if(tableName.endsWith("焊接规范")){
+                        emit sqlWeldTable(qJsonList);
+                    }else if(tableName.endsWith("坡口条件列表")){
+                        emit sqlGrooveTableList(qJsonList);
+                    }else if(tableName.contains("限制条件列表")){
+                        emit sqlLimitedTableList(qJsonList);
+                    }else if(tableName.endsWith("焊接规范列表")){
+                        emit sqlWeldTableList(qJsonList);
+                    }else if(tableName.contains("TeachCondition")){
+                        emit sqlTeachCondition(qJsonList);
+                    }else if(tableName.contains("WeldCondition")){
+                        emit sqlWeldCondition(qJsonList);
+                    }else {
+                        emit sqlThreadFinished(false,tableName);
+                    }
                 }
             }else if(cmd.startsWith("CREATE")){//创建数据库
                 status=query.exec(cmd);
@@ -49,9 +73,10 @@ void SqlThread::run(){
             }else{//不支持的命令
                 status=false;
             }
+            //qDebug()<<tableName<<timer->interval()-timer->remainingTime();
             emit sqlThreadFinished(status,tableName);
         }else{//线程挂起20ms
-            msleep(20);
+            msleep(10);
         }
     }
 }
@@ -66,8 +91,16 @@ MySQL::MySQL(){
     //myDataBases.setPassword("");
     myDataBases.open();
     pSqlThread = new SqlThread();
-    connect(pSqlThread,&SqlThread::sqlThreadSignal,this,&MySQL::mySqlChanged);
     connect(pSqlThread,&SqlThread::sqlThreadFinished,this,&MySQL::mySqlStatusChanged);
+    connect(pSqlThread,&SqlThread::sqlTeachCondition,this,&MySQL::teachConditionChanged);
+    connect(pSqlThread,&SqlThread::sqlAccountTable,this,&MySQL::accountTableChanged);
+    connect(pSqlThread,&SqlThread::sqlWeldCondition,this,&MySQL::weldConditionChanged);
+    connect(pSqlThread,&SqlThread::sqlLimitedTable,this,&MySQL::limitedTableChanged);
+    connect(pSqlThread,&SqlThread::sqlGrooveTable,this,&MySQL::grooveTableChanged);
+    connect(pSqlThread,&SqlThread::sqlWeldTable,this,&MySQL::weldTableChanged);
+    connect(pSqlThread,&SqlThread::sqlLimitedTableList,this,&MySQL::limitedTableListChanged);
+    connect(pSqlThread,&SqlThread::sqlGrooveTableList,this,&MySQL::grooveTableListChanged);
+    connect(pSqlThread,&SqlThread::sqlWeldTableList,this,&MySQL::weldTableListChanged);
     pSqlThread->start();
 }
 MySQL::~MySQL(){

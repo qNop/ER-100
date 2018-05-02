@@ -14,36 +14,25 @@
 #include "errno.h"
 #include "stdint.h"
 #include <QQueue>
-
+#include "gloabldefine.h"
 
 class ModbusThread:public QThread{
     Q_OBJECT
     /*重写该函数*/
     void run()Q_DECL_OVERRIDE;
 
-    /*modbus 寄存器*/
-    QString modbusReg;
-    /*modbus 寄存器地址*/
-    QString modbusNum;
-    /*modbus 寄存器地址*/
-    QStringList modbusData;
-    /*modbus 命令*/
-    QString modbusCmd;
-    /*缓存数组*/
-    uint16_t data[260];
-
-    QQueue<QStringList> cmdBuf;
+    QQueue< modbusDataType > cmdBuf;
 
 public:
     ModbusThread();
     ~ModbusThread();
-     QStringList frame;
-     //QMutex* lockThread;
-     modbus_t *ER_Modbus;
-    QQueue<QStringList> * pCmdBuf;
+    //QList< int > frame;
+    //QMutex* lockThread;
+    modbus_t *ER_Modbus;
+    QQueue< modbusDataType > * pCmdBuf;
 
 signals:
-    void ModbusThreadSignal(QStringList Frame);
+    void ModbusThreadSignal(QList< int > reply);
 };
 
 class ERModbus : public QObject
@@ -52,20 +41,18 @@ class ERModbus : public QObject
 private:
     QString status;
     ModbusThread* pModbusThread;
-    QStringList Frame;
     //槽
 public:
-      //QMutex lockThread;
-       modbus_t *modbus;
-       int *modbus_Cmd_count;
-    explicit ERModbus(QObject* parent = 0);
+    modbus_t* modbus;
+     ERModbus(QObject* parent = 0);
     ~ERModbus();
+     const char* getModbusStatus(int error);
 public  slots:
-    void setmodbusFrame(QStringList frame);
+    void setmodbusFrame(modbusDataType frame);
     //信号
 signals:
     //发送命令改变
-    void modbusFrameChanged(QStringList frame);
+    void modbusFrameChanged(QList< int > reply);
 };
 
 #endif

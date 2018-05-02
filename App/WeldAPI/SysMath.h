@@ -1,6 +1,7 @@
 #ifndef SYSMATH_H
 #define SYSMATH_H
 #include <QObject>
+#include <QObjectList>
 #include <QString>
 #include <QDebug>
 #include <QStringList>
@@ -8,44 +9,17 @@
 #include <QtGlobal>
 #include "gloabldefine.h"
 
-/*焊接相关数据结构*/
-typedef struct {
-    //焊接电流
-    int weldCurrent;
-    //焊接电压
-    float weldVoltage;
-    //送丝速度
-    float weldFeedSpeed;
-    //焊接速度
-    float weldTravelSpeed;
-    //摆动速度
-    float swingSpeed;
-    //前停留
-    float beforeSwingStayTime;
-    //后停留
-    float afterSwingStayTime;
-    //摆动频率
-    float swingHz;
-    //摆动宽度
-    float swingLength;
-    //填充量
-    float weldFill;
-    //当前道
- //   int currentWeldNum;
-    //当前层总道数
-  //  int weldNum;
-    //当前层数
-   // int weldFloor;
-}weldDataType;
-
-
 class SysMath:public QObject
 {
     Q_OBJECT
 public:
     SysMath();
     ~SysMath();
-    int weldMath();
+    //缓存指针
+    QList<pointRules* > *pPointRulesLists;
+       weldFloorTableRules* pWeldTable;
+       //排序指针
+       floorRules* pBufWeldRules;
     QJsonObject pJson;
     //焊接位置  平焊 立焊 横焊 水平角焊
     QString weldStyleName;
@@ -53,12 +27,6 @@ public:
     QString weldConnectName;
     //坡口形式 V形坡口 单边V形坡口
     QString grooveStyleName;
-    //最小电流
-    int currentMin;
-    //最大电流
-    int currentMax;
-    //角度转换
-    float angel;
     //余高
     float reinforcementValue;
     //溶敷系数 *100
@@ -81,22 +49,6 @@ public:
     float ceramicBackWidth;
     //坡口侧0 非口侧1
     int grooveDirValue;
-    //根部间隙
-    float rootGap;
-    //板厚
-    float grooveHeight;
-    //板厚差
-    float grooveHeightError;
-    //坡口角度1 靠近机器人侧
-    float grooveAngel1;
-    //坡口角度1tan
-    float grooveAngel1Tan;
-    //坡口角度2 远离机器人侧
-    float grooveAngel2;
-    //坡口角度2tan
-    float grooveAngel2Tan;
-    //焊丝橫截面积
-    float weldWireSquare;
     //焊丝直径
     int wireDValue;
     //分道控制 左右分开调节
@@ -109,23 +61,17 @@ public:
     bool pulseValue;
     //焊丝种类 0 碳钢实芯 1药芯
     int wireTypeValue;
-    int grooveValue;
-   //是在顿边里面吗
-    int returnWay;
-
     int startArcZz;
     int startArcZx;
-    int startX;
 
     int stopArcZz;
     int stopArcZx;
-    int stopX;
-
-    int stopInTime; //层内停止时间
-    int stopOutTime; //层间停止时间
-
-    float weldLength;
-
+    bool returnWay;
+    int grooveValue;
+    //层内停止时间
+    int stopInTime;
+    //层间停止时间
+    int stopOutTime;
     //计算数据状态
     QString status;
     //函数 有 电流求送丝速度
@@ -133,25 +79,65 @@ public:
     //函数 有电流求电压
     float getVoltage(int current);
     //求解A
-    void solveA(weldDataType *pWeldData,FloorCondition *p,int num,float s);
+    void solveA(FloorCondition *p,int num,float s);
     //选取道电流
     int solveI(FloorCondition *p,int num,int total);
     //求层数 输入参数 h剩余层高 各层层高上下限, 输出参数 层数/层高 打底层高是否需要修改的标记
-    int solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,int *currentFloor,int *currentWeldNum);
+    int solveN(float *pH);
     //计算每层的最大最小填充量
     int getFillMetal(FloorCondition *pF);
     //计算坐标点函数
     //int getPoint(float *lineX,float *lineY,float *startArcX,float *startArcY,int weldNum,FloorCondition *pF);
     //计算 分道
-    // float getTravelSpeed(FloorCondition *pF,QString str,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed,float *weldTravelSpeed,float *weldFill,QString *status,float *swingHz);
-    float getTravelSpeed(FloorCondition *pF,QString str,weldDataType *pWeldData,QString *status);
-    int getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *weldLineYUesd,int *currentFloor,int *currentWeldNum);
-    // int getWeldNum(FloorCondition *pF,int *weldCurrent,float *weldVoltage,float *weldFeedSpeed,float *swingSpeed, float *weldTravelSpeed,float *weldFill,float *s,int count,int weldNum,int weldFloor,QString *status);
-    int getWeldNum(FloorCondition *pF,weldDataType *pWeldData,float *s,int currentWeldNum,int weldNum,int weldFloor,QString *status);
-    int setGrooveRules(QStringList value);
+    float getTravelSpeed(FloorCondition *pF,QString str);
+    int getWeldFloor(FloorCondition *pF);
+    int getWeldNum(FloorCondition *pF,float *s,int weldNum,float reSwingLength);
+    //int setGrooveRules(QStringList value);
     //获取横焊和平焊的 摆动频率
-   // float getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed,float *swingHz);
-    float getSwingSpeed(weldDataType *pWeldData,float maxSpeed);
+    float getSwingSpeed(float maxSpeed);
+    int weldMath(int pointNum);
+    //void makeJson(QJsonObject* pJson,weldDataType* pWeldData,weldPointType* pWeldPoint);
+private:
+    //板厚
+    float grooveHeight;
+    //已经使用的面积
+    float sUsedBuf[30];
+    //weldLineY
+    float hUsed;
+    //坡口角度tan1
+    float grooveAngel1Tan;
+    //坡口角度2tan
+    float grooveAngel2Tan;
+    //焊丝橫截面积
+    float weldWireSquare;
+    //最小电流
+    int currentMin;
+    //最大电流
+    int currentMax;
+    //焊接层
+    int currentFloor;
+    //焊接道
+    int currentWeldNum;
+    //焊接长度
+    float weldLength;
+    //焊接规范指针
+    weldDataType *pWeldData;
+    //焊接坐标系统
+    weldCoordinateType *pWeldCoordinate;
+    //坡口参数指针
+    grooveRulesType* pGrooveRule;
+    //总焊接道数
+    int totalWeldNum;
+
+
+    //point数量
+    int pointNumber;
+
+    float swingLengthBuf[30];
+
+    float weldNumBuf[30];
+
+
 signals:
     void weldRulesChanged(QString status,QJsonObject value);
 };

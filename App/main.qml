@@ -775,6 +775,8 @@ Material.ApplicationWindow{
             //切换到 焊接分析页面
             page.selectedTab=1;
         }else if(sysStatus==="停止态"){
+            //修复修补焊接时 数据下发不正常的问题
+            weldFix=false;
             //系统停止
             AppConfig.setleds("stop");
             //焊接系统停止
@@ -905,7 +907,6 @@ Material.ApplicationWindow{
                         }else{
                             weldFix=true;
                         }
-                        console.log("weldTableIndex is :"+weldTableIndex+"weldTable.count"+weldTable.count);
                         //选择行数据有效
                         if((weldTableIndex<weldTable.count)&&(weldTableIndex>-1)){
                             //分离层/道

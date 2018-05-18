@@ -17,6 +17,7 @@ void SqlThread::run(){
     for(;;){
         if(cmdBuf.count()){//如果存在命令则 执行命令行
             QStringList list=cmdBuf.dequeue().split("+");
+            qDebug()<<cmd;
             cmd=list.at(0);
             tableName=list.at(1);
             if(cmd.startsWith("SELECT")){//包含选择命令

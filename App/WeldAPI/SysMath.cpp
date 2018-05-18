@@ -71,7 +71,6 @@ void getXY(float angel,float *x1,float *y1,float x2,float y2){
     qDebug()<<"angel"<<angel<<"x1"<<*x1<<"*y1"<<*y1<<"x2"<<x2<<"y2"<<y2;
 }
 
-
 void getXYPosition(float angel,float *x1,float *y1,float x2,float y2){
     //转换为角度
     if(y2==0){
@@ -319,8 +318,8 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         else
             *(weldLineX+i)=((reSwingRightLength+pF->swingLength/2+(pF->swingLength+pF->weldSwingSpacing)*(i)-\
                              qMax(float(0),(*hused+tempHeight-rootFace)*grooveAngel2Tan))-rootGap/2);
-        //如果是陶瓷衬垫且为打底层 横焊打底不进入
-        if((pF->name=="ceramicBackFloor")&&(weldStyleName!="横焊")){
+        //如果是 横焊对应的
+        if(weldStyleName=="横焊"){
             //如果在坡口侧
             if(!grooveDirValue){
                 //外为- 内侧为正
@@ -384,7 +383,6 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
                 *(startWeldLineZ+i)=weldLength+(*currentFloor-1)*stopArcZz+i*stopArcZx; //焊接长度+当前层外偏移+当前道偏移
             }
         }*/
-
     }
     //全算完了之后重新调整 摆宽 摆宽这个时候调整 会影响到摆频的计算
     if(weldConnectName=="T接头"){
@@ -421,6 +419,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         //计算单道摆宽小于2 则清零
         if(((weldStyleName=="横焊")&&((pF->name!="bottomFloor")&&(pF->name!="ceramicBackFloor")))||(weldStyleName=="水平角焊")||(pF->swingLength<2))
             pF->swingLength=0;
+        totalWeldTime+=qAbs(*(stopWeldLineZ+i)-*(startWeldLineZ+i))/((*(pWeldData+i)).weldTravelSpeed);
         //全部参数计算完成
         pJson.insert("ID",QJsonValue(QString::number(*currentWeldNum)));
         pJson.insert("C1",QJsonValue(QString::number(*currentFloor)+"/"+QString::number(i+1)));
@@ -461,7 +460,7 @@ int SysMath::weldMath(){
     //起弧z位置 每次都往里面缩进3mm
     float weldLineYUesd=0;
     controlWeld=false;
-
+    totalWeldTime=0;
     //状态为successed
     status="Successed";
     if(secondFloor->name!="secondFloor"){
@@ -505,7 +504,7 @@ int SysMath::weldMath(){
         } else{
             currentMax=300;
             currentMin=80;}
-/*
+    /*
     if(rootGap>=8){
         bottomFloor->current=fillFloor->current;
         bottomFloor->current_left=fillFloor->current_left;
@@ -576,6 +575,7 @@ int SysMath::weldMath(){
             return -1;
         }
     }
+    qDebug()<<"totalWeldTime is "<<totalWeldTime;
     emit weldRulesChanged("Finish",pJson);
     return 1;
 }
@@ -908,6 +908,80 @@ int SysMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,int
     qDebug()<<bottomFloor->height<<secondFloor->height<<fillFloor->height<<topFloor->height;
     return res;
 }
+typedef struct{
+    float x;
+    float y;
+}point;
+typedef struct{
+    float angel;
+    float height;
+    float rootGap;
+    bool error;
+}ResType;
+ResType getAngelT(float angel1,float angel2,float height,float rootgap,float heightError){
+    ResType res;
+    res.angel=0;
+    res.height=0;
+    res.error=false;
+    res.rootGap=0;
+    float Lk,Lb,Rk;
+    point A,B,C;
+    if(angel1!=0){
+        Lb=-rootgap/qTan(angel1*PI/180); //线段b b
+        Lk=-1/qTan(angel1*PI/180);//线段b 斜率
+        A.y=height;
+        A.x=(A.y-Lb)/Lk;//A点坐标
+
+        if(angel2==0){
+            C.x=0; //C点坐标
+            C.y=Lb;
+            B.x=0; //B点坐标
+            B.y=height+heightError;
+        }else{
+            Rk=1/qTan(angel2*PI/180);//线段a 斜率
+            C.x=Lb/(Rk-Lk); //C点坐标
+            C.y=C.x*Rk;
+            B.y=height+heightError*qCos(angel2*PI/180);//B点坐标
+            B.x=B.y/Rk;
+        }
+        //求c边长
+        float b,a,c;
+        b=(A.x-C.x)*(A.x-C.x)+(A.y-C.y)*(A.y-C.y);
+        b=qSqrt(b);
+        a=(B.x-C.x)*(B.x-C.x)+(B.y-C.y)*(B.y-C.y);
+        a=qSqrt(a);
+        c=a*a+b*b-a*b*2*qCos((angel1+angel2)*PI/180);
+        c=qSqrt(c);
+        //求B角度
+        float angelB;
+        angelB=qAcos((a*a+c*c-b*b)/(2*a*c))*180/PI;
+        res.angel=90-angel2-angelB;
+        //求坡口高度
+        float zb,za;
+        point D;
+        float d;
+        //求垂线斜率
+        if((B.y-A.y)==0){
+            res.angel=0;
+            res.height=height;
+            res.rootGap=rootgap;
+        }else{
+            za=-(B.x-A.x)/(B.y-A.y);
+            zb=C.y-za*C.x;
+            D.x=-zb/za;
+            D.y=0;
+            d=(D.x-C.x)*(D.x-C.x)+(D.y-C.y)*(D.y-C.y);
+            d=qSqrt(d);
+            res.height=a*qSin(angelB*PI/180)-d;
+            res.rootGap=d*qTan((90-angelB)*PI/180)+d*qTan((angel1+angel2+angelB-90)*PI/180);
+        }
+    }else{
+        //左边角度不能为0
+        res.error=true;
+    }
+    return res;
+}
+
 int SysMath::setGrooveRules(QStringList value){
     qDebug()<<value;
     //数组有效
@@ -917,30 +991,30 @@ int SysMath::setGrooveRules(QStringList value){
             grooveHeightError=value.at(1).toFloat();
             rootGap=value.at(2).toFloat();
             if(weldConnectName=="T接头"){
-                float a,b,c,c2,angel1,angel2,angela,angelc;
+                //float a,b,c,c2,angel1,angel2,angela,angelc;
+                float angel1,angel2;
                 if(grooveDirValue)//非坡口侧
                 {  angel1=value.at(4).toFloat();
                     angel2=value.at(3).toFloat();
                 }else{ angel1=value.at(3).toFloat();
                     angel2=value.at(4).toFloat();
                 }
-                angelc=angel1+angel2;
-                a=grooveHeight/qCos(angel1*PI/180);//坡口长度
-                b=grooveHeight/qCos(angel2*PI/180)+grooveHeightError;
-                c2=a*a+b*b-2*a*b*qCos(angelc*PI/180);//夹角对应的边长平方;
-                c=qSqrt(c2);//夹角对应边长
-                angela=qAcos((b*b+c2-a*a)/(2*b*c))*180/PI;
-                angel=90-angel2-angela;
-                grooveHeight=b*qCos((angel2+angel)*PI/180);
-                qDebug()<<"grooveHeight::"<<grooveHeight;
-                if(grooveDirValue){
-                    grooveAngel2=angel1-angel;
-                    grooveAngel1=angel2+angel;
+                ResType res= getAngelT(angel1,angel2,grooveHeight,rootGap,grooveHeightError);
+                if(!res.error){
+                    angel=res.angel;
+                    grooveHeight=res.height;
+                    rootGap=res.rootGap;
+                    if(grooveDirValue){
+                        grooveAngel2=angel1-angel;
+                        grooveAngel1=angel2+angel;
+                    }else{
+                        grooveAngel1=angel1-angel;
+                        grooveAngel2=angel2+angel;
+                    }
                 }else{
-                    grooveAngel1=angel1-angel;
-                    grooveAngel2=angel2+angel;
+                    status="角度β1或β2异常！";
+                    emit weldRulesChanged("error",pJson);
                 }
-                rootGap*=qCos(angel*PI/180);// 有根部间隙的旋转坐标系还存在漏洞 填充量计算的时候 可能过大
             }else{ //输入的板厚已经和板厚差做出变化
                 grooveAngel1=value.at(3).toFloat();
                 grooveAngel2=value.at(4).toFloat();

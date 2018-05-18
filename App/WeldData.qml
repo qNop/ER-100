@@ -21,7 +21,6 @@ TableCard{
     //上次焊接规范名称
     property string weldRulesName;
     property bool weldTableEx
-    property bool updateEx: false
     property string weldRulesNameList
 
     property string currentUserName
@@ -86,8 +85,7 @@ TableCard{
                 if(weldRulesNameListModel.count>jsonObject.length)
                     weldRulesNameListModel.remove(jsonObject.length,weldRulesNameListModel.count-jsonObject.length)
                 weldRulesName=jsonObject[0].Name;
-                if(updateEx)//解决处于加载状态且系统刚计算生成焊接规范数据之间相互冲抵问题。
-                    MySQL.getJsonTable(weldRulesName);
+                MySQL.getJsonTable(weldRulesName);
             }else if(tableName===weldRulesName){//更新数据表
                 updateModel("Clear",{});
                 for(i=0;i<jsonObject.length;i++){

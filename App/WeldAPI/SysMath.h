@@ -126,6 +126,7 @@ public:
 
     float weldLength;
 
+    float totalWeldTime;//
     //计算数据状态
     QString status;
     //函数 有 电流求送丝速度

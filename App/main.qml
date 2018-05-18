@@ -104,6 +104,9 @@ Material.ApplicationWindow{
     property bool conWrite: true
 
     property int errorCount: 0
+
+    property bool weldAnalyseTabCompleted:false
+
     /*account*/
     ListModel{id:accountmodel;}
     //错误列表
@@ -649,12 +652,8 @@ Material.ApplicationWindow{
                     Component.onCompleted: { //加载的时候 加载数据表格
                         //更新焊接规范列表
                         weldDataPage.weldRulesNameList=app.grooveStyleName[app.currentGroove]+"焊接规范列表";
-                        //
-                        weldDataPage.updateEx=sysStatus==="空闲态";
                         //更新焊接规范
                         weldDataPage.getLastweldRulesName();
-                        //
-                        weldDataPage.updateEx=true;
                     }
                 }
             }
@@ -688,7 +687,6 @@ Material.ApplicationWindow{
                     onRemove:{
                         if(currentRow!==-1){
                             var index=currentRow;
-
                             errorHistroy.remove(index);
                             snackBar.open("本条错误已移除！");
                         }else
@@ -729,19 +727,24 @@ Material.ApplicationWindow{
                 //清除坡口数据
                 grooveTable.clear();
             }else {//半自动 手动 检测数据表是否有效
-                if(grooveTable.count===0){
+                /*  if(grooveTable.count===0){
                     //写入错误
                     errorCode|=0x20000000;
                     ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
-                }else{//根据示教点数 复制第一个数据表格内容创建 示教点数个 坡口参数
-                    if(grooveTable.count>1)//删除多余点保留第一点
-                        grooveTable.remove(1,grooveTable.count-1);
-                    grooveTable.setProperty(0,"ID","1");
-                    for(var i=1;i<app.teachPoint;i++){
-                        grooveTable.append(grooveTable.get(0))
-                        grooveTable.setProperty(i,"ID",String(i+1));
-                    }
+                }else{
+                *///根据示教点数 复制第一个数据表格内容创建 示教点数个 坡口参数
+                if(grooveTable.count>1)//删除多余点保留第一点
+                    grooveTable.remove(1,grooveTable.count-1);
+                else if(grooveTable.count===0){
+                    //插入全零的一行数据
+                    grooveTable.append({"ID":"1","C1":"0","C2":"0","C3":"0","C4":"0","C5":"0","C6":"0","C7":"0","C8":"0",});
                 }
+                grooveTable.setProperty(0,"ID","1");
+                for(var i=1;i<app.teachPoint;i++){
+                    grooveTable.append(grooveTable.get(0))
+                    grooveTable.setProperty(i,"ID",String(i+1));
+                }
+                //}
             }
         }else if(sysStatus==="坡口检测完成态"){
             //获取坡口长度
@@ -1584,11 +1587,17 @@ Material.ApplicationWindow{
         theme.backgroundColor=appSettings.backgroundColor
         theme.tabHighlightColor=appSettings.accentColor
         AppConfig.setleds("all");
+        //切换页面
+        page.selectedTab=1;
+        //加载焊接分析界面
+        page1SelectedIndex=0;
         ERModbus.setmodbusFrame(["R","510","6"]);
         ERModbus.setmodbusFrame(["W","98","1","0"]);
         ERModbus.setmodbusFrame(["W","127","1","0"]);
         MySQL.getJsonTable("AccountTable")
         sysStatus="未登录态";//系统处于未登陆状态
+        //切换回原界面
+        page.selectedTab=0;
         changeuser.show();
     }
 }

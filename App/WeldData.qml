@@ -14,8 +14,6 @@ TableCard{
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "WeldData"
-
-    property Item message
     property string status:"空闲态"
 
     //上次焊接规范名称
@@ -25,11 +23,10 @@ TableCard{
 
     property string currentUserName
     //外部更新数据
-    signal updateModel(string str,var data);
     signal changeWeldData();
 
     property bool saveAs:false
-
+    /*
     ListModel{
         id:weldCondtion
         ListElement{name:"        NO.          :";show:true;value:"";min:1;max:1000;isNum:true;step:1}
@@ -69,21 +66,16 @@ TableCard{
     }
     ListModel{id:weldRulesNameListModel
         ListElement{Name:"";CreatTime:"";Creater:"";EditTime:"";Editor:"";}
-    }
+    }*/
     Connections{
         target: MySQL
         onMySqlChanged:{
-            var i;
             //更新列表
             if(tableName===weldRulesNameList){
-                for(i=0;i<jsonObject.length;i++){
-                    if(weldRulesNameListModel.count<jsonObject.length)
-                        weldRulesNameListModel.append(jsonObject[i]);
-                    else
-                        weldRulesNameListModel.set(i,jsonObject[i]);
+                updateListModel("Clear",{});
+                for(var i=0;i<jsonObject.length;i++){
+                    updateListModel("Append",jsonObject[i]);
                 }
-                if(weldRulesNameListModel.count>jsonObject.length)
-                    weldRulesNameListModel.remove(jsonObject.length,weldRulesNameListModel.count-jsonObject.length)
                 weldRulesName=jsonObject[0].Name;
                 MySQL.getJsonTable(weldRulesName);
             }else if(tableName===weldRulesName){//更新数据表
@@ -91,8 +83,12 @@ TableCard{
                 for(i=0;i<jsonObject.length;i++){
                     updateModel("Append",jsonObject[i]);
                 }
-                currentRow=0;
-                selectIndex(0);
+                if(jsonObject.length===0){
+                    currentRow=-1;
+                }else{
+                    currentRow=0;
+                    selectIndex(0);
+                }
             }
         }
     }
@@ -118,6 +114,43 @@ TableCard{
         }
     }
 
+    function openName(name){
+        weldRulesName=name+"焊接规范";
+        //打开最新的数据库
+        MySQL.getJsonTable(weldRulesName);
+    }
+    function removeName(name){
+        //搜寻最近列表 删除本次列表 更新 最近列表如model
+        message.open("正在删除焊接规范表格！");
+        //删除坡口条件表格
+        MySQL.deleteTable(weldRulesName)
+        //删除在坡口条件列表链接
+        MySQL.clearTable(weldRulesNameList,"Name",weldRulesName)
+        //选择最新的表格替换
+        getLastweldRulesName();
+        //提示
+        message.open("已删除焊接规范表格！")
+    }
+    function newFile(name,saveAs){
+        //更新标题
+        if((name!==weldRulesName)&&(typeof(name)==="string")){
+            var user=currentUserName;
+            var Time=MyMath.getSysTime();
+            message.open("正在创建焊接规范数据库！")
+            weldRulesName=name+"限制条件";
+            //插入新的list
+            MySQL.insertTableByJson(limitedRulesNameList,{"Name":weldRulesName,"CreatTime":Time,"Creator":user,"EditTime":Time,"Editor":user});
+            updateListModel("Append",{"Name":weldRulesName,"CreatTime":Time,"Creator":user,"EditTime":Time,"Editor":user});
+            //创建新的 坡口条件
+            MySQL.createTable(weldRulesName,"ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT,C12 TEXT,C13 TEXT,C14 TEXT,C15 TEXT,C16 TEXT,C17 TEXT,C18 TEXT,C19 TEXT");
+            if(saveAs){
+                save();
+            }else
+                MySQL.getJsonTable(weldRulesName);
+            message.open("已创建焊接规范数据库！")
+        }
+    }
+
     //当前页面关闭 则 关闭当前页面内 对话框
     onStatusChanged: {
         if(status==="坡口检测完成态"){
@@ -126,22 +159,12 @@ TableCard{
         }
     }
 
-    function selectIndex(index){
-        if((index<model.count)&&(index>-1)){
-            table.selection.clear();
-            table.selection.select(index);
-        }
-        else{
-            if(model.count>0)
-                message.open("索引超过条目上限或索引无效！")
-        }
-    }
 
     footerText:"系统当前处于"+status.replace("态","状态。")
     tableRowCount:7
     headerTitle: weldRulesName
     table.__listView.interactive: status!=="焊接态"
-    fileMenu: [
+    /*   fileMenu: [
         Action{iconName:"awesome/calendar_plus_o";name:"新建";enabled: false
             onTriggered: {saveAs=false;newFile.show();}},
         Action{iconName:"awesome/folder_open_o";name:"打开";enabled: false
@@ -215,11 +238,11 @@ TableCard{
                     message.open("请选择下发焊接规范。")
                 }
             }
-        }/*,
+        }//,
         Action{iconName:"awesome/send_o";name:"填充面积"
             onTriggered: {}//{weldArea.show()}
-        }*/
-    ]
+        }//
+    ]*/
     tableData:[
         Controls.TableViewColumn{role: "C1";title:"   焊接\n层道数";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C2";title: "电流\n  A";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
@@ -242,6 +265,8 @@ TableCard{
         Controls.TableViewColumn{role: "C19";title: "收弧z";width:Units.dp(70);movable:false;resizable:false;visible: weldTableEx}
     ]
 
+
+    /*
     Dialog{
         id:open
         title:qsTr("打开焊接规范")
@@ -450,6 +475,6 @@ TableCard{
         negativeButtonText:qsTr("取消")
         positiveButtonText:qsTr("确定")
         globalMouseAreaEnabled:false
-    }
+    }*/
 
 }

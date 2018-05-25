@@ -8,6 +8,7 @@ Dropdown{
     objectName: "Dropdown"
     property list<Action>  actions;
     property int rootIndex:0;
+    property int place
     property Item columnViewItem;
     width: Units.dp(168)
     function loadView(){
@@ -49,6 +50,7 @@ Dropdown{
                     id: listItem
                     height:Units.dp(40)
                     text:actions[index].name;
+                    visible: actions[index].visible;
                     itemLabel.style: "button"
                     iconSource: actions[index].iconSource
                     enabled: actions[index].enabled

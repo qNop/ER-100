@@ -11,28 +11,13 @@ TableCard {
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "SysErrorHistroy"
 
-    signal remove
-    signal removeall
-
     property string status: ""
 
     headerTitle:"系统错误历史信息"
     tableRowCount:7
     footerText:"总计："+model.count+"条错误信息"
     table.__listView.interactive:status!=="焊接态"
-    fileMenu: [
-        Action{iconName:"awesome/calendar_plus_o";name:"新建"; enabled: false},
-        Action{iconName:"awesome/folder_open_o";name:"打开"; enabled: false},
-        Action{iconName:"awesome/save";name:"保存";enabled: false},
-        Action{iconName:"awesome/credit_card";name:"另存为";enabled: false},
-        Action{iconName:"awesome/calendar_times_o";name:"删除";enabled: false}
-    ]
-    editMenu:[
-        Action{iconName:"awesome/edit";name:"清空错误";
-            onTriggered: removeall()
-        }]
-    inforMenu: [ Action{iconName: "awesome/info";  name:"错误描述" ;
-        }]
+
     tableData:[
         Controls.TableViewColumn{role: "C1";title:"错误代码";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C2";title:"错误状态";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},

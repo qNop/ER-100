@@ -17,7 +17,7 @@ TableCard {
     }*/
     property bool swingWidthOrWeldWidth
 
-    property Item message
+    //property Item message
 
     property string limitedRulesName:""
     property string limitedRulesNameList:""
@@ -28,7 +28,7 @@ TableCard {
 
     property bool saveAs: false
 
-
+/*
     ListModel{id:pasteModel;
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:""}
     }
@@ -54,15 +54,15 @@ TableCard {
     }
     onSwingWidthOrWeldWidthChanged: {
         nameModel.setProperty(9,"name",swingWidthOrWeldWidth?"摆  动  宽  度  Max (mm)":"焊  道  宽  度  Max (mm)")
-    }
+    }*/
 
     property int num: 0
 
     property string limitedString: ""
-
+/*
     ListModel{id:limitedRulesNameListModel
         ListElement{Name:"";CreatTime:"";Creater:"";EditTime:"";Editor:"";}
-    }
+    }*/
 
     Connections{
         target: MySQL
@@ -70,23 +70,23 @@ TableCard {
             var i;
             //更新列表
             if(tableName===limitedRulesNameList){
+                updateListModel("Clear",{});
                 for(i=0;i<jsonObject.length;i++){
-                    if(limitedRulesNameListModel.count<jsonObject.length)
-                        limitedRulesNameListModel.append(jsonObject[i]);
-                    else
-                        limitedRulesNameListModel.set(i,jsonObject[i]);
+                    updateListModel("Append",jsonObject[i]);
                 }
-                if(limitedRulesNameListModel.count>jsonObject.length)
-                    limitedRulesNameListModel.remove(jsonObject.length,limitedRulesNameListModel.count-jsonObject.length)
                 limitedRulesName=jsonObject[0].Name;
                 MySQL.getJsonTable(limitedRulesName);
             }else if(tableName===limitedRulesName){//更新数据表
-                limitedTable.clear();
+                updateModel("Clear",{});
                 for(i=0;i<jsonObject.length;i++){
-                    limitedTable.append(jsonObject[i])
+                    updateModel("Append",jsonObject[i]);
                 }
-                currentRow=0;
-                selectIndex(0);
+                if(jsonObject.length===0){
+                    currentRow=-1;
+                }else{
+                    currentRow=0;
+                    selectIndex(0);
+                }
             }
         }
     }
@@ -95,7 +95,7 @@ TableCard {
         MySQL.getDataOrderByTime(limitedRulesNameList,"EditTime");
     }
 
-    function selectIndex(index){
+  /*  function selectIndex(index){
         if((index<model.count)&&(index>-1)){
             table.selection.clear();
             table.selection.select(index);
@@ -103,20 +103,20 @@ TableCard {
         else{
             message.open("索引超过条目上限或索引无效！")
         }
-    }
+    }*/
 
     function setLimited(){
-        for(var i=0;i<limitedTable.count;i++){
-            WeldMath.setLimited(limitedTable.get(i));
+        for(var i=0;i<model.count;i++){
+            WeldMath.setLimited(model.get(i));
         }
     }
-
+/*
     function limitedMath(start,end){
         var resArray=new Array(0);
         var temp;
         try{
             for(var i=start;i<end;i++){
-                var res=limitedTable.get(i);
+                var res=model.get(i);
                 if((typeof(res.C1)==="string")&&(res.C1!=="")){
                     temp=res.C1.split("/")
                     resArray.push(temp[0])
@@ -181,15 +181,15 @@ TableCard {
             message.open(objectName+"error"+e.message);
         }
         return resArray;
-    }
+    }*/
 
     function save(){
         if(typeof(limitedRulesName)==="string"){
             //清除保存数据库
             MySQL.clearTable(limitedRulesName,"","");
-            for(var i=0;i<limitedTable.count;i++){
+            for(var i=0;i<model.count;i++){
                 //插入新的数据
-                MySQL.insertTable(limitedRulesName,limitedTable.get(i));
+                MySQL.insertTable(limitedRulesName,model.get(i));
             }
             //更新数据库保存时间
             MySQL.setValue(limitedRulesNameList,"Name",limitedRulesName,"EditTime",MyMath.getSysTime());
@@ -198,14 +198,49 @@ TableCard {
         }else{
             message.open("限制条件格式不是字符串！")
         }
+    }function openName(name){
+        limitedRulesName=name+"限制条件"+limitedString;
+        //打开最新的数据库
+        MySQL.getJsonTable(limitedRulesName);
+    }
+    function removeName(name){
+        //搜寻最近列表 删除本次列表 更新 最近列表如model
+        message.open("正在删除限制条件表格！");
+        //删除坡口条件表格
+        MySQL.deleteTable(limitedRulesName)
+        //删除在坡口条件列表链接
+        MySQL.clearTable(limitedRulesNameList,"Name",limitedRulesName)
+        //选择最新的表格替换
+        getLastRulesName();
+        //提示
+        message.open("已删除限制条件表格！")
+    }
+    function newFile(name,saveAs){
+        //更新标题
+        if((name!==limitedRulesName)&&(typeof(name)==="string")){
+            var user=currentUserName;
+            var Time=MyMath.getSysTime();
+            message.open("正在创建限制条件数据库！")
+            limitedRulesName=name+"限制条件"+limitedString;
+            //插入新的list
+            MySQL.insertTableByJson(limitedRulesNameList,{"Name":limitedRulesName,"CreatTime":Time,"Creator":user,"EditTime":Time,"Editor":user});
+            updateListModel("Append",{"Name":limitedRulesName,"CreatTime":Time,"Creator":user,"EditTime":Time,"Editor":user});
+            //创建新的 坡口条件
+            MySQL.createTable(limitedRulesName,"ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT");
+            if(saveAs){
+                save();
+            }else
+                MySQL.getJsonTable(limitedRulesName);
+            message.open("已创建限制条件数据库！")
+        }
     }
 
-    ListModel{id:limitedTable;}
+ //   ListModel{id:model;}
     headerTitle: limitedRulesName.replace(limitedString,"");
     firstColumn.title: "限制条件\n      层"
     footerText: limitedString
     tableRowCount:7
-    model:limitedTable
+/*   model:limitedTable
     fileMenu: [
         Action{iconName:"awesome/calendar_plus_o";name:"新建";enabled: false;
             onTriggered:{ saveAs=false;newFile.open()}
@@ -270,7 +305,7 @@ TableCard {
                     WeldMath.setLimited(limitedTable.get(i));
                 }
             }
-        }]
+        }]*/
     tableData:[
         Controls.TableViewColumn{role: "C1";title:"坡口/中/非坡口\n   焊接电流(A)";width:Units.dp(140);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C2";title: "坡口/非坡口\n停留时间(s)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
@@ -284,7 +319,7 @@ TableCard {
         Controls.TableViewColumn{role: "C9";title: "焊接速度Min/Max\n        (cm/min)";width:Units.dp(160);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C11";title:"代码";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: false}
     ]
-
+/*
     Dialog{
         id:open
         title:qsTr("打开限制条件")
@@ -474,5 +509,5 @@ TableCard {
                           });
             }
         }
-    }
+    }*/
 }

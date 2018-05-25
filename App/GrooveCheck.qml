@@ -21,7 +21,7 @@ TableCard{
 
     property var settings
 
-    property Item message
+    //property Item message
     property string helpText;
     //当前坡口名称
     property string grooveName:""
@@ -31,8 +31,10 @@ TableCard{
 
     property int teachModel
 
-    property bool saveAs: false
+    property alias fixDialog: fix
 
+    property bool saveAs: false
+/*
     ListModel{id:pasteModel
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"0";C7:"0";C8:"0"}
     }
@@ -51,33 +53,22 @@ TableCard{
         grooveRules.setProperty(1,"name",currentGroove===8?"脚   长ι1(mm):":"板    厚δ(mm):")
         grooveRules.setProperty(2,"name",currentGroove===8||currentGroove==0||currentGroove==3||currentGroove==5?"脚   长ι2(mm):":"板厚差e(mm):")
         grooveRules.setProperty(3,"show",currentGroove===8?false:true)
-    }
+    }*/
     //外部更新数据
-    signal updateModel(string str,var data);
+    //signal updateModel(string str,var data);
 
     signal getWeldRules();
-
-    function selectIndex(index){
-        if((index<model.count)&&(index>-1)){
-            table.selection.clear();
-            table.selection.select(index);
-        }
-    }
 
     Connections{
         target: MySQL
         onMySqlChanged:{
-            var i;
             //更新列表
             if(tableName===grooveNameList){
-                for(i=0;i<jsonObject.length;i++){
-                    if(grooveNameListModel.count<jsonObject.length)
-                        grooveNameListModel.append(jsonObject[i]);
-                    else
-                        grooveNameListModel.set(i,jsonObject[i]);
+                //更新列表
+                updateListModel("Clear",{});
+                for(var i=0;i<jsonObject.length;i++){
+                    updateListModel("Append",jsonObject[i]);
                 }
-                if(grooveNameListModel.count>jsonObject.length)
-                    grooveNameListModel.remove(jsonObject.length,grooveNameListModel.count-jsonObject.length)
                 grooveName=jsonObject[0].Name;
                 MySQL.getJsonTable(grooveName);
             }else if(tableName===grooveName){//更新数据表
@@ -85,8 +76,12 @@ TableCard{
                 for(i=0;i<jsonObject.length;i++){
                     updateModel("Append",jsonObject[i]);
                 }
-                currentRow=0;
-                selectIndex(0);
+                if(jsonObject.length===0){
+                    currentRow=-1;
+                }else{
+                    currentRow=0;
+                    selectIndex(0);
+                }
             }
         }
     }
@@ -115,7 +110,7 @@ TableCard{
     headerTitle: grooveName
     footerText:status==="坡口检测态"?"系统当前处于"+status.replace("态","状态。高压输出！"):"系统当前处于"+status.replace("态","状态。")
     tableRowCount:7
-    fileMenu: [
+  /*  fileMenu: [
         Action{iconName:"av/playlist_add";name:"新建";enabled:false
             onTriggered: {saveAs=false;newFile.show()}},
         Action{iconName:"awesome/folder_open_o";name:"打开";enabled: false
@@ -196,7 +191,7 @@ TableCard{
                 message.open("暂不支持移至中线命令！")
             }
         }
-    ]
+    ]*/
     tableData:[
         Controls.TableViewColumn{  role:"C1"; title:currentGroove===8?"脚长 ι1\n (mm)": "板厚 δ\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{  role:"C2"; title:currentGroove===8?"脚长 ι2\n (mm)": currentGroove==0||currentGroove==3||currentGroove==5?"脚长 ι\n (mm)":"板厚差 e\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
@@ -207,6 +202,43 @@ TableCard{
         Controls.TableViewColumn{  role:"C7"; title: "中心线 \n Y(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:true},
         Controls.TableViewColumn{  role:"C8"; title: "中心线 \n Z(mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible:true}
     ]
+    function openName(name){
+        grooveName=name+"坡口条件"
+        //打开最新的数据库
+        MySQL.getJsonTable(grooveName);
+    }
+    function removeName(name){
+        //搜寻最近列表 删除本次列表 更新 最近列表如model
+        message.open(qsTr("正在删除坡口条件表格！"));
+        //删除坡口条件表格
+        MySQL.deleteTable(grooveName)
+        //删除在坡口条件列表链接
+        MySQL.clearTable(grooveNameList,"Name",grooveName)
+        //选择最新的表格替换
+        getLastGrooveName();
+        //提示
+        message.open(qsTr("已删除坡口条件表格！"))
+    }
+    function newFile(name,saveAs){
+        //更新标题
+        if((name!==grooveName)&&(typeof(name)==="string")){
+            var user=settings.currentUserName;
+            var Time=MyMath.getSysTime();
+            message.open("正在创建坡口条件数据库！")
+            //插入新的list
+            MySQL.insertTableByJson(grooveNameList,{"Name":name+"坡口条件","CreatTime":Time,"Creator":user,"EditTime":Time,"Editor":user});
+            updateListModel("Append",{"Name":name+"坡口条件","CreatTime":Time,"Creator":user,"EditTime":Time,"Editor":user});
+            //创建新的 坡口条件
+            MySQL.createTable(name+"坡口条件","ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT");
+            grooveName=name+"坡口条件";
+            if(saveAs){
+                save();
+            }else
+                MySQL.getJsonTable(grooveName);
+            message.open("已创建坡口条件数据库！")
+        }
+    }
+    /*
     Dialog{
         id:open
         title:qsTr("打开坡口条件")
@@ -391,7 +423,7 @@ TableCard{
                  updateText();
             }
         }
-    }
+    }*/
     Dialog{
         id:fix
         title: qsTr("坡口条件补正")

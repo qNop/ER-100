@@ -31,6 +31,8 @@ private:
     SysMath* sysMath;
 
     int grooveValue;
+
+    QStringList limitedString;
 public slots:
     //设置焊接位置
     void setWeldStyle(int value);
@@ -78,6 +80,9 @@ public slots:
     void setStopInTime(int value);
     //设置层外停止时间
     void setStopOutTime(int value);
+    //
+     QStringList getLimitedMath(QObject* value);
+
     //设置起弧偏移
   //  void setStartx(int value);
     //设置收弧偏移

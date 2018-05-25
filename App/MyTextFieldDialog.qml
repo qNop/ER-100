@@ -12,6 +12,7 @@ Dialog{
     property int focusIndex: 0
     property bool isTextInput:false
     property alias sourceComponent: loader.sourceComponent
+    property alias loaderVisible: loader.visible
     property bool keyStatus: false
 
     property Item message
@@ -60,9 +61,9 @@ Dialog{
         Loader {
             id:loader
             Layout.alignment: Qt.AlignVCenter
-            visible: sourceComponent!==null
-            height: sourceComponent!==null?sourceComponent.height:0
-            width: sourceComponent!==null?sourceComponent.width:0
+           // visible:sourceComponent!==null
+            height: sourceComponent.height//sourceComponent!==null?sourceComponent.height:0
+            width: sourceComponent.width//sourceComponent!==null?sourceComponent.width:0
         }
         Rectangle{
             Layout.alignment: Qt.AlignVCenter

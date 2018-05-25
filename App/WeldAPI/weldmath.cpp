@@ -131,6 +131,73 @@ float WeldMath::getWeldHeight(float deep,float bottomWidth, float leftAngel, flo
     return h;
 }
 
+QStringList WeldMath::getLimitedMath(QObject *value){
+    limitedString.clear();
+    if(value==NULL) return limitedString;
+    QString str;
+    QVariant var=value->property("C1");
+    QStringList strList;
+    str =var.toString();
+    strList=str.split("/");
+    if(strList.length()==3){
+        limitedString.append(strList[0]);
+        limitedString.append(strList[1]);
+        limitedString.append(strList[2]);
+    }else
+        return limitedString;
+    //
+    var=value->property("C2");
+    str=var.toString();
+    strList=str.split("/");
+    if(strList.length()==2){
+        limitedString.append(strList[0]);
+        limitedString.append(strList[1]);
+    }else
+        return limitedString;
+    //解析层高
+    var=value->property("C3");
+    str=var.toString();
+    strList=str.split("/");
+    if(strList.length()==2){
+        limitedString.append(strList[0]);
+        limitedString.append(strList[1]);
+    }else
+        return limitedString;
+    //坡口距离
+    var=value->property("C4");
+    str=var.toString();
+    strList=str.split("/");
+    if(strList.length()==2){
+        limitedString.append(strList[0]);
+        limitedString.append(strList[1]);
+    }else
+        return limitedString;
+    //最大摆宽
+    var=value->property("C5");
+    limitedString.append(var.toString());
+    //分道间隔
+    var=value->property("C6");
+    limitedString.append(var.toString());
+    //分开结束比
+    var=value->property("C7");
+    limitedString.append(var.toString());
+    //焊接电压
+    var=value->property("C8");
+    limitedString.append(var.toString());
+    //焊接速度
+    var=value->property("C9");
+    str=var.toString();
+    strList=str.split("/");
+    if(strList.length()==2){
+        limitedString.append(strList[0]);
+        limitedString.append(strList[1]);
+    }else
+        return limitedString;
+    var=value->property("C10");
+    limitedString.append(var.toString());
+    return limitedString;
+}
+
 bool WeldMath::setLimited(QObject *value){
     QVariant var=value->property("ID");
     QString str;

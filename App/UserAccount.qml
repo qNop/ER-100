@@ -14,26 +14,25 @@ TableCard {
 
     property bool superUser
 
-    property Item message;
-    signal userUpdate();
+   // signal userUpdate();
 
-    function selectIndex(index){
-        if((index<model.count)&&(index>-1)){
-            table.selection.clear();
-            table.selection.select(index);
-        }
-        else{
-            message.open("索引超过条目上限或索引无效！")
-        }
-    }
-
-    ListModel{id:pasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:""}}
+//    ListModel{id:pasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:""}}
 
     footerText:  "只有超级用户拥有添加、编辑、移除用户的权限。"
     tableRowCount:7
     table.__listView.interactive: status!=="焊接态"
-    headerTitle: qsTr("用户列表")
-    fileMenu: [
+    headerTitle: "用户列表"
+    function save(){
+            //清除保存数据库
+            MySQL.clearTable("AccountTable","","");
+            for(var i=0;i<model.count;i++){
+                //插入新的数据
+                MySQL.insertTable("AccountTable",model.get(i));
+            }
+            message.open("用户信息已保存！");
+
+    }
+   /* fileMenu: [
         Action{iconName:"awesome/calendar_plus_o";name:"新建";enabled: false;},
         Action{iconName:"awesome/folder_open_o";name:"打开";enabled: false;},
         Action{iconName:"awesome/save";name:"保存";enabled:superUser
@@ -72,7 +71,7 @@ TableCard {
     funcMenu: [
         Action{iconName:"awesome/user";name:"登录用户";
             onTriggered: {  userUpdate()}
-        }]
+        }]*/
     tableData:[
         Controls.TableViewColumn{role: "C1";title: "工号";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C2";title: "用户名";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
@@ -80,7 +79,7 @@ TableCard {
         Controls.TableViewColumn{role: "C4";title: "用户组";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C5";title: "所在班组";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C6";title: "备注";width:Units.dp(200);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;}]
-
+/*
     MyTextFieldDialog{
         id:dialog
          message: root.message
@@ -124,5 +123,5 @@ TableCard {
             else
                 model.append(js)
         }
-    }
+    }*/
 }

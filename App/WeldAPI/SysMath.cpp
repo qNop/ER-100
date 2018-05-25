@@ -931,7 +931,6 @@ ResType getAngelT(float angel1,float angel2,float height,float rootgap,float hei
         Lk=-1/qTan(angel1*PI/180);//线段b 斜率
         A.y=height;
         A.x=(A.y-Lb)/Lk;//A点坐标
-
         if(angel2==0){
             C.x=0; //C点坐标
             C.y=Lb;

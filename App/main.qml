@@ -268,7 +268,8 @@ Material.ApplicationWindow{
             return -1;
     }
     function sendWeldData(){
-        if((weldTable.count)&&((weldTableIndex>-1)&&(weldTableIndex<weldTable.count))){
+         console.log("weldTableIndex is "+weldTableIndex+"\nweldTable.count"+weldTable.count)
+        if((weldTable.count>0)&&((weldTableIndex>-1)&&(weldTableIndex<weldTable.count))){
             var index=weldTableIndex;
             var res=weldTable.get(index);
             var floor=res.C1.split("/");
@@ -452,9 +453,9 @@ Material.ApplicationWindow{
                                                                             page0SelectedIndex  : page.selectedTab===1?
                                                                                 page1SelectedIndex :page2SelectedIndex])
             switch(page.selectedTab){
-            case 0:tool.tablePageNumber=page0SelectedIndex===3?0:selectedIndex===4?1:5;break;
+            case 0:tool.tablePageNumber=page0SelectedIndex===3?0:page0SelectedIndex===4?1:5;break;
             case 1:tool.tablePageNumber=page1SelectedIndex===0?2:5;break;
-            case 2:tool.tablePageNumber=page2SelectedIndex===0?3:selectedIndex===1?4:5;break;
+            case 2:tool.tablePageNumber=page2SelectedIndex===0?3:page2SelectedIndex===1?4:5;break;
             }
             if (lastFocusedItem !== null) {
                 lastFocusedItem.forceActiveFocus();
@@ -1074,7 +1075,7 @@ Material.ApplicationWindow{
                         }
                         //选择行数据有效
                         //分离层/道
-                        if(sendWeldData()){
+                        if(!sendWeldData()){
                             //焊接表格内无数据
                             errorCode|=0x80000000;
                             ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);

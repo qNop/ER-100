@@ -352,7 +352,7 @@ OverlayLayer {
     }
     Row{
         visible: tablePageNumber<5
-        anchors{right:parent.right;rightMargin:Units.dp(19);top:message.bottom;topMargin: Units.dp(1)}
+        anchors{right:parent.right;rightMargin:Units.dp(24);top:message.bottom;topMargin: Units.dp(5)}
         //Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InOutQuad }}
         spacing: Units.dp(4);
         Repeater{

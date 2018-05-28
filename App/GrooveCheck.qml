@@ -21,7 +21,6 @@ TableCard{
 
     property var settings
 
-    //property Item message
     property string helpText;
     //当前坡口名称
     property string grooveName:""
@@ -34,36 +33,12 @@ TableCard{
     property alias fixDialog: fix
 
     property bool saveAs: false
-/*
-    ListModel{id:pasteModel
-        ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"0";C7:"0";C8:"0"}
-    }
-    ListModel{id:grooveNameListModel
-        ListElement{Name:"";CreatTime:"";Creater:"";EditTime:"";Editor:"";}
-    }
-    ListModel{id:grooveRules
-        ListElement{name:"          No.       :";value:"";show:true;min:0;max:100;isNum:true;step:1}
-        ListElement{name:"板    厚δ(mm):";value:"";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"板厚差e(mm):";value:"";show:true;min:-100;max:100;isNum:true;step:0.1}
-        ListElement{name:"间    隙b(mm):";value:"";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"角  度β1(deg):";value:"";show:true;min:-180;max:180;isNum:true;step:0.1}
-        ListElement{name:"角  度β2(deg):";value:"";show:true;min:-180;max:180;isNum:true;step:0.1}
-    }
-    onCurrentGrooveChanged: {
-        grooveRules.setProperty(1,"name",currentGroove===8?"脚   长ι1(mm):":"板    厚δ(mm):")
-        grooveRules.setProperty(2,"name",currentGroove===8||currentGroove==0||currentGroove==3||currentGroove==5?"脚   长ι2(mm):":"板厚差e(mm):")
-        grooveRules.setProperty(3,"show",currentGroove===8?false:true)
-    }*/
-    //外部更新数据
-    //signal updateModel(string str,var data);
 
     signal getWeldRules();
 
     Connections{
         target: MySQL
-        onMySqlChanged:{
-            //更新列表
-            if(tableName===grooveNameList){
+          onGrooveTableListChanged:{
                 //更新列表
                 updateListModel("Clear",{});
                 for(var i=0;i<jsonObject.length;i++){
@@ -71,9 +46,10 @@ TableCard{
                 }
                 grooveName=jsonObject[0].Name;
                 MySQL.getJsonTable(grooveName);
-            }else if(tableName===grooveName){//更新数据表
+            }
+          onGrooveTableChanged:{//更新数据表
                 updateModel("Clear",{});
-                for(i=0;i<jsonObject.length;i++){
+                for(var i=0;i<jsonObject.length;i++){
                     updateModel("Append",jsonObject[i]);
                 }
                 if(jsonObject.length===0){
@@ -83,7 +59,6 @@ TableCard{
                     selectIndex(0);
                 }
             }
-        }
     }
 
     function getLastGrooveName(){
@@ -110,88 +85,7 @@ TableCard{
     headerTitle: grooveName
     footerText:status==="坡口检测态"?"系统当前处于"+status.replace("态","状态。高压输出！"):"系统当前处于"+status.replace("态","状态。")
     tableRowCount:7
-  /*  fileMenu: [
-        Action{iconName:"av/playlist_add";name:"新建";enabled:false
-            onTriggered: {saveAs=false;newFile.show()}},
-        Action{iconName:"awesome/folder_open_o";name:"打开";enabled: false
-            onTriggered: open.show();},
-        Action{iconName:"awesome/save";name:"保存";
-            onTriggered: {save();}},
-        Action{iconName:"awesome/credit_card";name:"另存为";enabled: false
-            onTriggered: {saveAs=true;newFile.show();
-                //备份数据 新建表格
-                //插入表格数据
-            }
-        },
-        Action{iconName:"awesome/trash_o";name:"删除";enabled: false//grooveNameList.replace("列表","")===grooveName?false:true
-            onTriggered: remove.show();}
-    ]
-    editMenu:[
-        Action{iconName:"awesome/calendar_plus_o";name:"添加";onTriggered:{
-                myTextFieldDialog.title="添加坡口条件";
-                myTextFieldDialog.show();}},
-        Action{iconName:"awesome/edit";name:"编辑";onTriggered:{
-                myTextFieldDialog.title="编辑坡口条件";
-                if((currentRow>=0)&&(table.rowCount)){
-                    myTextFieldDialog.show();
-                }else
-                    message.open("请选择要编辑的行！")
-            }},
-        Action{iconName:"awesome/paste";name:"复制";
-            onTriggered: {
-                if((currentRow>=0)&&(table.rowCount)){
-                    pasteModel.set(0,model.get(currentRow));
-                    message.open("已复制。");}
-                else{
-                    message.open("请选择要复制的行！")
-                }
-            }},
-        Action{iconName:"awesome/copy"; name:"粘帖";
-            onTriggered: {
-                if((currentRow>=0)&&(table.rowCount)){
-                    updateModel("Set", pasteModel.get(0));
-                    selectIndex(currentRow)
-                    message.open("已粘帖。");}
-                else
-                    message.open("请选择要粘帖的行！")
-            }
-        },
-        Action{iconName: "awesome/calendar_times_o";  name:"移除" ;
-            onTriggered: {
-                if((currentRow>=0)&&(table.rowCount)){
-                    updateModel("Remove",{})
-                    message.open("已移除。");}
-                else
-                    message.open("请选择要移除的行！")}
-        },
-        Action{iconName:"awesome/calendar_o";name:"清空";
-            onTriggered: {
-                updateModel("Clear",{});
-                message.open("已清空。");
-            }}
-    ]
-    inforMenu: []
-    funcMenu: [
-        Action{iconName:"awesome/send_o";hoverAnimation:true;summary: "F4"; name:"生成规范";
-            onTriggered:{
-                if((currentRow>=0)&&(table.rowCount)){
-                    getWeldRules();
-                }else {
-                    message.open("请选择要生成规范的坡口信息。")
-                }
-            }
-        },
-        Action{iconName: "awesome/server";name:"条件补正";enabled:teachModel===1;
-            onTriggered: {
-                fix.show()
-            }
-        },
-        Action{iconName: "av/fast_forward";name:"移至中线";
-            onTriggered: {
-                message.open("暂不支持移至中线命令！")
-            }
-        }
-    ]*/
+
     tableData:[
         Controls.TableViewColumn{  role:"C1"; title:currentGroove===8?"脚长 ι1\n (mm)": "板厚 δ\n (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{  role:"C2"; title:currentGroove===8?"脚长 ι2\n (mm)": currentGroove==0||currentGroove==3||currentGroove==5?"脚长 ι\n (mm)":"板厚差 e\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},

@@ -271,7 +271,7 @@ MyConditionView{
         case 24:WeldMath.setStopArcZx(num);break;
             //收弧回退相关 屏蔽掉
             //收弧回退距离
-             case 25:frame.push("303");frame.push("1");frame.push(String(num*10));break;
+        case 25:frame.push("303");frame.push("1");frame.push(String(num*10));break;
             //收弧回退速度
             //  case 26:frame.push("304");frame.push("1");frame.push(String(num*10));break;
             //收弧回退时间
@@ -447,42 +447,39 @@ MyConditionView{
     }
     Connections{
         target: MySQL
-        onMySqlChanged:{
-            if(tableName===root.objectName){
-                condition.length=0;
-                for(var i=0;i<jsonObject.length;i++){
-                    condition.push(Number(jsonObject[i].value));
-                }
-                update();
-                //下发数据
-                for( i=0;i<listName.length;i++){
-                    work(i,false);
-                }
-                makeNum();
-                //关闭1.6丝径
-                changeEnable(4,1,false) //关闭1.6丝径
-                changeEnable(0,2,false)//干伸长25mm disable
-                changeEnable(0,3,false)//干伸长30mm disable
-                //检查使能
-                if(condition[2]){//药芯
-                    changeEnable(2,1,true);//自己使能
-                    changeEnable(5,1,false);//mag disable
-                    changeEnable(6,1,false);//脉冲 disable
-                }
-                if(condition[5]){//mag
-                    changeEnable(2,1,false);//药芯 disable
-                    changeEnable(5,1,true);//mag disable
-                    changeEnable(6,1,true);//脉冲 disable
-                }
-                if(condition[6]){//脉冲
-                    changeEnable(2,1,false) //药芯 disable
-                    changeEnable(5,0,false) //CO2 disable
-                    changeEnable(6,1,true);//脉冲 disable
-                }
+        onWeldConditionChanged:{
+            condition.length=0;
+            for(var i=0;i<jsonObject.length;i++){
+                condition.push(Number(jsonObject[i].value));
+            }
+            update();
+            //下发数据
+            for( i=0;i<listName.length;i++){
+                work(i,false);
+            }
+            makeNum();
+            //关闭1.6丝径
+            changeEnable(4,1,false) //关闭1.6丝径
+            changeEnable(0,2,false)//干伸长25mm disable
+            changeEnable(0,3,false)//干伸长30mm disable
+            //检查使能
+            if(condition[2]){//药芯
+                changeEnable(2,1,true);//自己使能
+                changeEnable(5,1,false);//mag disable
+                changeEnable(6,1,false);//脉冲 disable
+            }
+            if(condition[5]){//mag
+                changeEnable(2,1,false);//药芯 disable
+                changeEnable(5,1,true);//mag disable
+                changeEnable(6,1,true);//脉冲 disable
+            }
+            if(condition[6]){//脉冲
+                changeEnable(2,1,false) //药芯 disable
+                changeEnable(5,0,false) //CO2 disable
+                changeEnable(6,1,true);//脉冲 disable
             }
         }
     }
-
     Component.onCompleted: {
         //变更限制条件
         MySQL.getJsonTable(objectName)

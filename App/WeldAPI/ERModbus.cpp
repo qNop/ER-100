@@ -117,3 +117,23 @@ void ModbusThread::run(){
     }
 }
 
+
+/* "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接",  "平焊V形坡口平对接",
+    "横焊单边V形坡口T接头",  "横焊单边V形坡口平对接",
+    "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接",
+    "水平角焊"*/
+//void ERModbus::setGroove(int value){
+    //pWeldMath->grooveValue=value;
+//}
+void ERModbus::setWeldStyle(int value){
+  // modbusDataType cmd;cmd.rw=WRITE;cmd.reg=88;cmd.num=1;cmd.data[0]=value==2?0:value; cmd.error=0;setmodbusFrame(cmd);
+}
+void ERModbus::setGrooveStyle(int value){
+    //modbusDataType cmd;cmd.rw=WRITE;cmd.reg=89;cmd.num=1;cmd.data[0]=value; cmd.error=0;setmodbusFrame(cmd);
+}
+void ERModbus::setConnectStyle(int value){
+//modbusDataType cmd;cmd.rw=WRITE;cmd.reg=90;cmd.num=1;cmd.data[0]=value; cmd.error=0;setmodbusFrame(cmd);
+}
+void ERModbus::setCeramicBack(int value){
+//modbusDataType cmd;cmd.rw=WRITE;cmd.reg=90;cmd.num=1;cmd.data[0]=value; cmd.error=0;setmodbusFrame(cmd);
+}

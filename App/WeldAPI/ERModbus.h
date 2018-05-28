@@ -57,9 +57,19 @@ private:
 public:
       //QMutex lockThread;
        modbus_t *modbus;
-       int *modbus_Cmd_count;
     explicit ERModbus(QObject* parent = 0);
     ~ERModbus();
+
+       //设置焊接位置
+       void setWeldStyle(int value);
+       //设置坡口形式
+       void setGrooveStyle(int value);
+       //设置链接方式
+       void setConnectStyle(int value);
+       //设置陶瓷衬垫形式(int value)
+       void setCeramicBack(int value);
+
+
 public  slots:
     void setmodbusFrame(QStringList frame);
     //信号

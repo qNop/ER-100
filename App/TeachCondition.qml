@@ -152,8 +152,7 @@ MyConditionView{
     }
     Connections{
         target: MySQL
-        onMySqlChanged:{
-            if(tableName===root.objectName){
+        onTeachConditionChanged:{
                 condition.length=0;
                 for(var i=0;i<jsonObject.length;i++){
                     condition.push(Number(jsonObject[i].value));
@@ -166,7 +165,6 @@ MyConditionView{
                 if(root.condition[0]===2)
                     changeEnable(1,0,false);
             }
-        }
     }
     Component.onCompleted: {
         MySQL.getJsonTable(objectName);

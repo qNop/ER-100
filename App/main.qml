@@ -268,7 +268,7 @@ Material.ApplicationWindow{
             return -1;
     }
     function sendWeldData(){
-         console.log("weldTableIndex is "+weldTableIndex+"\nweldTable.count"+weldTable.count)
+        console.log("weldTableIndex is "+weldTableIndex+"\nweldTable.count"+weldTable.count)
         if((weldTable.count>0)&&((weldTableIndex>-1)&&(weldTableIndex<weldTable.count))){
             var index=weldTableIndex;
             var res=weldTable.get(index);
@@ -305,6 +305,21 @@ Material.ApplicationWindow{
         }else
             return false;
     }
+    function setPage(pageIndex,index){
+        page.selectedTab=pageIndex;
+        navigationDrawer.selectedIndex=index;
+        Qt.inputMethod.hide();
+        /*找出本次选择的焦点*/
+        lastFocusedItem=Utils.findChild(page.selectedTab === 0 ?preConditionTab:page.selectedTab===1?
+                                                                     weldAnalyseTab: systemInforTab
+                                        ,sections[page.selectedTab][page.selectedTab===0 ?
+                                                                        page0SelectedIndex  : page.selectedTab===1?
+                                                                            page1SelectedIndex :page2SelectedIndex])
+        if (lastFocusedItem !== null) {
+            lastFocusedItem.forceActiveFocus();
+        }
+    }
+
     /*初始化Tabpage*/
     initialPage: Material.TabbedPage {
         id: page
@@ -316,7 +331,7 @@ Material.ApplicationWindow{
         actions: [
             /*坡口形状action*/
             Material.Action{id:grooveAction;name: currentGrooveName
-                onTriggered:{page.selectedTab=0;app.page0SelectedIndex=0;}
+                onTriggered:{setPage(0,0)}
             },
             /*时间action*/
             Material.Action{name: qsTr("日期"); id:date;
@@ -486,8 +501,7 @@ Material.ApplicationWindow{
                             if(!teachConditionPage.writeEnable){
                                 for(var i=2;i<6;i++){
                                     if(Number(value[i])!==teachConditionPage.condition[i-1]){//始终端改变
-                                        page.selectedTab=0;
-                                        page0SelectedIndex=1;
+                                        setPage(0,1)
                                         lastFocusedItem=teachConditionPage;//聚焦lastFocusedItem
                                         lastFocusedItem.forceActiveFocus();
                                         teachConditionPage.selectedIndex=i-1;//切换选中栏
@@ -524,8 +538,7 @@ Material.ApplicationWindow{
                         target:app
                         onChangeTeachSet:{
                             if(Number(value[0])!==weldConditionPage.condition[1]){//头部摇动
-                                page.selectedTab=0;
-                                page0SelectedIndex=2;
+                                setPage(0,2)
                                 lastFocusedItem=weldConditionPage;//聚焦lastFocusedItem
                                 lastFocusedItem.forceActiveFocus();
                                 weldConditionPage.selectedIndex=1;
@@ -567,8 +580,7 @@ Material.ApplicationWindow{
                     onGetWeldRules:{
                         if((currentRow>=0)&&(table.rowCount)){
                             //先切换界面
-                            page.selectedTab=1;
-                            app.page1SelectedIndex=0;
+                            setPage(1,0)
                             //生成规范前先更新限制条件
                             limitedConditionPage.setLimited();
                             //计算坡口条件
@@ -677,6 +689,7 @@ Material.ApplicationWindow{
                     Connections{
                         target: weldConditionPage
                         onChangeNum:{limitedConditionPage.limitedString=value;
+                            tool.limitedString=value;
                             limitedConditionPage.limitedRulesNameList= app.grooveStyleName[app.currentGroove]+"限制条件列表"+limitedConditionPage.limitedString;
                             limitedConditionPage.getLastRulesName();
                         }
@@ -870,9 +883,7 @@ Material.ApplicationWindow{
             AppConfig.setleds("ready");
             if(!myErrorDialog.showing){
                 //切换页面
-                page.selectedTab=0;
-                //
-                app.page0SelectedIndex=0;
+                setPage(0,0)
             }
         }else if(sysStatus==="坡口检测态"){
             //高压接触传感
@@ -880,9 +891,7 @@ Material.ApplicationWindow{
             //切换指示灯
             AppConfig.setleds("start");
             //切换界面
-            page.selectedTab=0;
-            //切小页面
-            app.page0SelectedIndex=3;
+            setPage(0,3)
             //不选中任何一行
             changeGrooveTableIndex(-1);
             //全自动则清除
@@ -890,12 +899,7 @@ Material.ApplicationWindow{
                 //清除坡口数据
                 grooveTable.clear();
             }else {//半自动 手动 检测数据表是否有效
-                /*  if(grooveTable.count===0){
-                    //写入错误
-                    errorCode|=0x20000000;
-                    ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
-                }else{
-                *///根据示教点数 复制第一个数据表格内容创建 示教点数个 坡口参数
+                //根据示教点数 复制第一个数据表格内容创建 示教点数个 坡口参数
                 if(grooveTable.count>1)//删除多余点保留第一点
                     grooveTable.remove(1,grooveTable.count-1);
                 else if(grooveTable.count===0){
@@ -917,7 +921,7 @@ Material.ApplicationWindow{
             //切换指示灯为准备好
             AppConfig.setleds("ready");
             page.selectedTab=1;
-            app.page1SelectedIndex=0;
+            navigationDrawer.selectedIndex=0;
             changeWeldIndex(-1);
             weldTableIndex=-1;
         }else if(sysStatus==="焊接态"){
@@ -925,10 +929,8 @@ Material.ApplicationWindow{
             AppConfig.setleds("start");
             //提示
             message.open(weldFix?"焊接系统修补焊接中。":"焊接系统焊接中。")
-            //切换到 焊接曲线页面下
-            app.page1SelectedIndex=0;
             //切换到 焊接分析页面
-            page.selectedTab=1;
+            setPage(1,0)
             //把line的坐标更新到当前坐标
             app.startLine=new Date();
         }else if(sysStatus==="焊接端部暂停态"){
@@ -936,10 +938,8 @@ Material.ApplicationWindow{
             AppConfig.setleds("ready");
             //系统焊接中
             message.open(weldFix?"焊接系统修补焊接端部暂停。":"焊接系统焊接端部暂停。")
-            //切换到 表格
-            app.page1SelectedIndex=0;
             //切换到 焊接分析页面
-            page.selectedTab=1;
+            setPage(1,0)
         }else if(sysStatus==="停止态"){
             //修复修补焊接时 数据下发不正常的问题
             weldFix=false;
@@ -956,14 +956,14 @@ Material.ApplicationWindow{
             message.open(weldFix?"焊接系统修补焊接中间暂停。":"焊接系统焊接中间暂停。")
         }
         /*找出本次选择的焦点*/
-        lastFocusedItem=Utils.findChild(page.selectedTab === 0 ?preConditionTab:page.selectedTab===1?
+        /* lastFocusedItem=Utils.findChild(page.selectedTab === 0 ?preConditionTab:page.selectedTab===1?
                                                                      weldAnalyseTab: systemInforTab
                                         ,sections[page.selectedTab][page.selectedTab===0 ?
                                                                         page0SelectedIndex  : page.selectedTab===1?
                                                                             page1SelectedIndex :page2SelectedIndex])
         if (lastFocusedItem !== null) {
             lastFocusedItem.forceActiveFocus();
-        }
+        }*/
     }
     Connections{
         target: ERModbus
@@ -1216,12 +1216,7 @@ Material.ApplicationWindow{
         settings: appSettings
         status:sysStatus
         currentGroove: app.currentGroove
-        /* tablePageNumber:(page.selectedTab===0&&page0SelectedIndex===3)?0:
-                                                                        (page.selectedTab===0&&page0SelectedIndex===4)?1:
-                                                                                                                        (page.selectedTab===1&&page1SelectedIndex===0)?2:
-                                                                                                                                                                        (page.selectedTab===2&&page2SelectedIndex===0)?3:
-                                                                                                                                                                                                                        (page.selectedTab===2&&page2SelectedIndex===1)?4:5
-        */toolGrooveIndex: app.grooveTableIndex
+        toolGrooveIndex: app.grooveTableIndex
         toolGrooveModel: grooveTable
         toolGrooveName: app.grooveName
         toolGrooveNameList: app.currentGrooveNameList
@@ -1772,14 +1767,12 @@ Material.ApplicationWindow{
     }*/
     Connections{
         target: MySQL
-        onMySqlChanged:{
-            if(tableName==="AccountTable"){
-                for(var i=0;i<jsonObject.length;i++){
-                    if(i<accountTable.count)
-                        accountTable.set(i,jsonObject[i]);
-                    else
-                        accountTable.append(jsonObject[i]);
-                }
+        onAccountTableChanged:{
+            for(var i=0;i<jsonObject.length;i++){
+                if(i<accountTable.count)
+                    accountTable.set(i,jsonObject[i]);
+                else
+                    accountTable.append(jsonObject[i]);
             }
         }
         onMySqlStatusChanged:{

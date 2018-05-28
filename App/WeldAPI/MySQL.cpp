@@ -185,5 +185,30 @@ void MySQL::getValue(QString tableName,QString func,QString id){
         emit mySqlStatusChanged(false,tableName);
 }
 
+void MySQL::mySqlChanged(QList<QVariant> jsonObject,QString tableName){
+    //判断是哪个数据库
+    if(tableName.contains("AccountTable")){
+        emit accountTableChanged(jsonObject);
+    }else if(tableName.endsWith("坡口条件")){
+        emit grooveTableChanged(jsonObject);
+    }else if(tableName.contains("限制条件")&&!tableName.contains("限制条件列表")){
+        emit limitedTableChanged(jsonObject);
+    }else if(tableName.endsWith("焊接规范")){
+        emit weldTableChanged(jsonObject);
+    }else if(tableName.endsWith("坡口条件列表")){
+        emit grooveTableListChanged(jsonObject);
+    }else if(tableName.contains("限制条件列表")){
+        emit limitedTableListChanged(jsonObject);
+    }else if(tableName.endsWith("焊接规范列表")){
+        emit weldTableListChanged(jsonObject);
+    }else if(tableName.contains("TeachCondition")){
+        emit teachConditionChanged(jsonObject);
+    }else if(tableName.contains("WeldCondition")){
+        emit weldConditionChanged(jsonObject);
+    }else {
+        emit mySqlStatusChanged(false,tableName);
+    }
+}
+
 
 

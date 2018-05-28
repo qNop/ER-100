@@ -70,9 +70,28 @@ public  slots:
     void setValue(QString tableName,QString funcI,QString id,QString funcV,QString value);
     //获取value值
     void getValue(QString tableName,QString func,QString id);
+    //
+    void mySqlChanged(QList<QVariant> jsonObject,QString tableName);
 signals:
-     void mySqlChanged(QList<QVariant> jsonObject,QString tableName);
      void mySqlStatusChanged(bool status,QString tableName);
+     //获取账户列表
+     void accountTableChanged(QList<QVariant> jsonObject);
+     //获取示教条件
+     void teachConditionChanged(QList<QVariant> jsonObject);
+     //获取焊接条件
+     void weldConditionChanged(QList<QVariant> jsonObject);
+     //获取坡口信息
+     void grooveTableChanged(QList<QVariant> jsonObject);
+     //获取限制条件信息
+     void limitedTableChanged(QList<QVariant> jsonObject);
+     //获取焊接条件信息
+     void weldTableChanged(QList<QVariant> jsonObject);
+     //获取坡口信息
+     void grooveTableListChanged(QList<QVariant> jsonObject);
+     //获取限制条件信息
+     void limitedTableListChanged(QList<QVariant> jsonObject);
+     //获取焊接条件信息
+     void weldTableListChanged(QList<QVariant> jsonObject);
 };
 
 #endif // SQLITE3_H

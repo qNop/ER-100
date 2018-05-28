@@ -11,8 +11,7 @@ TableCard {
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "LimitedConditon"
-
-    /*    ListModel{id:pasteModel;
+    /*ListModel{id:pasteModel;
         ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:""}
     }*/
     property bool swingWidthOrWeldWidth
@@ -28,65 +27,31 @@ TableCard {
 
     property bool saveAs: false
 
-/*
-    ListModel{id:pasteModel;
-        ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:""}
-    }
-
-    ListModel{
-        id:nameModel
-        ListElement{name:"坡口侧          电流       (A)";value:"";show:true;min:10;max:300;isNum:true;step:1}
-        ListElement{name:"中间              电流       (A)";value:"";show:true;min:10;max:300;isNum:true;step:1}
-        ListElement{name:"非坡口侧      电流       (A)";value:"";show:true;min:10;max:300;isNum:true;step:1}
-        ListElement{name:"坡口侧      停留时间    (s)";value:"";show:true;min:0;max:5;isNum:true;step:0.01}
-        ListElement{name:"非坡口侧  停留时间    (s)";value:"";show:true;min:0;max:5;isNum:true;step:0.01}
-        ListElement{name:"层      高      Min     (mm)";value:"";show:true;min:1;max:10;isNum:true;step:0.1}
-        ListElement{name:"层      高      Max    (mm)";value:"";show:true;min:1;max:10;isNum:true;step:0.1}
-        ListElement{name:"坡口侧    接近距离(mm)";value:"";show:true;min:-50;max:50;isNum:true;step:0.1}
-        ListElement{name:"非坡口侧接近距离(mm)";value:"";show:true;min:-50;max:50;isNum:true;step:0.1}
-        ListElement{name:"摆  动  宽  度  Max (mm)";value:"";show:true;min:1;max:100;isNum:true;step:0.1}
-        ListElement{name:"分    道    间   隔     (mm)";value:"";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"分    开    结   束  比   (%)";value:"";show:true;min:0;max:1;isNum:true;step:0.01}
-        ListElement{name:"焊    接    电     压        (V)";value:"";show:true;min:0;max:50;isNum:true;step:0.1}
-        ListElement{name:"焊接速度Min  (mm/min)";value:"";show:true;min:0;max:2000;isNum:true;step:0.1}
-        ListElement{name:"焊接速度Max (mm/min)";value:"";show:true;min:0;max:2000;isNum:true;step:0.1}
-        ListElement{name:"层    填    充   系   数 (%)";value:"";show:true;min:0;max:1;isNum:true;step:0.01}
-    }
-    onSwingWidthOrWeldWidthChanged: {
-        nameModel.setProperty(9,"name",swingWidthOrWeldWidth?"摆  动  宽  度  Max (mm)":"焊  道  宽  度  Max (mm)")
-    }*/
-
     property int num: 0
 
     property string limitedString: ""
-/*
-    ListModel{id:limitedRulesNameListModel
-        ListElement{Name:"";CreatTime:"";Creater:"";EditTime:"";Editor:"";}
-    }*/
 
     Connections{
         target: MySQL
-        onMySqlChanged:{
-            var i;
+        onLimitedTableListChanged:{
             //更新列表
-            if(tableName===limitedRulesNameList){
-                updateListModel("Clear",{});
-                for(i=0;i<jsonObject.length;i++){
-                    updateListModel("Append",jsonObject[i]);
-                }
-                limitedRulesName=jsonObject[0].Name;
-                MySQL.getJsonTable(limitedRulesName);
-            }else if(tableName===limitedRulesName){//更新数据表
-                updateModel("Clear",{});
-                for(i=0;i<jsonObject.length;i++){
-                    updateModel("Append",jsonObject[i]);
-                }
-                if(jsonObject.length===0){
-                    currentRow=-1;
-                }else{
-                    currentRow=0;
-                    selectIndex(0);
-                }
+            updateListModel("Clear",{});
+            for(var i=0;i<jsonObject.length;i++){
+                updateListModel("Append",jsonObject[i]);
+            }
+            limitedRulesName=jsonObject[0].Name;
+            MySQL.getJsonTable(limitedRulesName);
+        }
+        onLimitedTableChanged:{//更新数据表
+            updateModel("Clear",{});
+            for(var i=0;i<jsonObject.length;i++){
+                updateModel("Append",jsonObject[i]);
+            }
+            if(jsonObject.length===0){
+                currentRow=-1;
+            }else{
+                currentRow=0;
+                selectIndex(0);
             }
         }
     }
@@ -95,93 +60,11 @@ TableCard {
         MySQL.getDataOrderByTime(limitedRulesNameList,"EditTime");
     }
 
-  /*  function selectIndex(index){
-        if((index<model.count)&&(index>-1)){
-            table.selection.clear();
-            table.selection.select(index);
-        }
-        else{
-            message.open("索引超过条目上限或索引无效！")
-        }
-    }*/
-
     function setLimited(){
         for(var i=0;i<model.count;i++){
             WeldMath.setLimited(model.get(i));
         }
     }
-/*
-    function limitedMath(start,end){
-        var resArray=new Array(0);
-        var temp;
-        try{
-            for(var i=start;i<end;i++){
-                var res=model.get(i);
-                if((typeof(res.C1)==="string")&&(res.C1!=="")){
-                    temp=res.C1.split("/")
-                    resArray.push(temp[0])
-                    resArray.push(temp[1])
-                    resArray.push(temp[2])
-                }else{
-                    resArray.push("0")
-                    resArray.push("0")
-                    resArray.push("0")
-                }if((typeof(res.C2)==="string")&&(res.C2!=="")){
-                    temp=res.C2.split("/")
-                    resArray.push(temp[0])
-                    resArray.push(temp[1])
-                }else{
-                    resArray.push("0")
-                    resArray.push("0")
-                }if((typeof(res.C3)==="string")&&(res.C3!=="")){
-                    temp=res.C3.split("/")
-                    resArray.push(temp[0])
-                    resArray.push(temp[1])}
-                else{
-                    resArray.push("0")
-                    resArray.push("0")
-                }if((typeof(res.C4)==="string")&&(res.C4!=="")){
-                    temp=res.C4.split("/")
-                    resArray.push(temp[0])
-                    resArray.push(temp[1])
-                }else{
-                    resArray.push("0")
-                    resArray.push("0")
-                }if((typeof(res.C5)==="string")&&(res.C5!==""))
-                    resArray.push(res.C5)
-                else
-                    resArray.push("0");
-                if((typeof(res.C6)==="string")&&(res.C6!==""))
-                    resArray.push(res.C6)
-                else
-                    resArray.push("0");
-                if((typeof(res.C7)==="string")&&(res.C7!==""))
-                    resArray.push(res.C7)
-                else
-                    resArray.push("0");
-                if((typeof(res.C8)==="string")&&(res.C8!==""))
-                    resArray.push(res.C8)
-                else
-                    resArray.push("0");
-                if((typeof(res.C9)==="string")&&(res.C9!=="")){
-                    temp=res.C9.split("/")
-                    resArray.push(temp[0])
-                    resArray.push(temp[1])
-                }else{
-                    resArray.push("0")
-                    resArray.push("0")
-                }
-                if((typeof(res.C10)==="string")&&(res.C10!=="")){
-                    resArray.push(res.C10)
-                }else{
-                    resArray.push("0")
-                }
-            }
-        }catch(e){
-            message.open(objectName+"error"+e.message);
-        }
-        return resArray;
-    }*/
 
     function save(){
         if(typeof(limitedRulesName)==="string"){
@@ -235,77 +118,11 @@ TableCard {
         }
     }
 
- //   ListModel{id:model;}
     headerTitle: limitedRulesName.replace(limitedString,"");
     firstColumn.title: "限制条件\n      层"
     footerText: limitedString
     tableRowCount:7
-/*   model:limitedTable
-    fileMenu: [
-        Action{iconName:"awesome/calendar_plus_o";name:"新建";enabled: false;
-            onTriggered:{ saveAs=false;newFile.open()}
-        },
-        Action{iconName:"awesome/folder_open_o";name:"打开";enabled:false;
-            onTriggered: open.open();
-        },
-        Action{iconName:"awesome/save";name:"保存";
-            onTriggered: {save();}
-        },
-        Action{iconName:"awesome/credit_card";name:"另存为";enabled:false;
-            onTriggered: {saveAs=true;newFile.show();
-                //备份数据 新建表格
-                //插入表格数据
-            }
-        },
-        Action{iconName:"awesome/calendar_times_o";name:"删除";enabled: false//limitedRulesNameList.replace("列表","")===limitedRulesName?false:true;
-            onTriggered: remove.open();
-        }
-    ]
-    editMenu:[
-        Action{iconName:"awesome/edit";name:"添加";
-            onTriggered:{addOrEdit=true;edit.show();}
-        },
-        Action{iconName:"awesome/edit";name:"编辑";
-            onTriggered: {addOrEdit=false;edit.show();}
-        },
-        Action{iconName:"awesome/paste";name:"复制";
-            onTriggered:{ if(currentRow>=0){
-                    pasteModel.set(0,limitedTable.get(currentRow));
-                    message.open("已复制。");}
-                else{
-                    message.open("请选择要复制的行！")
-                }
-            }
-        },
-        Action{iconName:"awesome/copy"; name:"粘帖";
-            onTriggered:{  if(currentRow>=0){
-                    pasteModel.setProperty(0,"ID",limitedTable.get(currentRow).ID)
-                    limitedTable.set(currentRow,pasteModel.get(0));
-                    selectIndex(currentRow);
-                    message.open("已粘帖。");}
-                else
-                    message.open("请选择要粘帖的行！")
-            }
-        },
-        Action{iconName: "awesome/trash_o";  name:"移除";
-            onTriggered: {
-                if(currentRow>=0){
-                    selectIndex(currentRow-1);
-                    limitedTable.remove(currentRow);
-                    message.open("已移除。");}
-                else
-                    message.open("请选择要移除的行！")
-            }
-        }]
-    inforMenu: [ //Action{iconName: "awesome/trash_o";  name:"详细信息" ; }
-    ]
-    funcMenu: [ Action{iconName:"awesome/send_o";name:"更新算法";
-            onTriggered: {
-                for(var i=0;i<limitedTable.count;i++){
-                    WeldMath.setLimited(limitedTable.get(i));
-                }
-            }
-        }]*/
+
     tableData:[
         Controls.TableViewColumn{role: "C1";title:"坡口/中/非坡口\n   焊接电流(A)";width:Units.dp(140);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C2";title: "坡口/非坡口\n停留时间(s)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
@@ -319,7 +136,7 @@ TableCard {
         Controls.TableViewColumn{role: "C9";title: "焊接速度Min/Max\n        (cm/min)";width:Units.dp(160);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C11";title:"代码";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: false}
     ]
-/*
+    /*
     Dialog{
         id:open
         title:qsTr("打开限制条件")

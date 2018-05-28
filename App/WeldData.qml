@@ -69,26 +69,24 @@ TableCard{
     }*/
     Connections{
         target: MySQL
-        onMySqlChanged:{
-            //更新列表
-            if(tableName===weldRulesNameList){
-                updateListModel("Clear",{});
-                for(var i=0;i<jsonObject.length;i++){
-                    updateListModel("Append",jsonObject[i]);
-                }
-                weldRulesName=jsonObject[0].Name;
-                MySQL.getJsonTable(weldRulesName);
-            }else if(tableName===weldRulesName){//更新数据表
-                updateModel("Clear",{});
-                for(i=0;i<jsonObject.length;i++){
-                    updateModel("Append",jsonObject[i]);
-                }
-                if(jsonObject.length===0){
-                    currentRow=-1;
-                }else{
-                    currentRow=0;
-                    selectIndex(0);
-                }
+        onWeldTableListChanged:{
+            updateListModel("Clear",{});
+            for(var i=0;i<jsonObject.length;i++){
+                updateListModel("Append",jsonObject[i]);
+            }
+            weldRulesName=jsonObject[0].Name;
+            MySQL.getJsonTable(weldRulesName);
+        }
+        onWeldTableChanged:{//更新数据表
+            updateModel("Clear",{});
+            for(var i=0;i<jsonObject.length;i++){
+                updateModel("Append",jsonObject[i]);
+            }
+            if(jsonObject.length===0){
+                currentRow=-1;
+            }else{
+                currentRow=0;
+                selectIndex(0);
             }
         }
     }

@@ -631,7 +631,7 @@ OverlayLayer {
         ListElement{name:"所在班组：";value:"";show:true;min:10;max:300;isNum:false;step:1}
         ListElement{name:"备        注：";value:"";show:true;min:10;max:300;isNum:false;step:1}
     }
-
+    property string limitedString
     MyTextFieldDialog{
         id:myTextFieldDialog
         sourceComponent:Image{
@@ -649,8 +649,8 @@ OverlayLayer {
                                                                                                               "C8":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C8:"0",
                                                             })
             }else if(tablePageNumber===1){
-                var str=toolWeldModel.count===0?"陶瓷衬垫":toolWeldModel.count===1?"打底层":toolWeldModel.count===2?"第二层":toolWeldModel.count===3?"填充层":toolWeldModel.count===4?"盖面层":"立板余高层"
-                updateModel("limitedModel",title==="编辑限制条件"?"Set":"Append",toolGrooveIndex,{"ID":str,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
+                var str=toolLimitedIndex===0?"陶瓷衬垫":toolLimitedIndex===1?"打底层":toolLimitedIndex===2?"第二层":toolLimitedIndex===3?"填充层":toolLimitedIndex===4?"盖面层":"立板余高层"
+                updateModel("limitedModel",title==="编辑限制条件"?"Set":"Append",toolLimitedIndex,{"ID":str,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
                                                                  "C2":getText(3)+"/"+getText(4), "C3":getText(5)+"/"+getText(6),"C4":getText(7)+"/"+getText(8),"C5":getText(9),
                                                                  "C6":getText(10), "C7":getText(11),"C8":getText(12),"C9":getText(13)+"/"+getText(14),"C10":getText(15),
                                                                  "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"

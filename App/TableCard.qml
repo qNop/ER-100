@@ -39,47 +39,6 @@ Card{
 
     property Item message
 
-   /* property list<Action> fileMenu;
-    property list<Action> editMenu;
-    property list<Action> inforMenu;
-    property list<Action> funcMenu;
-
-    property list<Action>  actions: [
-        Action{iconName:"awesome/file_text_o";name:"文件";hoverAnimation:true;summary: "F1"
-            onTriggered: {
-                //source为triggered的传递参数
-                dropDown.actions=fileMenu;
-                dropDown.loadView()
-                dropDown.open(source,0,source.height+3);
-                dropDown.place=0;
-            }
-        },
-        Action{iconName:"awesome/edit"; name:"修改";hoverAnimation:true;summary: "F2";
-            onTriggered:{
-                dropDown.actions=editMenu;
-                dropDown.loadView()
-                dropDown.open(source,0,source.height+3);
-                dropDown.place=1;
-            }
-        },
-        Action{iconName:"awesome/sticky_note_o";name:"信息";hoverAnimation:true;summary: "F3"
-            onTriggered:{
-                dropDown.actions=inforMenu;
-                dropDown.loadView()
-                dropDown.open(source,0,source.height+3);
-                dropDown.place=2;
-            }
-        },
-        Action{iconName:"awesome/stack_overflow";  name:"工具";hoverAnimation:true;summary: "F4"
-            onTriggered:{
-                dropDown.actions=funcMenu;
-                dropDown.loadView()
-                dropDown.open(source,0,source.height+3);
-                dropDown.place=3;
-            }
-        }
-    ]*/
-
     //外部更新数据
     signal updateModel(string str,var data);
     signal updateListModel(string str,var data);
@@ -103,55 +62,8 @@ Card{
             style:"subheading"
             color: Theme.light.shade(0.87)
             text:headerTitle
-           // wrapMode: Text.WordWrap
             width: Units.dp(400)
-        }/*
-        Row{
-            anchors{right: parent.right;rightMargin: Units.dp(14);verticalCenter: parent.verticalCenter}
-            spacing: Units.dp(4);
-            Repeater{
-                id:repeater
-                model:actions.length
-                delegate:View{
-                    id:view
-                    width: row.width+Units.dp(8)
-                    enabled: actions[index].enabled
-                    opacity: enabled ? 1 : 0.6
-                    height:Units.dp(36)
-                    radius: 4
-                    Ink{id:ink
-                        anchors.fill: parent
-                        onPressed: actions[index].triggered(view);
-                        enabled: actions[index].enabled
-                        circular: true
-                        centered: true
-                    }
-                    Tooltip{
-                        text:actions[index].summary
-                        mouseArea: ink
-                    }
-                    Row{
-                        id:row
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: Units.dp(4);
-                        Icon{
-                            id:icon
-                            source:actions[index].iconSource
-                            color: dropDown.place===index&& dropDown.showing ?Theme.accentColor : Theme.light.iconColor
-                            size: Units.dp(27)
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
-                        Label{
-                            style: "button"
-                            text:actions[index].name;
-                            anchors.verticalCenter: parent.verticalCenter
-                            color: dropDown.place===index&& dropDown.showing ?Theme.accentColor : Theme.light.textColor
-                        }
-                    }
-                }
-            }
-        }*/
+        }
     }
     Controls.TableView{
         id:tableView

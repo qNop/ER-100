@@ -36,6 +36,7 @@
         <file>../Pic/logo.png</file>
         <file>MySettings.qml</file>
         <file>MyMath.js</file>
-	<file>Tool.qml</file>
+        <file>Tool.qml</file>
+        <file>TestMyConditionView.qml</file>
     </qresource>
 </RCC>

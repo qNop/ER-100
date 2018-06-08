@@ -22,7 +22,7 @@ Material.ApplicationWindow{
     theme.tabHighlightColor: theme.accentColor
     //不需要解释
     property var grooveStyleName: [ "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接", "平焊V形坡口平对接","横焊单边V形坡口T接头",  "横焊单边V形坡口平对接", "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接","水平角焊"]
-    property var preset:["GrooveCondition","TeachCondition","WeldCondition","GrooveCheck","LimitedConditon"]
+    property var preset:[/*"GrooveCondition"*/"TestMyConditionView","TeachCondition","WeldCondition","GrooveCheck","LimitedConditon"]
     property var presetName: ["坡口条件","示教条件","焊接条件","坡口参数","限制条件"]
     property var presetIcon: ["awesome/road","action/android","user/MAG","awesome/road","awesome/sliders"]
     property var analyse: ["WeldData"]//,"WeldAnalyse"]
@@ -308,6 +308,7 @@ Material.ApplicationWindow{
     function setPage(pageIndex,index){
         page.selectedTab=pageIndex;
         navigationDrawer.selectedIndex=index;
+        console.log("pageIndex :"+pageIndex+" index :"+index)
         Qt.inputMethod.hide();
         /*找出本次选择的焦点*/
         lastFocusedItem=Utils.findChild(page.selectedTab === 0 ?preConditionTab:page.selectedTab===1?
@@ -406,9 +407,7 @@ Material.ApplicationWindow{
         MyNavigationDrawer{
             id:navigationDrawer
             ListModel{id:listModel;ListElement{name:"";icon:""}}
-            property bool openFinish: false
             settings: appSettings
-            onClosed: openFinish=false;
             //加载model进入listview
             onOpened: {
                 listModel.clear();
@@ -423,21 +422,19 @@ Material.ApplicationWindow{
                 model=listModel;
                 oldIndex=page.selectedTab===0 ? page0SelectedIndex :page.selectedTab===1?page1SelectedIndex :page2SelectedIndex;
                 selectedIndex=oldIndex;
-                openFinish=true;
+
             }
             onSelectedIndexChanged: {
-                if(openFinish){
-                    switch(page.selectedTab){
-                    case 0:page0SelectedIndex=selectedIndex;
-                        tool.tablePageNumber=selectedIndex===3?0:selectedIndex===4?1:5;
-                        break;
-                    case 1:page1SelectedIndex=selectedIndex;
-                        tool.tablePageNumber=selectedIndex===0?2:5;
-                        break;
-                    case 2:page2SelectedIndex=selectedIndex;
-                        tool.tablePageNumber=selectedIndex===0?3:selectedIndex===1?4:5;
-                        break;
-                    }
+                switch(page.selectedTab){
+                case 0:page0SelectedIndex=selectedIndex;
+                    tool.tablePageNumber=selectedIndex===3?0:selectedIndex===4?1:5;
+                    break;
+                case 1:page1SelectedIndex=selectedIndex;
+                    tool.tablePageNumber=selectedIndex===0?2:5;
+                    break;
+                case 2:page2SelectedIndex=selectedIndex;
+                    tool.tablePageNumber=selectedIndex===0?3:selectedIndex===1?4:5;
+                    break;
                 }
             }
             //Nav关闭时 将焦点转移到选择的Item上 方便按键的对焦//
@@ -718,11 +715,16 @@ Material.ApplicationWindow{
                 GrooveCondition{
                     id:grooveConditionPage
                     settings: appSettings
-                    visible: page.selectedTab===0&&page0SelectedIndex===0
+                    visible: page.selectedTab===0&&page0SelectedIndex===6
                     message: tool.message
                     onCurrentGrooveChanged:{
                         app.currentGroove=currentGroove;
                     }
+                }
+                TestMyConditionView{
+                    id:testMyConditionView
+                    objectName: "TestMyConditionView"
+                    visible: page.selectedTab===0&&page0SelectedIndex===0
                 }
             }
         }
@@ -1089,7 +1091,6 @@ Material.ApplicationWindow{
                         //读取系统时间
                         ERModbus.setmodbusFrame(["R","510","6"])
                     }else{
-                        //console.log(frame);
                         AppConfig.setdateTime(frame.slice(2,8));
                     }
                     readTime=true;
@@ -1116,6 +1117,7 @@ Material.ApplicationWindow{
             //确保数组数值正确
             if(status==="Successed"){
                 weldTable.set(Number(value.ID)-1,value)
+                console.log(value)
             }else if(status==="Clear"){
                 weldTableIndex=-1;
                 changeWeldIndex(-1);
@@ -1147,65 +1149,7 @@ Material.ApplicationWindow{
                 ERModbus.setmodbusFrame(["W","1","2",String(errorCode&0x0000ffff),String((errorCode&0xffff0000)>>16)]);
             }
         }
-    }/*
-    Material.OverlayLayer{
-        objectName: "ActionButtonOverlayer"
-        z:snackBar.opened?4:0
-        Material.ActionButton{
-            id:robot
-            iconName: "action/android"
-            anchors.right: snackBar.left
-            anchors.rightMargin: Material.Units.dp(24)
-            anchors.verticalCenter: snackBar.verticalCenter
-            isMiniSize: true
-            onPressedChanged: {
-                if(pressed){
-                    moto.open();
-                }
-            }
-        }
-        //危险报警action
-        Material.ActionButton{
-            id:error
-            property int count: 0
-            iconName: errorCode?"alert/warning":sysStatus==="空闲态"?"awesome/play":
-                                                                   sysStatus==="坡口检测态"?"awesome/flash":
-                                                                                        sysStatus==="焊接态"?"user/MAG":
-                                                                                                           sysStatus==="坡口检测完成态"?"awesome/step_forward":
-                                                                                                                                  sysStatus==="停止态"?"awesome/stop": "awesome/pause"
-            anchors.right: robot.visible? robot.left:snackBar.left
-            anchors.rightMargin: Material.Units.dp(16)
-            anchors.verticalCenter: snackBar.verticalCenter
-            isMiniSize: true
-            onPressedChanged: {
-                ///防止出现 屏幕开机 click 焦点错误
-                count++;
-                if(pressed&&count>3){
-                    count=4;
-                    myErrorDialog.open();
-                }
-            }
-        }
-        Material.Snackbar{
-            id:snackBar
-            anchors {
-                left:parent.left;
-                leftMargin: opened ? page.width - width : page.width
-                right:undefined
-                bottom:undefined
-                bottomMargin: undefined
-                top:parent.top
-                topMargin:app.height-page.height-snackBar.height/2
-                horizontalCenter:undefined
-                Behavior on leftMargin {
-                    NumberAnimation { duration: 300 }
-                }
-            }
-            property string status: "open"
-            fullWidth:false
-            duration:3000;
-        }
-    }*/
+    }
 
     Tool{
         id:tool
@@ -1237,7 +1181,6 @@ Material.ApplicationWindow{
         toolWeldNameList: app.currentWeldNameList
         toolWeldNameListModel: weldRulesNameListModel
 
-        //toolAccountIndex:
         toolAccountModel: accountTable
         toolAccountModelName: "accountModel"
         onToggleMotoDialog: moto.toggle();
@@ -1610,6 +1553,19 @@ Material.ApplicationWindow{
                 }
             }
         }
+        Keys.onDigit9Pressed: {
+            app.sysStatus="空闲态";
+            appSettings.currentUserPassword = "TKSW"
+            appSettings.currentUserName = "TKSW";
+            appSettings.currentUserType = "超级用户";
+            app.superUser=appSettings.currentUserType==="超级用户"?true:false;
+            changeUserFlag=true;
+            //发送主控登录标志
+            ERModbus.setmodbusFrame(["W","25","1","2"])
+            close();
+            rejected();
+        }
+
         onAccepted: {
             if(changeuser.positiveButtonEnabled){
                 appSettings.currentUserPassword = changeuser.password

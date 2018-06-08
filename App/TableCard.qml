@@ -44,12 +44,10 @@ Card{
     signal updateListModel(string str,var data);
 
     function selectIndex(index){
-        if((index<model.count)&&(index>-1)){
-            table.selection.clear();
+        if(index<model.count){
             table.selection.select(index);
-        }
-        else{
-            message.open("索引超过条目上限或索引无效！")
+        }else{
+            message.open("索引超过条目上限！")
         }
     }
 
@@ -118,6 +116,18 @@ Card{
         __listView.removeDisplaced:Transition{
             NumberAnimation { properties: "y";duration: 200 }
         }
+        Keys.onPressed: {
+                switch(event.key){
+                case Qt.Key_Right:
+                    __horizontalScrollBar.value +=Units.dp(70);
+                    event.accept=true;
+                    break;
+                case Qt.Key_Left:
+                     __horizontalScrollBar.value -=Units.dp(70);
+                    event.accept=true;
+                    break;
+                }
+        }
     }
     Item{
         id:footerItem
@@ -132,34 +142,7 @@ Card{
             text:footerText
         }
     }
-    MenuDropdown{
-        id:dropDown
-        property int place: 0
-    }
-    Keys.onPressed: {
-        switch(event.key){
-        case Qt.Key_Down:
-            tableView.forceActiveFocus();
-            if(tableView.currentRow<(tableView.rowCount-1))
-                tableView.__incrementCurrentIndex();
-            event.accept=true;
-            break;
-        case Qt.Key_Up:
-            tableView.forceActiveFocus();
-            if(tableView.currentRow>0)
-                tableView.__decrementCurrentIndex();
-            event.accept=true;
-            break;
-        case Qt.Key_Right:
-            tableView.forceActiveFocus();
-            tableView.__horizontalScrollBar.value +=Units.dp(70);
-            event.accept=true;
-            break;
-        case Qt.Key_Left:
-            tableView.forceActiveFocus();
-            tableView.__horizontalScrollBar.value -=Units.dp(70);
-            event.accept=true;
-            break;
-        }
+    onFocusChanged: {
+        if(focus){tableView.forceActiveFocus()}
     }
 }

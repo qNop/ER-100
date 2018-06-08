@@ -198,7 +198,7 @@ MyConditionView{
         var num=Number(root.condition[index]);
         switch(index){
             //干伸长
-        case 0: frame.push("120");frame.push("1");frame.push(num ===0?"3":num===1?"4":num===2?"6":"7");break;
+        case 0:frame.push("120");frame.push("1");frame.push(num ===0?"3":num===1?"4":num===2?"6":"7");break;
             //头部摆动方式
         case 1:frame.push("99");frame.push("1");frame.push(String(num));break;
             // 焊丝种类
@@ -459,7 +459,7 @@ MyConditionView{
             }
             makeNum();
             //关闭1.6丝径
-            changeEnable(4,1,false) //关闭1.6丝径
+            changeEnable(4,1,false)//关闭1.6丝径
             changeEnable(0,2,false)//干伸长25mm disable
             changeEnable(0,3,false)//干伸长30mm disable
             //检查使能

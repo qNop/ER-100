@@ -30,7 +30,7 @@ private:
 public:
     SqlThread();
     ~SqlThread();
-    QQueue<QString>  *pCmdBuf;
+    QQueue<QString> *pCmdBuf;
 
 signals:
     void sqlThreadSignal(QList<QVariant> jsonObject,QString tableName);

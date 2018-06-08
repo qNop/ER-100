@@ -157,7 +157,6 @@ TableCard{
         }
     }
 
-
     footerText:"系统当前处于"+status.replace("态","状态。")
     tableRowCount:7
     headerTitle: weldRulesName

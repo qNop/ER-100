@@ -17,11 +17,6 @@ Item {
     }
     width:parent.width
     property int margins:Material.Units.dp(16)
-    /*  focusChanged:{
-        if(focus){
-             listView.forceActiveFocus()
-        }
-    }*/
     onFocusChanged:{
         if(focus){
             listView.forceActiveFocus()
@@ -41,6 +36,14 @@ Item {
     property var groupModel: [weldDirList,grooveStyleList,weldConnectList,bottomStyleList]
 
     property var listName:["焊接位置","坡口形式","接头形式","背部有无衬垫"]
+    //选中行
+    property alias selectIndex:listView.currentIndex;
+    //选中页
+    property int selectPage:0
+
+    property var model: grooveModel
+
+    property var message
 
     function getN(num){
         var data=num.toString().split(".");
@@ -52,6 +55,37 @@ Item {
             return data[1].length;
         }
     }
+
+    function updatePage(){
+            if(selectPage<=(model.count/7)){
+                 displayModel.clear();
+                for(var i=0;i<7;i++)
+                displayModel.append(model.get(selectPage*7+i));
+            }else
+                message.open("超出最大队列！")
+    }
+ /*   function updateModel(data){
+
+        displayModel.setProperty(selectIndex,"value",String(data));
+
+    }*/
+
+    Component.onCompleted: {
+           updatePage()
+    }
+
+    ListModel{
+            id:displayModel
+            ListElement{name:"";
+                groupOrText:true;
+                value:"0"
+                valueType:""
+                min:0
+                max:100
+                increment:0.1
+                description:""
+            }
+        }
 
     ListModel{
         id:grooveModel
@@ -145,7 +179,8 @@ Item {
             max:100
             increment:0.1
             description:""
-        }        ListElement{name:"接头位置";
+        }
+        ListElement{name:"接头位置";
             groupOrText:false;
             value:"50"
             valueType:"MM"
@@ -204,10 +239,12 @@ Item {
         }
     }
 
+
+
     ListView{
         id:listView
         anchors{ left:parent.left;right:parent.right;top:parent.top;bottom:parent.bottom;}
-        model:grooveModel
+        model:displayModel
         clip:true
         header:   Material.Label{
             id:title
@@ -258,11 +295,6 @@ Item {
             property int subMin: min
             property int subMax: max
             property double subIncrement: increment
-            /*    MouseArea{
-                anchors.fill:parent
-                onClicked: listView.currentIndex=index;
-            }*/
-
             Material.Label{
                 id: subLabel
                 Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
@@ -281,14 +313,15 @@ Item {
                 Repeater{
                     id:re
                     visible: groupOrText
-                    model:sub.subGroupOrText?groupModel[sub.subIndex]:0
+                    model:sub.subGroupOrText?subgroupModel[(sub.subIndex+selectPage*7)]:0
                     delegate:Material.RadioButton{
                         canToggle: false
                         checked: index===Number(sub.subValue)
                         text:modelData
                         onClicked:{
                             listView.currentIndex=sub.subIndex
-                            sub.subValue=index;
+                            //sub.subValue=index;
+                           displayModel.setProperty(listView.currentIndex,"value",String(index));
                         }
                         exclusiveGroup: group
                     }
@@ -298,22 +331,22 @@ Item {
             }
         }
         Keys.onLeftPressed:{
-            if(listView.currentIndex<groupModel.length){
+            if((listView.currentIndex+selectPage*7)<groupModel.length){
                 var num=Number(listView.currentItem.subValue);
                 if(num===0) num=0;
                 else
                     num--;
-                grooveModel.setProperty(listView.currentIndex,"value",String(num));
+                displayModel.setProperty(listView.currentIndex,"value",String(num));
             }
         }
         Keys.onRightPressed:{
-            if(listView.currentIndex<groupModel.length){
+            if((listView.currentIndex+selectPage*7)<groupModel.length){
                 var num=Number(listView.currentItem.subValue);
                 var max=groupModel[listView.currentIndex].length-1
                 if(num>=max) num=max;
                 else
                     num++;
-                grooveModel.setProperty(listView.currentIndex,"value",String(num));
+                displayModel.setProperty(listView.currentIndex,"value",String(num));
             }
         }
         Keys.onVolumeUpPressed: {}
@@ -321,7 +354,7 @@ Item {
         Keys.onPressed: {
             var obj,min,max,increment,num,n;
             if(event.key===Qt.Key_Plus){
-                if(listView.currentIndex>=groupModel.length){
+                if((listView.currentIndex+selectPage*7)>=groupModel.length){
                     obj=listView.currentItem;
                     min=obj.subMin;
                     max=obj.subMax;
@@ -331,11 +364,11 @@ Item {
                     if(num<max) num+=increment;
                     else num=max;
                     num=num.toFixed(n);
-                    grooveModel.setProperty(listView.currentIndex,"value",String(num));
+                    displayModel.setProperty(listView.currentIndex,"value",String(num));
                     event.accpet=true;
                 }
             }else if(event.key===Qt.Key_Minus){
-                if(listView.currentIndex>=groupModel.length){
+                if((listView.currentIndex+selectPage*7)>=groupModel.length){
                     obj=listView.currentItem;
                     min=obj.subMin;
                     max=obj.subMax;
@@ -345,8 +378,7 @@ Item {
                     if(num>min) num-=increment;
                     else num=min;
                     num=num.toFixed(n);
-                    grooveModel.setProperty(listView.currentIndex,"value",String(num));
-                    console.log("model"+grooveModel.get(listView.currentIndex).value)
+                    displayModel.setProperty(listView.currentIndex,"value",String(num));
                     event.accpet=true;
                 }
             }

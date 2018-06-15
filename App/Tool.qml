@@ -283,7 +283,7 @@ OverlayLayer {
             onTriggered:{
                 switch(tablePageNumber){
                 case 0:first.name="生成规范";first.iconName="awesome/send_o";first.visible=true;
-                            second.visible=true;second.enabled=(teachModel===1)&&(visible);break;
+                    second.visible=true;second.enabled=(teachModel===1)&&(visible);break;
                 case 1:first.name="更新算法";first.iconName="awesome/send_o";first.visible=true;second.visible=false;break;
                 case 2:first.name="下发规范";first.iconName="awesome/send_o";first.visible=true;second.visible=false;break;
                 case 3:first.name="登录用户";first.iconName="awesome/user";first.visible=true;second.visible=false;break;
@@ -672,7 +672,6 @@ OverlayLayer {
         onOpened: {
             var i,res,obj;
             if(title==="编辑坡口条件"){
-                repeaterModel=grooveRules;
                 if(toolGrooveIndex>-1){
                     //复制数据到 editData
                     obj=toolGrooveModel.get(toolGrooveIndex);
@@ -689,29 +688,27 @@ OverlayLayer {
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
                 }
-            }else if(title==="添加坡口条件"){
                 repeaterModel=grooveRules;
+            }else if(title==="添加坡口条件"){
                 grooveRules.setProperty(0,"value",String(toolGrooveModel.count+1));
                 for(i=1;i<grooveRules.count;i++){
                     grooveRules.setProperty(i,"value","0");
                 }
-                updateText();
+                repeaterModel=grooveRules;
+                  updateText();
             }else if(title==="编辑限制条件"){
-                repeaterModel=limitedRules;
                 if(toolLimitedIndex>-1){
                     res=WeldMath.getLimitedMath(toolLimitedModel.get(toolLimitedIndex))
                     for(i=0;i<res.length;i++){
                         limitedRules.setProperty(i,"value",res[i])
                     }
-                    updateText()
-                    focusIndex=0;
-                    changeFocus(focusIndex)
+
                 }else{
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
                 }
+                repeaterModel=limitedRules;
             }else if(title==="编辑焊接规范"){
-                repeaterModel=weldRules;
                 if(toolWeldIndex>-1){
                     //复制数据到 editData
                     obj=toolWeldModel.get(toolWeldIndex);
@@ -743,23 +740,19 @@ OverlayLayer {
                     weldRules.setProperty(18,"value",obj.C17);
                     weldRules.setProperty(19,"value",obj.C18);
                     weldRules.setProperty(20,"value",obj.C19);
-                    updateText();
-                    focusIndex=0;
-                    changeFocus(focusIndex)
                 }
                 else{
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
                 }
-            }else if(title==="添加焊接规范"){
                 repeaterModel=weldRules;
+            }else if(title==="添加焊接规范"){
                 weldRules.setProperty(0,"value",String(toolWeldModel.count+1));
                 for( i=1;i<weldRules.count;i++){
                     weldRules.setProperty(i,"value","0")
                 }
-                updateText();
+                repeaterModel=weldRules;
             }else if(title==="编辑用户信息"){
-                repeaterModel=accountRules;
                 if(toolAccountIndex>-1){
                     obj=toolAccountModel.get(toolAccountIndex);
                     accountRules.setProperty(0,"value",obj.ID);
@@ -769,19 +762,18 @@ OverlayLayer {
                     accountRules.setProperty(4,"value",obj.C4);
                     accountRules.setProperty(5,"value",obj.C5);
                     accountRules.setProperty(6,"value",obj.C6);
-                    updateText()
                 }
                 else{
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
                 }
-            }else if(title==="添加用户信息"){
                 repeaterModel=accountRules;
+            }else if(title==="添加用户信息"){
                 accountRules.setProperty(0,"value",String(toolAccountModel.count+1));
                 for( i=1;i<accountRules.count;i++){
                     accountRules.setProperty(i,"value","0")
                 }
-                updateText();
+                repeaterModel=accountRules;
             }
         }
     }
@@ -790,36 +782,36 @@ OverlayLayer {
         switch(num){
         case 0:
             if(tablePageNumber<5){
-            if((dropDown.showing)&&dropDown.place===0){
-                dropDown.close();
-            }else{
-                actions[0].triggered(repeater.itemAt(0));
-            }
+                if((dropDown.showing)&&dropDown.place===0){
+                    dropDown.close();
+                }else{
+                    actions[0].triggered(repeater.itemAt(0));
+                }
             }
             break;
         case 1:
             if(tablePageNumber<5){
-            if((dropDown.showing)&&(dropDown.place===1))
-                dropDown.close();
-            else{
-                actions[1].triggered(repeater.itemAt(1));
-            }
+                if((dropDown.showing)&&(dropDown.place===1))
+                    dropDown.close();
+                else{
+                    actions[1].triggered(repeater.itemAt(1));
+                }
             }
             break;
         case 2:
             if(tablePageNumber<5){
-            if((dropDown.showing)&&(dropDown.place===2))
-                dropDown.close();
-            else{
-                actions[2].triggered(repeater.itemAt(2));
-            }}
+                if((dropDown.showing)&&(dropDown.place===2))
+                    dropDown.close();
+                else{
+                    actions[2].triggered(repeater.itemAt(2));
+                }}
             break;
         case 3:if(tablePageNumber<5){
-            if((dropDown.showing)&&(dropDown.place===3))
-                dropDown.close();
-            else{
-                actions[3].triggered(repeater.itemAt(3));
-            }}
+                if((dropDown.showing)&&(dropDown.place===3))
+                    dropDown.close();
+                else{
+                    actions[3].triggered(repeater.itemAt(3));
+                }}
             break;
         case 4:
             toggleMyErrorDialog();

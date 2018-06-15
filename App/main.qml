@@ -721,9 +721,10 @@ Material.ApplicationWindow{
                         app.currentGroove=currentGroove;
                     }
                 }
-                TestMyConditionView{
+                TestGrooveCondition{
                     id:testMyConditionView
-                    objectName: "TestMyConditionView"
+                    settings: appSettings
+                    message: tool.message
                     visible: page.selectedTab===0&&page0SelectedIndex===0
                 }
             }
@@ -976,7 +977,7 @@ Material.ApplicationWindow{
             if(frame[0]!=="Success"){
                 MathError=1;
                 MathError<<=25;
-                errorCode=MathError;
+                //errorCode=MathError;
             }else{
                 //查询系统状态
                 if(frame[1]==="0"){

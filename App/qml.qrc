@@ -38,5 +38,7 @@
         <file>MyMath.js</file>
         <file>Tool.qml</file>
         <file>TestMyConditionView.qml</file>
+        <file>TestGrooveCondition.qml</file>
+        <file>MyDialog.qml</file>
     </qresource>
 </RCC>

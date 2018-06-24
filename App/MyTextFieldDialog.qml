@@ -5,21 +5,22 @@ import "MyMath.js" as MyMath
 /*
       model 必须为 {name:"";show:true;min:;max:;isNum:;step:;}
 */
-Dialog{
+MyDialog{
     id:root
     objectName: "MyTextFieldDialog"
-    property alias repeaterModel:listView.model
+    //property alias repeaterModel:listView.model
+    //property var repeaterModel
     property int focusIndex: 0
     property bool isTextInput:false
-    property alias sourceComponent: loader.sourceComponent
-    property alias loaderVisible: loader.visible
+    //property alias sourceComponent: loader.sourceComponent
+    //property alias loaderVisible: loader.visible
+    property bool loaderVisible
+    property var sourceComponent
     property bool keyStatus: false
-
-    property Item message
 
     signal changeFocus(int index)
     signal changeFocusIndex(int index)
-    signal updateText()
+    //signal updateText()
 
     function getText(index){
         return String(index<repeater.count?repeater.itemAt(index).text:"0")
@@ -29,15 +30,11 @@ Dialog{
     positiveButtonText:qsTr("确定")
     globalMouseAreaEnabled:false
 
-    onVisibleChanged: {
-        if(visible) listView.forceActiveFocus()
-    }
-
     onChangeFocusIndex: {
         focusIndex=index;
     }
 
-    Keys.onUpPressed: {
+    /*Keys.onUpPressed: {
         if((focusIndex>0)&&(focusIndex<repeaterModel.count)){
             focusIndex--;
             //如果该选项不显示则跳过寻找显示菜单
@@ -126,7 +123,5 @@ Dialog{
                 }
             }
         }
-
-
-
-    }
+    }*/
+}

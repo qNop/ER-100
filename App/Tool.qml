@@ -55,10 +55,6 @@ OverlayLayer {
     signal openMotoDialog();
     signal toggleMotoDialog();
 
-    ListModel{id:groovePasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"0";C7:"0";C8:"0"}}
-    ListModel{id:limitedPasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:""}}
-    ListModel{id:weldPasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:"";C17:"";C18:"";C19:""}}
-    ListModel{id:accountPasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:""}}
 
     property var model
     property int currentRow
@@ -549,38 +545,44 @@ OverlayLayer {
     }
 
     ListModel{id:grooveRules
-        ListElement{name:"          No.       :";value:"";show:true;min:0;max:100;isNum:true;step:1}
-        ListElement{name:"板    厚δ(mm):";value:"";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"板厚差e(mm):";value:"";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"间    隙b(mm):";value:"";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"角  度β1(deg):";value:"";show:true;min:-180;max:180;isNum:true;step:0.1}
-        ListElement{name:"角  度β2(deg):";value:"";show:true;min:-180;max:180;isNum:true;step:0.1}
+        ListElement{name:"          No.       :";value:"";min:0;max:100;isNum:true;step:1}
+        ListElement{name:"板    厚δ(mm):";value:"";min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"板厚差e(mm):";value:"";min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"间    隙b(mm):";value:"";min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"角  度β1(deg):";value:"";min:-180;max:180;isNum:true;step:0.1}
+        ListElement{name:"角  度β2(deg):";value:"";min:-180;max:180;isNum:true;step:0.1}
     }
 
     onCurrentGrooveChanged: {
         grooveRules.setProperty(1,"name",currentGroove===8?"脚   长ι1(mm):":"板    厚δ(mm):")
         grooveRules.setProperty(2,"name",currentGroove===8||currentGroove==0||currentGroove==3||currentGroove==5?"脚   长ι2(mm):":"板厚差e(mm):")
-        grooveRules.setProperty(3,"show",currentGroove===8?false:true)
+        if(currentGroove===8){
+            grooveRules.remove(3);
+        }else {
+            if(grooveRules.count<6){
+                grooveRules.insert(3,{"name":"间    隙b(mm):","value":" ","min":0,"max":100,"isNum":true,"step":0.1})
+            }
+        }
     }
 
     ListModel{
         id:limitedRules
-        ListElement{name:"坡口侧          电流       (A)";value:"";show:true;min:10;max:300;isNum:true;step:1}
-        ListElement{name:"中间              电流       (A)";value:"";show:true;min:10;max:300;isNum:true;step:1}
-        ListElement{name:"非坡口侧      电流       (A)";value:"";show:true;min:10;max:300;isNum:true;step:1}
-        ListElement{name:"坡口侧      停留时间    (s)";value:"";show:true;min:0;max:5;isNum:true;step:0.01}
-        ListElement{name:"非坡口侧  停留时间    (s)";value:"";show:true;min:0;max:5;isNum:true;step:0.01}
-        ListElement{name:"层      高      Min     (mm)";value:"";show:true;min:1;max:10;isNum:true;step:0.1}
-        ListElement{name:"层      高      Max    (mm)";value:"";show:true;min:1;max:10;isNum:true;step:0.1}
-        ListElement{name:"坡口侧    接近距离(mm)";value:"";show:true;min:-50;max:50;isNum:true;step:0.1}
-        ListElement{name:"非坡口侧接近距离(mm)";value:"";show:true;min:-50;max:50;isNum:true;step:0.1}
-        ListElement{name:"摆  动  宽  度  Max (mm)";value:"";show:true;min:1;max:100;isNum:true;step:0.1}
-        ListElement{name:"分    道    间   隔     (mm)";value:"";show:true;min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"分    开    结   束  比   (%)";value:"";show:true;min:0;max:1;isNum:true;step:0.01}
-        ListElement{name:"焊    接    电     压        (V)";value:"";show:true;min:0;max:50;isNum:true;step:0.1}
-        ListElement{name:"焊接速度Min  (mm/min)";value:"";show:true;min:0;max:2000;isNum:true;step:0.1}
-        ListElement{name:"焊接速度Max (mm/min)";value:"";show:true;min:0;max:2000;isNum:true;step:0.1}
-        ListElement{name:"层    填    充   系   数 (%)";value:"";show:true;min:0;max:1;isNum:true;step:0.01}
+        ListElement{name:"坡口侧          电流       (A):";value:"";min:10;max:300;isNum:true;step:1}
+        ListElement{name:"中间              电流       (A):";value:"";min:10;max:300;isNum:true;step:1}
+        ListElement{name:"非坡口侧      电流       (A):";value:"";min:10;max:300;isNum:true;step:1}
+        ListElement{name:"坡口侧      停留时间    (s):";value:"";min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"非坡口侧  停留时间    (s):";value:"";min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"层      高      Min     (mm):";value:"";min:1;max:10;isNum:true;step:0.1}
+        ListElement{name:"层      高      Max    (mm):";value:"";min:1;max:10;isNum:true;step:0.1}
+        ListElement{name:"坡口侧    接近距离(mm):";value:"";min:-50;max:50;isNum:true;step:0.1}
+        ListElement{name:"非坡口侧接近距离(mm):";value:"";min:-50;max:50;isNum:true;step:0.1}
+        ListElement{name:"摆  动  宽  度  Max (mm):";value:"";min:1;max:100;isNum:true;step:0.1}
+        ListElement{name:"分    道    间   隔     (mm):";value:"";min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"分    开    结   束  比   (%):";value:"";min:0;max:1;isNum:true;step:0.01}
+        ListElement{name:"焊    接    电     压        (V):";value:"";min:0;max:50;isNum:true;step:0.1}
+        ListElement{name:"焊接速度Min  (mm/min):";value:"";min:0;max:2000;isNum:true;step:0.1}
+        ListElement{name:"焊接速度Max (mm/min):";value:"";min:0;max:2000;isNum:true;step:0.1}
+        ListElement{name:"层    填    充   系   数  (%):";value:"";min:0;max:1;isNum:true;step:0.01}
     }
     property bool swingWidthOrWeldWidth: settings.weldStyle===1||settings.weldStyle===3?false:true
     onSwingWidthOrWeldWidthChanged: {
@@ -589,64 +591,61 @@ OverlayLayer {
 
     ListModel{
         id:weldRules
-        ListElement{name:"        NO.          :";show:true;value:"";min:1;max:1000;isNum:true;step:1}
-        ListElement{name:"层                号 :";show:true;value:"";min:1;max:1000;isNum:true;step:1}
-        ListElement{name:"道                号 :";show:true;value:"";min:1;max:1000;isNum:true;step:1}
-        ListElement{name:"电      流  (A)    :";show:true;value:"";min:10;max:300;isNum:true;step:1}
-        ListElement{name:"电      压  (V)    :";show:true;value:"";min:10;max:50;isNum:true;step:0.1}
-        ListElement{name:"摆      幅(mm) :";show:true;value:"";min:0;max:1000;isNum:true;step:0.1}
-        ListElement{name:"摆速(cm/min) :";show:true;value:"";min:50;max:250;isNum:true;step:1}
-        ListElement{name:"焊速(cm/min) :";show:true;value:"";min:4;max:200;isNum:true;step:0.1}
-        ListElement{name:"焊接线X(mm)  :";show:true;value:"";min:-100;max:100;isNum:true;step:0.1}
-        ListElement{name:"焊接线Y(mm)  :";show:true;value:"";min:-10;max:100;isNum:true;step:0.1}
-        ListElement{name:"前   停  留   (s) :";show:true;value:"";min:0;max:5;isNum:true;step:0.01}
-        ListElement{name:"后   停  留   (s) :";show:true;value:"";min:0;max:5;isNum:true;step:0.01}
-        ListElement{name:"停  止 时 间(s) :";show:true;value:"";min:0;max:1000;isNum:true;step:0.1}
-        ListElement{name:"层       面     积 :";show:false;value:"";min:1;max:10000;isNum:true;step:0.1}
-        ListElement{name:"道       面     积 :";show:false;value:"";min:1;max:10000;isNum:true;step:0.1}
-        ListElement{name:"起    弧   点   X :";show:true;value:"";min:-100;max:100;isNum:true;step:0.1}
-        ListElement{name:"起    弧   点   Y :";show:true;value:"";min:-10;max:100;isNum:true;step:0.1}
-        ListElement{name:"起    弧   点   Z :";show:true;value:"";min:-30000;max:30000;isNum:true;step:1}
-        ListElement{name:"收    弧   点   X :";show:true;value:"";min:-100;max:100;isNum:true;step:0.1}
-        ListElement{name:"收    弧   点   Y :";show:true;value:"";min:-10;max:100;isNum:true;step:0.1}
-        ListElement{name:"收    弧   点   Z :";show:true;value:"";min:-30000;max:30000;isNum:true;step:1}
+        ListElement{name:"        NO.          :";value:"";min:1;max:1000;isNum:true;step:1}
+        ListElement{name:"层                号 :";value:"";min:1;max:1000;isNum:true;step:1}
+        ListElement{name:"道                号 :";value:"";min:1;max:1000;isNum:true;step:1}
+        ListElement{name:"电      流  (A)    :";value:"";min:10;max:300;isNum:true;step:1}
+        ListElement{name:"电      压  (V)    :";value:"";min:10;max:50;isNum:true;step:0.1}
+        ListElement{name:"摆      幅(mm) :";value:"";min:0;max:1000;isNum:true;step:0.1}
+        ListElement{name:"摆速(cm/min) :";value:"";min:50;max:250;isNum:true;step:1}
+        ListElement{name:"焊速(cm/min) :";value:"";min:4;max:200;isNum:true;step:0.1}
+        ListElement{name:"焊接线X(mm)  :";value:"";min:-100;max:100;isNum:true;step:0.1}
+        ListElement{name:"焊接线Y(mm)  :";value:"";min:-10;max:100;isNum:true;step:0.1}
+        ListElement{name:"前   停  留   (s) :";value:"";min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"后   停  留   (s) :";value:"";min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"停  止 时 间(s) :";value:"";min:0;max:1000;isNum:true;step:0.1}
+        ListElement{name:"起    弧   点   X :";value:"";min:-100;max:100;isNum:true;step:0.1}
+        ListElement{name:"起    弧   点   Y :";value:"";min:-10;max:100;isNum:true;step:0.1}
+        ListElement{name:"起    弧   点   Z :";value:"";min:-30000;max:30000;isNum:true;step:1}
+        ListElement{name:"收    弧   点   X :";value:"";min:-100;max:100;isNum:true;step:0.1}
+        ListElement{name:"收    弧   点   Y :";value:"";min:-10;max:100;isNum:true;step:0.1}
+        ListElement{name:"收    弧   点   Z :";value:"";min:-30000;max:30000;isNum:true;step:1}
     }
+
     property bool weldTableEx
-    onWeldTableExChanged: {
-        weldRules.setProperty(6,"show",weldTableEx?true:false);
-        weldRules.setProperty(15,"show",weldTableEx?true:false);
-        weldRules.setProperty(16,"show",weldTableEx?true:false);
-        weldRules.setProperty(17,"show",weldTableEx?true:false);
-        weldRules.setProperty(18,"show",weldTableEx?true:false);
-        weldRules.setProperty(19,"show",weldTableEx?true:false);
-        weldRules.setProperty(20,"show",weldTableEx?true:false);
-    }
+
     ListModel{
         id:accountRules
-        ListElement{name:"ID：";value:"";show:false;min:1;max:1000;isNum:true;step:1}
-        ListElement{name:"工        号：";value:"";show:true;min:1;max:1000;isNum:true;step:1}
-        ListElement{name:"用  户  名：";value:"";show:true;min:10;max:300;isNum:false;step:1}
-        ListElement{name:"密        码：";value:"";show:true;min:10;max:300;isNum:false;step:1}
-        ListElement{name:"用  户  组：";value:"";show:true;min:10;max:300;isNum:false;step:1}
-        ListElement{name:"所在班组：";value:"";show:true;min:10;max:300;isNum:false;step:1}
-        ListElement{name:"备        注：";value:"";show:true;min:10;max:300;isNum:false;step:1}
+        ListElement{name:"工        号：";value:"";min:1;max:1000;isNum:false;step:1}
+        ListElement{name:"用  户  名：";value:"";min:10;max:300;isNum:false;step:1}
+        ListElement{name:"密        码：";value:"";min:10;max:300;isNum:false;step:1}
+        ListElement{name:"用  户  组：";value:"";min:10;max:300;isNum:false;step:1}
+        ListElement{name:"所在班组：";value:"";min:10;max:300;isNum:false;step:1}
+        ListElement{name:"备        注：";value:"";min:10;max:300;isNum:false;step:1}
     }
     property string limitedString
-    MyTextFieldDialog{
+    ListModel{id:groovePasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"0";C7:"0";C8:"0"}}
+    ListModel{id:limitedPasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:""}}
+    ListModel{id:weldPasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:"";C17:"";C18:"";C19:""}}
+    ListModel{id:accountPasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:""}}
+
+    MyDialog{
         id:myTextFieldDialog
-        sourceComponent:Image{
+        /*      sourceComponent:Image{
             id:addImage
             source: "../Pic/坡口参数图.png"
             sourceSize.width: Units.dp(350)
         }
-        loaderVisible: tablePageNumber===0
+       loaderVisible: tablePageNumber===0*/
         onAccepted: {
             if(tablePageNumber===0){
                 updateModel("grooveModel",title==="编辑坡口条件"?"Set":"Append",toolGrooveIndex,
-                                                            {"ID":getText(0),"C1":getText(1),"C2":getText(2),"C3":getText(3),"C4":getText(4),"C5":getText(5),
-                                                                "C6":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C6:"0",
-                                                                                       "C7":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C7:"0",
-                                                                                                              "C8":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C8:"0",
+                                                            {"ID":getText(0),"C1":getText(1),"C2":getText(2),
+                                                                "C3":currentGroove===8?"0":getText(3),
+                                                                                        "C4":getText(4),"C5":getText(5),
+                                                                                        "C6":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C6:"0",
+                                                                                                               "C7":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C7:"0",
+                                                                                                                                      "C8":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C8:"0",
                                                             })
             }else if(tablePageNumber===1){
                 var str=toolLimitedIndex===0?"陶瓷衬垫":toolLimitedIndex===1?"打底层":toolLimitedIndex===2?"第二层":toolLimitedIndex===3?"填充层":toolLimitedIndex===4?"盖面层":"立板余高层"
@@ -659,16 +658,19 @@ OverlayLayer {
             }else if(tablePageNumber===2){
                 updateModel("weldModel",title==="编辑焊接规范"?"Set":"Append",toolWeldIndex,
                                                           {"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),
-                                                              "C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),"C12":getText(13),"C13":getText(14),
-                                                              "C14":getText(15),"C15":getText(16),"C16":getText(17),"C17":getText(18),"C18":getText(19),"C19":getText(20)})
+                                                              "C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),
+                                                              "C12":title==="编辑焊接规范"?toolWeldModel.get(toolWeldIndex).C12:"0","C13":title==="编辑焊接规范"?toolWeldModel.get(toolWeldIndex).C13:"0",
+                                                              "C14":getText(13),"C15":getText(14),"C16":getText(15),"C17":getText(16),"C18":getText(17),"C19":getText(18)})
             }else if(tablePageNumber===3){
                 updateModel("accountModel",title==="编辑用户信息"?"Set":"Append",toolAccountIndex,
-                                                             {"ID":getText(0),"C1":getText(1),"C2":getText(2),"C3":getText(3),"C4":getText(4),"C5":getText(5),"C6":getText(6)});
+                                                             {"ID":title==="编辑用户信息"?toolAccountModel.get(toolAccountIndex).ID:String(toolAccountModel.count+1),"C1":getText(0),"C2":getText(1),"C3":getText(2),"C4":getText(3),"C5":getText(4),"C6":getText(5)});
 
             }else{
                 message.open("不在列表内的表格，无法保存！")
             }
+            repeaterModel=null
         }
+        onRejected: repeaterModel=null
         onOpened: {
             var i,res,obj;
             if(title==="编辑坡口条件"){
@@ -678,12 +680,15 @@ OverlayLayer {
                     grooveRules.setProperty(0,"value",obj.ID);
                     grooveRules.setProperty(1,"value",obj.C1);
                     grooveRules.setProperty(2,"value",obj.C2);
-                    grooveRules.setProperty(3,"value",obj.C3);
-                    grooveRules.setProperty(4,"value",obj.C4);
-                    grooveRules.setProperty(5,"value",obj.C5);
-                    updateText();
-                    focusIndex=0;
-                    changeFocus(focusIndex)
+                    if(currentGroove===8){
+                        grooveRules.setProperty(3,"value",obj.C4);
+                        grooveRules.setProperty(4,"value",obj.C5);
+                    }else{
+                        grooveRules.setProperty(3,"value",obj.C3);
+                        grooveRules.setProperty(4,"value",obj.C4);
+                        grooveRules.setProperty(5,"value",obj.C5);
+                    }
+
                 }else{
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
@@ -695,7 +700,7 @@ OverlayLayer {
                     grooveRules.setProperty(i,"value","0");
                 }
                 repeaterModel=grooveRules;
-                  updateText();
+
             }else if(title==="编辑限制条件"){
                 if(toolLimitedIndex>-1){
                     res=WeldMath.getLimitedMath(toolLimitedModel.get(toolLimitedIndex))
@@ -732,14 +737,12 @@ OverlayLayer {
                     weldRules.setProperty(10,"value",obj.C9);
                     weldRules.setProperty(11,"value",obj.C10);
                     weldRules.setProperty(12,"value",obj.C11);
-                    weldRules.setProperty(13,"value",obj.C12);
-                    weldRules.setProperty(14,"value",obj.C13);
-                    weldRules.setProperty(15,"value",obj.C14);
-                    weldRules.setProperty(16,"value",obj.C15);
-                    weldRules.setProperty(17,"value",obj.C16);
-                    weldRules.setProperty(18,"value",obj.C17);
-                    weldRules.setProperty(19,"value",obj.C18);
-                    weldRules.setProperty(20,"value",obj.C19);
+                    weldRules.setProperty(13,"value",obj.C14);
+                    weldRules.setProperty(14,"value",obj.C15);
+                    weldRules.setProperty(15,"value",obj.C16);
+                    weldRules.setProperty(16,"value",obj.C17);
+                    weldRules.setProperty(17,"value",obj.C18);
+                    weldRules.setProperty(18,"value",obj.C19);
                 }
                 else{
                     message.open("请选择要编辑的行！")
@@ -755,13 +758,13 @@ OverlayLayer {
             }else if(title==="编辑用户信息"){
                 if(toolAccountIndex>-1){
                     obj=toolAccountModel.get(toolAccountIndex);
-                    accountRules.setProperty(0,"value",obj.ID);
-                    accountRules.setProperty(1,"value",obj.C1);
-                    accountRules.setProperty(2,"value",obj.C2);
-                    accountRules.setProperty(3,"value",obj.C3);
-                    accountRules.setProperty(4,"value",obj.C4);
-                    accountRules.setProperty(5,"value",obj.C5);
-                    accountRules.setProperty(6,"value",obj.C6);
+                    //accountRules.setProperty(0,"value",obj.ID);
+                    accountRules.setProperty(0,"value",obj.C1);
+                    accountRules.setProperty(1,"value",obj.C2);
+                    accountRules.setProperty(2,"value",obj.C3);
+                    accountRules.setProperty(3,"value",obj.C4);
+                    accountRules.setProperty(4,"value",obj.C5);
+                    accountRules.setProperty(5,"value",obj.C6);
                 }
                 else{
                     message.open("请选择要编辑的行！")
@@ -769,8 +772,8 @@ OverlayLayer {
                 }
                 repeaterModel=accountRules;
             }else if(title==="添加用户信息"){
-                accountRules.setProperty(0,"value",String(toolAccountModel.count+1));
-                for( i=1;i<accountRules.count;i++){
+             //   accountRules.setProperty(0,"value",String(toolAccountModel.count+1));
+                for( i=0;i<accountRules.count;i++){
                     accountRules.setProperty(i,"value","0")
                 }
                 repeaterModel=accountRules;

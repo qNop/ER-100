@@ -22,6 +22,7 @@ import QtQuick 2.4
 import QtQuick.Layouts 1.1
 import Material 0.1
 import Material.Extras 0.1
+import "MyMath.js" as MyMath
 
 /*!
    \qmltype Dialog
@@ -34,16 +35,16 @@ PopupBase {
     objectName: "Dialog"
     overlayLayer: "dialogOverlayLayer"
 
-   // overlayColor: Qt.rgba(0, 0, 0, 0.3)
+    // overlayColor: Qt.rgba(0, 0, 0, 0.3)
     opacity: showing ? 1 : 0
     visible: opacity > 0
 
     width: Math.max(minimumWidth,
-                    content.contentWidth + 2 * contentMargins)
+                    listView.width +  2*contentMargins)
 
     height: Math.min(parent.height - Units.dp(64),
-                     headerView.height +
-                     content.contentHeight +
+                     titleview.height +
+                     listView.height +
                      (floatingActions ? 0 : buttonContainer.height))
 
     property int contentMargins: Units.dp(24)
@@ -51,7 +52,9 @@ PopupBase {
     property int minimumWidth: Device.isMobile ? Units.dp(280) : Units.dp(300)
 
     property alias title: titleLabel.text
-    property alias text: textLabel.text
+    // property alias text: textLabel.text
+
+    property alias repeaterModel: listView.model
 
     /*!
        \qmlproperty Button negativeButton
@@ -67,16 +70,22 @@ PopupBase {
      */
     property alias positiveButton: positiveButton
 
-    property string negativeButtonText: "Cancel"
-    property string positiveButtonText: "Ok"
+    globalMouseAreaEnabled:false
+    property string negativeButtonText: "取消"
+    property string positiveButtonText: "确定"
     property alias positiveButtonEnabled: positiveButton.enabled
 
     property bool hasActions: true
     property bool floatingActions: false
 
-    default property alias dialogContent: column.data
+    //default property alias dialogContent: column.data
+
+    property Item message
+
+    signal changeText(int index,var text)
 
     signal accepted()
+
     signal rejected()
 
     anchors {
@@ -88,7 +97,7 @@ PopupBase {
         }
     }
 
-   Behavior on opacity {
+    Behavior on opacity {
         NumberAnimation { duration: 200 }
     }
 
@@ -123,7 +132,18 @@ PopupBase {
     }
 
     function show() {
+        listView.maxRowWidth=-1;
         open()
+    }
+
+    onVisibleChanged: if(visible) listView.forceActiveFocus()
+
+    function getText(index){
+        return repeaterModel.get(index).value
+    }
+
+    onChangeText: {
+        repeaterModel.setProperty(index,"value",text);
     }
 
     View {
@@ -142,126 +162,105 @@ PopupBase {
             }
         }
 
-        Rectangle {
-            objectName: "rect"
-            anchors.fill: content
-        }
-
-        Flickable {
-            id: content
-            objectName: "flickable"
-            contentWidth: column.width
-            contentHeight: column.height + (column.height > 0 ? contentMargins : 0)
-            clip: true
-
-            anchors {
-                left: parent.left
-                right: parent.right
-                top: headerView.bottom
-                bottom: floatingActions ? parent.bottom : buttonContainer.top
-            }
-
-            interactive: contentHeight > height
-
-            onContentXChanged: {
-                if(contentX != 0 && contentWidth <= width)
-                    contentX = 0
-            }
-
-           Row{
-                id: column
-                anchors {
-                    left: parent.left
-                    leftMargin: contentMargins
-                    top:parent.top
-                    topMargin: contentMargins/2
-                }
-                //width: content.width - 2 * contentMargins
-                spacing: Units.dp(24)
-                onWidthChanged: console.log("column width"+width)
-            }
-        }
-
-        Scrollbar {
-            flickableItem: content
-        }
-
-        Item {
-            anchors {
-                left: parent.left
-                right: parent.right
-                top: parent.top
-            }
-
-            height: headerView.height
-
-            View {
-                 id:titleview
-                backgroundColor: Theme.primaryColor
-                elevation: 1 // content.atYBeginning ? 0 : 1
-                fullWidth: true
-                visible: titleLabel.visible || textLabel.visible // radius: dialogContainer.radius
-
-                anchors {
-                    left: parent.left
-                    right: parent.right
-                    top: parent.top
-                }
-
-                height: parent.height
-            }
-        }
-
-
-        Column {
-            id: headerView
-
-            spacing: 0
-
+        View {
+            id:titleview
+            backgroundColor: Theme.primaryColor
+            elevation: listView.atYBeginning ? 0 : 1
+            fullWidth: true
             anchors {
                 left: parent.left
                 right: parent.right
                 top: parent.top
 
-                leftMargin: contentMargins
-                rightMargin: contentMargins
             }
 
-            Item {
-                width: parent.width
-                height: contentMargins
-                visible: titleLabel.visible || textLabel.visible
-            }
+            height:Units.dp(64)
 
             Label {
                 id: titleLabel
+                anchors {
+                    left: parent.left
+                    right: parent.right
+
+                    leftMargin: contentMargins
+                    rightMargin: contentMargins
+                }
                 width: parent.width
                 wrapMode: Text.Wrap
+                anchors.verticalCenter: parent.verticalCenter
                 style: "dialog"
                 color: Theme.lightDark(titleview.backgroundColor,Theme.light.textColor,Theme.dark.textColor)
-                visible: title != ""
             }
-
-            Item {
-                width: parent.width
-                height: Units.dp(20)
-                visible: titleLabel.visible
+        }
+        ListView{
+            id:listView
+            anchors{
+                top:titleview.bottom
+                left: parent.left
+                leftMargin: contentMargins
             }
+            clip:true
+            height:(count>10?10:count)*Units.dp(32)
+            property int maxRowWidth: -1
+            delegate: Row{
+                id:row
+                property alias rowText:textField.text
+                spacing:Units.dp(12)
+                onWidthChanged:{
+                    if(width>listView.maxRowWidth) listView.maxRowWidth=width;
+                    if(index===(listView.count-1)){
+                        listView.width=listView.maxRowWidth
+                    }
+                }
+                Label{id:label;text:name;anchors.bottom: parent.bottom;style: "button";}
+                TextField{
+                    id:textField
+                    text:value
+                    horizontalAlignment:TextInput.AlignHCenter
+                    width:isNum? Units.dp(60):Units.dp(150)
+                    focus: (index===listView.currentIndex)&&visible
 
-            Label {
-                id: textLabel
-
-                width: parent.width
-                wrapMode: Text.Wrap
-                style: "dialog"
-                color: Theme.light.subTextColor
-                visible: text != ""
-            }
-
-            Item {
-                width: parent.width
-                height: contentMargins
-                visible: textLabel.visible
+                    onTextChanged:{
+                        if(isNum){
+                            if(isNaN(text)&&(text!=="-")){
+                                text=text.slice(0,text.length-1)
+                                message.open("请输入数字！")
+                                return;
+                            }
+                        }
+                        changeText(index,text);
+                    }
+                    Keys.onVolumeDownPressed: {
+                        var num,temp;
+                        Qt.inputMethod.hide()
+                        num=Number(text)
+                        if(!isNaN(num)&&isNum){//是数值进行加减操作
+                            if(event.isAutoRepeat)
+                                temp=step*10;
+                            else
+                                temp=step;
+                            num=MyMath.subMath(num,temp);
+                            if(num>max) num=max;
+                            if(num<min) num=min;
+                            text=String(num);
+                        }
+                    }
+                    Keys.onVolumeUpPressed:{
+                        var num,temp;
+                        Qt.inputMethod.hide()
+                        num=Number(text)
+                        if(!isNaN(num)&&isNum){//是数值进行加减操作
+                            if(event.isAutoRepeat)
+                                temp=step*10;
+                            else
+                                temp=step;
+                            num=MyMath.addMath(num,temp);
+                            if(num>max) num=max;
+                            if(num<min)  num=min;
+                            text=String(num);
+                        }
+                    }
+                }
             }
         }
 
@@ -281,7 +280,7 @@ PopupBase {
 
                 height: parent.height
                 backgroundColor: floatingActions ? "transparent" : "white"
-                elevation: content.atYEnd ? 0 : 1
+                elevation: listView.atYEnd ? 0 : 1
                 fullWidth: true
                 radius: dialogContainer.radius
                 elevationInverted: true
@@ -302,7 +301,7 @@ PopupBase {
 
                     anchors {
                         verticalCenter: parent.verticalCenter
-                        right: parent.right //positiveButton.visible ? positiveButton.left : parent.right
+                        right: parent.right
                         rightMargin: Units.dp(8)
                     }
 
@@ -333,3 +332,4 @@ PopupBase {
         }
     }
 }
+

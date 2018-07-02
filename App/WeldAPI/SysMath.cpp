@@ -230,6 +230,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         *sused=0;
         *weldLineYUesd=0;
         *currentFloor=1;
+        status="Successed";
         if(grooveHeight<pF->minHeight){
             status="计算第1层时，最小层高限制超过板厚。请检查输入坡口参数！";
             return -1;
@@ -474,89 +475,45 @@ int SysMath::weldMath(){
     //获取底层 第二层 填充层 盖面层 最大最小填充量限制
     if(weldStyleName=="平焊"){
         if(pulseValue){
-            currentMax=300;
+            currentMax=350;
             currentMin=50;
         } else{
-            currentMax=300;
+            currentMax=350;
             currentMin=150;}
     }else if(weldStyleName=="立焊"){
         if(pulseValue){
-            currentMax=300;
+            currentMax=350;
             currentMin=50;
         }else  if(wireTypeValue==4){//药芯
-            currentMax=300;
+            currentMax=350;
             currentMin=180;
         }else{
-            currentMax=310;
+            currentMax=350;
             currentMin=80;}
     }else if(weldStyleName=="横焊"){
         if(pulseValue){
-            currentMax=310;
+            currentMax=350;
             currentMin=50;
         } else{
-            currentMax=310;
+            currentMax=350;
             currentMin=80;}
     }
     else
         if(pulseValue){
-            currentMax=310;
+            currentMax=350;
             currentMin=50;
         } else{
-            currentMax=300;
+            currentMax=350;
             currentMin=80;}
-    /*
-    if(rootGap>=8){
-        bottomFloor->current=fillFloor->current;
-        bottomFloor->current_left=fillFloor->current_left;
-        bottomFloor->current_middle=fillFloor->current_middle;
-        bottomFloor->current_right=fillFloor->current_right;
-        bottomFloor->height=fillFloor->height;
-        bottomFloor->maxHeight=fillFloor->maxHeight;
-        bottomFloor->minHeight=fillFloor->minHeight;
-        bottomFloor->maxFillMetal=fillFloor->maxFillMetal;
-        bottomFloor->minFillMetal=fillFloor->minFillMetal;
-        bottomFloor->maxSwingLength=fillFloor->maxSwingLength;
-        bottomFloor->maxWeldSpeed=fillFloor->maxWeldSpeed;
-        bottomFloor->minWeldSpeed=fillFloor->minWeldSpeed;
-        bottomFloor->k=fillFloor->k;
-        bottomFloor->swingLeftLength=fillFloor->swingLeftLength;
-        bottomFloor->swingLeftStayTime=fillFloor->swingLeftStayTime;
-        bottomFloor->swingLength=fillFloor->swingLength;
-        bottomFloor->swingRightLength=fillFloor->swingRightLength;
-        bottomFloor->swingRightStayTime=fillFloor->swingRightStayTime;
-        bottomFloor->weldSwingSpacing=fillFloor->weldSwingSpacing;
-        bottomFloor->totalStayTime=fillFloor->totalStayTime;
-        bottomFloor->voltage=fillFloor->voltage;
-
-        secondFloors->current=fillFloor->current;
-        secondFloors->current_left=fillFloor->current_left;
-        secondFloors->current_middle=fillFloor->current_middle;
-        secondFloors->current_right=fillFloor->current_right;
-        secondFloors->height=fillFloor->height;
-        secondFloors->maxHeight=fillFloor->maxHeight;
-        secondFloors->minHeight=fillFloor->minHeight;
-        secondFloors->maxFillMetal=fillFloor->maxFillMetal;
-        secondFloors->minFillMetal=fillFloor->minFillMetal;
-        secondFloors->maxSwingLength=fillFloor->maxSwingLength;
-        secondFloors->maxWeldSpeed=fillFloor->maxWeldSpeed;
-        secondFloors->minWeldSpeed=fillFloor->minWeldSpeed;
-        secondFloors->k=fillFloor->k;
-        secondFloors->swingLeftLength=fillFloor->swingLeftLength;
-        secondFloors->swingLeftStayTime=fillFloor->swingLeftStayTime;
-        secondFloors->swingLength=fillFloor->swingLength;
-        secondFloors->swingRightLength=fillFloor->swingRightLength;
-        secondFloors->swingRightStayTime=fillFloor->swingRightStayTime;
-        secondFloors->weldSwingSpacing=fillFloor->weldSwingSpacing;
-        secondFloors->totalStayTime=fillFloor->totalStayTime;
-        secondFloors->voltage=fillFloor->voltage;
-
-    }*///暂时先不用
 
     bottomFloor->height=bottomFloor->maxHeight;
-
-    if(getWeldFloor(bottomFloor,&hUsed,&sUsed,&weldLineYUesd,&floorNum,&currentWeldNum)==-1){
-        return -1;
+    while(bottomFloor->height>bottomFloor->minHeight){
+        if(getWeldFloor(bottomFloor,&hUsed,&sUsed,&weldLineYUesd,&floorNum,&currentWeldNum)!=-1){
+            break;
+        }
+        bottomFloor->height-=0.2;
     }
+    if(bottomFloor->height<bottomFloor->minHeight) return -1;
     float hre=grooveHeight+reinforcementValue-hUsed;
     int res=solveN(&hre,&hUsed,&sUsed,&weldLineYUesd,&floorNum,&currentWeldNum);
     if(res==-1) return -1;
@@ -650,7 +607,7 @@ float SysMath::getSwingSpeed(weldDataType *pWeldData,float maxSpeed){
 
 float SysMath::getVoltage(int current){
     float voltage=18;
-    if((current>300)&&(current<10))
+    if((current>350)&&(current<10))
         return -1;
     if((gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //MAG D 实芯 1.2
@@ -668,9 +625,8 @@ float SysMath::getVoltage(int current){
         }
     }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //CO2 D 实芯 1.2
-        if((current<=200)||(weldStyleName=="横焊")||(weldStyleName=="立焊")){
+        if((current<=200)||(weldStyleName=="横焊")||(weldStyleName=="立焊"))
             voltage=14+0.05*current-1;
-        }
         else
             voltage=14+0.05*current+1;
     }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==4)&&(wireDValue==4)){
@@ -687,7 +643,8 @@ float SysMath::getVoltage(int current){
 
 int SysMath::getFeedSpeed(int current){
     int feedspeed;
-    const int FeedSpeedNum[4][50]={
+    const int FeedSpeedNum[8][50]={
+        //1.2
         {1240,1280,1320,1360,1400,1536,1673,1845,2027,2215,
          2408,2600,2878,3155,3427,3700,4200,4645,5055,5478,
          5922,6367,6811,7155,7473,7960,8538,9100,9550,10000,
@@ -697,19 +654,46 @@ int SysMath::getFeedSpeed(int current){
         {300,600,900,1200,1600,2000,2400,2800,3199,3600,
          4000,4400,4800,5200,5600,6000,6500,7000,7400,7800,
          8300,8800,9300,9800,10300,10800,11300,11800,12300,12800,
-         13400,14000,14600,15200,15900},
+         13400,14000,14600,15200,15900,25000,25000,25000,25000,25000,
+         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000},
 
         {900,1000,1100,1200,1300,1400,1550,1700,1867,2050,
          2300,2562,2875,3200,3533,3867,4225,4600,5100,5871,
          6300,6762,7223,7750,8375,8833,9250,9725,10288,10800,
-         11314,11886,12375,12844,13312},
+         11314,11886,12375,12844,13312,25000,25000,25000,25000,25000,
+         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000},
 
         {950,1100,1250,1400,1550,1700,2200,2700,3033, 3367,
          3700, 4100, 4500,5300, 5850,6400,6850,7300,7850,8400,
          9200,10000,10650,11300,11900,12500,13750,15000,15750,16500,
          17250,18000,18800,19600,20400,21200,22100,23000,24000,25000,
-         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000}};
-    if((current>400)||(current<10))
+         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000},
+        //1.6参数
+        {1240,1280,1320,1360,1400,1536,1673,1845,2027,2215,
+         2408,2600,2878,3155,3427,3700,4200,4645,5055,5478,
+         5922,6367,6811,7155,7473,7960,8538,9100,9550,10000,
+         10850,11700,12350,13000,14000,15000,16167,17000,18169,19013,
+         19856,20700,21585,22469,23222,23778,24333,24889,25000,25000},
+
+        {300,600,900,1200,1600,2000,2400,2800,3199,3600,
+         4000,4400,4800,5200,5600,6000,6500,7000,7400,7800,
+         8300,8800,9300,9800,10300,10800,11300,11800,12300,12800,
+         13400,14000,14600,15200,15900,25000,25000,25000,25000,25000,
+         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000},
+
+        {900,1000,1100,1200,1300,1400,1550,1700,1867,2050,
+         2300,2562,2875,3200,3533,3867,4225,4600,5100,5871,
+         6300,6762,7223,7750,8375,8833,9250,9725,10288,10800,
+         11314,11886,12375,12844,13312,25000,25000,25000,25000,25000,
+         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000},
+
+        {950,1100,1250,1400,1550,1700,2200,2700,3033, 3367,
+         3700, 4100, 4500,5300, 5850,6400,6850,7300,7850,8400,
+         9200,10000,10650,11300,11900,12500,13750,15000,15750,16500,
+         17250,18000,18800,19600,20400,21200,22100,23000,24000,25000,
+         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000}
+    };
+    if((current>350)||(current<10))
         return -1;
     if((gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //MAG D 实芯 1.2
@@ -723,6 +707,18 @@ int SysMath::getFeedSpeed(int current){
     }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==4)&&(wireDValue==4)){
         //CO2 D 药芯 1.2
         feedspeed=3;
+    }else if((gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==6)){
+        //MAG D 实芯 1.6
+        feedspeed=4;
+    }else if((gasValue)&&(pulseValue)&&(wireTypeValue==0)&&(wireDValue==6)){
+        //MAG P 实芯 1.6
+        feedspeed=5;
+    }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==6)){
+        //CO2 D 实芯 1.6
+        feedspeed=6;
+    }else if((!gasValue)&&(!pulseValue)&&(wireTypeValue==4)&&(wireDValue==6)){
+        //CO2 D 药芯 1.6
+        feedspeed=7;
     }else{
         return -1;
     }
@@ -781,7 +777,6 @@ int SysMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,int
         bottomFloor->height=grooveHeight+reinforcementValue;
         //调用重新匹配第一层
 #if ENABLE_SOLVE_FIRST ==1
-        //  firstFloorFunc();
         if(getWeldFloor(bottomFloor,hused,sused,weldLineYUesd,currentFloor,currentWeldNum)==-1){
             return -1;
         }
@@ -836,7 +831,6 @@ int SysMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,int
             }
             //调用重新匹配第一层
 #if ENABLE_SOLVE_FIRST ==1
-            //firstFloorFunc();
             if(getWeldFloor(bottomFloor,hused,sused,weldLineYUesd,currentFloor,currentWeldNum)==-1){
                 return -1;
             }
@@ -900,7 +894,6 @@ int SysMath::solveN(float *pH,float *hused,float *sused,float *weldLineYUesd,int
             }
             //调用重新匹配第一层
 #if ENABLE_SOLVE_FIRST ==1
-            // firstFloorFunc();
             if(getWeldFloor(bottomFloor,hused,sused,weldLineYUesd,currentFloor,currentWeldNum)==-1){
                 return -1;
             }

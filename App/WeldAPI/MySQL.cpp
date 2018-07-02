@@ -114,6 +114,7 @@ void MySQL::insertTable(QString tableName,QObject* data){
         s1.remove(s1.length()-1,1);
         s1+=")";
         pSqlThread->pCmdBuf->enqueue("INSERT INTO "+tableName+s1+" VALUES"+s+"+"+tableName);
+        qDebug()<<"INSERT INTO "+tableName+s1+" VALUES"+s+"+"+tableName;
     }else
         emit mySqlStatusChanged(false,tableName);
 }

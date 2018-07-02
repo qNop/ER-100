@@ -39,17 +39,15 @@ PopupBase {
     opacity: showing ? 1 : 0
     visible: opacity > 0
 
-    width: Math.max(minimumWidth,
-                    listView.width +  2*contentMargins)
+    width: Math.max(Units.dp(260) ,
+                    rowLayout.width +  2*contentMargins)
 
     height: Math.min(parent.height - Units.dp(64),
                      titleview.height +
-                     listView.height +
+                     rowLayout.height + contentMargins+
                      (floatingActions ? 0 : buttonContainer.height))
 
     property int contentMargins: Units.dp(24)
-
-    property int minimumWidth: Device.isMobile ? Units.dp(280) : Units.dp(300)
 
     property alias title: titleLabel.text
     // property alias text: textLabel.text
@@ -78,7 +76,8 @@ PopupBase {
     property bool hasActions: true
     property bool floatingActions: false
 
-    //default property alias dialogContent: column.data
+    property alias sourceComponent: loader.sourceComponent
+    property alias loaderVisible: loader.visible
 
     property Item message
 
@@ -136,7 +135,12 @@ PopupBase {
         open()
     }
 
-    onVisibleChanged: if(visible) listView.forceActiveFocus()
+    onVisibleChanged:{
+        if(visible)
+            listView.forceActiveFocus()
+        else
+            repeaterModel=null
+    }
 
     function getText(index){
         return repeaterModel.get(index).value
@@ -192,78 +196,98 @@ PopupBase {
                 color: Theme.lightDark(titleview.backgroundColor,Theme.light.textColor,Theme.dark.textColor)
             }
         }
-        ListView{
-            id:listView
+        RowLayout{
+            id:rowLayout
             anchors{
                 top:titleview.bottom
                 left: parent.left
                 leftMargin: contentMargins
+                topMargin: contentMargins/2
             }
-            clip:true
-            height:(count>10?10:count)*Units.dp(32)
-            property int maxRowWidth: -1
-            delegate: Row{
-                id:row
-                property alias rowText:textField.text
-                spacing:Units.dp(12)
-                onWidthChanged:{
-                    if(width>listView.maxRowWidth) listView.maxRowWidth=width;
-                    if(index===(listView.count-1)){
-                        listView.width=listView.maxRowWidth
-                    }
-                }
-                Label{id:label;text:name;anchors.bottom: parent.bottom;style: "button";}
-                TextField{
-                    id:textField
-                    text:value
-                    horizontalAlignment:TextInput.AlignHCenter
-                    width:isNum? Units.dp(60):Units.dp(150)
-                    focus: (index===listView.currentIndex)&&visible
+            spacing: contentMargins
+            height:(listView.count>10?10:listView.count)*Units.dp(32)
 
-                    onTextChanged:{
-                        if(isNum){
-                            if(isNaN(text)&&(text!=="-")){
-                                text=text.slice(0,text.length-1)
-                                message.open("请输入数字！")
-                                return;
+            Loader{
+                id:loader
+                Layout.alignment: Qt.AlignVCenter
+            }
+
+            Rectangle{
+                id:line
+                width:1
+                height: parent.height
+                Layout.alignment: Qt.AlignVCenter
+                visible:loader.visible
+                color: Theme.light.textColor
+            }
+
+            ListView{
+                id:listView
+                clip:true
+                Layout.fillHeight: true
+                Layout.preferredWidth: width
+                property int maxRowWidth: -1
+                delegate: Row{
+                    id:row
+                    property alias rowText:textField.text
+                    spacing:Units.dp(12)
+                    onWidthChanged:{
+                        if(width>listView.maxRowWidth) listView.maxRowWidth=width;
+                        if(index===(listView.count-1)){
+                            listView.width=listView.maxRowWidth
+                        }
+                    }
+                    Label{id:label;text:name;anchors.bottom: parent.bottom;style: "button";}
+                    TextField{
+                        id:textField
+                        text:value
+                        horizontalAlignment:TextInput.AlignHCenter
+                        width:isNum? Units.dp(60):Units.dp(150)
+                        focus: index===listView.currentIndex
+                        onTextChanged:{
+                            if(isNum){
+                                if(isNaN(text)&&(text!=="-")){
+                                    text=text.slice(0,text.length-1)
+                                    message.open("请输入数字！")
+                                    return;
+                                }
+                            }
+                            changeText(index,text);
+                        }
+                        Keys.onVolumeDownPressed: {
+                            var num,temp;
+                            Qt.inputMethod.hide()
+                            num=Number(text)
+                            if(!isNaN(num)&&isNum){//是数值进行加减操作
+                                if(event.isAutoRepeat)
+                                    temp=step*10;
+                                else
+                                    temp=step;
+                                num=MyMath.subMath(num,temp);
+                                if(num>max) num=max;
+                                if(num<min) num=min;
+                                text=String(num);
                             }
                         }
-                        changeText(index,text);
-                    }
-                    Keys.onVolumeDownPressed: {
-                        var num,temp;
-                        Qt.inputMethod.hide()
-                        num=Number(text)
-                        if(!isNaN(num)&&isNum){//是数值进行加减操作
-                            if(event.isAutoRepeat)
-                                temp=step*10;
-                            else
-                                temp=step;
-                            num=MyMath.subMath(num,temp);
-                            if(num>max) num=max;
-                            if(num<min) num=min;
-                            text=String(num);
-                        }
-                    }
-                    Keys.onVolumeUpPressed:{
-                        var num,temp;
-                        Qt.inputMethod.hide()
-                        num=Number(text)
-                        if(!isNaN(num)&&isNum){//是数值进行加减操作
-                            if(event.isAutoRepeat)
-                                temp=step*10;
-                            else
-                                temp=step;
-                            num=MyMath.addMath(num,temp);
-                            if(num>max) num=max;
-                            if(num<min)  num=min;
-                            text=String(num);
+                        Keys.onVolumeUpPressed:{
+                            var num,temp;
+                            Qt.inputMethod.hide()
+                            num=Number(text)
+                            if(!isNaN(num)&&isNum){//是数值进行加减操作
+                                if(event.isAutoRepeat)
+                                    temp=step*10;
+                                else
+                                    temp=step;
+                                num=MyMath.addMath(num,temp);
+                                if(num>max) num=max;
+                                if(num<min)  num=min;
+                                text=String(num);
+                            }
                         }
                     }
                 }
             }
         }
-
         Item {
             id: buttonContainer
 
@@ -321,7 +345,7 @@ PopupBase {
                     anchors {
                         verticalCenter: parent.verticalCenter
                         rightMargin: Units.dp(8)
-                        right: negativeButton.visible ? negativeButton.left : parent.right // parent.right
+                        right: negativeButton.visible ? negativeButton.left : parent.right
                     }
                     onClicked: {
                         close()

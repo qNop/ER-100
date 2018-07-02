@@ -17,17 +17,19 @@ MyConditionView{
 
     function makeNum(){
         //实芯碳钢/脉冲无/MAG/1.2
-        var str=root.condition[2]===0?"_实芯碳钢_":"_药芯碳钢_";
+        var   str=root.condition[8]===0?"_":"_水冷焊枪_";
+        str+=root.condition[2]===0?"实芯碳钢_":"药芯碳钢_";
         str+=root.condition[6]===0?"脉冲无_":"脉冲有_";
         str+=root.condition[5]===0?"CO2_":"MAG_";
         str+=root.condition[4]===0?"12":"16";
+
         changeNum(str)
         return str
     }
 
     titleName: qsTr("焊接条件");
     condition: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-    listName: ["焊丝伸出长度:","头部摇动方式:","焊丝种类:","机头放置侧:","焊丝直径:","保护气体:","焊接脉冲状态:","焊接往返动作:","电弧跟踪:","预期余高:","溶敷系数:","焊接电流偏置:","焊接电压偏置:","提前送气时间:","滞后送气时间","起弧停留时间:","收弧停留时间","起弧电流衰减系数:","起弧电压衰减系数:","收弧电流衰减系数:","收弧电压衰减系数:"
+    listName: ["焊丝伸出长度:","头部摇动方式:","焊丝种类:","机头放置侧:","焊丝直径:","保护气体:","焊接脉冲状态:","焊接往返动作:","焊枪冷却方式:","预期余高:","溶敷系数:","焊接电流偏置:","焊接电压偏置:","提前送气时间:","滞后送气时间","起弧停留时间:","收弧停留时间","起弧电流衰减系数:","起弧电压衰减系数:","收弧电流衰减系数:","收弧电压衰减系数:"
         ,"层间起弧位置偏移:" ,"层间收弧位置偏移:" ,"层内起弧位置偏移:" ,"层内收弧位置偏移:","收弧回退距离:","收弧回退速度:","收弧回退停留时间:","回烧电压补偿:","回烧时间补偿1:","回烧时间补偿2:","顿边:","层间停止时间:","层内停止时间:","陶瓷衬垫打底起弧停留时间:","陶瓷衬垫打底起弧摆动速度:"]
     property var weldWireLengthModel:     ["15mm","20mm","25mm","30mm"];
     property var weldWireLengthEnable:    [true,true,true,true]
@@ -45,7 +47,7 @@ MyConditionView{
     property var returnWayEnable:              [true,true];
     property var weldPowerModel:              ["关闭","打开"];
     property var weldPowerEnable:             [true,true];
-    property var weldTrackModel:                ["关闭","打开"];
+    property var weldTrackModel:                ["空冷","水冷"];
     property var weldTrackEnable:               [true,true];
     listValueName: [weldWireLengthModel,swingWayModel,weldWireModel,robotLayoutModel,weldWireDiameterModel,weldGasModel,weldPowerModel,returnWayModel,weldTrackModel]
     listValueNameEnable: [weldWireLengthEnable,swingWayEnable,weldWireEnable,robotLayoutEnable,weldWireDiameterEnable,weldGasEnable,weldPowerEnable,returnWayEnable,weldTrackEnable]
@@ -57,7 +59,7 @@ MyConditionView{
         "设定焊接过程中使用保护气体。",
         "设定电源特性，直流或脉冲。",
         "设定焊接往返动作方向为往返方向或单向。",
-        "设定电弧跟踪是否开启。",
+        "设定焊枪的冷却方式为空冷或水冷。",
         "设定焊接预期板面焊道堆起高度。",
         "设定焊接过程中溶敷系数的大小，以方便推算更合适的焊接规范。",
         "焊接条件所设定的电流和实际电流的微调整。",
@@ -98,7 +100,7 @@ MyConditionView{
                 if(root.condition[5]){//如果此时是MAG则切换到CO2
                     selectedIndex=5;
                     changeGroupCurrent(0,false)
-                    str="焊丝种类为药芯碳钢时，保护气切换为CO2"
+                    str="焊丝种类为药芯碳钢时，保护气切换为CO2。"
                     //脉冲按钮也失效
                 }else
                     str="";
@@ -234,7 +236,10 @@ MyConditionView{
             WeldMath.setPulse(num);
             break;
             //电弧跟踪
-            //  case 8:frame.push("127");frame.push("1");frame.push(String(num));break;
+       case 8://frame.push("127");frame.push("1");frame.push(String(num));
+           if(flag)
+               makeNum();
+           break;
             //预期余高
         case 9: WeldMath.setReinforcement(num);
             break;

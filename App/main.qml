@@ -22,7 +22,7 @@ Material.ApplicationWindow{
     theme.tabHighlightColor: theme.accentColor
     //不需要解释
     property var grooveStyleName: [ "平焊单边V形坡口T接头",  "平焊单边V形坡口平对接", "平焊V形坡口平对接","横焊单边V形坡口T接头",  "横焊单边V形坡口平对接", "立焊单边V形坡口T接头",  "立焊单边V形坡口平对接", "立焊V形坡口平对接","水平角焊"]
-    property var preset:[/*"GrooveCondition"*/"TestMyConditionView","TeachCondition","WeldCondition","GrooveCheck","LimitedConditon"]
+    property var preset:["GrooveCondition"/*"TestMyConditionView"*/,"TeachCondition","WeldCondition","GrooveCheck","LimitedConditon"]
     property var presetName: ["坡口条件","示教条件","焊接条件","坡口参数","限制条件"]
     property var presetIcon: ["awesome/road","action/android","user/MAG","awesome/road","awesome/sliders"]
     property var analyse: ["WeldData"]//,"WeldAnalyse"]
@@ -715,18 +715,18 @@ Material.ApplicationWindow{
                 GrooveCondition{
                     id:grooveConditionPage
                     settings: appSettings
-                    visible: page.selectedTab===0&&page0SelectedIndex===6
+                    visible: page.selectedTab===0&&page0SelectedIndex===0
                     message: tool.message
                     onCurrentGrooveChanged:{
                         app.currentGroove=currentGroove;
                     }
                 }
-                TestGrooveCondition{
+                /*   TestGrooveCondition{
                     id:testMyConditionView
                     settings: appSettings
                     message: tool.message
                     visible: page.selectedTab===0&&page0SelectedIndex===0
-                }
+                }*/
             }
         }
         Material.Tab{
@@ -740,7 +740,7 @@ Material.ApplicationWindow{
                     visible:page.selectedTab===1&& page1SelectedIndex===0;
                     status: app.sysStatus
                     message:app.message
-                    weldTableEx: app.superUser
+                    // weldTableEx: app.superUser
                     currentUserName: appSettings.currentUserName
                     onChangeWeldData: app.sendWeldData();
                     onCurrentRowChanged: app.weldTableIndex=currentRow;
@@ -1696,16 +1696,55 @@ Material.ApplicationWindow{
                 }
             }
         }
-    }/*
+    }
     //初始化所有数据
     function initAllTable(){
-        grooveTable.clear()//删除坡口参数
-        weldTable.clear()//删除焊接数据表格
+     //   grooveTable.clear()//删除坡口参数
+       // weldTable.clear()//删除焊接数据表格
         var res,j;
-        snackBar.open("系统初始化进度0%！请耐心等待~");
-        var tableName=["坡口条件列表","焊接规范列表","限制条件列表_药芯碳钢_脉冲无_CO2_12","限制条件列表_实芯碳钢_脉冲无_CO2_12","限制条件列表_实芯碳钢_脉冲无_MAG_12","限制条件列表_实芯碳钢_脉冲有_MAG_12"]
+        message.open("系统初始化进度0%！请耐心等待~");
+        var tableNameData=[
+                    "限制条件_水冷焊枪_药芯碳钢_脉冲无_CO2_12",
+                    "限制条件_水冷焊枪_实芯碳钢_脉冲无_CO2_12",
+                    "限制条件_水冷焊枪_实芯碳钢_脉冲无_MAG_12",
+                    "限制条件_水冷焊枪_实芯碳钢_脉冲有_MAG_12",
+                    "限制条件_水冷焊枪_药芯碳钢_脉冲无_CO2_16",
+                    "限制条件_水冷焊枪_实芯碳钢_脉冲无_CO2_16",
+                    "限制条件_水冷焊枪_实芯碳钢_脉冲无_MAG_16",
+                    "限制条件_水冷焊枪_实芯碳钢_脉冲有_MAG_16"]
+        var tableName=[
+                    "限制条件列表_水冷焊枪_药芯碳钢_脉冲无_CO2_12",
+                    "限制条件列表_水冷焊枪_实芯碳钢_脉冲无_CO2_12",
+                    "限制条件列表_水冷焊枪_实芯碳钢_脉冲无_MAG_12",
+                    "限制条件列表_水冷焊枪_实芯碳钢_脉冲有_MAG_12",
+                    "限制条件列表_水冷焊枪_药芯碳钢_脉冲无_CO2_16",
+                    "限制条件列表_水冷焊枪_实芯碳钢_脉冲无_CO2_16",
+                    "限制条件列表_水冷焊枪_实芯碳钢_脉冲无_MAG_16",
+                    "限制条件列表_水冷焊枪_实芯碳钢_脉冲有_MAG_16"]//["坡口条件列表","焊接规范列表","限制条件列表_药芯碳钢_脉冲无_CO2_12","限制条件列表_实芯碳钢_脉冲无_CO2_12","限制条件列表_实芯碳钢_脉冲无_MAG_12","限制条件列表_实芯碳钢_脉冲有_MAG_12"]
+        var Time=MyMath.getSysTime();
+        var names=["陶瓷衬垫","打底层","填充层","盖面层"]
         for(var i=0;i<9;i++){
             for(var k=0;k<tableName.length;k++){
+                MySQL.createTable(grooveStyleName[i]+tableName[k],
+                                  "Name TEXT,CreatTime TEXT,Creator TEXT,EditTime TEXT,Editor TEXT")
+                //插入新的list
+                MySQL.insertTableByJson(grooveStyleName[i]+tableName[k],{"Name":grooveStyleName[i]+tableNameData[k],"CreatTime":Time,"Creator":"TKSW","EditTime":Time,"Editor":"TKSW"});
+                //创建新的 坡口条件
+                MySQL.createTable(grooveStyleName[i]+tableNameData[k],"ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT");
+               // MySQL.clearTable(grooveStyleName[i]+tableNameData[k],"","");
+                for(var l=0;l<names.length;l++){
+                    //插入新的数据
+                    MySQL.insertTableByJson(grooveStyleName[i]+tableNameData[k],
+                                        {"ID":names[l],
+                                          "C1":"220/220/220","C2":"0.1/0.1","C3":"4/6.5","C4":"2/2",
+                                           "C5":"16","C6":"4","C7":"1","C8":"0",
+                                           "C9":"100/450","C10":"1","C11":"0"}
+                                      );
+                }
+                message.open("系统初始化进度"+i/9+"%！请耐心等待~");
+            }
+            /*
+                for(var k=0;k<tableName.length;k++){
                 res= Material.UserData.getTableJson(grooveStyleName[i]+tableName[k]);
                 if(res!==-1){
                     for(j=0;j<res.length;j++){
@@ -1719,9 +1758,9 @@ Material.ApplicationWindow{
                 Material.UserData.clearTable(grooveStyleName[i]+tableName[k],"","");//清除列表
                 Material.UserData.insertTable(grooveStyleName[i]+tableName[k],"(?,?,?,?,?)",[res[0].Name,res[0].CreatTime,"TKSW",res[0].EditTime,"TKSW"])//插入新的列表
             }
-            snackBar.open("系统初始化进度"+String((i+1)*10)+"%！请耐心等待~");
+            snackBar.open("系统初始化进度"+String((i+1)*10)+"%！请耐心等待~");*/
         }
-    }*/
+    }
     Connections{
         target: MySQL
         onAccountTableChanged:{
@@ -1755,5 +1794,6 @@ Material.ApplicationWindow{
         //切换回原界面
         page.selectedTab=0;
         changeuser.show();
+        //initAllTable();
     }
 }

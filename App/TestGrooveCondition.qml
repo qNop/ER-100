@@ -18,6 +18,19 @@ TestMyConditionView{
     onUpdateModel: {
         grooveModel.setProperty(selectIndex,"value",value);
     }
+
+    ListModel{
+        id:grooveModel
+        ListElement{name:"焊接位置";
+            groupOrText:true;value:"0";valueType:"";min:0;max:3;increment:1;description:"";modbusReg:0;}
+        ListElement{name:"坡口形式";
+            groupOrText:true;value:"0";valueType:"";min:0;max:1;increment:1;description:"";modbusReg:0;}
+        ListElement{name:"接头形式";
+            groupOrText:true;value:"0";valueType:"";min:0;max:1;increment:1;description:"";modbusReg:0;}
+        ListElement{name:"背部有无衬垫";
+            groupOrText:true;value:"0";valueType:"";min:0;max:2;increment:1;description:"";modbusReg:0;}
+    }
+
     groupModel: groupModels
 
     property list<ListModel> groupModels:[
@@ -61,18 +74,6 @@ TestMyConditionView{
             ListElement{ID:1;c1:"30~40";c2:"9~60";c3:"9~60" }}
     ]
 
-    ListModel{
-        id:grooveModel
-        ListElement{name:"焊接位置";
-            groupOrText:true;value:"0";valueType:"";min:0;max:100;increment:0.1;description:"";modbusReg:0;}
-        ListElement{name:"坡口形式";
-            groupOrText:true;value:"0";valueType:"";min:0;max:100;increment:0.1;description:"";modbusReg:0;}
-        ListElement{name:"接头形式";
-            groupOrText:true;value:"0";valueType:"";min:0;max:100;increment:0.1;description:"";modbusReg:0;}
-        ListElement{name:"背部有无衬垫";
-            groupOrText:true;value:"0";valueType:"";min:0;max:100;increment:0.1;description:"";modbusReg:0;}
-    }
-
     onChangeValue: {
         switch(selectIndex){
         case 0:
@@ -86,12 +87,9 @@ TestMyConditionView{
             switch(value){
             case 0:
                 if(!groove0) {
-                    groupModels[1].setProperty(0,"enable",true);
-                }
+                    groupModels[1].setProperty(0,"enable",true);}
                 if(!groove1) {
                     groupModels[1].setProperty(1,"enable",true);}
-                if(Number(grooveModel.get(1).value)===1)
-
                 break;
             case 1:
                 break;

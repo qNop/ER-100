@@ -9,12 +9,10 @@ Dropdown{
     property list<Action>  actions;
     property int rootIndex:0;
     property int place
-    property Item columnViewItem;
+
     width: Units.dp(168)
-    function loadView(){
-         columnViewItem=componetView.createObject(internalView,{});
-         height=columnViewItem.height+ Units.dp(16)
-    }
+    height:columnView.height+Units.dp(16)
+
     onVisibleChanged: {
         //找到第一个使能的index
         if(visible){
@@ -29,38 +27,29 @@ Dropdown{
             root.forceActiveFocus();
         }
     }
-    onShowingChanged: {
-        if((!showing)&&(columnViewItem!==null)){
-            columnViewItem.destroy(100);
-        }
-    }
 
-   Component{
-        id:componetView
-        ColumnLayout {
-            objectName: "test"
-            id: columnView
-            width: parent.width
-            anchors.top:parent.top
-            anchors.topMargin: Units.dp(8)
-            Repeater {
-                id:dropRepeater
-                model: actions.length
-                ListItem.Standard {
-                    id: listItem
-                    height:Units.dp(40)
-                    text:actions[index].name;
-                    visible: actions[index].visible;
-                    itemLabel.style: "button"
-                    iconSource: actions[index].iconSource
-                    enabled: actions[index].enabled
-                    textColor:selected?Theme.accentColor:Theme.light.textColor
-                    iconColor: selected?Theme.accentColor:Theme.light.iconColor
-                    selected: root.rootIndex===index
-                    onClicked: {
-                        root.close()
-                        actions[index].triggered(listItem)
-                    }
+    ColumnLayout {
+        id: columnView
+        width: parent.width
+        anchors.top:parent.top
+        anchors.topMargin: Units.dp(8)
+        Repeater {
+            id:dropRepeater
+            model: actions.length
+            ListItem.Standard {
+                id: listItem
+                height:Units.dp(40)
+                text:actions[index].name;
+                visible: actions[index].visible;
+                itemLabel.style: "button"
+                iconSource: actions[index].iconSource
+                enabled: actions[index].enabled
+                textColor:selected?Theme.accentColor:Theme.light.textColor
+                iconColor: selected?Theme.accentColor:Theme.light.iconColor
+                selected: root.rootIndex===index
+                onClicked: {
+                    root.close()
+                    actions[index].triggered(listItem)
                 }
             }
         }

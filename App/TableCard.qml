@@ -45,6 +45,7 @@ Card{
 
     function selectIndex(index){
         if(index<model.count){
+            table.selection.clear();
             table.selection.select(index);
         }else{
             message.open("索引超过条目上限！")

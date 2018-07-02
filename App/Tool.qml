@@ -61,37 +61,34 @@ OverlayLayer {
     property var pasteModel
     property string modelName
     property string toolName
+   // ListModel{id:pasteModel}
+
     //刷新数据
     onTablePageNumberChanged: {
         switch(tablePageNumber){
         case 0:toolName="坡口条件";
-            pasteModel=groovePasteModel;
             modelName="grooveModel";
             currentNameList=toolGrooveNameList;
             currentNameListModel=toolGrooveNameListModel;
             model=toolGrooveModel;
             break;
         case 1:toolName="限制条件";
-            pasteModel=limitedPasteModel;
             modelName="limitedModel";
             currentNameList=toolLimitedNameList;
             currentNameListModel=toolLimitedNameListModel;
             model=toolLimitedModel;
             break;
         case 2:toolName="焊接规范";
-            pasteModel=weldPasteModel;
             modelName="weldModel";
             currentNameList=toolWeldNameList;
             currentNameListModel=toolWeldNameListModel;
             model=toolWeldModel;
             break;
         case 3:toolName="用户信息";
-            pasteModel=accountPasteModel;
             modelName="accountModel";
             model=toolAccountModel;
             break;
         default:toolName="";
-            pasteModel=null;
             modelName="errorHistory";
             currentNameList="";
             currentNameListModel=null;
@@ -146,14 +143,36 @@ OverlayLayer {
         Action{id:addOn
             iconName:"awesome/calendar_plus_o";name:"添加";
             onTriggered:{
-                myTextFieldDialog.title=name+toolName ;
-                myTextFieldDialog.show();}},
+                if(tablePageNumber===3){
+                    account.title=name+toolName ;
+                    account.show();
+                }else if(tablePageNumber===2){
+                    weld.title=name+toolName ;
+                    weld.show();
+                }else if(tablePageNumber===1){
+                    limited.title=name+toolName ;
+                    limited.show();
+                }else if(tablePageNumber===0){
+                    groove.title=name+toolName ;
+                    groove.show();
+                }}},
         Action{id:edit
             iconName:"awesome/edit";name:"编辑";
             onTriggered:{
-                myTextFieldDialog.title=name+toolName ;
                 if((currentRow>=0)){
-                    myTextFieldDialog.show();
+                    if(tablePageNumber===3){
+                        account.title=name+toolName ;
+                        account.show();
+                    }else if(tablePageNumber===2){
+                        weld.title=name+toolName ;
+                        weld.show();
+                    }else if(tablePageNumber===1){
+                        limited.title=name+toolName ;
+                        limited.show();
+                    }else if(tablePageNumber===0){
+                        groove.title=name+toolName ;
+                        groove.show();
+                    }
                 }else
                     message.open("请选择要编辑的行！")
             }},
@@ -161,7 +180,7 @@ OverlayLayer {
             iconName:"awesome/paste";name:"复制";
             onTriggered: {
                 if(currentRow>=0){
-                    pasteModel.set(0,model.get(currentRow));
+                    pasteModel=model.get(currentRow)
                     paste.enabled=true;
                     message.open("已复制。");}
                 else{
@@ -173,8 +192,10 @@ OverlayLayer {
             onTriggered: {
                 if(currentRow>=0){
                     paste.enabled=false;
-                    pasteModel.setProperty(0,"ID",model.get(currentRow).ID);
-                    updateModel(modelName,"Set",currentRow, pasteModel.get(0));
+                    updateModel(modelName,"Set",currentRow, {"ID":model.get(currentRow).ID,"C1":pasteModel.C1,
+                                    "C2":pasteModel.C2,"C3":pasteModel.C3,"C4":pasteModel.C4,"C5":pasteModel.C5,"C6":pasteModel.C6,"C7":pasteModel.C7,
+                                "C8":pasteModel.C8,"C9":pasteModel.C9,"C10":pasteModel.C10,"C11":pasteModel.C11});
+                    pasteModel=null
                     message.open("已粘帖。");}
                 else
                     message.open("请选择要粘帖的行！")
@@ -220,8 +241,10 @@ OverlayLayer {
         Action{id:second;iconName: "awesome/server";name:"条件补正"; onTriggered:fixDialogShow()
         }
     ]
-
-    MenuDropdown{id:dropDown}
+    MenuDropdown{id:fileDropdown;actions:fileMenu;place:0}
+    MenuDropdown{id:editDropdown;actions:editMenu;place:1}
+    MenuDropdown{id:inforDropdown;actions:inforMenu;place:2}
+    MenuDropdown{id:funcDropdown;actions:funcMenu;place:3}
 
     property list<Action>  actions: [
         Action{iconName:"awesome/file_text_o";name:"文件";hoverAnimation:true;summary: "F1"
@@ -230,10 +253,7 @@ OverlayLayer {
                 //更新List
                 currentName=tablePageNumber===0?toolGrooveName:tablePageNumber===1?toolLimitedName:
                                                                                     tablePageNumber===2?toolWeldName: tablePageNumber===3?toolAccountName:"" ;
-                dropDown.actions=fileMenu;
-                dropDown.loadView()
-                dropDown.open(source,0,source.height+3);
-                dropDown.place=0;
+                fileDropdown.open(source,0,source.height+3);
             }
         },
         Action{iconName:"awesome/edit"; name:"修改";hoverAnimation:true;summary: "F2";
@@ -255,24 +275,18 @@ OverlayLayer {
                     removeOne.enabled=removeAll.enabled=edit.enabled=copy.enabled=currentRow!==-1;
                 }else if(tablePageNumber===1){
                     addOn.enabled=true;
-                    edit.enabled=copy.enabled=currentRow!==-1;
-                    removeOne.enabled=removeAll.enabled=false;
+                    removeOne.enabled=edit.enabled=copy.enabled=currentRow!==-1;
+                    removeAll.enabled=false;
                 }else if(tablePageNumber===0){
                     addOn.enabled=true;
                     removeOne.enabled=removeAll.enabled=edit.enabled=copy.enabled=currentRow!==-1;
                 }
-                dropDown.actions=editMenu;
-                dropDown.loadView()
-                dropDown.open(source,0,source.height+3);
-                dropDown.place=1;
+                editDropdown.open(source,0,source.height+3);
             }
         },
         Action{iconName:"awesome/sticky_note_o";name:"信息";hoverAnimation:true;summary: "F3"
             onTriggered:{
-                dropDown.actions=inforMenu;
-                dropDown.loadView()
-                dropDown.open(source,0,source.height+3);
-                dropDown.place=2;
+                inforDropdown.open(source,0,source.height+3);
             }
         },
         Action{iconName:"awesome/stack_overflow";  name:"工具";hoverAnimation:true;summary: "F4"
@@ -285,10 +299,7 @@ OverlayLayer {
                 case 3:first.name="登录用户";first.iconName="awesome/user";first.visible=true;second.visible=false;break;
                 case 4:first.visible=false;second.visible=false;break;
                 }
-                dropDown.actions=funcMenu;
-                dropDown.loadView()
-                dropDown.open(source,0,source.height+3);
-                dropDown.place=3;
+                funcDropdown.open(source,0,source.height+3);
             }
         }
     ]
@@ -339,7 +350,7 @@ OverlayLayer {
             topMargin:root.height-pageHeight-snackbar.height/2
             horizontalCenter:undefined
             Behavior on leftMargin {
-                NumberAnimation { duration: 300 }
+                NumberAnimation {duration: 300}
             }
         }
         property string status: "open"
@@ -349,7 +360,6 @@ OverlayLayer {
     Row{
         visible: tablePageNumber<5
         anchors{right:parent.right;rightMargin:Units.dp(24);top:message.bottom;topMargin: Units.dp(5)}
-        //Behavior on anchors.leftMargin{NumberAnimation { duration: 400 ;easing.type:Easing.InOutQuad }}
         spacing: Units.dp(4);
         Repeater{
             id:repeater
@@ -368,10 +378,6 @@ OverlayLayer {
                     circular: true
                     centered: true
                 }
-                Tooltip{
-                    text:actions[index].summary
-                    mouseArea: ink
-                }
                 Row{
                     id:row
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -380,7 +386,6 @@ OverlayLayer {
                     Icon{
                         id:icon
                         source:actions[index].iconSource
-                        color: dropDown.place===index&& dropDown.showing ?Theme.accentColor : Theme.light.iconColor
                         size: Units.dp(27)
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -388,7 +393,6 @@ OverlayLayer {
                         style: "button"
                         text:actions[index].name;
                         anchors.verticalCenter: parent.verticalCenter
-                        color: dropDown.place===index&& dropDown.showing ?Theme.accentColor : Theme.light.textColor
                     }
                 }
             }
@@ -567,9 +571,9 @@ OverlayLayer {
 
     ListModel{
         id:limitedRules
-        ListElement{name:"坡口侧          电流       (A):";value:"";min:10;max:300;isNum:true;step:1}
-        ListElement{name:"中间              电流       (A):";value:"";min:10;max:300;isNum:true;step:1}
-        ListElement{name:"非坡口侧      电流       (A):";value:"";min:10;max:300;isNum:true;step:1}
+        ListElement{name:"坡口侧          电流       (A):";value:"";min:10;max:350;isNum:true;step:1}
+        ListElement{name:"中间              电流       (A):";value:"";min:10;max:350;isNum:true;step:1}
+        ListElement{name:"非坡口侧      电流       (A):";value:"";min:10;max:350;isNum:true;step:1}
         ListElement{name:"坡口侧      停留时间    (s):";value:"";min:0;max:5;isNum:true;step:0.01}
         ListElement{name:"非坡口侧  停留时间    (s):";value:"";min:0;max:5;isNum:true;step:0.01}
         ListElement{name:"层      高      Min     (mm):";value:"";min:1;max:10;isNum:true;step:0.1}
@@ -594,10 +598,10 @@ OverlayLayer {
         ListElement{name:"        NO.          :";value:"";min:1;max:1000;isNum:true;step:1}
         ListElement{name:"层                号 :";value:"";min:1;max:1000;isNum:true;step:1}
         ListElement{name:"道                号 :";value:"";min:1;max:1000;isNum:true;step:1}
-        ListElement{name:"电      流  (A)    :";value:"";min:10;max:300;isNum:true;step:1}
+        ListElement{name:"电      流  (A)    :";value:"";min:10;max:350;isNum:true;step:1}
         ListElement{name:"电      压  (V)    :";value:"";min:10;max:50;isNum:true;step:0.1}
         ListElement{name:"摆      幅(mm) :";value:"";min:0;max:1000;isNum:true;step:0.1}
-        ListElement{name:"摆速(cm/min) :";value:"";min:50;max:250;isNum:true;step:1}
+        ListElement{name:"摆速(cm/min) :";value:"";min:50;max:210;isNum:true;step:1}
         ListElement{name:"焊速(cm/min) :";value:"";min:4;max:200;isNum:true;step:0.1}
         ListElement{name:"焊接线X(mm)  :";value:"";min:-100;max:100;isNum:true;step:0.1}
         ListElement{name:"焊接线Y(mm)  :";value:"";min:-10;max:100;isNum:true;step:0.1}
@@ -611,9 +615,6 @@ OverlayLayer {
         ListElement{name:"收    弧   点   Y :";value:"";min:-10;max:100;isNum:true;step:0.1}
         ListElement{name:"收    弧   点   Z :";value:"";min:-30000;max:30000;isNum:true;step:1}
     }
-
-    property bool weldTableEx
-
     ListModel{
         id:accountRules
         ListElement{name:"工        号：";value:"";min:1;max:1000;isNum:false;step:1}
@@ -624,58 +625,29 @@ OverlayLayer {
         ListElement{name:"备        注：";value:"";min:10;max:300;isNum:false;step:1}
     }
     property string limitedString
-    ListModel{id:groovePasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"0";C7:"0";C8:"0"}}
-    ListModel{id:limitedPasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:""}}
-    ListModel{id:weldPasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:"";C11:"";C12:"";C13:"";C14:"";C15:"";C16:"";C17:"";C18:"";C19:""}}
-    ListModel{id:accountPasteModel;ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:""}}
 
     MyDialog{
-        id:myTextFieldDialog
-        /*      sourceComponent:Image{
+        id:groove
+        sourceComponent:Image{
             id:addImage
             source: "../Pic/坡口参数图.png"
             sourceSize.width: Units.dp(350)
         }
-       loaderVisible: tablePageNumber===0*/
+        loaderVisible:true
         onAccepted: {
-            if(tablePageNumber===0){
-                updateModel("grooveModel",title==="编辑坡口条件"?"Set":"Append",toolGrooveIndex,
-                                                            {"ID":getText(0),"C1":getText(1),"C2":getText(2),
-                                                                "C3":currentGroove===8?"0":getText(3),
-                                                                                        "C4":getText(4),"C5":getText(5),
-                                                                                        "C6":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C6:"0",
-                                                                                                               "C7":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C7:"0",
-                                                                                                                                      "C8":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C8:"0",
-                                                            })
-            }else if(tablePageNumber===1){
-                var str=toolLimitedIndex===0?"陶瓷衬垫":toolLimitedIndex===1?"打底层":toolLimitedIndex===2?"第二层":toolLimitedIndex===3?"填充层":toolLimitedIndex===4?"盖面层":"立板余高层"
-                updateModel("limitedModel",title==="编辑限制条件"?"Set":"Append",toolLimitedIndex,{"ID":str,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
-                                                                 "C2":getText(3)+"/"+getText(4), "C3":getText(5)+"/"+getText(6),"C4":getText(7)+"/"+getText(8),"C5":getText(9),
-                                                                 "C6":getText(10), "C7":getText(11),"C8":getText(12),"C9":getText(13)+"/"+getText(14),"C10":getText(15),
-                                                                 "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
-                                                             }
-                            )
-            }else if(tablePageNumber===2){
-                updateModel("weldModel",title==="编辑焊接规范"?"Set":"Append",toolWeldIndex,
-                                                          {"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),
-                                                              "C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),
-                                                              "C12":title==="编辑焊接规范"?toolWeldModel.get(toolWeldIndex).C12:"0","C13":title==="编辑焊接规范"?toolWeldModel.get(toolWeldIndex).C13:"0",
-                                                              "C14":getText(13),"C15":getText(14),"C16":getText(15),"C17":getText(16),"C18":getText(17),"C19":getText(18)})
-            }else if(tablePageNumber===3){
-                updateModel("accountModel",title==="编辑用户信息"?"Set":"Append",toolAccountIndex,
-                                                             {"ID":title==="编辑用户信息"?toolAccountModel.get(toolAccountIndex).ID:String(toolAccountModel.count+1),"C1":getText(0),"C2":getText(1),"C3":getText(2),"C4":getText(3),"C5":getText(4),"C6":getText(5)});
+            updateModel("grooveModel",title==="编辑坡口条件"?"Set":"Append",toolGrooveIndex,
+                                                        {"ID":getText(0),"C1":getText(1),"C2":getText(2),
+                                                            "C3":currentGroove===8?"0":getText(3),
+                                                                                    "C4":currentGroove===8?getText(3):getText(4),"C5":currentGroove===8?getText(4):getText(5),
+                                                                                                                                                         "C6":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C6:"0",
+                                                                                                                                                                                "C7":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C7:"0",
+                                                                                                                                                                                                       "C8":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C8:"0", })
 
-            }else{
-                message.open("不在列表内的表格，无法保存！")
-            }
-            repeaterModel=null
         }
-        onRejected: repeaterModel=null
         onOpened: {
             var i,res,obj;
             if(title==="编辑坡口条件"){
                 if(toolGrooveIndex>-1){
-                    //复制数据到 editData
                     obj=toolGrooveModel.get(toolGrooveIndex);
                     grooveRules.setProperty(0,"value",obj.ID);
                     grooveRules.setProperty(1,"value",obj.C1);
@@ -688,32 +660,74 @@ OverlayLayer {
                         grooveRules.setProperty(4,"value",obj.C4);
                         grooveRules.setProperty(5,"value",obj.C5);
                     }
-
                 }else{
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
                 }
-                repeaterModel=grooveRules;
             }else if(title==="添加坡口条件"){
                 grooveRules.setProperty(0,"value",String(toolGrooveModel.count+1));
                 for(i=1;i<grooveRules.count;i++){
                     grooveRules.setProperty(i,"value","0");
                 }
-                repeaterModel=grooveRules;
+            }
+            repeaterModel=grooveRules
+        }
+    }
 
-            }else if(title==="编辑限制条件"){
+    MyDialog{
+        id:limited
+        loaderVisible: false
+        onAccepted: {
+            var str=toolLimitedIndex===0?"陶瓷衬垫":toolLimitedIndex===1?"打底层":toolLimitedIndex===2?"第二层":toolLimitedIndex===3?"填充层":toolLimitedIndex===4?"盖面层":"立板余高层"
+            var count=toolLimitedModel.count;
+            var str1=count===0?"陶瓷衬垫":count===1?"打底层":count===2?"第二层":count===3?"填充层":count===4?"盖面层":"立板余高层"
+            updateModel("limitedModel",title==="编辑限制条件"?"Set":"Append",toolLimitedIndex,{"ID":title==="编辑限制条件"?str:str1,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
+                                                                                                               "C2":getText(3)+"/"+getText(4), "C3":getText(5)+"/"+getText(6),"C4":getText(7)+"/"+getText(8),"C5":getText(9),
+                                                                                                               "C6":getText(10), "C7":getText(11),"C8":getText(12),"C9":getText(13)+"/"+getText(14),"C10":getText(15),
+                                                                                                               "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
+                                                         }
+                        )
+        }
+        onOpened: {
+            var i,res
+            if(title==="编辑限制条件"){
                 if(toolLimitedIndex>-1){
                     res=WeldMath.getLimitedMath(toolLimitedModel.get(toolLimitedIndex))
                     for(i=0;i<res.length;i++){
                         limitedRules.setProperty(i,"value",res[i])
                     }
-
                 }else{
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
                 }
-                repeaterModel=limitedRules;
-            }else if(title==="编辑焊接规范"){
+            }else if(title==="添加限制条件"){
+                console.log("tool"+toolLimitedModel.count)
+                if(toolLimitedModel.count<5){
+                    res=WeldMath.getLimitedMath(toolLimitedModel.get(toolLimitedIndex))
+                    console.log("here")
+                    for(i=0;i<res.length;i++){
+                        limitedRules.setProperty(i,"value","0")
+                    }
+                }else
+                    console.log("here1")
+            }
+            repeaterModel=limitedRules
+        }
+    }
+
+    MyDialog{
+        id:weld
+        loaderVisible: false
+        onAccepted: {
+            updateModel("weldModel",title==="编辑焊接规范"?"Set":"Append",toolWeldIndex,
+                                                      {"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),
+                                                          "C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),
+                                                          "C12":title==="编辑焊接规范"?toolWeldModel.get(toolWeldIndex).C12:"0","C13":title==="编辑焊接规范"?toolWeldModel.get(toolWeldIndex).C13:"0",
+                                                                                                                                                  "C14":getText(13),"C15":getText(14),"C16":getText(15),"C17":getText(16),"C18":getText(17),"C19":getText(18)})
+        }
+        onOpened: {
+            var i,obj
+            if(title==="编辑焊接规范"){
                 if(toolWeldIndex>-1){
                     //复制数据到 editData
                     obj=toolWeldModel.get(toolWeldIndex);
@@ -743,22 +757,31 @@ OverlayLayer {
                     weldRules.setProperty(16,"value",obj.C17);
                     weldRules.setProperty(17,"value",obj.C18);
                     weldRules.setProperty(18,"value",obj.C19);
-                }
-                else{
+                }else{
                     message.open("请选择要编辑的行！")
-                    positiveButtonEnabled=false;
                 }
-                repeaterModel=weldRules;
             }else if(title==="添加焊接规范"){
                 weldRules.setProperty(0,"value",String(toolWeldModel.count+1));
                 for( i=1;i<weldRules.count;i++){
                     weldRules.setProperty(i,"value","0")
                 }
-                repeaterModel=weldRules;
-            }else if(title==="编辑用户信息"){
+            }
+            repeaterModel=weldRules
+        }
+    }
+
+    MyDialog{
+        id:account
+        loaderVisible: false
+        onAccepted: {
+            updateModel("accountModel",title==="编辑用户信息"?"Set":"Append",toolAccountIndex,
+                                                         {"ID":title==="编辑用户信息"?toolAccountModel.get(toolAccountIndex).ID:String(toolAccountModel.count+1),"C1":getText(0),"C2":getText(1),"C3":getText(2),"C4":getText(3),"C5":getText(4),"C6":getText(5)});
+        }
+        onOpened: {
+            var i,res,obj;
+            if(title==="编辑用户信息"){
                 if(toolAccountIndex>-1){
                     obj=toolAccountModel.get(toolAccountIndex);
-                    //accountRules.setProperty(0,"value",obj.ID);
                     accountRules.setProperty(0,"value",obj.C1);
                     accountRules.setProperty(1,"value",obj.C2);
                     accountRules.setProperty(2,"value",obj.C3);
@@ -770,23 +793,20 @@ OverlayLayer {
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
                 }
-                repeaterModel=accountRules;
             }else if(title==="添加用户信息"){
-             //   accountRules.setProperty(0,"value",String(toolAccountModel.count+1));
                 for( i=0;i<accountRules.count;i++){
                     accountRules.setProperty(i,"value","0")
                 }
-                repeaterModel=accountRules;
             }
+            repeaterModel=accountRules;
         }
     }
     function keyFunction(num){
-
         switch(num){
         case 0:
             if(tablePageNumber<5){
-                if((dropDown.showing)&&dropDown.place===0){
-                    dropDown.close();
+                if(fileDropdown.showing){
+                    fileDropdown.close();
                 }else{
                     actions[0].triggered(repeater.itemAt(0));
                 }
@@ -794,8 +814,8 @@ OverlayLayer {
             break;
         case 1:
             if(tablePageNumber<5){
-                if((dropDown.showing)&&(dropDown.place===1))
-                    dropDown.close();
+                if(editDropdown.showing)
+                    editDropdown.close();
                 else{
                     actions[1].triggered(repeater.itemAt(1));
                 }
@@ -803,15 +823,15 @@ OverlayLayer {
             break;
         case 2:
             if(tablePageNumber<5){
-                if((dropDown.showing)&&(dropDown.place===2))
-                    dropDown.close();
+                if(inforDropdown.showing)
+                    inforDropdown.close();
                 else{
                     actions[2].triggered(repeater.itemAt(2));
                 }}
             break;
         case 3:if(tablePageNumber<5){
-                if((dropDown.showing)&&(dropDown.place===3))
-                    dropDown.close();
+                if(funcDropdown.showing)
+                    funcDropdown.close();
                 else{
                     actions[3].triggered(repeater.itemAt(3));
                 }}

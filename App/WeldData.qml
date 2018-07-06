@@ -27,6 +27,8 @@ TableCard{
 
     property bool saveAs:false
 
+    property bool ok: true
+
     Connections{
         target: MySQL
         onWeldTableListChanged:{
@@ -35,10 +37,14 @@ TableCard{
                 updateListModel("Append",jsonObject[i]);
             }
             weldRulesName=jsonObject[0].Name;
+            jsonObject.length=0;
             MySQL.getJsonTable(weldRulesName);
         }
         onWeldTableChanged:{//更新数据表
             updateModel("Clear",{});
+            if(jsonObject.length!==8){
+                ok=false
+            }
             for(var i=0;i<jsonObject.length;i++){
                 updateModel("Append",jsonObject[i]);
             }
@@ -48,12 +54,25 @@ TableCard{
                 currentRow=0;
                 selectIndex(0);
             }
+            jsonObject.length=0;
         }
     }
 
     function getLastweldRulesName(){
         MySQL.getDataOrderByTime(weldRulesNameList,"EditTime");
     }
+
+   /* Timer{
+        id:timer
+        repeat:true
+        interval: 1000
+        running: visible&&ok
+        onTriggered: {
+                save();
+                 MySQL.getJsonTable(weldRulesName);
+        }
+    }*/
+
 
     function save(){
         if(typeof(weldRulesName)==="string"){

@@ -333,14 +333,14 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
             //从侧边起弧不从中间起弧
             if(i==0){//两侧的从两个侧壁起弧
                 if(grooveDirValue)
-                    *(startArcX+i)=*(weldLineX+i)-pF->swingLength/2;
-                else
-                    *(startArcX+i)=*(weldLineX+i)+pF->swingLength/2 ;
-            }else if((i+1)==weldNum){
-                if(grooveDirValue)
                     *(startArcX+i)=*(weldLineX+i)+pF->swingLength/2;
                 else
                     *(startArcX+i)=*(weldLineX+i)-pF->swingLength/2 ;
+            }else if((i+1)==weldNum){
+                if(grooveDirValue)
+                    *(startArcX+i)=*(weldLineX+i)-pF->swingLength/2;
+                else
+                    *(startArcX+i)=*(weldLineX+i)+pF->swingLength/2 ;
             }else{
                 *(startArcX+i)=*(weldLineX+i);
             }
@@ -359,10 +359,10 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         float tempStartWeldLineZ,tempStopWeldLineZ;
         tempStartWeldLineZ=(*currentFloor-1)*startArcZz+i*startArcZx;//当前层偏移+当前道偏移
         tempStopWeldLineZ=*(stopWeldLineZ+i)=weldLength+(*currentFloor-1)*stopArcZz+i*stopArcZx; //焊接长度+当前层外偏移+当前道偏移
-        if(returnWay==0){//dan cheng
-            *(startWeldLineZ+i)=tempStartWeldLineZ;
-            *(stopWeldLineZ+i)=tempStopWeldLineZ;
-        }else{
+        if(returnWay==0){//从最后点开始起弧
+            *(startWeldLineZ+i)=tempStopWeldLineZ;
+            *(stopWeldLineZ+i)=tempStartWeldLineZ;
+        }else{//往返
             int t=*currentWeldNum+i;
             if(t%2){
                 *(startWeldLineZ+i)=tempStartWeldLineZ;
@@ -372,18 +372,6 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
                 *(stopWeldLineZ+i)=tempStartWeldLineZ;
             }
         }
-        /*if(returnWay==0){//单程
-            *(startWeldLineZ+i)=(*currentFloor-1)*startArcZz+i*startArcZx;//当前层偏移+当前道偏移
-            *(stopWeldLineZ+i)=weldLength+(*currentFloor-1)*stopArcZz+i*stopArcZx; //焊接长度+当前层外偏移+当前道偏移
-        }else{//往返
-            if((*currentFloor)%2){ //起弧为收弧 收弧为起弧
-                *(startWeldLineZ+i)=(*currentFloor-1)*startArcZz+i*startArcZx;//当前层偏移+当前道偏移
-                *(stopWeldLineZ+i)=weldLength+(*currentFloor-1)*stopArcZz+i*stopArcZx; //焊接长度+当前层外偏移+当前道偏移
-            }else{ //正常
-                *(stopWeldLineZ+i)=(*currentFloor-1)*startArcZz+i*startArcZx;//当前层偏移+当前道偏移
-                *(startWeldLineZ+i)=weldLength+(*currentFloor-1)*stopArcZz+i*stopArcZx; //焊接长度+当前层外偏移+当前道偏移
-            }
-        }*/
     }
     //全算完了之后重新调整 摆宽 摆宽这个时候调整 会影响到摆频的计算
     if(weldConnectName=="T接头"){
@@ -395,10 +383,6 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
     for(i=0;i<weldNum;i++){
         int temp;
         //外负内正
-        // if(weldStyleName!="仰焊")
-        //     temp=!grooveDirValue?i:weldNum-1-i;
-        //else//仰焊 基数从一侧开始焊偶数从另一侧开始焊
-        //  temp=i%2?grooveDirValue?i/2:weldNum-1-i/2:!grooveDirValue?i/2:weldNum-1-i/2;
         str=i==(weldNum-1)?QString::number(stopOutTime):QString::number(stopInTime);
         //焊道数增加
         *currentWeldNum=*currentWeldNum+1;

@@ -958,15 +958,7 @@ Material.ApplicationWindow{
             //切换提示信息
             message.open(weldFix?"焊接系统修补焊接中间暂停。":"焊接系统焊接中间暂停。")
         }
-        /*找出本次选择的焦点*/
-        /* lastFocusedItem=Utils.findChild(page.selectedTab === 0 ?preConditionTab:page.selectedTab===1?
-                                                                     weldAnalyseTab: systemInforTab
-                                        ,sections[page.selectedTab][page.selectedTab===0 ?
-                                                                        page0SelectedIndex  : page.selectedTab===1?
-                                                                            page1SelectedIndex :page2SelectedIndex])
-        if (lastFocusedItem !== null) {
-            lastFocusedItem.forceActiveFocus();
-        }*/
+
     }
     Connections{
         target: ERModbus
@@ -1118,7 +1110,6 @@ Material.ApplicationWindow{
             //确保数组数值正确
             if(status==="Successed"){
                 weldTable.set(Number(value.ID)-1,value)
-                console.log(value)
             }else if(status==="Clear"){
                 weldTableIndex=-1;
                 changeWeldIndex(-1);

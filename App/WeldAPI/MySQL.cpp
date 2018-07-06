@@ -1,4 +1,5 @@
 #include "MySQL.h"
+#include <iterator>
 /*
 */
 
@@ -14,16 +15,13 @@ void SqlThread::run(){
     QSqlQuery query;
     bool status;
     QString tableName;
+    QSqlRecord res;
     for(;;){
         if(cmdBuf.count()){//如果存在命令则 执行命令行
             QStringList list=cmdBuf.dequeue().split("+");
-            //qDebug()<<cmd;
             cmd=list.at(0);
             tableName=list.at(1);
             if(cmd.startsWith("SELECT")){//包含选择命令
-                QList<QVariant> qJsonList;
-                QSqlRecord res;
-                QJsonObject pJson;
                 status=query.exec(cmd);
                 if(status){ //获取数据库
                     while (query.next()) {
@@ -32,8 +30,12 @@ void SqlThread::run(){
                             pJson.insert(res.fieldName(i),QJsonValue(res.field(i).value().toString()));
                         }
                         qJsonList.append(QVariant(pJson));
+                      while(!pJson.empty()){
+                        pJson.erase(pJson.begin());
+                      }
                     }
                     emit sqlThreadSignal(qJsonList,tableName);
+                    qJsonList.clear();
                 }
             }else if(cmd.startsWith("CREATE")){//创建数据库
                 status=query.exec(cmd);
@@ -114,7 +116,7 @@ void MySQL::insertTable(QString tableName,QObject* data){
         s1.remove(s1.length()-1,1);
         s1+=")";
         pSqlThread->pCmdBuf->enqueue("INSERT INTO "+tableName+s1+" VALUES"+s+"+"+tableName);
-        qDebug()<<"INSERT INTO "+tableName+s1+" VALUES"+s+"+"+tableName;
+       ;
     }else
         emit mySqlStatusChanged(false,tableName);
 }

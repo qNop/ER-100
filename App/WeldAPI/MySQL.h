@@ -31,7 +31,8 @@ public:
     SqlThread();
     ~SqlThread();
     QQueue<QString> *pCmdBuf;
-
+    QList<QVariant> qJsonList;
+    QJsonObject pJson;
 signals:
     void sqlThreadSignal(QList<QVariant> jsonObject,QString tableName);
     void sqlThreadFinished(bool res,QString tableName);

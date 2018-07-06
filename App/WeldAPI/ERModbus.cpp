@@ -103,14 +103,14 @@ void ModbusThread::run(){
                     qDebug()<<"ModbusThread::Cmd is not support .";
                 }
                 modbusData.insert(0,modbus_strerror(errno));
-            //    if(errno)
-                //    qDebug()<<modbus_strerror(errno);
+                if(errno)
+                    qDebug()<<modbus_strerror(errno);
                 emit ModbusThreadSignal(modbusData);
                 //  qDebug()<<"ModbusThread::ANSWER "<<modbusData;
             }else{
-
                // qDebug()<<"*Modbus is not exist !";
             }
+            msleep(2);
         }else{//队列内部无数据则 线程休眠
             msleep(50);
         }
@@ -125,6 +125,7 @@ void ModbusThread::run(){
 //void ERModbus::setGroove(int value){
     //pWeldMath->grooveValue=value;
 //}
+/*
 void ERModbus::setWeldStyle(int value){
   // modbusDataType cmd;cmd.rw=WRITE;cmd.reg=88;cmd.num=1;cmd.data[0]=value==2?0:value; cmd.error=0;setmodbusFrame(cmd);
 }
@@ -136,4 +137,4 @@ void ERModbus::setConnectStyle(int value){
 }
 void ERModbus::setCeramicBack(int value){
 //modbusDataType cmd;cmd.rw=WRITE;cmd.reg=90;cmd.num=1;cmd.data[0]=value; cmd.error=0;setmodbusFrame(cmd);
-}
+}*/

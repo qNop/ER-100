@@ -72,6 +72,7 @@ TableCard{
             for(var i=0;i<model.count;i++){
                 //插入新的数据
                 MySQL.insertTable(grooveName,model.get(i));
+                console.log("i= "+i)
             }
             //更新数据库保存时间
             MySQL.setValue(grooveNameList,"Name",grooveName,"EditTime",MyMath.getSysTime());

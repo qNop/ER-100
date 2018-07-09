@@ -36,8 +36,8 @@ PopupBase {
     overlayLayer: "dialogOverlayLayer"
 
     // overlayColor: Qt.rgba(0, 0, 0, 0.3)
-    opacity: showing ? 1 : 0
-    visible: opacity > 0
+    // opacity: showing ? 1 : 0
+    visible: false//opacity > 0
 
     width: Math.max(Units.dp(260) ,
                     rowLayout.width +  2*contentMargins)
@@ -89,16 +89,16 @@ PopupBase {
 
     anchors {
         centerIn: parent
-        verticalCenterOffset: showing ? 0 : -(dialog.height/3)
+        verticalCenterOffset: visible ? 0 : -(dialog.height/3)
 
         Behavior on verticalCenterOffset {
             NumberAnimation { duration: 200 }
         }
     }
 
-    Behavior on opacity {
+   /* Behavior on opacity {
         NumberAnimation { duration: 200 }
-    }
+    }*/
 
     Keys.onPressed: {
         if (event.key === Qt.Key_Escape) {
@@ -122,8 +122,9 @@ PopupBase {
     }
 
     function closeKeyPressed(event) {
-        if (dialog.showing) {
+        if (dialog.visible) {
             if (dialog.dismissOnTap) {
+                visible=false
                 dialog.close()
             }
             event.accepted = true
@@ -133,13 +134,12 @@ PopupBase {
     function show() {
         listView.maxRowWidth=-1;
         open()
+        visible=true
     }
 
     onVisibleChanged:{
         if(visible)
             listView.forceActiveFocus()
-        else
-            repeaterModel=null
     }
 
     function getText(index){
@@ -330,6 +330,7 @@ PopupBase {
                     }
 
                     onClicked: {
+                        dialog.visible=false
                         close();
                         rejected();
                     }
@@ -348,6 +349,7 @@ PopupBase {
                         right: negativeButton.visible ? negativeButton.left : parent.right
                     }
                     onClicked: {
+                       dialog.visible=false
                         close()
                         accepted();
                     }

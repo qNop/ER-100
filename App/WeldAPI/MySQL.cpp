@@ -40,6 +40,7 @@ void SqlThread::run(){
             }else if(cmd.startsWith("CREATE")){//创建数据库
                 status=query.exec(cmd);
             }else if(cmd.startsWith("INSERT")){//插入数据库
+                qDebug()<<"INSERT"<<cmd;
                 status=query.exec(cmd);
             }else if(cmd.startsWith("UPDATE")){//插入数据库
                 status=query.exec(cmd);

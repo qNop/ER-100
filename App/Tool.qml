@@ -61,7 +61,7 @@ OverlayLayer {
     property var pasteModel
     property string modelName
     property string toolName
-   // ListModel{id:pasteModel}
+    // ListModel{id:pasteModel}
 
     //刷新数据
     onTablePageNumberChanged: {
@@ -190,11 +190,21 @@ OverlayLayer {
         Action{id:paste;
             iconName:"awesome/copy";name:"粘帖";
             onTriggered: {
+                var obj
                 if(currentRow>=0){
                     paste.enabled=false;
-                    updateModel(modelName,"Set",currentRow, {"ID":model.get(currentRow).ID,"C1":pasteModel.C1,
-                                    "C2":pasteModel.C2,"C3":pasteModel.C3,"C4":pasteModel.C4,"C5":pasteModel.C5,"C6":pasteModel.C6,"C7":pasteModel.C7,
-                                "C8":pasteModel.C8,"C9":pasteModel.C9,"C10":pasteModel.C10,"C11":pasteModel.C11});
+                    switch(tablePageNumber){
+                    case 0:obj={"ID":model.get(currentRow).ID,"C1":pasteModel.C1,"C2":pasteModel.C2,"C3":pasteModel.C3,"C4":pasteModel.C4,"C5":pasteModel.C5,"C6":pasteModel.C6,"C7":pasteModel.C7, "C8":pasteModel.C8};
+                        break;
+                    case 1:obj={"ID":model.get(currentRow).ID,"C1":pasteModel.C1,"C2":pasteModel.C2,"C3":pasteModel.C3,"C4":pasteModel.C4,"C5":pasteModel.C5,"C6":pasteModel.C6,"C7":pasteModel.C7,"C8":pasteModel.C8,"C9":pasteModel.C9,"C10":pasteModel.C10,"C11":pasteModel.C11};
+                        break;
+                    case 2:obj={"ID":model.get(currentRow).ID,"C1":pasteModel.C1,"C2":pasteModel.C2,"C3":pasteModel.C3,"C4":pasteModel.C4,"C5":pasteModel.C5,"C6":pasteModel.C6,"C7":pasteModel.C7,
+                            "C8":pasteModel.C8,"C9":pasteModel.C9,"C10":pasteModel.C10,"C11":pasteModel.C11,"C12":pasteModel.C12,"C13":pasteModel.C13,"C14":pasteModel.C14,"C15":pasteModel.C15,"C16":pasteModel.C16,"C17":pasteModel.C17,"C18":pasteModel.C18,"C19":pasteModel.C19};
+                        break;
+                    case 3:obj={"ID":model.get(currentRow).ID,"C1":pasteModel.C1,"C2":pasteModel.C2,"C3":pasteModel.C3,"C4":pasteModel.C4,"C5":pasteModel.C5,"C6":pasteModel.C6};
+                        break;
+                    }
+                    updateModel(modelName,"Set",currentRow, obj);
                     pasteModel=null
                     message.open("已粘帖。");}
                 else
@@ -682,9 +692,9 @@ OverlayLayer {
             var count=toolLimitedModel.count;
             var str1=count===0?"陶瓷衬垫":count===1?"打底层":count===2?"第二层":count===3?"填充层":count===4?"盖面层":"立板余高层"
             updateModel("limitedModel",title==="编辑限制条件"?"Set":"Append",toolLimitedIndex,{"ID":title==="编辑限制条件"?str:str1,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
-                                                                                                               "C2":getText(3)+"/"+getText(4), "C3":getText(5)+"/"+getText(6),"C4":getText(7)+"/"+getText(8),"C5":getText(9),
-                                                                                                               "C6":getText(10), "C7":getText(11),"C8":getText(12),"C9":getText(13)+"/"+getText(14),"C10":getText(15),
-                                                                                                               "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
+                                                                                                                "C2":getText(3)+"/"+getText(4), "C3":getText(5)+"/"+getText(6),"C4":getText(7)+"/"+getText(8),"C5":getText(9),
+                                                                                                                "C6":getText(10), "C7":getText(11),"C8":getText(12),"C9":getText(13)+"/"+getText(14),"C10":getText(15),
+                                                                                                                "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
                                                          }
                         )
         }
@@ -718,6 +728,7 @@ OverlayLayer {
     MyDialog{
         id:weld
         loaderVisible: false
+        //repeaterModel:weldRules
         onAccepted: {
             updateModel("weldModel",title==="编辑焊接规范"?"Set":"Append",toolWeldIndex,
                                                       {"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),
@@ -773,6 +784,7 @@ OverlayLayer {
     MyDialog{
         id:account
         loaderVisible: false
+
         onAccepted: {
             updateModel("accountModel",title==="编辑用户信息"?"Set":"Append",toolAccountIndex,
                                                          {"ID":title==="编辑用户信息"?toolAccountModel.get(toolAccountIndex).ID:String(toolAccountModel.count+1),"C1":getText(0),"C2":getText(1),"C3":getText(2),"C4":getText(3),"C5":getText(4),"C6":getText(5)});

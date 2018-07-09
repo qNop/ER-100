@@ -907,11 +907,12 @@ Material.ApplicationWindow{
                     grooveTable.remove(1,grooveTable.count-1);
                 else if(grooveTable.count===0){
                     //插入全零的一行数据
-                    grooveTable.append({"ID":"1","C1":"0","C2":"0","C3":"0","C4":"0","C5":"0","C6":"0","C7":"0","C8":"0",});
+                    grooveTable.append({"ID":"1","C1":"0","C2":"0","C3":"0","C4":"0","C5":"0","C6":"0","C7":"0","C8":"0"});
                 }
                 grooveTable.setProperty(0,"ID","1");
                 for(var i=1;i<app.teachPoint;i++){
-                    grooveTable.append(grooveTable.get(0))
+                    var obj=grooveTable.get(0);
+                    grooveTable.append({"ID":obj.ID,"C1":obj.C1,"C2":obj.C2,"C3":obj.C3,"C4":obj.C4,"C5":obj.C5,"C6":obj.C6,"C7":obj.C7,"C8":obj.C8});
                     grooveTable.setProperty(i,"ID",String(i+1));
                 }
                 //}
@@ -1508,7 +1509,8 @@ Material.ApplicationWindow{
         id:changeuser;
         objectName: "ChangeUserDialog"
         title:!changeUserFlag?qsTr("用户登录(请插入钥匙并打开)"):qsTr("用户登录");
-        negativeButtonText:qsTr("取消");positiveButtonText:qsTr("确定");
+        negativeButtonText:qsTr("取消");
+        positiveButtonText:qsTr("确定");
         positiveButtonEnabled:false;
         globalMouseAreaEnabled: true
         dismissOnTap:positiveButtonEnabled

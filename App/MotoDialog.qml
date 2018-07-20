@@ -93,9 +93,9 @@ Material.Dialog{
         ERModbus.setmodbusFrame(["W","26","20"].concat(res));
         //同时也保存数据
         settings.swingSpeed=Number(send[0][4]);
-         settings.zSpeed=Number(send[1][4]);
-         settings.ySpeed=Number(send[2][4]);
-         settings.xSpeed=Number(send[3][4]);
+        settings.zSpeed=Number(send[1][4]);
+        settings.ySpeed=Number(send[2][4]);
+        settings.xSpeed=Number(send[3][4]);
 
         settings.swingMoto=Number(send[0][3]);
         settings.zMoto=Number(send[1][3]);
@@ -146,7 +146,7 @@ Material.Dialog{
         }else if(event.key===Qt.Key_VolumeUp){
             if(moto.selectedIndex<6){
                 var num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<5)
+                if(moto.selectedIndex<4)
                     if(num) num=0;
                     else num=1;
                 else
@@ -158,7 +158,7 @@ Material.Dialog{
         }else if(event.key===Qt.Key_VolumeDown){
             if(moto.selectedIndex<6){
                 num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<5)
+                if(moto.selectedIndex<4)
                     if(num) num=0;
                     else num=1;
                 else
@@ -170,7 +170,7 @@ Material.Dialog{
         }else if(event.key===Qt.Key_Plus){
             if(moto.selectedIndex<6){
                 num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<5)
+                if(moto.selectedIndex<4)
                     if(num) num=0;
                     else num=1;
                 else
@@ -182,7 +182,7 @@ Material.Dialog{
         }else if(event.key===Qt.Key_Minus){
             if(moto.selectedIndex<6){
                 num=moto.send[moto.selectedMoto][moto.selectedIndex];
-                if(moto.selectedIndex<5)
+                if(moto.selectedIndex<4)
                     if(num) num=0;
                     else num=1;
                 else
@@ -254,7 +254,7 @@ Material.Dialog{
                                                        errorCode&0x00000080?true:false:moto.selectedMoto===1?
                                                                                  errorCode&0x00001000?true:false:moto.selectedMoto===2?
                                                                                                            errorCode&0x00020000?true:false:errorCode&0x00400000?true:false:
-                                        sub.subIndex===2?false:true
+                        sub.subIndex===2?false:true
                         onCheckedChanged: {
                             if(moto.selectedIndex<4)
                                 moto.changeSelectedIndex(sub.subIndex);

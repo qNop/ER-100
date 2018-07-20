@@ -26,7 +26,8 @@ HEADERS += \
     WeldAPI/AppConfig.h \
     WeldAPI/weldmath.h \
     WeldAPI/SysMath.h \
-    WeldAPI/MySQL.h
+    WeldAPI/MySQL.h \
+    WeldAPI/FeedSpeedTable.h
 
 INCLUDEPATH +=libmodbus \
               libmodbus/src \

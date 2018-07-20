@@ -69,10 +69,13 @@ TableCard{
         if(typeof(grooveName)==="string"){
             //清除保存数据库
             MySQL.clearTable(grooveName,"","");
+            console.log(grooveName+"here")
             for(var i=0;i<model.count;i++){
+                console.log("here"+model.count)
                 //插入新的数据
-                MySQL.insertTable(grooveName,model.get(i));
-                console.log("i= "+i)
+                var obj=model.get(i);
+                console.log(obj.ID)
+                MySQL.insertTableByJson(grooveName,{"ID":obj.ID,"C1":obj.C1,"C2":obj.C2,"C3":obj.C3,"C4":obj.C4,"C5":obj.C5,"C6":obj.C6,"C7":obj.C7,"C8":obj.C8});
             }
             //更新数据库保存时间
             MySQL.setValue(grooveNameList,"Name",grooveName,"EditTime",MyMath.getSysTime());

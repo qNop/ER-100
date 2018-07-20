@@ -21,9 +21,9 @@ typedef struct {
     //摆动速度
     float swingSpeed;
     //前停留
-    float beforeSwingStayTime;
+    float outSwingStayTime;
     //后停留
-    float afterSwingStayTime;
+    float interSwingStayTime;
     //摆动频率
     float swingHz;
     //摆动宽度
@@ -126,6 +126,8 @@ public:
 
     float weldLength;
 
+    int currentAdd;
+
     float totalWeldTime;//
     //计算数据状态
     QString status;
@@ -151,7 +153,7 @@ public:
     int getWeldNum(FloorCondition *pF,weldDataType *pWeldData,float *s,int currentWeldNum,int weldNum,int weldFloor,QString *status);
     int setGrooveRules(QStringList value);
     //获取横焊和平焊的 摆动频率
-   // float getSwingSpeed(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed,float *swingHz);
+   // float getSwingSpeed(float swing,float swingGrooveStayTime,float swingNotGrooveStayTime,float weldSpeed,float maxSpeed,float *swingHz);
     float getSwingSpeed(weldDataType *pWeldData,float maxSpeed);
 signals:
     void weldRulesChanged(QString status,QJsonObject value);

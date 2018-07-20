@@ -11,9 +11,7 @@ TableCard {
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "LimitedConditon"
-    /*ListModel{id:pasteModel;
-        ListElement{ID:"";C1:"";C2:"";C3:"";C4:"";C5:"";C6:"";C7:"";C8:"";C9:"";C10:""}
-    }*/
+
     property bool swingWidthOrWeldWidth
 
     //property Item message
@@ -71,8 +69,10 @@ TableCard {
             //清除保存数据库
             MySQL.clearTable(limitedRulesName,"","");
             for(var i=0;i<model.count;i++){
+                var obj=model.get(i);
                 //插入新的数据
-                MySQL.insertTable(limitedRulesName,model.get(i));
+                MySQL.insertTableByJson(limitedRulesName,{"ID":obj.ID,"C1":obj.C1,"C2":obj.C2,"C3":obj.C3,"C4":obj.C4,"C5":obj.C5,"C6":obj.C6,"C7":obj.C7,"C8":obj.C8,
+                                      "C9":obj.C9,"C10":obj.C10,"C11":obj.C11});
             }
             //更新数据库保存时间
             MySQL.setValue(limitedRulesNameList,"Name",limitedRulesName,"EditTime",MyMath.getSysTime());

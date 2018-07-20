@@ -50,7 +50,6 @@ PopupBase {
     property int contentMargins: Units.dp(24)
 
     property alias title: titleLabel.text
-    // property alias text: textLabel.text
 
     property alias repeaterModel: listView.model
 
@@ -68,7 +67,7 @@ PopupBase {
      */
     property alias positiveButton: positiveButton
 
-    globalMouseAreaEnabled:false
+    //globalMouseAreaEnabled:false
     property string negativeButtonText: "取消"
     property string positiveButtonText: "确定"
     property alias positiveButtonEnabled: positiveButton.enabled
@@ -80,6 +79,8 @@ PopupBase {
     property alias loaderVisible: loader.visible
 
     property Item message
+
+    signal updateText(int index,var text)
 
     signal changeText(int index,var text)
 
@@ -95,10 +96,6 @@ PopupBase {
             NumberAnimation { duration: 200 }
         }
     }
-
-   /* Behavior on opacity {
-        NumberAnimation { duration: 200 }
-    }*/
 
     Keys.onPressed: {
         if (event.key === Qt.Key_Escape) {
@@ -124,7 +121,6 @@ PopupBase {
     function closeKeyPressed(event) {
         if (dialog.visible) {
             if (dialog.dismissOnTap) {
-                visible=false
                 dialog.close()
             }
             event.accepted = true
@@ -134,7 +130,7 @@ PopupBase {
     function show() {
         listView.maxRowWidth=-1;
         open()
-        visible=true
+        visible=true;
     }
 
     onVisibleChanged:{
@@ -148,6 +144,19 @@ PopupBase {
 
     onChangeText: {
         repeaterModel.setProperty(index,"value",text);
+    }
+
+    function close() {
+        visible = false
+
+        if (parent.hasOwnProperty("currentOverlay")) {
+            parent.currentOverlay = null
+        }
+
+        if (__lastFocusedItem !== null) {
+            __lastFocusedItem.forceActiveFocus()
+        }
+        closed()
     }
 
     View {
@@ -230,6 +239,15 @@ PopupBase {
                 delegate: Row{
                     id:row
                     property alias rowText:textField.text
+                    property int rowIndex: index
+                    Connections{
+                        target: dialog
+                        onUpdateText:{
+                            if(index===row.rowIndex){
+                                 row.rowText=text;
+                            }
+                        }
+                    }
                     spacing:Units.dp(12)
                     onWidthChanged:{
                         if(width>listView.maxRowWidth) listView.maxRowWidth=width;
@@ -252,7 +270,7 @@ PopupBase {
                                     return;
                                 }
                             }
-                            changeText(index,text);
+                             changeText(index,text);
                         }
                         Keys.onVolumeDownPressed: {
                             var num,temp;
@@ -290,7 +308,6 @@ PopupBase {
         }
         Item {
             id: buttonContainer
-
             anchors {
                 bottom: parent.bottom
                 right: parent.right
@@ -330,7 +347,6 @@ PopupBase {
                     }
 
                     onClicked: {
-                        dialog.visible=false
                         close();
                         rejected();
                     }
@@ -349,7 +365,6 @@ PopupBase {
                         right: negativeButton.visible ? negativeButton.left : parent.right
                     }
                     onClicked: {
-                       dialog.visible=false
                         close()
                         accepted();
                     }

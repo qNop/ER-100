@@ -21,6 +21,7 @@ void SqlThread::run(){
             QStringList list=cmdBuf.dequeue().split("+");
             cmd=list.at(0);
             tableName=list.at(1);
+            qDebug()<<cmd.toLatin1();
             if(cmd.startsWith("SELECT")){//包含选择命令
                 status=query.exec(cmd);
                 if(status){ //获取数据库
@@ -40,7 +41,6 @@ void SqlThread::run(){
             }else if(cmd.startsWith("CREATE")){//创建数据库
                 status=query.exec(cmd);
             }else if(cmd.startsWith("INSERT")){//插入数据库
-                qDebug()<<"INSERT"<<cmd;
                 status=query.exec(cmd);
             }else if(cmd.startsWith("UPDATE")){//插入数据库
                 status=query.exec(cmd);
@@ -55,7 +55,7 @@ void SqlThread::run(){
             }
             emit sqlThreadFinished(status,tableName);
         }else{//线程挂起20ms
-            msleep(20);
+            msleep(5);
         }
     }
 }
@@ -99,7 +99,7 @@ void MySQL::renameTable(QString oldName, QString newName){
     else
         emit mySqlStatusChanged(false,oldName);
 }
-
+/*
 void MySQL::insertTable(QString tableName,QObject* data){
     if(!tableName.isEmpty()&&data){
         const QMetaObject* meta= data->metaObject();
@@ -120,7 +120,7 @@ void MySQL::insertTable(QString tableName,QObject* data){
        ;
     }else
         emit mySqlStatusChanged(false,tableName);
-}
+}*/
 
 void MySQL::insertTableByJson(QString tableName,QJsonObject data){
     if(!tableName.isEmpty()){

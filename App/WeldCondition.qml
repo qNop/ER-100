@@ -247,7 +247,9 @@ MyConditionView{
         case 10: WeldMath.setMeltingCoefficient(num);
             break;
             //焊接电流偏置
-        case 11:frame.push("128");frame.push("1");frame.push(String(num));break;
+        case 11:frame.push("128");frame.push("1");frame.push(String(num));
+                WeldMath.setCurrentAdd(num);
+            break;
             //焊接电压偏置
         case 12:frame.push("129");frame.push("1");frame.push(String(num*10));break;
             //提前送气时间

@@ -21,82 +21,23 @@ OverlayLayer {
 
     property int tablePageNumber:5
 
-    property int toolGrooveIndex;
-    property string toolGrooveName;
-    property string toolGrooveNameList;
-    property var toolGrooveNameListModel;
-    property string toolGrooveModelName;
-    property var toolGrooveModel;
-
-    property int toolLimitedIndex;
-    property string toolLimitedName;
-    property string toolLimitedNameList;
-    property var toolLimitedNameListModel;
-    property string toolLimitedModelName;
-    property var toolLimitedModel;
-
-    property int toolWeldIndex;
-    property string toolWeldName;
-    property string toolWeldNameList;
-    property var toolWeldNameListModel;
-    property string toolWeldModelName;
-    property var toolWeldModel;
-
-    property int toolAccountIndex;
-    property string toolAccountName;
-    property string toolAccountNameList;
-    property var toolAccountNameListModel;
-    property string toolAccountModelName;
-    property var toolAccountModel;
-
     signal updateModel(string modelName,string cmd,int startAddr,var data);
     signal openMyErrorDialog();
     signal toggleMyErrorDialog();
     signal openMotoDialog();
     signal toggleMotoDialog();
 
-
     property var model
     property int currentRow
     property var pasteModel
     property string modelName
     property string toolName
-    // ListModel{id:pasteModel}
+    property string currentNameList
+    property string currentName
+    property var currentNameListModel
 
-    //刷新数据
-    onTablePageNumberChanged: {
-        switch(tablePageNumber){
-        case 0:toolName="坡口条件";
-            modelName="grooveModel";
-            currentNameList=toolGrooveNameList;
-            currentNameListModel=toolGrooveNameListModel;
-            model=toolGrooveModel;
-            break;
-        case 1:toolName="限制条件";
-            modelName="limitedModel";
-            currentNameList=toolLimitedNameList;
-            currentNameListModel=toolLimitedNameListModel;
-            model=toolLimitedModel;
-            break;
-        case 2:toolName="焊接规范";
-            modelName="weldModel";
-            currentNameList=toolWeldNameList;
-            currentNameListModel=toolWeldNameListModel;
-            model=toolWeldModel;
-            break;
-        case 3:toolName="用户信息";
-            modelName="accountModel";
-            model=toolAccountModel;
-            break;
-        default:toolName="";
-            modelName="errorHistory";
-            currentNameList="";
-            currentNameListModel=null;
-            model=toolGrooveModel;
-            break;
-        }
-        paste.enabled=false;
-    }
+    signal updateDisplay();
+
     property list<Action> fileMenu: [
         Action{iconName:"av/playlist_add";name:"新建";enabled: false
             onTriggered: {newFile.saveAs=false;newFile.show();}},
@@ -221,7 +162,7 @@ OverlayLayer {
                     message.open("请选择要移除的行！")}
         },
         Action{id:removeAll
-            iconName:"awesome/calendar_o";name:"清空";enabled: model.count>0
+            iconName:"awesome/calendar_o";name:"清空";//enabled: model.count>0
             onTriggered: {
                 updateModel(modelName,"Clear",currentRow,{});
                 message.open("已清空。");
@@ -261,18 +202,14 @@ OverlayLayer {
             onTriggered: {
                 //source为triggered的传递参数
                 //更新List
-                currentName=tablePageNumber===0?toolGrooveName:tablePageNumber===1?toolLimitedName:
-                                                                                    tablePageNumber===2?toolWeldName: tablePageNumber===3?toolAccountName:"" ;
+          updateDisplay()
                 fileDropdown.open(source,0,source.height+3);
             }
         },
         Action{iconName:"awesome/edit"; name:"修改";hoverAnimation:true;summary: "F2";
             onTriggered:{
                 //当前行
-                currentRow=tablePageNumber===0?toolGrooveIndex:tablePageNumber===1?toolLimitedIndex:
-                                                                                    tablePageNumber===2?toolWeldIndex: tablePageNumber===3?toolAccountIndex:0 ;
-                model=tablePageNumber===0?toolGrooveModel:tablePageNumber===1?toolLimitedModel:
-                                                                               tablePageNumber===2?toolWeldModel:toolAccountModel;
+                updateDisplay()
                 if(tablePageNumber===4){
                     addOn.enabled=edit.enabled=copy.enabled=removeOne.enabled=false;
                     removeAll.enabled=true;
@@ -301,6 +238,7 @@ OverlayLayer {
         },
         Action{iconName:"awesome/stack_overflow";  name:"工具";hoverAnimation:true;summary: "F4"
             onTriggered:{
+                updateDisplay()
                 switch(tablePageNumber){
                 case 0:first.name="生成规范";first.iconName="awesome/send_o";first.visible=true;
                     second.visible=true;second.enabled=(teachModel===1)&&(visible);break;
@@ -416,10 +354,6 @@ OverlayLayer {
     signal newGrooveFile(string name,bool saveAs);
     signal newLimitedFile(string name,bool saveAs);
     signal newWeldFile(string name,bool saveAs);
-
-    property string currentNameList
-    property string currentName
-    property var currentNameListModel
     //
     Dialog{
         id:newFile
@@ -500,15 +434,18 @@ OverlayLayer {
         property var nameList: [""]
         onOpened:{//打开对话框加载model
             nameList.length=0;
+            var obj;
             for(var i=0;i<currentNameListModel.count;i++){
-                nameList.push(currentNameListModel.get(i).Name.replace(toolName,""));
+                obj=currentNameListModel.get(i);
+                nameList.push(obj.Name.replace(toolName,""));
             }
             menuField.model=nameList
-            name=currentNameListModel.get(0).Name;
-            menuField.helperText="创建时间:"+currentNameListModel.get(0).CreatTime+
-                    "\n创建者:"+currentNameListModel.get(0).Creator+
-                    "\n修改时间:"+currentNameListModel.get(0).EditTime+
-                    "\n修改者:"+currentNameListModel.get(0).Editor;
+            obj=currentNameListModel.get(0);
+            name=obj.Name;
+            menuField.helperText="创建时间:"+obj.CreatTime+
+                    "\n创建者:"+obj.Creator+
+                    "\n修改时间:"+obj.EditTime+
+                    "\n修改者:"+obj.Editor;
         }
         dialogContent: MenuField{id:menuField
             width:Units.dp(300)
@@ -600,7 +537,7 @@ OverlayLayer {
     }
     property bool swingWidthOrWeldWidth: settings.weldStyle===1||settings.weldStyle===3?false:true
     onSwingWidthOrWeldWidthChanged: {
-        limitedRules.setProperty(9,"name",swingWidthOrWeldWidth?"摆  动  宽  度  Max (mm)":"焊  道  宽  度  Max (mm)")
+        limitedRules.setProperty(9,"name",swingWidthOrWeldWidth?"摆  动  宽  度  Max (mm):":"焊  道  宽  度  Max (mm):")
     }
 
     ListModel{
@@ -615,8 +552,8 @@ OverlayLayer {
         ListElement{name:"焊速(cm/min) :";value:"";min:4;max:200;isNum:true;step:0.1}
         ListElement{name:"焊接线X(mm)  :";value:"";min:-100;max:100;isNum:true;step:0.1}
         ListElement{name:"焊接线Y(mm)  :";value:"";min:-10;max:100;isNum:true;step:0.1}
-        ListElement{name:"前   停  留   (s) :";value:"";min:0;max:5;isNum:true;step:0.01}
-        ListElement{name:"后   停  留   (s) :";value:"";min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"外   停  留   (s) :";value:"";min:0;max:5;isNum:true;step:0.01}
+        ListElement{name:"内   停  留   (s) :";value:"";min:0;max:5;isNum:true;step:0.01}
         ListElement{name:"停  止 时 间(s) :";value:"";min:0;max:1000;isNum:true;step:0.1}
         ListElement{name:"起    弧   点   X :";value:"";min:-100;max:100;isNum:true;step:0.1}
         ListElement{name:"起    弧   点   Y :";value:"";min:-10;max:100;isNum:true;step:0.1}
@@ -644,54 +581,57 @@ OverlayLayer {
             sourceSize.width: Units.dp(350)
         }
         loaderVisible:true
+        repeaterModel: grooveRules
+        message: root.message
         onAccepted: {
-            updateModel("grooveModel",title==="编辑坡口条件"?"Set":"Append",toolGrooveIndex,
+            updateModel("grooveModel",title==="编辑坡口条件"?"Set":"Append",currentRow,
                                                         {"ID":getText(0),"C1":getText(1),"C2":getText(2),
                                                             "C3":currentGroove===8?"0":getText(3),
                                                                                     "C4":currentGroove===8?getText(3):getText(4),"C5":currentGroove===8?getText(4):getText(5),
-                                                                                                                                                         "C6":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C6:"0",
-                                                                                                                                                                                "C7":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C7:"0",
-                                                                                                                                                                                                       "C8":title==="编辑坡口条件"?toolGrooveModel.get(toolGrooveIndex).C8:"0", })
+                                                                                                                                                         "C6":title==="编辑坡口条件"?model.get(currentRow).C6:"0",
+                                                                                                                                                                                "C7":title==="编辑坡口条件"?model.get(currentRow).C7:"0",
+                                                                                                                                                                                                       "C8":title==="编辑坡口条件"?model.get(currentRow).C8:"0", })
 
         }
         onOpened: {
             var i,res,obj;
             if(title==="编辑坡口条件"){
-                if(toolGrooveIndex>-1){
-                    obj=toolGrooveModel.get(toolGrooveIndex);
-                    grooveRules.setProperty(0,"value",obj.ID);
-                    grooveRules.setProperty(1,"value",obj.C1);
-                    grooveRules.setProperty(2,"value",obj.C2);
+                if(currentRow>-1){
+                    obj=model.get(currentRow);
+                    updateText(0,obj.ID);
+                    updateText(1,obj.C1);
+                    updateText(2,obj.C2);
                     if(currentGroove===8){
-                        grooveRules.setProperty(3,"value",obj.C4);
-                        grooveRules.setProperty(4,"value",obj.C5);
+                        updateText(3,obj.C4);
+                        updateText(4,obj.C5);
                     }else{
-                        grooveRules.setProperty(3,"value",obj.C3);
-                        grooveRules.setProperty(4,"value",obj.C4);
-                        grooveRules.setProperty(5,"value",obj.C5);
+                        updateText(3,obj.C3);
+                        updateText(4,obj.C4);
+                        updateText(5,obj.C5);
                     }
                 }else{
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
                 }
             }else if(title==="添加坡口条件"){
-                grooveRules.setProperty(0,"value",String(toolGrooveModel.count+1));
+                updateText(0,String(model.count+1));
                 for(i=1;i<grooveRules.count;i++){
-                    grooveRules.setProperty(i,"value","0");
+                    updateText(i,"0")
                 }
             }
-            repeaterModel=grooveRules
         }
     }
 
     MyDialog{
         id:limited
         loaderVisible: false
+        repeaterModel: limitedRules
+        message: root.message
         onAccepted: {
-            var str=toolLimitedIndex===0?"陶瓷衬垫":toolLimitedIndex===1?"打底层":toolLimitedIndex===2?"第二层":toolLimitedIndex===3?"填充层":toolLimitedIndex===4?"盖面层":"立板余高层"
-            var count=toolLimitedModel.count;
+            var str=currentRow===0?"陶瓷衬垫":currentRow===1?"打底层":currentRow===2?"第二层":currentRow===3?"填充层":currentRow===4?"盖面层":"立板余高层"
+            var count=model.count;
             var str1=count===0?"陶瓷衬垫":count===1?"打底层":count===2?"第二层":count===3?"填充层":count===4?"盖面层":"立板余高层"
-            updateModel("limitedModel",title==="编辑限制条件"?"Set":"Append",toolLimitedIndex,{"ID":title==="编辑限制条件"?str:str1,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
+            updateModel("limitedModel",title==="编辑限制条件"?"Set":"Append",currentRow,{"ID":title==="编辑限制条件"?str:str1,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
                                                                                                                 "C2":getText(3)+"/"+getText(4), "C3":getText(5)+"/"+getText(6),"C4":getText(7)+"/"+getText(8),"C5":getText(9),
                                                                                                                 "C6":getText(10), "C7":getText(11),"C8":getText(12),"C9":getText(13)+"/"+getText(14),"C10":getText(15),
                                                                                                                 "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
@@ -701,105 +641,102 @@ OverlayLayer {
         onOpened: {
             var i,res
             if(title==="编辑限制条件"){
-                if(toolLimitedIndex>-1){
-                    res=WeldMath.getLimitedMath(toolLimitedModel.get(toolLimitedIndex))
+                if(currentRow>-1){
+                    res=WeldMath.getLimitedMath(model.get(currentRow))
                     for(i=0;i<res.length;i++){
-                        limitedRules.setProperty(i,"value",res[i])
+                        updateText(i,res[i]);
                     }
                 }else{
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
                 }
             }else if(title==="添加限制条件"){
-                console.log("tool"+toolLimitedModel.count)
-                if(toolLimitedModel.count<5){
-                    res=WeldMath.getLimitedMath(toolLimitedModel.get(toolLimitedIndex))
-                    console.log("here")
-                    for(i=0;i<res.length;i++){
-                        limitedRules.setProperty(i,"value","0")
+                if(model.count<5){
+                    res=WeldMath.getLimitedMath(model.get(currentRow))
+                    for(i=0;i<limitedRules.count;i++){
+                        updateText(i,"0");
                     }
-                }else
-                    console.log("here1")
+                }
             }
-            repeaterModel=limitedRules
         }
     }
 
     MyDialog{
         id:weld
         loaderVisible: false
-        //repeaterModel:weldRules
+        repeaterModel: weldRules
+        message: root.message
         onAccepted: {
-            updateModel("weldModel",title==="编辑焊接规范"?"Set":"Append",toolWeldIndex,
+            updateModel("weldModel",title==="编辑焊接规范"?"Set":"Append",currentRow,
                                                       {"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),
                                                           "C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),
-                                                          "C12":title==="编辑焊接规范"?toolWeldModel.get(toolWeldIndex).C12:"0","C13":title==="编辑焊接规范"?toolWeldModel.get(toolWeldIndex).C13:"0",
+                                                          "C12":title==="编辑焊接规范"?model.get(currentRow).C12:"0","C13":title==="编辑焊接规范"?model.get(currentRow).C13:"0",
                                                                                                                                                   "C14":getText(13),"C15":getText(14),"C16":getText(15),"C17":getText(16),"C18":getText(17),"C19":getText(18)})
         }
         onOpened: {
             var i,obj
             if(title==="编辑焊接规范"){
-                if(toolWeldIndex>-1){
+                if(currentRow>-1){
                     //复制数据到 editData
-                    obj=toolWeldModel.get(toolWeldIndex);
-                    weldRules.setProperty(0,"value",obj.ID);
+                    obj=model.get(currentRow);
+                    updateText(0,obj.ID);
                     var temp=obj.C1;
                     if(temp!==""){
                         temp=temp.split("/")
-                        weldRules.setProperty(1,"value",temp[0])
-                        weldRules.setProperty(2,"value",temp[1]);
+                        updateText(1,temp[0]);
+                        updateText(2,temp[1]);
                     }else{
-                        weldRules.setProperty(1,"value","0")
-                        weldRules.setProperty(2,"value","0");
+                        updateText(1,"0");
+                        updateText(2,"0");
                     }
-                    weldRules.setProperty(3,"value",obj.C2);
-                    weldRules.setProperty(4,"value",obj.C3);
-                    weldRules.setProperty(5,"value",obj.C4);
-                    weldRules.setProperty(6,"value",obj.C5);
-                    weldRules.setProperty(7,"value",obj.C6);
-                    weldRules.setProperty(8,"value",obj.C7);
-                    weldRules.setProperty(9,"value",obj.C8);
-                    weldRules.setProperty(10,"value",obj.C9);
-                    weldRules.setProperty(11,"value",obj.C10);
-                    weldRules.setProperty(12,"value",obj.C11);
-                    weldRules.setProperty(13,"value",obj.C14);
-                    weldRules.setProperty(14,"value",obj.C15);
-                    weldRules.setProperty(15,"value",obj.C16);
-                    weldRules.setProperty(16,"value",obj.C17);
-                    weldRules.setProperty(17,"value",obj.C18);
-                    weldRules.setProperty(18,"value",obj.C19);
+                     updateText(3,obj.C2);
+                     updateText(4,obj.C3);
+                     updateText(5,obj.C4);
+                     updateText(6,obj.C5);
+                     updateText(7,obj.C6);
+                     updateText(8,obj.C7);
+                     updateText(9,obj.C8);
+                     updateText(10,obj.C9);
+                     updateText(11,obj.C10);
+                     updateText(12,obj.C11);
+                     updateText(13,obj.C14);
+                     updateText(14,obj.C15);
+                     updateText(15,obj.C16);
+                     updateText(16,obj.C17);
+                     updateText(17,obj.C18);
+                     updateText(18,obj.C19);
                 }else{
                     message.open("请选择要编辑的行！")
                 }
             }else if(title==="添加焊接规范"){
-                weldRules.setProperty(0,"value",String(toolWeldModel.count+1));
+                updateText(0,String(model.count+1));
                 for( i=1;i<weldRules.count;i++){
-                    weldRules.setProperty(i,"value","0")
+                    updateText(i,"0");
                 }
             }
-            repeaterModel=weldRules
         }
     }
 
     MyDialog{
         id:account
         loaderVisible: false
-
+        repeaterModel: accountRules
+        message: root.message
         onAccepted: {
-            updateModel("accountModel",title==="编辑用户信息"?"Set":"Append",toolAccountIndex,
-                                                         {"ID":title==="编辑用户信息"?toolAccountModel.get(toolAccountIndex).ID:String(toolAccountModel.count+1),"C1":getText(0),"C2":getText(1),"C3":getText(2),"C4":getText(3),"C5":getText(4),"C6":getText(5)});
+            updateModel("accountModel",title==="编辑用户信息"?"Set":"Append",currentRow,
+                                                         {"ID":title==="编辑用户信息"?model.get(currentRow).ID:String(model.count+1),"C1":getText(0),"C2":getText(1),"C3":getText(2),"C4":getText(3),"C5":getText(4),"C6":getText(5)});
         }
         onOpened: {
             var i,res,obj;
             if(title==="编辑用户信息"){
-                if(toolAccountIndex>-1){
-                    obj=toolAccountModel.get(toolAccountIndex);
-                    accountRules.setProperty(0,"value",obj.C1);
-                    accountRules.setProperty(1,"value",obj.C2);
-                    accountRules.setProperty(2,"value",obj.C3);
-                    accountRules.setProperty(3,"value",obj.C4);
-                    accountRules.setProperty(4,"value",obj.C5);
-                    accountRules.setProperty(5,"value",obj.C6);
+                if(currentRow>-1){
+                    obj=model.get(currentRow);
+                    updateText(0,obj.C1);
+                    updateText(1,obj.C2);
+                    updateText(2,obj.C3);
+                    updateText(3,obj.C4);
+                    updateText(4,obj.C5);
+                    updateText(5,obj.C6);
                 }
                 else{
                     message.open("请选择要编辑的行！")
@@ -807,7 +744,7 @@ OverlayLayer {
                 }
             }else if(title==="添加用户信息"){
                 for( i=0;i<accountRules.count;i++){
-                    accountRules.setProperty(i,"value","0")
+                    updateText(i,"0")
                 }
             }
             repeaterModel=accountRules;

@@ -81,6 +81,8 @@ public slots:
     //设置层外停止时间
     void setStopOutTime(int value);
     //
+    void setCurrentAdd(int value);
+    //
      QStringList getLimitedMath(QObject* value);
 
     //设置起弧偏移
@@ -92,7 +94,7 @@ public slots:
     //根据电流电压行走速度获取道面积
     float getWeldArea(int current,float weldSpeed,float met);
     //求摆动距离
-   // float getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed);
+   // float getWeldA(float swing,float swingGrooveStayTime,float swingNotGrooveStayTime,float weldSpeed,float maxSpeed);
     //求填充高度
     float getWeldHeight(float deep,float bottomWidth,float leftAngel,float rightAngel,int current,float weldSpeed,float met);
 signals:

@@ -15,10 +15,9 @@ TableCard{
     /*名称必须要有方便 nav打开后寻找焦点*/
     objectName: "WeldData"
     property string status:"空闲态"
-
     //上次焊接规范名称
     property string weldRulesName;
- //   property bool weldTableEx
+
     property string weldRulesNameList
 
     property string currentUserName
@@ -26,8 +25,6 @@ TableCard{
     signal changeWeldData();
 
     property bool saveAs:false
-
-    property bool ok: true
 
     Connections{
         target: MySQL
@@ -42,9 +39,6 @@ TableCard{
         }
         onWeldTableChanged:{//更新数据表
             updateModel("Clear",{});
-            if(jsonObject.length!==8){
-                ok=false
-            }
             for(var i=0;i<jsonObject.length;i++){
                 updateModel("Append",jsonObject[i]);
             }
@@ -62,25 +56,15 @@ TableCard{
         MySQL.getDataOrderByTime(weldRulesNameList,"EditTime");
     }
 
-   /* Timer{
-        id:timer
-        repeat:true
-        interval: 1000
-        running: visible&&ok
-        onTriggered: {
-                save();
-                 MySQL.getJsonTable(weldRulesName);
-        }
-    }*/
-
-
     function save(){
         if(typeof(weldRulesName)==="string"){
             //清除保存数据库
             MySQL.clearTable(weldRulesName,"","");
             for(var i=0;i<model.count;i++){
+                var obj=model.get(i);
                 //插入新的数据
-                MySQL.insertTable(weldRulesName,model.get(i));
+                MySQL.insertTableByJson(weldRulesName,{"ID":obj.ID,"C1":obj.C1,"C2":obj.C2,"C3":obj.C3,"C4":obj.C4,"C5":obj.C5,"C6":obj.C6,"C7":obj.C7,"C8":obj.C8,
+                                 "C9":obj.C9,"C10":obj.C10,"C11":obj.C11,"C12":obj.C12,"C13":obj.C13,"C14":obj.C14,"C15":obj.C15,"C16":obj.C16,"C17":obj.C17,"C18":obj.C18,"C19":obj.C19});
             }
             //更新数据库保存时间
             MySQL.setValue(weldRulesNameList,"Name",weldRulesName,"EditTime",MyMath.getSysTime());
@@ -149,17 +133,17 @@ TableCard{
         Controls.TableViewColumn{role: "C6";title: "焊接速度\n cm/min";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C7";title: "焊接线\n X mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C8";title: "焊接线\n Y mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
-        Controls.TableViewColumn{role: "C9";title: "前停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
-        Controls.TableViewColumn{role: "C10";title: "后停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
+        Controls.TableViewColumn{role: "C9";title: "外停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
+        Controls.TableViewColumn{role: "C10";title: "内停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C11";title: "停止\n时间";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C12";title: "层面积";width:Units.dp(70);movable:false;resizable:false;visible: false},
         Controls.TableViewColumn{role: "C13";title: "道面积";width:Units.dp(70);movable:false;resizable:false;visible: false},
-        Controls.TableViewColumn{role: "C14";title: "起弧x";width:Units.dp(70);movable:false;resizable:false;},
-        Controls.TableViewColumn{role: "C15";title: "起弧y";width:Units.dp(70);movable:false;resizable:false;},
-        Controls.TableViewColumn{role: "C16";title: "起弧z";width:Units.dp(70);movable:false;resizable:false;},
-        Controls.TableViewColumn{role: "C17";title: "收弧x";width:Units.dp(70);movable:false;resizable:false;},
-        Controls.TableViewColumn{role: "C18";title: "收弧y";width:Units.dp(70);movable:false;resizable:false;},
-        Controls.TableViewColumn{role: "C19";title: "收弧z";width:Units.dp(70);movable:false;resizable:false;}
+        Controls.TableViewColumn{role: "C14";title: "  起弧\n X mm";width:Units.dp(70);movable:false;resizable:false;},
+        Controls.TableViewColumn{role: "C15";title: "  起弧\n Y mm";width:Units.dp(70);movable:false;resizable:false;},
+        Controls.TableViewColumn{role: "C16";title: "  起弧\n Z mm";width:Units.dp(70);movable:false;resizable:false;},
+        Controls.TableViewColumn{role: "C17";title: "  收弧\n X mm";width:Units.dp(70);movable:false;resizable:false;},
+        Controls.TableViewColumn{role: "C18";title: "  收弧\n Y mm";width:Units.dp(70);movable:false;resizable:false;},
+        Controls.TableViewColumn{role: "C19";title: "  收弧\n Z mm";width:Units.dp(70);movable:false;resizable:false;}
     ]
 
 }

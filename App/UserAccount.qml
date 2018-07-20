@@ -23,11 +23,11 @@ TableCard {
             //清除保存数据库
             MySQL.clearTable("AccountTable","","");
             for(var i=0;i<model.count;i++){
+                var obj=model.get(i);
                 //插入新的数据
-                MySQL.insertTable("AccountTable",model.get(i));
+                MySQL.insertTableByJson("AccountTable",{"ID":obj.ID,"C1":obj.C1,"C2":obj.C2,"C3":obj.C3,"C4":obj.C4,"C5":obj.C5,"C6":obj.C6});
             }
             message.open("用户信息已保存！");
-
     }
 
     tableData:[

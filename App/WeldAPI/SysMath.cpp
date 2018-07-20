@@ -1,4 +1,5 @@
 #include "SysMath.h"
+#include "FeedSpeedTable.h"
 
 SysMath::SysMath()
 {
@@ -119,7 +120,7 @@ float SysMath::getTravelSpeed(FloorCondition *pF,QString str,weldDataType *pWeld
         //焊速必须有数 否则无法进入 求摆速函数
         temp1=pF->swingLength>6?qMax(1570-31*pF->swingLength,float(600)):WAVE_MAX_VERTICAL_SPEED;
         if(pF->swingLength!=0){//不摆动 的情况算作特例
-            temp=getSwingSpeed(pF->swingLength/2,pF->swingLeftStayTime,pF->swingRightStayTime,100,temp1,swingHz);
+            temp=getSwingSpeed(pF->swingLength/2,pF->swingGrooveStayTime,pF->swingNotGrooveStayTime,100,temp1,swingHz);
             //判断返回数据
             if(temp==-1){
                 QString tempStr=*status;
@@ -158,14 +159,14 @@ int SysMath::getWeldNum(FloorCondition *pF,weldDataType *pWeldData,float *s,int 
     //保证焊接速度不大于最大焊接速度 否则减小电流 5A
     if((*pWeldData).weldTravelSpeed>pF->maxWeldSpeed){
         while((*pWeldData).weldTravelSpeed>pF->maxWeldSpeed){
-            (*pWeldData).weldCurrent-=5;
+            (*pWeldData).weldCurrent-=2;
             if((*pWeldData).weldCurrent<=currentMin){*status=str+"焊接电流超过最小值。";return -1;}
             //重新获取行走速度
             if(getTravelSpeed(pF,str,pWeldData,status)==-1) return -1;
         }
     }else if((*pWeldData).weldTravelSpeed<pF->minWeldSpeed){//焊速小于最小速度加电流 5A
         while((*pWeldData).weldTravelSpeed<pF->minWeldSpeed){
-            (*pWeldData).weldCurrent+=5;
+            (*pWeldData).weldCurrent+=2;
             if((*pWeldData).weldCurrent>=currentMax){*status=str+"焊接电流超过最大值。";return -1;}
             //重新获取行走速度
             if(getTravelSpeed(pF,str,pWeldData,status)==-1) return -1;
@@ -175,23 +176,28 @@ int SysMath::getWeldNum(FloorCondition *pF,weldDataType *pWeldData,float *s,int 
     //分道后 两侧停留时间发生位置变化， 靠近破口侧 停留时间大于 中间位置
     if(weldNum<2){//单层单道
         if(grooveStyleName=="单边V形坡口"){
-            (*pWeldData).beforeSwingStayTime=!grooveDirValue?pF->swingRightStayTime:pF->swingLeftStayTime; // 非坡口侧:坡口侧
-            (*pWeldData).afterSwingStayTime=!grooveDirValue?pF->swingLeftStayTime:pF->swingRightStayTime;    //坡口侧:非坡口侧
+            (*pWeldData).outSwingStayTime=!grooveDirValue?pF->swingNotGrooveStayTime:pF->swingGrooveStayTime; // 非坡口侧:坡口侧
+            (*pWeldData).interSwingStayTime=!grooveDirValue?pF->swingGrooveStayTime:pF->swingNotGrooveStayTime;    //坡口侧:非坡口侧
         }else{//V形坡口 两边停留时间一致且为坡口侧 停留时间。
-            (*pWeldData).beforeSwingStayTime=pF->swingLeftStayTime;// 坡口侧
-            (*pWeldData).afterSwingStayTime=pF->swingLeftStayTime;    //坡口侧
+            (*pWeldData).outSwingStayTime=pF->swingGrooveStayTime;// 坡口侧
+            (*pWeldData).interSwingStayTime=pF->swingGrooveStayTime;    //坡口侧
         }
     }else{//分道处理
         if(grooveStyleName=="单边V形坡口"){
-            (*pWeldData).beforeSwingStayTime=!grooveDirValue?pF->swingRightStayTime:pF->swingLeftStayTime; // 非坡口侧:坡口侧
-            (*pWeldData).afterSwingStayTime=!grooveDirValue?pF->swingLeftStayTime:pF->swingRightStayTime;    //坡口侧:非坡口侧
+            if(currentWeldNum==0){
+                (*pWeldData).outSwingStayTime=!grooveDirValue?pF->swingNotGrooveStayTime:pF->swingGrooveStayTime; // 非坡口侧:坡口侧
+                (*pWeldData).interSwingStayTime=!grooveDirValue?pF->swingGrooveStayTime:pF->swingNotGrooveStayTime;    //坡口侧:非坡口侧
+            }else{
+                //均为坡口侧 停留时间
+                (*pWeldData).interSwingStayTime=(*pWeldData).outSwingStayTime=pF->swingGrooveStayTime; // 非坡口侧:坡口侧
+            }
         }else{//V形坡口
             if((currentWeldNum+1)<(weldNum)){//不是最后一道
-                (*pWeldData).beforeSwingStayTime=pF->swingLeftStayTime;// 坡口侧
-                (*pWeldData).afterSwingStayTime=pF->swingRightStayTime;//非坡口侧
+                (*pWeldData).outSwingStayTime=pF->swingGrooveStayTime;// 坡口侧
+                (*pWeldData).interSwingStayTime=pF->swingNotGrooveStayTime;//非坡口侧
             }else{
-                (*pWeldData).beforeSwingStayTime=pF->swingLeftStayTime;//坡口侧
-                (*pWeldData).afterSwingStayTime=pF->swingLeftStayTime;    //坡口侧
+                (*pWeldData).outSwingStayTime=pF->swingGrooveStayTime;//坡口侧
+                (*pWeldData).interSwingStayTime=pF->swingGrooveStayTime;    //坡口侧
             }
         }
     }
@@ -248,7 +254,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         if(grooveStyleName=="V形坡口")
             s+=reinforcementValue*(2*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap+2*ba)/2;
         else
-            if(weldConnectName=="T接头"){ //T街头要多焊出坡口
+            if(weldConnectName=="T接头"){//T街头要多焊出坡口
                 ba=3;
                 s+=(reinforcementValue)*(2*(grooveHeight-rootFace)*(grooveAngel1Tan+grooveAngel2Tan)/2+rootGap+ba);
             }else
@@ -394,9 +400,7 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
                 *(startArcX+i)=*(weldLineX+i);
             }else    //坡口侧颠倒Y值
                 temp=weldNum-i-1;
-        }else if((weldStyleName=="平焊")&&(grooveStyleName=="单边V形坡口")&&(weldConnectName=="T接头")){
-            temp=weldNum-1-i;//先焊坡口侧 这样好堆出 角来
-        }else{
+        } else{
             temp=i;
         }
         if((*(pWeldData+i)).swingSpeed<=(WAVE_MIN_SPEED/10))//最小摆速 800
@@ -415,8 +419,8 @@ int SysMath::getWeldFloor(FloorCondition *pF,float *hused,float *sused,float *we
         pJson.insert("C6",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).weldTravelSpeed))/10)));
         pJson.insert("C7",QJsonValue(QString::number(float(qRound(*(weldLineX+temp)*10))/10)));
         pJson.insert("C8",QJsonValue(QString::number(float(qRound(*(weldLineY+temp)*10))/10)));
-        pJson.insert("C9",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).beforeSwingStayTime*10))/10)));
-        pJson.insert("C10",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).afterSwingStayTime*10))/10)));
+        pJson.insert("C9",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).outSwingStayTime*10))/10)));
+        pJson.insert("C10",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).interSwingStayTime*10))/10)));
         pJson.insert("C11",QJsonValue(str));
         pJson.insert("C12",QJsonValue(QString::number(float(qRound(s*10))/10)));
         pJson.insert("C13",QJsonValue(QString::number(float(qRound((*(pWeldData+i)).weldFill*10))/10)));
@@ -516,7 +520,6 @@ int SysMath::weldMath(){
             return -1;
         }
     }
-    qDebug()<<"totalWeldTime is "<<totalWeldTime;
     emit weldRulesChanged("Finish",pJson);
     return 1;
 }
@@ -530,7 +533,7 @@ float SysMath::getSwingSpeed(weldDataType *pWeldData,float maxSpeed){
     //定义总时间
     float t;
     //定义停留时间 单位MS
-    float t_temp0 = (((*pWeldData).beforeSwingStayTime+(*pWeldData).afterSwingStayTime)*1000)/4;
+    float t_temp0 = (((*pWeldData).outSwingStayTime+(*pWeldData).interSwingStayTime)*1000)/4;
     //定义加速度时间
     float t_temp1=0;
     //定义匀速时间
@@ -577,7 +580,7 @@ float SysMath::getSwingSpeed(weldDataType *pWeldData,float maxSpeed){
         qDebug()<<"SysMath::getSwingSpeed::swingSpeed"<<GET_WAVE_SPEED(swingSpeed);
         qDebug()<<"SysMath::getSwingSpeed::Hz"<<1/(t);
         qDebug()<<"SysMath::getSwingSpeed::A"<<A;
-        if((((A<3.5)&&((*pWeldData).beforeSwingStayTime!=0)&&((*pWeldData).afterSwingStayTime!=0))||((A<2.5)&&((*pWeldData).beforeSwingStayTime==0)&&((*pWeldData).afterSwingStayTime==0)))&&(weldStyleName!="立焊")){
+        if((((A<3.5)&&((*pWeldData).outSwingStayTime!=0)&&((*pWeldData).interSwingStayTime!=0))||((A<2.5)&&((*pWeldData).outSwingStayTime==0)&&((*pWeldData).interSwingStayTime==0)))&&(weldStyleName!="立焊")){
             maxSpeed-=100;
             //最大值 不能小于1200
             if(maxSpeed<WAVE_MIN_SPEED){
@@ -591,7 +594,7 @@ float SysMath::getSwingSpeed(weldDataType *pWeldData,float maxSpeed){
 
 float SysMath::getVoltage(int current){
     float voltage=18;
-    if((current>350)&&(current<10))
+    if((current>=350)&&(current<10))
         return -1;
     if((gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //MAG D 实芯 1.2
@@ -627,57 +630,7 @@ float SysMath::getVoltage(int current){
 
 int SysMath::getFeedSpeed(int current){
     int feedspeed;
-    const int FeedSpeedNum[8][50]={
-        //1.2
-        {1240,1280,1320,1360,1400,1536,1673,1845,2027,2215,
-         2408,2600,2878,3155,3427,3700,4200,4645,5055,5478,
-         5922,6367,6811,7155,7473,7960,8538,9100,9550,10000,
-         10850,11700,12350,13000,14000,15000,16167,17000,18169,19013,
-         19856,20700,21585,22469,23222,23778,24333,24889,25000,25000},
-
-        {300,600,900,1200,1600,2000,2400,2800,3199,3600,
-         4000,4400,4800,5200,5600,6000,6500,7000,7400,7800,
-         8300,8800,9300,9800,10300,10800,11300,11800,12300,12800,
-         13400,14000,14600,15200,15900,25000,25000,25000,25000,25000,
-         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000},
-
-        {900,1000,1100,1200,1300,1400,1550,1700,1867,2050,
-         2300,2562,2875,3200,3533,3867,4225,4600,5100,5871,
-         6300,6762,7223,7750,8375,8833,9250,9725,10288,10800,
-         11314,11886,12375,12844,13312,25000,25000,25000,25000,25000,
-         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000},
-
-        {950,1100,1250,1400,1550,1700,2200,2700,3033, 3367,
-         3700, 4100, 4500,5300, 5850,6400,6850,7300,7850,8400,
-         9200,10000,10650,11300,11900,12500,13750,15000,15750,16500,
-         17250,18000,18800,19600,20400,21200,22100,23000,24000,25000,
-         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000},
-        //1.6参数
-        {1240,1280,1320,1360,1400,1536,1673,1845,2027,2215,
-         2408,2600,2878,3155,3427,3700,4200,4645,5055,5478,
-         5922,6367,6811,7155,7473,7960,8538,9100,9550,10000,
-         10850,11700,12350,13000,14000,15000,16167,17000,18169,19013,
-         19856,20700,21585,22469,23222,23778,24333,24889,25000,25000},
-
-        {300,600,900,1200,1600,2000,2400,2800,3199,3600,
-         4000,4400,4800,5200,5600,6000,6500,7000,7400,7800,
-         8300,8800,9300,9800,10300,10800,11300,11800,12300,12800,
-         13400,14000,14600,15200,15900,25000,25000,25000,25000,25000,
-         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000},
-
-        {900,1000,1100,1200,1300,1400,1550,1700,1867,2050,
-         2300,2562,2875,3200,3533,3867,4225,4600,5100,5871,
-         6300,6762,7223,7750,8375,8833,9250,9725,10288,10800,
-         11314,11886,12375,12844,13312,25000,25000,25000,25000,25000,
-         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000},
-
-        {950,1100,1250,1400,1550,1700,2200,2700,3033, 3367,
-         3700, 4100, 4500,5300, 5850,6400,6850,7300,7850,8400,
-         9200,10000,10650,11300,11900,12500,13750,15000,15750,16500,
-         17250,18000,18800,19600,20400,21200,22100,23000,24000,25000,
-         25000,25000,25000,25000,25000,25000,25000,25000,25000,25000}
-    };
-    if((current>350)||(current<10))
+    if((current>=350)||(current<10))
         return -1;
     if((gasValue)&&(!pulseValue)&&(wireTypeValue==0)&&(wireDValue==4)){
         //MAG D 实芯 1.2
@@ -706,7 +659,7 @@ int SysMath::getFeedSpeed(int current){
     }else{
         return -1;
     }
-    return FeedSpeedNum[feedspeed][current/10-1];
+    return FeedSpeedTable[feedspeed][(current+currentAdd)/2];
 }
 
 //求解 道面积 存储到pFill开始的内存里

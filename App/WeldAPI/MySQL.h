@@ -58,7 +58,7 @@ public  slots:
     //删除表格
     void deleteTable(QString tableName);
     //插入表格Qobject模式的
-    void insertTable(QString tableName,QObject* data);
+  /*  void insertTable(QString tableName,QObject* data);*/
     //插入表格内容 json格式
     void insertTableByJson(QString tableName,QJsonObject data);
     //重命名表格

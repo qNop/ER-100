@@ -268,7 +268,7 @@ Material.ApplicationWindow{
             return -1;
     }
     function sendWeldData(){
-        console.log("weldTableIndex is "+weldTableIndex+"\nweldTable.count"+weldTable.count)
+        //console.log("weldTableIndex is "+weldTableIndex+"\nweldTable.count"+weldTable.count)
         if((weldTable.count>0)&&((weldTableIndex>-1)&&(weldTableIndex<weldTable.count))){
             var index=weldTableIndex;
             var res=weldTable.get(index);
@@ -308,7 +308,6 @@ Material.ApplicationWindow{
     function setPage(pageIndex,index){
         page.selectedTab=pageIndex;
         navigationDrawer.selectedIndex=index;
-        console.log("pageIndex :"+pageIndex+" index :"+index)
         Qt.inputMethod.hide();
         /*找出本次选择的焦点*/
         lastFocusedItem=Utils.findChild(page.selectedTab === 0 ?preConditionTab:page.selectedTab===1?
@@ -358,9 +357,9 @@ Material.ApplicationWindow{
                 onTriggered:changeuser.show();text:appSettings.currentUserName;
             },
             /*语言*/
-            Material.Action {iconName: "action/language";name: qsTr("语言");
-                onTriggered: languagePicker.show();
-            },
+     //       Material.Action {iconName: "action/language";name: qsTr("语言");
+        //     onTriggered: languagePicker.show();
+           // },
             /*截屏*/
             Material.Action {iconName:"awesome/camera";name: qsTr("截屏");visible: superUser
                 onTriggered: {message.open("截屏操作将在10秒钟后启动！");camera.start()}
@@ -657,7 +656,9 @@ Material.ApplicationWindow{
                     currentUserName: appSettings.currentUserName
                     message: app.message
                     model:limitedTable
-                    onCurrentRowChanged: app.limitedTableIndex=currentRow
+                    onCurrentRowChanged: {app.limitedTableIndex=currentRow
+                    console.log("app.limitedTableIndex is :"+app.limitedTableIndex)
+                    }
                     onLimitedRulesNameChanged: app.limitedName=limitedRulesName
                     onLimitedRulesNameListChanged: app.currentLimitedNameList=limitedRulesNameList
                     onUpdateModel: {
@@ -721,7 +722,7 @@ Material.ApplicationWindow{
                         app.currentGroove=currentGroove;
                     }
                 }
-                /*   TestGrooveCondition{
+                /*TestGrooveCondition{
                     id:testMyConditionView
                     settings: appSettings
                     message: tool.message
@@ -828,8 +829,7 @@ Material.ApplicationWindow{
                     visible: page.selectedTab===2&&page2SelectedIndex===0
                     model:accountTable
                     superUser: app.superUser
-                    //onUserUpdate: changeuser.show()
-                    onCurrentRowChanged: tool.toolAccountIndex=currentRow
+                    onCurrentRowChanged: accountTableIndex=currentRow
                     message: app.message
                     onUpdateModel: {
                         switch(str){
@@ -1152,35 +1152,67 @@ Material.ApplicationWindow{
         pageHeight: page.height
         settings: appSettings
         status:sysStatus
-        currentGroove: app.currentGroove
-        toolGrooveIndex: app.grooveTableIndex
-        toolGrooveModel: grooveTable
-        toolGrooveName: app.grooveName
-        toolGrooveNameList: app.currentGrooveNameList
-        toolGrooveNameListModel:grooveNameListModel
-        toolGrooveModelName: "grooveModel"
-
-        toolLimitedIndex: app.limitedTableIndex
-        toolLimitedModel: limitedTable
-        toolLimitedModelName: "limitedModel"
-        toolLimitedName: app.limitedName
-        toolLimitedNameList: app.currentLimitedNameList
-        toolLimitedNameListModel: limitedRulesNameListModel
-
-        toolWeldIndex: app.weldTableIndex
-        toolWeldModel: weldTable
-        toolWeldModelName: "weldModel"
-        toolWeldName: app.weldName
-        toolWeldNameList: app.currentWeldNameList
-        toolWeldNameListModel: weldRulesNameListModel
-
-        toolAccountModel: accountTable
-        toolAccountModelName: "accountModel"
         onToggleMotoDialog: moto.toggle();
         onToggleMyErrorDialog: myErrorDialog.toggle();
         onOpenMotoDialog: moto.open()
         onOpenMyErrorDialog: myErrorDialog.open();
         onUserUpdate: changeuser.show()
+        onUpdateDisplay: {
+            currentGroove=app.currentGroove
+            switch(page.selectedTab){
+            case 0:switch(page0SelectedIndex){
+                case 3:
+                    toolName="坡口条件";
+                    modelName="grooveModel";
+                    currentRow=app.grooveTableIndex
+                    currentName=app.grooveName
+                    currentNameList=currentGrooveNameList;
+                    currentNameListModel=grooveNameListModel;
+                    model=grooveTable;
+                    break;
+                case 4:
+                    toolName="限制条件";
+                    modelName="limitedModel";
+                    currentRow=app.limitedTableIndex
+                    currentName=app.limitedName
+                    currentNameList=app.currentLimitedNameList;
+                    currentNameListModel=limitedRulesNameListModel;
+                    model=limitedTable;
+                    break;
+                }break;
+            case 1:switch(page1SelectedIndex){
+                case 0:
+                    toolName="焊接规范";
+                    modelName="weldModel";
+                    currentRow=app.weldTableIndex
+                    currentName=app.weldName
+                    currentNameList= app.currentWeldNameList;
+                    currentNameListModel=weldRulesNameListModel;
+                    model=weldTable;
+                    break;
+                }break;
+            case 2:switch(page2SelectedIndex){
+                case 0:
+                    toolName="用户信息";
+                    currentRow=app.accountTableIndex
+                    currentName=""
+                    modelName="accountModel";
+                    currentNameList="";
+                    currentNameListModel=null;
+                    model=accountTable;
+                    break;
+                case 1:
+                    toolName="";
+                    modelName="errorHistory";
+                    currentRow=-1;
+                    currentName=""
+                    currentNameList="";
+                    currentNameListModel=null;
+                    model=errorHistroy;
+                    break;
+                }break;
+            }
+        }
     }
     Material.OverlayLayer{
         z:5
@@ -1583,6 +1615,7 @@ Material.ApplicationWindow{
                 changeuser.user=appSettings.currentUserName;
                 var index=getIndex(changeuser.user);
                 if(index>=0){
+                    var obj=accountTable.get(index);
                     changeuser.password=accountTable.get(index).C3;
                     changeuser.type=accountTable.get(index).C4
                     changeuserFeildtext.selectedIndex=index;
@@ -1594,6 +1627,10 @@ Material.ApplicationWindow{
                 password.placeholderText="请输入密码..."
                 password.helperText=""
             }
+            if(sysStatus==="未登录态")
+                negativeButton.visible=false;
+            else
+                negativeButton.visible=true;
             Qt.inputMethod.hide();
         }
         RowLayout{
@@ -1668,6 +1705,7 @@ Material.ApplicationWindow{
         }
     }
     /*语言对话框*/
+    /*
     Material.Dialog{  id:languagePicker;
         title:qsTr("更换语言");negativeButtonText:qsTr("取消");positiveButtonText:qsTr("确定");
         Column{
@@ -1689,11 +1727,11 @@ Material.ApplicationWindow{
                 }
             }
         }
-    }
+    }*/
     //初始化所有数据
     function initAllTable(){
-     //   grooveTable.clear()//删除坡口参数
-       // weldTable.clear()//删除焊接数据表格
+        //   grooveTable.clear()//删除坡口参数
+        // weldTable.clear()//删除焊接数据表格
         var res,j;
         message.open("系统初始化进度0%！请耐心等待~");
         var tableNameData=[
@@ -1724,15 +1762,15 @@ Material.ApplicationWindow{
                 MySQL.insertTableByJson(grooveStyleName[i]+tableName[k],{"Name":grooveStyleName[i]+tableNameData[k],"CreatTime":Time,"Creator":"TKSW","EditTime":Time,"Editor":"TKSW"});
                 //创建新的 坡口条件
                 MySQL.createTable(grooveStyleName[i]+tableNameData[k],"ID TEXT,C1 TEXT,C2 TEXT,C3 TEXT,C4 TEXT,C5 TEXT,C6 TEXT,C7 TEXT,C8 TEXT,C9 TEXT,C10 TEXT,C11 TEXT");
-               // MySQL.clearTable(grooveStyleName[i]+tableNameData[k],"","");
+                // MySQL.clearTable(grooveStyleName[i]+tableNameData[k],"","");
                 for(var l=0;l<names.length;l++){
                     //插入新的数据
                     MySQL.insertTableByJson(grooveStyleName[i]+tableNameData[k],
-                                        {"ID":names[l],
-                                          "C1":"220/220/220","C2":"0.1/0.1","C3":"4/6.5","C4":"2/2",
-                                           "C5":"16","C6":"4","C7":"1","C8":"0",
-                                           "C9":"100/450","C10":"1","C11":"0"}
-                                      );
+                                            {"ID":names[l],
+                                                "C1":"220/220/220","C2":"0.1/0.1","C3":"4/6.5","C4":"2/2",
+                                                "C5":"16","C6":"4","C7":"1","C8":"0",
+                                                "C9":"100/450","C10":"1","C11":"0"}
+                                            );
                 }
                 message.open("系统初始化进度"+i/9+"%！请耐心等待~");
             }
@@ -1754,6 +1792,12 @@ Material.ApplicationWindow{
             snackBar.open("系统初始化进度"+String((i+1)*10)+"%！请耐心等待~");*/
         }
     }
+    property bool accountShow: false
+    onAccountShowChanged:{
+        if(accountShow)
+            changeuser.show()
+    }
+
     Connections{
         target: MySQL
         onAccountTableChanged:{
@@ -1762,6 +1806,9 @@ Material.ApplicationWindow{
                     accountTable.set(i,jsonObject[i]);
                 else
                     accountTable.append(jsonObject[i]);
+            }
+            if(sysStatus==="未登录态"){
+                accountShow=true;
             }
         }
         onMySqlStatusChanged:{
@@ -1774,6 +1821,7 @@ Material.ApplicationWindow{
         theme.primaryColor=appSettings.primaryColor
         theme.backgroundColor=appSettings.backgroundColor
         theme.tabHighlightColor=appSettings.accentColor
+        MySQL.getJsonTable("AccountTable")
         AppConfig.setleds("all");
         //切换页面
         page.selectedTab=1;
@@ -1782,11 +1830,10 @@ Material.ApplicationWindow{
         ERModbus.setmodbusFrame(["R","510","6"]);
         ERModbus.setmodbusFrame(["W","98","1","0"]);
         ERModbus.setmodbusFrame(["W","127","1","0"]);
-        MySQL.getJsonTable("AccountTable")
         sysStatus="未登录态";//系统处于未登陆状态
         //切换回原界面
         page.selectedTab=0;
-        changeuser.show();
+        // changeuser.show();
         //initAllTable();
     }
 }

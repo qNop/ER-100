@@ -8,6 +8,7 @@ WeldMath::WeldMath()
     sysMath=new SysMath();
     connect(sysMath,&SysMath::weldRulesChanged,this,&WeldMath::weldRulesChanged);
     sysMath->rootFace=0;
+    sysMath->currentAdd=0;
 }
 
 void WeldMath::setReinforcement(float value){
@@ -110,13 +111,17 @@ float WeldMath::getWeldVoltage(int current){
     return sysMath->getVoltage(current);
 }
 
+void WeldMath::setCurrentAdd(int value){
+    sysMath->currentAdd=value;
+}
+
 float WeldMath::getWeldArea(int current, float weldSpeed,float met){
     return  GET_WELDFILL_AREA(met,(sysMath->wireDValue==4?1.2*1.2:1.6*1.6)*PI/4,sysMath->getFeedSpeed(current),weldSpeed);
 }
 /*
-float WeldMath::getWeldA(float swing,float swingLeftStayTime,float swingRightStayTime,float weldSpeed,float maxSpeed){
+float WeldMath::getWeldA(float swing,float swingGrooveStayTime,float swingNotGrooveStayTime,float weldSpeed,float maxSpeed){
     float swingHz=0;
-    return swingHz; //sysMath->getSwingSpeed(swing,swingLeftStayTime,swingRightStayTime,weldSpeed*10,maxSpeed,&swingHz);
+    return swingHz; //sysMath->getSwingSpeed(swing,swingGrooveStayTime,swingNotGrooveStayTime,weldSpeed*10,maxSpeed,&swingHz);
 }*/
 //获取 高度 底面宽度 mm 角度0.1度且均为正值 电流A 行走速度cm/min ba 是底部矩形高度
 float WeldMath::getWeldHeight(float deep,float bottomWidth, float leftAngel, float rightAngel, int current, float weldSpeed, float met)
@@ -251,9 +256,9 @@ bool WeldMath::setLimited(QObject *value){
             str=var.toString();
             strList=str.split("/");
             if(strList.length()==2){
-                p->swingLeftStayTime=strList[0].toFloat();
-                p->swingRightStayTime=strList[1].toFloat();
-                p->totalStayTime=p->swingLeftStayTime+p->swingRightStayTime;
+                p->swingGrooveStayTime=strList[0].toFloat();
+                p->swingNotGrooveStayTime=strList[1].toFloat();
+                p->totalStayTime=p->swingGrooveStayTime+p->swingNotGrooveStayTime;
                 p->totalStayTime=float(qRound(10*p->totalStayTime))/10;
             }else
                 return false;

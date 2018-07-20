@@ -129,9 +129,9 @@ struct FloorCondition
     //分道摆动间隔 同一层 不同焊道之间间隔距离
     float weldSwingSpacing;
     //左侧摆动停留时间
-    float swingLeftStayTime;
+    float swingGrooveStayTime;
     //右侧摆动停止时间
-    float swingRightStayTime;
+    float swingNotGrooveStayTime;
     //总停留时间
     float totalStayTime;
     //末道填充与初道填充比 也是用于 多层多道

@@ -1,8 +1,6 @@
 import QtQuick 2.0
 import Material 0.1
 import Material.Extras 0.1
-import WeldSys.ERModbus 1.0
-import WeldSys.WeldMath 1.0
 import WeldSys.MySQL 1.0
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.2 as Controls

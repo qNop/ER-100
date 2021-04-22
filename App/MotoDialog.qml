@@ -2,13 +2,14 @@ import QtQuick 2.0
 import Material 0.1 as Material
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.4
-import WeldSys.ERModbus 1.0
+import WeldSys.WeldMath 1.0
 
 Material.Dialog{
     id:moto
     title: "机头相关设定"
     objectName: "motoDialog"
     property var send:[[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
+
     property var okName: ["设定     ","解除     ","启动     ","打开     "]
     property var noName: ["未设定 ","异常     ","停止     ","关闭     "]
 
@@ -36,7 +37,7 @@ Material.Dialog{
         if(moto.selectedIndex<5)
             moto.oldSelectedIndex=moto.selectedIndex;
         moto.selectedIndex= 6+moto.selectedMoto;
-        moto.changeValue(moto.send[moto.selectedMoto][0],0)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            moto.changeValue(moto.send[moto.selectedMoto][0],0)
         moto.changeValue(moto.send[moto.selectedMoto][1],1)
         moto.changeValue(moto.send[moto.selectedMoto][2],2)
         moto.changeValue(moto.send[moto.selectedMoto][3],3)
@@ -65,32 +66,31 @@ Material.Dialog{
     onAccepted:{
         //下发数据
         var res=new Array(20);
-        res[0]=String(moto.send[0][4])
-        res[1]=String(moto.send[1][4])
-        res[2]=String(moto.send[2][4])
-        res[3]=String(moto.send[3][4])
+        res[0]=moto.send[0][4]
+        res[1]=moto.send[1][4]
+        res[2]=moto.send[2][4]
+        res[3]=moto.send[3][4]
 
-        res[4]=String(moto.send[0][0])
-        res[5]=String(moto.send[1][0])
-        res[6]=String(moto.send[2][0])
-        res[7]=String(moto.send[3][0])
+        res[4]=moto.send[0][0]
+        res[5]=moto.send[1][0]
+        res[6]=moto.send[2][0]
+        res[7]=moto.send[3][0]
 
-        res[8]=String(moto.send[0][1])
-        res[9]=String(moto.send[1][1])
-        res[10]=String(moto.send[2][1])
-        res[11]=String(moto.send[3][1])
+        res[8]=moto.send[0][1]
+        res[9]=moto.send[1][1]
+        res[10]=moto.send[2][1]
+        res[11]=moto.send[3][1]
 
-        res[12]=String(moto.send[0][2])
-        res[13]=String(moto.send[1][2])
-        res[14]=String(moto.send[2][2])
-        res[15]=String(moto.send[3][2])
+        res[12]=moto.send[0][2]
+        res[13]=moto.send[1][2]
+        res[14]=moto.send[2][2]
+        res[15]=moto.send[3][2]
 
-        res[16]=String(moto.send[0][3])
-        res[17]=String(moto.send[1][3])
-        res[18]=String(moto.send[2][3])
-        res[19]=String(moto.send[3][3])
+        res[16]=moto.send[0][3]
+        res[17]=moto.send[1][3]
+        res[18]=moto.send[2][3]
+        res[19]=moto.send[3][3]
 
-        ERModbus.setmodbusFrame(["W","26","20"].concat(res));
         //同时也保存数据
         settings.swingSpeed=Number(send[0][4]);
         settings.zSpeed=Number(send[1][4]);
@@ -102,6 +102,7 @@ Material.Dialog{
         settings.yMoto=Number(send[2][3]);
         settings.xMoto=Number(send[3][3]);
 
+        WeldMath.setMoto(res);
     }
     Keys.onPressed: {
         if((event.key===Qt.Key_F6)&&(moto.showing)){
@@ -230,7 +231,7 @@ Material.Dialog{
             id:column
             width: Material.Units.dp(250)
             Repeater{
-                model:["原点设定:","异常解除:","原点搜索:","电机保护:"]
+                model:["原点设定:","异常解除:","电机测试:","电机保护:"]
                 delegate:ListItem.Subtitled{
                     id:sub
                     height: Material.Units.dp(32)
@@ -253,8 +254,8 @@ Material.Dialog{
                         enabled: sub.subIndex===1?moto.selectedMoto===0?
                                                        errorCode&0x00000080?true:false:moto.selectedMoto===1?
                                                                                  errorCode&0x00001000?true:false:moto.selectedMoto===2?
-                                                                                                           errorCode&0x00020000?true:false:errorCode&0x00400000?true:false:
-                        sub.subIndex===2?false:true
+                                                                                                           errorCode&0x00020000?true:false:errorCode&0x00400000?true:false:true
+
                         onCheckedChanged: {
                             if(moto.selectedIndex<4)
                                 moto.changeSelectedIndex(sub.subIndex);
@@ -300,4 +301,45 @@ Material.Dialog{
             }
         }
     }
+    Component.onCompleted: {
+        for(var i=0;i<4;i++){
+            for(var j=0;j<5;j++){
+                if(j<3)
+                    send[i][j]=0;
+                else if(j===3){
+                    send[i][j]=i===0?settings.swingMoto:i===1?settings.zMoto:i===2?settings.yMoto:settings.xMoto;
+                }
+                else if(j===4){
+                    send[i][j]=i===0?settings.swingSpeed:i===1?settings.zSpeed:i===2?settings.ySpeed:settings.xSpeed;
+                }
+            }
+    }
+        var res=new Array(20);
+        res[0]=moto.send[0][4]
+        res[1]=moto.send[1][4]
+        res[2]=moto.send[2][4]
+        res[3]=moto.send[3][4]
+
+        res[4]=moto.send[0][0]
+        res[5]=moto.send[1][0]
+        res[6]=moto.send[2][0]
+        res[7]=moto.send[3][0]
+
+        res[8]=moto.send[0][1]
+        res[9]=moto.send[1][1]
+        res[10]=moto.send[2][1]
+        res[11]=moto.send[3][1]
+
+        res[12]=moto.send[0][2]
+        res[13]=moto.send[1][2]
+        res[14]=moto.send[2][2]
+        res[15]=moto.send[3][2]
+
+        res[16]=moto.send[0][3]
+        res[17]=moto.send[1][3]
+        res[18]=moto.send[2][3]
+        res[19]=moto.send[3][3]
+                WeldMath.setMoto(res);
+}
+
 }

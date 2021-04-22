@@ -3,7 +3,7 @@ import Material 0.1
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.2 as Controls
 import QtQuick.Window 2.2
-import WeldSys.ERModbus 1.0
+//import WeldSys.ERModbus 1.0
 import WeldSys.WeldMath 1.0
 import WeldSys.MySQL 1.0
 import QtQuick.Layouts 1.1
@@ -38,6 +38,7 @@ TableCard{
             MySQL.getJsonTable(weldRulesName);
         }
         onWeldTableChanged:{//更新数据表
+             console.log("updateModel"+currentGroove+root.objectName)
             updateModel("Clear",{});
             for(var i=0;i<jsonObject.length;i++){
                 updateModel("Append",jsonObject[i]);
@@ -48,8 +49,10 @@ TableCard{
                 currentRow=0;
                 selectIndex(0);
             }
+            console.log("updateModel"+currentGroove+root.objectName+"ok")
             jsonObject.length=0;
         }
+
     }
 
     function getLastweldRulesName(){
@@ -67,8 +70,8 @@ TableCard{
                                  "C9":obj.C9,"C10":obj.C10,"C11":obj.C11,"C12":obj.C12,"C13":obj.C13,"C14":obj.C14,"C15":obj.C15,"C16":obj.C16,"C17":obj.C17,"C18":obj.C18,"C19":obj.C19});
             }
             //更新数据库保存时间
-            MySQL.setValue(weldRulesNameList,"Name",weldRulesName,"EditTime",MyMath.getSysTime());
-            MySQL.setValue(weldRulesNameList,"Name",weldRulesName,"Editor",currentUserName);
+        //    MySQL.setValue(weldRulesNameList,"Name",weldRulesName,"EditTime",MyMath.getSysTime());
+        //    MySQL.setValue(weldRulesNameList,"Name",weldRulesName,"Editor",currentUserName);
             message.open("焊接规范已保存。");
         }else{
             message.open("焊接规范名称格式不符，规范未保存！")
@@ -133,8 +136,8 @@ TableCard{
         Controls.TableViewColumn{role: "C6";title: "焊接速度\n cm/min";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C7";title: "焊接线\n X mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C8";title: "焊接线\n Y mm";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
-        Controls.TableViewColumn{role: "C9";title: "外停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
-        Controls.TableViewColumn{role: "C10";title: "内停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
+        Controls.TableViewColumn{role: "C9";title: "内停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter; },
+        Controls.TableViewColumn{role: "C10";title: "外停留\n     s";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C11";title: "停止\n时间";width:Units.dp(70);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C12";title: "层面积";width:Units.dp(70);movable:false;resizable:false;visible: false},
         Controls.TableViewColumn{role: "C13";title: "道面积";width:Units.dp(70);movable:false;resizable:false;visible: false},

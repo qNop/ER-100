@@ -8,7 +8,7 @@ import QtQuick.Controls 1.3 as QuickControls
 Item {
     id:root
     /*名称必须要有方便 nav打开后寻找焦点*/
-    // objectName: "MyConditionView"
+  //  objectName: "MyConditionView"
     anchors{
         left:parent.left
         top:parent.top
@@ -22,14 +22,13 @@ Item {
             listView.forceActiveFocus()
         }
     }
+    property int lastNum;
 
     Behavior on anchors.leftMargin{NumberAnimation { duration: 400 }}
 
     property int  displayColumn:7
 
-    property var groupModel
-
-    property var listName:["焊接位置","坡口形式","接头形式","背部有无衬垫"]
+    property var groupModel;
 
     property alias model:listView.model
 
@@ -54,7 +53,7 @@ Item {
         }
     }
     signal updateModel(string value)
-    signal changeValue()
+    signal changeValue(int index)
 
     function getEnableNum(num,dir){
         var model=groupModel[selectIndex];
@@ -120,8 +119,8 @@ Item {
                 property int subMax: max
                 property double subIncrement: increment
                 property string subDescription: description
-                property int subModbusReg : modbusReg
                 property alias subCurrentGroup: group.current
+                property bool subRowEnable:rowEnable
                 Material.Label{
                     id: subLabel
                     Layout.alignment: Qt.AlignLeft | Qt.AlignVCenter
@@ -129,6 +128,7 @@ Item {
                     anchors.verticalCenter: parent.verticalCenter
                     text:name
                     elide: Text.ElideRight
+                    color: rowEnable?Material.Theme.light.textColor:Material.Theme.alpha("#000", 0.26)
                     style: "subheading"
                     MouseArea{
                         anchors.fill: parent
@@ -147,49 +147,83 @@ Item {
                         visible: groupOrText
                         model:sub.subGroupOrText?groupModel[sub.subIndex]:0
                         delegate:Material.RadioButton{
-                            canToggle: false
                             checked: index===Number(sub.subValue)
                             text:name
-                            enabled:enable
+                            enabled:sub.subRowEnable?enable:false
                             onClicked:{
                                 listView.currentIndex=sub.subIndex
-                                updateModel(String(index))
-                                changeValue()
+                                updateModel(String(index));
+                                changeValue(selectIndex);
                             }
-                            exclusiveGroup: group
+                            exclusiveGroup:group
                         }
                     }
-                    Material.Label{id:valueLabel;visible:!sub.subGroupOrText;text:sub.subValue}
-                    Material.Label{ text:sub.subValueType;visible:!sub.subGroupOrText }
+                    Material.Label{id:valueLabel;visible:!sub.subGroupOrText;text:sub.subValue;color: rowEnable?Material.Theme.light.textColor:Material.Theme.alpha("#000", 0.26)}
+                    Material.Label{ text:sub.subValueType;visible:!sub.subGroupOrText ;color: rowEnable?Material.Theme.light.textColor:Material.Theme.alpha("#000", 0.26)}
                 }
             }
             Keys.onLeftPressed:{
-                if(listView.currentIndex<groupModel.length){
+              var obj=listView.currentItem;
+                if((obj.subGroupOrText)&&(obj.subRowEnable)){
                     var num=Number(listView.currentItem.subValue);
                     if(num===0) num=0;
                     else{
-                        num=getEnableNum(num,false);
+                        var num1=getEnableNum(num,false);
+                        if(num1!==num)
+                          updateModel(String(num1))
                     }
-                    updateModel(String(num))
                 }
             }
             Keys.onRightPressed:{
-                if(listView.currentIndex<groupModel.length){
+                 var  obj=listView.currentItem;
+                  if((obj.subGroupOrText)&&(obj.subRowEnable)){
                     var num=Number(listView.currentItem.subValue);
                     var max=groupModel[listView.currentIndex].count-1
                     if(num>=max) num=max;
-                    else
-                        num=getEnableNum(num,true);
-                    updateModel(String(num))
+                    else{
+                        var num1=getEnableNum(num,true);
+                        if(num1!==num)
+                        updateModel(String(num1))
+                    }
                 }
             }
-            Keys.onVolumeUpPressed: {}
-            Keys.onVolumeDownPressed: {}
+            Keys.onVolumeUpPressed: {
+                 var obj,min,max,increment,num,n;
+                  obj=listView.currentItem;
+                  if((obj.subGroupOrText===false)&&(obj.subRowEnable)){
+                    min=obj.subMin;
+                    max=obj.subMax;
+                    increment=obj.subIncrement;
+                    num=Number(obj.subValue);
+                    n=getN(increment);
+                    if(num<max) num+=increment;
+                    else num=max;
+                    num=num.toFixed(n);
+                    updateModel(String(num))
+                  }
+                event.accpet=true;
+            }
+            Keys.onVolumeDownPressed: {
+                 var obj,min,max,increment,num,n;
+                obj=listView.currentItem;
+                if((obj.subGroupOrText===false)&&(obj.subRowEnable)){
+                    min=obj.subMin;
+                    max=obj.subMax;
+                    increment=obj.subIncrement;
+                    num=Number(obj.subValue);
+                    n=getN(increment);
+                    if(num>min) num-=increment;
+                    else num=min;
+                    num=num.toFixed(n);
+                    updateModel(String(num))
+               }
+                event.accpet=true;
+            }
             Keys.onPressed: {
                 var obj,min,max,increment,num,n;
                 if(event.key===Qt.Key_Plus){
-                    if(listView.currentIndex>=groupModel.length){
-                        obj=listView.currentItem;
+                     obj=listView.currentItem;
+                     if((obj.subGroupOrText===false)&&(obj.subRowEnable)){
                         min=obj.subMin;
                         max=obj.subMax;
                         increment=obj.subIncrement;
@@ -199,11 +233,11 @@ Item {
                         else num=max;
                         num=num.toFixed(n);
                         updateModel(String(num))
-                        event.accpet=true;
                     }
+                      event.accpet=true;
                 }else if(event.key===Qt.Key_Minus){
-                    if(listView.currentIndex>=groupModel.length){
-                        obj=listView.currentItem;
+                     obj=listView.currentItem;
+                     if((obj.subGroupOrText===false)&&(obj.subRowEnable)){
                         min=obj.subMin;
                         max=obj.subMax;
                         increment=obj.subIncrement;
@@ -213,14 +247,14 @@ Item {
                         else num=min;
                         num=num.toFixed(n);
                         updateModel(String(num))
-                        event.accpet=true;
                     }
+                    event.accpet=true;
                 }
             }
             Keys.onReleased: {
                 if((event.key===Qt.Key_Left)||(event.key===Qt.Key_Right)||(event.key===Qt.Key_VolumeDown)||(event.key===Qt.Key_VolumeUp)||(event.key===Qt.Key_Plus)||(event.key===Qt.Key_Minus)){
                     if((!event.isAutoRepeat))
-                        changeValue();
+                        changeValue(selectIndex);
                      event.accpet=true;
                 }
             }
@@ -242,6 +276,7 @@ Item {
             sourceComponent: root.descriptionComponent===null?file:root.descriptionComponent
         }
     }
+
     Component{
         id:file
         Item{

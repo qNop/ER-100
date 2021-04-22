@@ -31,13 +31,17 @@
         <file>UserAccount.qml</file>
         <file>WeldData.qml</file>
         <file>MotoDialog.qml</file>
-        <file>MyConditionView.qml</file>
         <file>../Pic/logo.png</file>
         <file>MySettings.qml</file>
         <file>MyMath.js</file>
         <file>Tool.qml</file>
         <file>TestMyConditionView.qml</file>
-        <file>TestGrooveCondition.qml</file>
         <file>MyDialog.qml</file>
+        <file>MyPopupBase.qml</file>
+        <file>MyLabel.qml</file>
+        <file>../Pic/填充校正.png</file>
+        <file>../Pic/焊缝延长.png</file>
+        <file>ArcCondition.qml</file>
+        <file>DebugInfor.qml</file>
     </qresource>
 </RCC>

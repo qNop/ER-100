@@ -49,9 +49,13 @@ PopupBase {
 
     property int contentMargins: Units.dp(24)
 
+    property alias loaderSource: loader
+
     property alias title: titleLabel.text
 
     property alias repeaterModel: listView.model
+
+    property alias index: listView.currentIndex
 
     /*!
        \qmlproperty Button negativeButton
@@ -103,12 +107,18 @@ PopupBase {
             rejected();
         }
         if (event.key === Qt.Key_Enter){
-            closeKeyPressed(event);
-            accepted();
+            if(positiveButtonEnabled){
+                closeKeyPressed(event);
+                accepted();
+            }else
+                event.accepted = true
         }
         if (event.key === Qt.Key_Return){
-            closeKeyPressed(event);
-            accepted();
+            if(positiveButtonEnabled){
+                closeKeyPressed(event);
+                accepted();
+            }else
+                event.accepted = true
         }
     }
 
@@ -214,7 +224,7 @@ PopupBase {
                 topMargin: contentMargins/2
             }
             spacing: contentMargins
-            height:(listView.count>10?10:listView.count)*Units.dp(32)
+            height:Math.max((listView.count>10?10:listView.count)*Units.dp(32),loader.height)
 
             Loader{
                 id:loader
@@ -244,7 +254,7 @@ PopupBase {
                         target: dialog
                         onUpdateText:{
                             if(index===row.rowIndex){
-                                 row.rowText=text;
+                                row.rowText=text;
                             }
                         }
                     }
@@ -262,15 +272,26 @@ PopupBase {
                         horizontalAlignment:TextInput.AlignHCenter
                         width:isNum? Units.dp(60):Units.dp(150)
                         focus: index===listView.currentIndex
+                        inputMethodHints:isNum?Qt.ImhPreferNumbers:Qt.ImhNone
+                        errorColor: Theme.primaryColor
                         onTextChanged:{
+                            var num;
                             if(isNum){
-                                if(isNaN(text)&&(text!=="-")){
-                                    text=text.slice(0,text.length-1)
-                                    message.open("请输入数字！")
-                                    return;
+                                if(isNaN(text)){
+                                    textField.hasError=true;
+                                    positiveButtonEnabled=false;
+                                    message.open("请输入汉字！");
+                                }else{
+                                    num=Number(text)
+                                    if(num>max) text=String(max);
+                                    if(num<min) text=String(min);
+                                    if(textField.hasError===true){
+                                        positiveButtonEnabled=true;
+                                        textField.hasError=false;
+                                    }
                                 }
                             }
-                             changeText(index,text);
+                            changeText(index,text);
                         }
                         Keys.onVolumeDownPressed: {
                             var num,temp;
@@ -318,7 +339,6 @@ PopupBase {
 
             View {
                 id: buttonView
-
                 height: parent.height
                 backgroundColor: floatingActions ? "transparent" : "white"
                 elevation: listView.atYEnd ? 0 : 1
@@ -334,7 +354,6 @@ PopupBase {
 
                 Button {
                     id: negativeButton
-
                     visible: hasActions
                     text: negativeButtonText
                     textColor: Theme.accentColor
@@ -354,7 +373,6 @@ PopupBase {
 
                 Button {
                     id: positiveButton
-
                     visible: hasActions
                     text: positiveButtonText
                     textColor: Theme.accentColor

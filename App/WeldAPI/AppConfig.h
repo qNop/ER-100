@@ -23,7 +23,7 @@ public slots:
 
     void setbackLight(int value);
     void setleds(QString status);//leds
-    void setdateTime(QStringList time);
+    //void setdateTime(QStringList time);
     void setlanguage(QString str);
 
     bool screenShot(QQuickWindow *widget);

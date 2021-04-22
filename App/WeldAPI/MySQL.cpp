@@ -7,7 +7,7 @@ SqlThread::SqlThread(){
     pCmdBuf=&cmdBuf;
 }
 SqlThread::~SqlThread(){
-    qDebug()<<"SqlThread::~SqlThread()";
+  //  qDebug()<<"SqlThread::~SqlThread()";
 }
 
 void SqlThread::run(){
@@ -19,9 +19,9 @@ void SqlThread::run(){
     for(;;){
         if(cmdBuf.count()){//如果存在命令则 执行命令行
             QStringList list=cmdBuf.dequeue().split("+");
+           // qDebug()<<list;
             cmd=list.at(0);
             tableName=list.at(1);
-            qDebug()<<cmd.toLatin1();
             if(cmd.startsWith("SELECT")){//包含选择命令
                 status=query.exec(cmd);
                 if(status){ //获取数据库
@@ -99,28 +99,6 @@ void MySQL::renameTable(QString oldName, QString newName){
     else
         emit mySqlStatusChanged(false,oldName);
 }
-/*
-void MySQL::insertTable(QString tableName,QObject* data){
-    if(!tableName.isEmpty()&&data){
-        const QMetaObject* meta= data->metaObject();
-        QString s=" (";
-        QString s1=" (";
-        for(int i=1;i<meta->propertyCount();i++){
-            QVariant value=data->property(meta->property(i).name());
-            s1+=meta->property(i).name();
-            s1+=",";
-            s+="\'"+value.toString()+"\'";
-            s+=",";
-        }
-        s.remove(s.length()-1,1);
-        s+=")";
-        s1.remove(s1.length()-1,1);
-        s1+=")";
-        pSqlThread->pCmdBuf->enqueue("INSERT INTO "+tableName+s1+" VALUES"+s+"+"+tableName);
-       ;
-    }else
-        emit mySqlStatusChanged(false,tableName);
-}*/
 
 void MySQL::insertTableByJson(QString tableName,QJsonObject data){
     if(!tableName.isEmpty()){
@@ -139,6 +117,7 @@ void MySQL::insertTableByJson(QString tableName,QJsonObject data){
         s1.remove(s1.length()-1,1);
         s1+=")";
         pSqlThread->pCmdBuf->enqueue("INSERT INTO "+tableName+s1+" VALUES"+s+"+"+tableName);
+
     }else
         emit mySqlStatusChanged(false,tableName);
 }

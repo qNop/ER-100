@@ -1,172 +1,175 @@
 import QtQuick 2.4
 import Material 0.1 as Material
 import Material.Extras 0.1 as JS
-import WeldSys.ERModbus 1.0
-import Material.ListItems 0.1 as ListItem
-import QtQuick.Controls 1.3 as QuickControls
-import QtQuick.Window 2.2
 import WeldSys.MySQL 1.0
+import WeldSys.WeldMath 1.0
+import Material.ListItems 0.1 as ListItem
+import QtQuick.Controls 1.3 as Controls
+import QtQuick.Layouts 1.1
 
-MyConditionView{
+TestMyConditionView{
     id:root
-    /*名称必须要有方便 nav打开后寻找焦点*/
-    objectName: "TeachCondition"
-    condition: new Array(listName.length)
-    titleName: qsTr("示教条件");
-    property var teachmodemodel: ["全自动","半自动","手动"];
-    property var teachmodeEnable: [true,true,true]
-    property var startendcheckmodel:["自动","手动"];
-    property var startendcheckEnable: [true,true]
-    property var teachfisrtpointmodel: ["左方","右方"];
-    property var teachfisrtpointEnable: [true,true]
-
-    listValueName:[teachmodemodel,startendcheckmodel,teachfisrtpointmodel]
-    listValueNameEnable: [teachmodeEnable,startendcheckEnable,teachfisrtpointEnable]
-    listName: [qsTr("示教模式"),qsTr("始终端检测"),qsTr("示教第一点位置"),qsTr("示教点数"),qsTr("焊接长度"),
-        qsTr("坡口检测点左"),qsTr("坡口检测点右")]
-    listDescription:[
-        "选择全自动、半自动、或手动模式。",
-        "设定焊接起始、终端的检测是自动或是手动。",
-        "设定第一点从左右哪边开始。",
-        "设定示教点数（1~30点任意）。",
-        "示教点数为1点时,设定至第二点的焊接距离。",
-        "设定左端部的延长、缩短量。",
-        "设定右端部的延长、缩短量。"
-    ]
-    valueType: ["点","mm","mm","mm"]
-
+    objectName:"TeachCondition"
+    property int currentGroove
+    titleName:"示教条件"
     signal changeTeachModel(int model) //改变示教模式
     signal changeTeachPoint(int num) //改变示教点数
-    signal changeWeldLength(double num)//改变焊接长度
     signal changeFirstPointLeftOrRight(bool num)//改变示教点位置
+    ListModel{
+        id:teachConditonModel
+        ListElement{name:"示教模式";
+            groupOrText:true;value:"0";valueType:"";min:0;max:2;increment:1;description:"选择全自动、半自动、或手动模式。";rowEnable:true;}
+        ListElement{name:"始终端检测";
+            groupOrText:true;value:"0";valueType:"";min:0;max:1;increment:1;description:"设定焊接起始、终端的检测是自动或是手动。";rowEnable:true;}
+        ListElement{name:"示教第一点位置";
+            groupOrText:true;value:"0";valueType:"";min:0;max:1;increment:1;description:"设定第一点从左右哪边开始。";rowEnable:true;}
+        ListElement{name:"示教点数";
+            groupOrText:false;value:"0";valueType:"点";min:2;max:30;increment:1;description:"设定示教点数（1~30点任意）。";rowEnable:true;}
+        ListElement{name:"焊接长度";
+            groupOrText:false;value:"0";valueType:"mm";min:0;max:100000;increment:1;description:"示教点数为1点时,设定至第二点的焊接距离。";rowEnable:true;}
+        ListElement{name:"坡口检测点左";
+            groupOrText:false;value:"0";valueType:"mm";min:-1000;max:1000;increment:1;description:"设定左端部的延长、缩短量。";rowEnable:true;}
+        ListElement{name:"坡口检测点右";
+            groupOrText:false;value:"0";valueType:"mm";min:-1000;max:1000;increment:1;description:"设定右端部的延长、缩短量。";rowEnable:true;}
+    }
+    model:teachConditonModel
 
-    onChangeGroup: {
-        switch(selectedIndex){
+    property list<ListModel> teachConditionModels:[
+        ListModel{ListElement{name:"全自动";enable:true}ListElement{name:"半自动";enable:true}ListElement{name:"手动";enable:true}}
+        ,ListModel{ListElement{name:"自动";enable:true}ListElement{name:"手动";enable:true}}
+        ,ListModel{ListElement{name:"左方";enable:true}ListElement{name:"右方";enable:true}}
+    ]
+    groupModel: teachConditionModels
+    onUpdateModel: {
+        if(selectIndex!==4)
+            teachConditonModel.setProperty(selectIndex,"value",value);
+        switch(selectIndex){
         case 0:
-            changeGroupCurrent(index,flag);
-            if(index===2){//手动
-                changeEnable(1,0,false)//始终端 手动
-                changeEnable(1,1,true);
-                changeEnable(5,0,false);// 坡口检测点左有效
-                changeEnable(6,0,false);
-                if(root.condition[1]===0){
-                    selectedIndex=1;
-                    changeGroupCurrent(1,false);
-                    selectedIndex=0;
-                    message.open("示教模式为手动时，始终端检测切换为手动。")
-                }
-            }else if(index===1){
-                changeEnable(1,0,true);
-                changeEnable(1,1,false)//始终端 手动
-                changeEnable(5,0,false);// 坡口检测点左有效
-                changeEnable(6,0,false);
-                if(root.condition[1]===1){
-                    selectedIndex=1;
-                    changeGroupCurrent(0,false);
-                    selectedIndex=0;
-                    message.open("示教模式为半自动时，始终端检测切换为自动。")
-                }
-            }else{
-                changeEnable(1,0,true);
-                changeEnable(1,1,true);//始终端 自动
-                changeEnable(5,0,true);// 坡口检测点左有效
-                changeEnable(6,0,true);
+            teachConditionModels[1].setProperty(0,"enable",value==="2"?false:true);
+            teachConditionModels[1].setProperty(1,"enable",value==="2"?true:value==="1"?false:true);
+            var mod=teachConditonModel.get(1).value;
+            if((mod==="1")&&(value==="1")){
+                teachConditonModel.setProperty(1,"value","0")
+                changeValue(1)
+            }else if((value==="2")&&(mod==="0")){
+                teachConditonModel.setProperty(1,"value","1")
+                changeValue(1)
             }
+            teachConditonModel.setProperty(5,"rowEnable",value==="0"?true:false);
+            teachConditonModel.setProperty(6,"rowEnable",value==="0"?true:false);
             break;
-        default :
-            changeGroupCurrent(index,flag);break;
         }
     }
-    onWork: {
-        var frame=new Array(0);
-        frame.push("W");
-        var num=Number(root.condition[index]);
-        if(isNaN(num)){
-            num=0;
-        }
+
+    onChangeValue: {
+        var num=Number(teachConditonModel.get(index).value);
         switch(index){
             //示教模式
-        case 0: frame.push("100");frame.push("1");frame.push(String(num));changeTeachModel(num);break;
+        case 0:
+            changeTeachModel(num);
+            WeldMath.setPara("teachMode",num ,true,false);
+            break;
             //焊接始终端检测
-        case 1:frame.push("101");frame.push("1");frame.push(String(num));break;
-            // 示教第一点位置
-        case 2:frame.push("102");frame.push("1");frame.push(String(num));changeFirstPointLeftOrRight(num);break;
+        case 1:
+            WeldMath.setPara("startEndCheck",num,true,false);
+            break;
+            //示教第一点位置
+        case 2:
+            changeFirstPointLeftOrRight(num);
+            WeldMath.setPara("teachFirstPoint",num,true,false);
+            break;
             //示教点数
-        case 3:frame.push("103");frame.push("1");frame.push(String(num));changeTeachPoint(num);break;
+        case 3:
+             changeTeachPoint(num);
+            WeldMath.setPara("teachPoint",num,true,false);
+            break;
             //焊接长度
-        case 4:frame.push("104");frame.push("1");frame.push(String(num));changeWeldLength(num);break;
+        case 4:
+            WeldMath.setPara("weldLength",num,true,false);
+            break;
             //坡口检测点左
-        case 5:frame.push("105");frame.push("1");frame.push(String(num));break;
+        case 5:
+            WeldMath.setPara("checkLeft",num,true,false);
+            break;
             //坡口检测点右
-        case 6:frame.push("106");frame.push("1");frame.push(String(num));break;
+        case 7:
+            WeldMath.setPara("checkRight",num,false,false);
+            break;
+        }
+        //存储数据
+        MySQL.setValue(root.objectName,"id",index.toString(),"value",num.toString());
+    }
 
-        default:frame.length=0;break;
-        }
-        if(frame.length===4){
-            //下发规范
-            ERModbus.setmodbusFrame(frame)
-        }
-        if(flag){
-            //存储数据
-            MySQL.setValue(root.objectName,"id",index.toString(),"value",num.toString());
-        }
-        console.log(frame)
-        //清空
-        frame.length=0;
-    }
-    onKeyDec:{
-        var num=Number(root.condition[selectedIndex]);
-        if(isNaN(num)) num=0;
-        switch(index){
-            //示教点数
-        case 0:num-=1; if(num<0)num=0;break;
-            //焊接长度
-        case 1:if(flag)num-=10;else num-=1; if(num<0)num=0;break;
-            //检测点左
-        case 2:if(flag)num-=10;else num-=1; if(num<-1000)num=-1000;break;
-            //检测点右
-        case 3:if(flag)num-=10;else num-=1;if(num<-1000)num=-1000;break;
-        }
-        if(index>=0){
-            //变更显示但是不变更数据
-            changeText(num,true);
-        }
-    }
-    onKeyInc:{
-        var num=Number(root.condition[selectedIndex]);
-        if(isNaN(num)) num=0;
-        switch(index){
-            //示教点数
-        case 0:num+=1; if(num>30)num=30;break;
-            //焊接长度
-        case 1:if(flag)num+=10;else num+=1; if(num>10000)num=10000;break;
-            //检测点左
-        case 2:if(flag)num+=10;else num+=1; if(num>1000)num=1000;break;
-            //检测点右
-        case 3:if(flag)num+=10;else num+=1; if(num>1000)num=1000;break;
-        }
-        if(index>=0){
-            //变更显示但是不变更数据
-            changeText(num,true);
-        }
-    }
     Connections{
         target: MySQL
         onTeachConditionChanged:{
-                condition.length=0;
-                for(var i=0;i<jsonObject.length;i++){
-                    condition.push(Number(jsonObject[i].value));
+            for(var i=0;i<7;i++){
+                teachConditonModel.setProperty(i,"value",String(jsonObject[i].value));
+                var num=Number(jsonObject[i].value);
+                switch(i){
+                    //示教模式
+                case 0:
+                    changeTeachModel(num);
+                    WeldMath.setPara("teachMode",num ,true,false);
+                    break;
+                    //焊接始终端检测
+                case 1:
+                    WeldMath.setPara("startEndCheck",num,true,false);
+                    break;
+                    // 示教第一点位置
+                case 2:
+                    changeFirstPointLeftOrRight(num);
+                    WeldMath.setPara("teachFirstPoint",num,true,false);
+                    break;
+                    //示教点数
+                case 3:
+                    changeTeachPoint(num);
+                    WeldMath.setPara("teachPoint",num,true,false);
+                    break;
+                    //焊接长度
+                case 4:
+                    //WeldMath.setPara("weldLength",num,true,false);
+                    break;
+                    //坡口检测点左
+                case 5:
+                    WeldMath.setPara("checkLeft",num,true,false);
+                    break;
+                    //坡口检测点右
+                case 6:
+                    WeldMath.setPara("checkRight",num,false,false);
+                    break;
                 }
-                update();
-                //下发数据
-                for( i=0;i<listName.length;i++){
-                    work(i,false);
-                }
-                if(root.condition[0]===2)
-                    changeEnable(1,0,false);
             }
+            var value=teachConditonModel.get(0).value;
+            teachConditionModels[1].setProperty(0,"enable",value==="2"?false:true);
+            teachConditionModels[1].setProperty(1,"enable",value==="2"?true:value==="1"?false:true);
+            teachConditonModel.setProperty(5,"rowEnable",value==="0"?true:false);
+            teachConditonModel.setProperty(6,"rowEnable",value==="0"?true:false);
+        }
     }
+    Connections{
+        target: WeldMath
+        onEr100_UpdateWeldLength:{
+            teachConditonModel.setProperty(4,"value",String(value));
+            MySQL.setValue(root.objectName,"id",String(4),"value",String(value));
+        }
+        onEr100_TeachSet:{
+            var setValue
+            for(var i=2;i<6;i++){
+                setValue=Number(value[i]);
+                if(setValue!==Number(teachConditonModel.get(i-1).value)){
+                    if(i==4){
+                        changeTeachPoint(setValue);
+                    }
+                    teachConditonModel.setProperty(i-1,"value",String(setValue))
+                    MySQL.setValue(root.objectName,"id",String(i-1),"value",String(setValue));
+                }
+            }
+        }
+    }
+
     Component.onCompleted: {
-        MySQL.getJsonTable(objectName);
+        //变更限制条件
+        MySQL.getJsonTable(objectName)
     }
 }

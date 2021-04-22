@@ -1,6 +1,5 @@
 import QtQuick 2.4
-
-import WeldSys.ERModbus 1.0
+import WeldSys.WeldMath 1.0
 import Material 0.1
 import QtQuick.Layouts 1.1
 
@@ -20,17 +19,22 @@ Item {
     Behavior on anchors.leftMargin{NumberAnimation { duration: 200 }}
     property string name
     //处理版本
+    // 15-12 硬件改动 11-7 软件改动 6-0 bug修复
     function doInfor(str){
-        if(typeof(str)==="string"){
-            str="Version "+str.slice(0,1)+"."+str.slice(2,3)+"."+str.slice(-2);
-            return str;
-        }else
+        var code,sysI,sysC,sysBug
+            code=Number(str);
+            sysI=code&0xf000;
+            sysI=sysI>>12;
+            sysC=code&0x0f80;
+             sysC=sysC>>7;
+            sysBug=code&0x007f;
+            str="Version "+String(sysI)+"."+String(sysC)+"."+String(sysBug);
             return str;
     }
-
+    //系统程序版本、数据版本、操作盒版本、公司名称、公司地址、邮编、电话、网址。
     property var inforName: ["产品名称","产品代号",
         "系统版本号","控制器版本号","驱动器版本号","操作盒版本号","公司名称","公司地址","邮编","电话","网址"]
-    property var infor:  ["轨道式智能焊接系统","ER-100", "Version 1.0.0 Beta1 / Version 1.0.0","Version 1.0.0","Version 1.0.0","Version 1.0.0","唐山开元特种焊接设备有限公司","河北省唐山市高新区庆南西道92号","063020","0315-6710298","www.spec-welding.com"]
+    property var infor:  ["轨道式智能焊接系统","ER-100", "Version 1.0.4 / Version 1.0.3","Version 1.0.0","Version 1.0.0","Version 1.0.0","唐山开元自动焊接装备有限公司","河北省唐山市高新区庆南西道92号","063020","0315-6710298","www.autoweld.com.cn"]
     signal changeInfor(int selectedIndex,string str)
     Card{
         anchors{left:parent.left;right:parent.right;top:parent.top;bottom:parent.bottom;margins: Units.dp(12)}
@@ -93,18 +97,15 @@ Item {
         }
     }
     Connections{
-        target: ERModbus
+        target: WeldMath
         //frame[0] 代表状态 1代读取的寄存器地址 2代表返回的 第一个数据 3代表返回的第二个数据 依次递推
-        onModbusFrameChanged:{
-            if((frame[0]==="Success")&&(frame[1]==="500")){
-                root.changeInfor(3,doInfor(frame[2]));
-                root.changeInfor(4,doInfor(frame[3]));
-                root.changeInfor(5,doInfor(frame[4]));
-            }
+        onEr100_Version:{
+            changeInfor(3,doInfor(code1));
+            changeInfor(4,doInfor(code2));
+            changeInfor(5,doInfor(code3));
         }
     }
-
     Component.onCompleted: {
-        ERModbus.setmodbusFrame(["R","500","3"]);
+        WeldMath.readVersion();
     }
 }

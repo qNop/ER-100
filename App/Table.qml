@@ -3,8 +3,6 @@ import Material 0.1
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.2 as Controls
 import QtQuick.Window 2.2
-import WeldSys.ERModbus 1.0
-import WeldSys.WeldMath 1.0
 import QtQuick.Layouts 1.1
 
 Controls.TableView{
@@ -26,7 +24,7 @@ Controls.TableView{
     ThinDivider{anchors.bottom:tableview.bottom;color:Palette.colors["grey"]["500"]}
     //不显示
     horizontalScrollBarPolicy:  Qt.ScrollBarAlwaysOff
-    verticalScrollBarPolicy: Qt.ScrollBarAlwaysOn
+    verticalScrollBarPolicy: Qt.ScrollBarAlwaysOff
     Controls.TableViewColumn{
         id:firstColumnData
         role:"ID"

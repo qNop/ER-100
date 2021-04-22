@@ -41,6 +41,7 @@ TableCard {
             MySQL.getJsonTable(limitedRulesName);
         }
         onLimitedTableChanged:{//更新数据表
+             console.log("updateModel"+currentGroove+root.objectName)
             updateModel("Clear",{});
             for(var i=0;i<jsonObject.length;i++){
                 updateModel("Append",jsonObject[i]);
@@ -59,9 +60,13 @@ TableCard {
     }
 
     function setLimited(){
-        for(var i=0;i<model.count;i++){
-            WeldMath.setLimited(model.get(i));
-        }
+        if((model.count>4)&&(model.count<7)){
+            for(var i=0;i<model.count;i++){
+                WeldMath.setLimited(model.get(i));
+            }
+            return true;
+        }else
+            return false;
     }
 
     function save(){
@@ -72,11 +77,11 @@ TableCard {
                 var obj=model.get(i);
                 //插入新的数据
                 MySQL.insertTableByJson(limitedRulesName,{"ID":obj.ID,"C1":obj.C1,"C2":obj.C2,"C3":obj.C3,"C4":obj.C4,"C5":obj.C5,"C6":obj.C6,"C7":obj.C7,"C8":obj.C8,
-                                      "C9":obj.C9,"C10":obj.C10,"C11":obj.C11});
+                                            "C9":obj.C9,"C10":obj.C10,"C11":obj.C11});
             }
             //更新数据库保存时间
-            MySQL.setValue(limitedRulesNameList,"Name",limitedRulesName,"EditTime",MyMath.getSysTime());
-            MySQL.setValue(limitedRulesNameList,"Name",limitedRulesName,"Editor",currentUserName);
+           // MySQL.setValue(limitedRulesNameList,"Name",limitedRulesName,"EditTime",MyMath.getSysTime());
+           // MySQL.setValue(limitedRulesNameList,"Name",limitedRulesName,"Editor",currentUserName);
             message.open("限制条件已保存！")
         }else{
             message.open("限制条件格式不是字符串！")
@@ -88,13 +93,13 @@ TableCard {
     }
     function removeName(name){
         //搜寻最近列表 删除本次列表 更新 最近列表如model
-        message.open("正在删除限制条件表格！");
+       // message.open("正在删除限制条件表格！");
         //删除坡口条件表格
-        MySQL.deleteTable(limitedRulesName)
+      //  MySQL.deleteTable(limitedRulesName)
         //删除在坡口条件列表链接
-        MySQL.clearTable(limitedRulesNameList,"Name",limitedRulesName)
+        //MySQL.clearTable(limitedRulesNameList,"Name",limitedRulesName)
         //选择最新的表格替换
-        getLastRulesName();
+        //getLastRulesName();
         //提示
         message.open("已删除限制条件表格！")
     }
@@ -132,8 +137,8 @@ TableCard {
         Controls.TableViewColumn{role: "C6";title: "分道间隔\n   (mm)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;},
         Controls.TableViewColumn{role: "C7";title: "分开结束比\n       (%)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C8";title: "焊接电压\n     (V)";width:Units.dp(80);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-        Controls.TableViewColumn{role: "C10";title:"层填充系数\n       (%)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
-        Controls.TableViewColumn{role: "C9";title: "焊接速度Min/Max\n        (cm/min)";width:Units.dp(160);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
+        Controls.TableViewColumn{role: "C10";title:"层填充系数\n       (%)";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: false},
+        Controls.TableViewColumn{role: "C9";title: "焊接速度Min/Max\n        (mm/min)";width:Units.dp(160);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter},
         Controls.TableViewColumn{role: "C11";title:"代码";width:Units.dp(100);movable:false;resizable:false;horizontalAlignment:Text.AlignHCenter;visible: false}
     ]
 

@@ -3,8 +3,6 @@ import Material 0.1
 import Material.ListItems 0.1 as ListItem
 import QtQuick.Controls 1.2 as Controls
 import QtQuick.Window 2.2
-import WeldSys.ERModbus 1.0
-import WeldSys.WeldMath 1.0
 import QtQuick.Layouts 1.1
 
 Card{
@@ -15,7 +13,6 @@ Card{
         top:parent.top;
         leftMargin:visible?Units.dp(12):Units.dp(250)
         topMargin: Units.dp(12)
-
     }
     width:parent.width-2*Units.dp(12);
 
@@ -38,6 +35,7 @@ Card{
     property alias footer: footerItem
 
     property Item message
+
 
     //外部更新数据
     signal updateModel(string str,var data);

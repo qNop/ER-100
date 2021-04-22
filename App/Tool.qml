@@ -1,9 +1,9 @@
 import QtQuick 2.4
 import Material 0.1
 import WeldSys.WeldMath 1.0
-import WeldSys.MySQL 1.0
 import QtQuick.Controls 1.2 as Controls
-import WeldSys.ERModbus 1.0
+import Material.Extras 0.1
+
 import "MyMath.js" as MyMath
 
 OverlayLayer {
@@ -12,8 +12,7 @@ OverlayLayer {
     z:message.opened?4:0
     property alias message: snackbar
     property string status
-    property int errorCode
-    property int errorCode1
+    property bool errorCode
 
     property var settings
 
@@ -26,6 +25,7 @@ OverlayLayer {
     signal toggleMyErrorDialog();
     signal openMotoDialog();
     signal toggleMotoDialog();
+    signal openControlStatusDialog();
 
     property var model
     property int currentRow
@@ -33,7 +33,7 @@ OverlayLayer {
     property string modelName
     property string toolName
     property string currentNameList
-    property string currentName
+    property string currentName;
     property var currentNameListModel
 
     signal updateDisplay();
@@ -57,7 +57,7 @@ OverlayLayer {
             }},
         Action{iconName:"awesome/credit_card";name:"另存为";enabled: false
             onTriggered: {newFile.saveAs=true;newFile.show();}},
-        Action{iconName:"awesome/trash_o";name:"删除";enabled: currentNameList.replace("列表","")===currentName?false:true
+        Action{iconName:"awesome/trash_o";name:"删除";enabled: false//currentNameList.replace("列表","")===currentName?false:true
             onTriggered: remove.show();}
     ]
     signal updateGrooveTable(string str,var data);
@@ -175,6 +175,7 @@ OverlayLayer {
     signal setLimited();
     signal sendWeldData();
     signal userUpdate();
+    signal fixWeldShow();
     property int teachModel
     property list<Action> funcMenu:[
         Action{id:first;iconName:tablePageNumber===3?"awesome/user":"awesome/send_o";hoverAnimation:true;summary: "F4";visible: tablePageNumber<4
@@ -189,7 +190,19 @@ OverlayLayer {
                 }
             }
         },
-        Action{id:second;iconName: "awesome/server";name:"条件补正"; onTriggered:fixDialogShow()
+        Action{id:second;iconName: "awesome/server";name:"条件补正"; onTriggered:{
+                switch(tablePageNumber){
+                case 0:fixDialogShow();break;
+                case 2:fixWeld.show();break;
+                }
+            }
+        },
+        Action{id:third;iconName: "awesome/server";name:"路径设置"; visible:false;onTriggered:{
+                switch(tablePageNumber){
+                //case 0:fixWel.show();break;
+                  case 2:pathDialog.show();break;
+                }
+            }
         }
     ]
     MenuDropdown{id:fileDropdown;actions:fileMenu;place:0}
@@ -202,7 +215,7 @@ OverlayLayer {
             onTriggered: {
                 //source为triggered的传递参数
                 //更新List
-          updateDisplay()
+                updateDisplay()
                 fileDropdown.open(source,0,source.height+3);
             }
         },
@@ -241,11 +254,14 @@ OverlayLayer {
                 updateDisplay()
                 switch(tablePageNumber){
                 case 0:first.name="生成规范";first.iconName="awesome/send_o";first.visible=true;
-                    second.visible=true;second.enabled=(teachModel===1)&&(visible);break;
-                case 1:first.name="更新算法";first.iconName="awesome/send_o";first.visible=true;second.visible=false;break;
-                case 2:first.name="下发规范";first.iconName="awesome/send_o";first.visible=true;second.visible=false;break;
-                case 3:first.name="登录用户";first.iconName="awesome/user";first.visible=true;second.visible=false;break;
-                case 4:first.visible=false;second.visible=false;break;
+                    second.name="条件补正";
+                    second.visible=true;second.enabled=(teachModel===1)&&(visible);third.visible=false;
+                    break;
+                case 1:first.name="更新算法";first.iconName="awesome/send_o";first.visible=true;second.visible=false;third.visible=false;break;
+                case 2:first.name="下发规范";first.iconName="awesome/send_o";first.visible=true;
+                    second.name="焊缝更改";second.iconName="awesome/server";second.visible=true;   break;
+                case 3:first.name="登录用户";first.iconName="awesome/user";first.visible=true;second.visible=false;third.visible=false;break;
+                case 4:first.visible=false;second.visible=false;third.visible=false;break;
                 }
                 funcDropdown.open(source,0,source.height+3);
             }
@@ -267,18 +283,21 @@ OverlayLayer {
     /*危险报警action*/
     ActionButton{
         id:error
-        iconName: errorCode||errorCode1?"alert/warning":status==="空闲态"?"awesome/play":
-                                                                        status==="坡口检测态"?"awesome/flash":
-                                                                                          status==="焊接态"?"user/MAG":
-                                                                                                          status==="坡口检测完成态"?"awesome/step_forward":
-                                                                                                                              status==="停止态"?"awesome/stop": "awesome/pause"
+        iconName: errorCode?"alert/warning":status==="空闲态"?"awesome/play":
+                                                            status==="坡口检测态"?"awesome/flash":
+                                                                              status==="焊接态"?"user/MAG":
+                                                                                              status==="坡口检测完成态"?"awesome/step_forward":
+                                                                                                                  status==="停止态"?"awesome/stop": "awesome/pause"
         anchors.right: robot.visible? robot.left:message.left
         anchors.rightMargin: Units.dp(16)
         anchors.verticalCenter: message.verticalCenter
         isMiniSize: true
         onPressedChanged: {
             if(pressed){
-                openMyErrorDialog();
+                if(errorCode)
+                         openMyErrorDialog();
+                else
+                    openControlStatusDialog();
             }
         }
     }
@@ -504,32 +523,20 @@ OverlayLayer {
         ListElement{name:"角  度β2(deg):";value:"";min:-180;max:180;isNum:true;step:0.1}
     }
 
-    onCurrentGrooveChanged: {
-        grooveRules.setProperty(1,"name",currentGroove===8?"脚   长ι1(mm):":"板    厚δ(mm):")
-        grooveRules.setProperty(2,"name",currentGroove===8||currentGroove==0||currentGroove==3||currentGroove==5?"脚   长ι2(mm):":"板厚差e(mm):")
-        if(currentGroove===8){
-            grooveRules.remove(3);
-        }else {
-            if(grooveRules.count<6){
-                grooveRules.insert(3,{"name":"间    隙b(mm):","value":" ","min":0,"max":100,"isNum":true,"step":0.1})
-            }
-        }
-    }
-
     ListModel{
         id:limitedRules
-        ListElement{name:"坡口侧          电流       (A):";value:"";min:10;max:350;isNum:true;step:1}
-        ListElement{name:"中间              电流       (A):";value:"";min:10;max:350;isNum:true;step:1}
-        ListElement{name:"非坡口侧      电流       (A):";value:"";min:10;max:350;isNum:true;step:1}
+        ListElement{name:"坡口侧          电流       (A):";value:"";min:10;max:380;isNum:true;step:1}
+        ListElement{name:"中间              电流       (A):";value:"";min:10;max:380;isNum:true;step:1}
+        ListElement{name:"非坡口侧      电流       (A):";value:"";min:10;max:380;isNum:true;step:1}
         ListElement{name:"坡口侧      停留时间    (s):";value:"";min:0;max:5;isNum:true;step:0.01}
         ListElement{name:"非坡口侧  停留时间    (s):";value:"";min:0;max:5;isNum:true;step:0.01}
         ListElement{name:"层      高      Min     (mm):";value:"";min:1;max:10;isNum:true;step:0.1}
         ListElement{name:"层      高      Max    (mm):";value:"";min:1;max:10;isNum:true;step:0.1}
         ListElement{name:"坡口侧    接近距离(mm):";value:"";min:-50;max:50;isNum:true;step:0.1}
         ListElement{name:"非坡口侧接近距离(mm):";value:"";min:-50;max:50;isNum:true;step:0.1}
-        ListElement{name:"摆  动  宽  度  Max (mm):";value:"";min:1;max:100;isNum:true;step:0.1}
-        ListElement{name:"分    道    间   隔     (mm):";value:"";min:0;max:100;isNum:true;step:0.1}
-        ListElement{name:"分    开    结   束  比   (%):";value:"";min:0;max:1;isNum:true;step:0.01}
+        ListElement{name:"摆  动  宽  度  Max (mm):";value:"";min:0;max:100;isNum:true;step:0.1}
+        ListElement{name:"分    道    间   隔     (mm):";value:"";min:-10;max:100;isNum:true;step:0.1}
+        ListElement{name:"分    开    结   束  比   (%):";value:"";min:0;max:2;isNum:true;step:0.01}
         ListElement{name:"焊    接    电     压        (V):";value:"";min:0;max:50;isNum:true;step:0.1}
         ListElement{name:"焊接速度Min  (mm/min):";value:"";min:0;max:2000;isNum:true;step:0.1}
         ListElement{name:"焊接速度Max (mm/min):";value:"";min:0;max:2000;isNum:true;step:0.1}
@@ -571,12 +578,118 @@ OverlayLayer {
         ListElement{name:"所在班组：";value:"";min:10;max:300;isNum:false;step:1}
         ListElement{name:"备        注：";value:"";min:10;max:300;isNum:false;step:1}
     }
+    ListModel{
+        id:fixWeldRules
+   //     ListElement{name:"坡口剩余深度A(mm)：";value:"";min:-100;max:100;isNum:true;step:1}
+      //  ListElement{name:"坡口剩余深度B(mm)：";value:"";min:-100;max:100;isNum:true;step:1}
+        ListElement{name:"起弧位置外延(mm)：";value:"";min:-1000;max:1000;isNum:true;step:1}
+        ListElement{name:"收弧位置外延(mm)：";value:"";min:-1000;max:1000;isNum:true;step:1}
+       // ListElement{name:"弧形轨道半径E  (cm)：";value:"";min:0;max:10000;isNum:true;step:1}
+        //ListElement{name:"E(mm)：";value:"";min:1;max:1000;isNum:true;step:1}
+        ListElement{name:"焊道整体偏移(mm)：";value:"";min:0;max:1000;isNum:true;step:1}
+    }
+    ListModel{
+      id:pathRules
+      ListElement{name:"  command: ";value:"";min:0;max:3;isNum:true;step:1}
+      ListElement{name:"              top: ";value:"";min:0;max:100;isNum:true;step:0.1}
+      ListElement{name:"       bottom: ";value:"";min:0;max:100;isNum:true;step:0.1}
+      ListElement{name:"           deep: ";value:"";min:0;max:100;isNum:true;step:0.1}
+      ListElement{name:"         speed: ";value:"";min:0;max:200;isNum:true;step:1}
+      ListElement{name:"      xCenter: ";value:"";min:0;max:100;isNum:true;step:1}
+      ListElement{name:"      yCenter: ";value:"";min:0;max:100;isNum:true;step:1}
+      ListElement{name:"bom_st_out: ";value:"";min:0;max:2;isNum:true;step:0.1}
+      ListElement{name:"  bom_st_in: ";value:"";min:0;max:2;isNum:true;step:0.1}
+      ListElement{name:"  top_st_out: ";value:"";min:0;max:2;isNum:true;step:0.1}
+      ListElement{name:"     top_st_in: ";value:"";min:0;max:2;isNum:true;step:0.1}
+    }
+
     property string limitedString
+
+    MyDialog{
+           id:pathDialog
+           title: "Path Set"
+           loaderSource.visible: false;
+           repeaterModel:pathRules
+           onOpened: {
+               updateText(0,settings.cmd);
+               updateText(1,settings.top);
+               updateText(2,settings.bottom);
+               updateText(3,settings.deep);
+               updateText(4,settings.speed);
+
+               updateText(5,settings.xCenter);
+               updateText(6,settings.yCenter);
+               updateText(7,settings.bOut/10);
+               updateText(8,settings.bIn/10);
+               updateText(9,settings.tOut/10);
+               updateText(10,settings.tIn/10);
+           }
+           onAccepted: {
+            var pathData=new Array(11);
+               pathData[0]=settings.cmd=getText(0);
+               settings.top=getText(1);
+               settings.bottom=getText(2);
+                settings.deep=getText(3);
+               settings.speed=getText(4);
+               settings.xCenter=getText(5);
+               settings.yCenter=getText(6);
+                settings.bOut=getText(7)*10;
+               settings.bIn=getText(8)*10;
+               settings.tOut=getText(9)*10;
+               settings.tIn=getText(10)*10;
+               pathData[1]=settings.top*10;
+               pathData[2]= settings.bottom*10;
+               pathData[3]= settings.deep*10;
+               pathData[4]=settings.speed*10;
+               pathData[5]=settings.xCenter*10;
+               pathData[6]=settings.xCenter*10;
+               pathData[7]=settings.bOut;
+               pathData[8]= settings.bIn;
+               pathData[9]=settings.tOut;
+               pathData[10]= settings.tIn;
+               WeldMath.setPath(pathData);
+           }
+    }
+
+    MyDialog{
+        id:fixWeld
+        title:"焊缝更改"
+        repeaterModel: fixWeldRules
+        loaderVisible: false;
+        message: root.message
+      /*  sourceComponent:Image{
+            source: "../Pic/填充校正.png"
+            sourceSize.width: Units.dp(250)
+        }*/
+        onOpened: {
+            updateText(0,settings.c);
+            updateText(1,settings.d);
+            updateText(2,settings.e);
+           // updateText(3,settings.d);
+           // updateText(4,settings.e);
+        }
+    /*    onIndexChanged: {
+            if(fixWeld.loaderSource.status==Loader.Ready){
+                if(fixWeld.index>1){
+                    fixWeld.loaderSource.item.source="../Pic/焊缝延长.png";
+                }else{
+                    fixWeld.loaderSource.item.source="../Pic/填充校正.png";
+                }
+            }
+        }*/
+        onAccepted: {
+          //  settings.a=getText(0);
+           // settings.b=getText(1);
+            settings.c=getText(0);
+            settings.d=getText(1);
+            settings.e=getText(2);
+            WeldMath.setFixPara(settings.a,settings.b,settings.c,settings.d,settings.e);
+        }
+    }
 
     MyDialog{
         id:groove
         sourceComponent:Image{
-            id:addImage
             source: "../Pic/坡口参数图.png"
             sourceSize.width: Units.dp(350)
         }
@@ -585,30 +698,25 @@ OverlayLayer {
         message: root.message
         onAccepted: {
             updateModel("grooveModel",title==="编辑坡口条件"?"Set":"Append",currentRow,
-                                                        {"ID":getText(0),"C1":getText(1),"C2":getText(2),
-                                                            "C3":currentGroove===8?"0":getText(3),
-                                                                                    "C4":currentGroove===8?getText(3):getText(4),"C5":currentGroove===8?getText(4):getText(5),
-                                                                                                                                                         "C6":title==="编辑坡口条件"?model.get(currentRow).C6:"0",
-                                                                                                                                                                                "C7":title==="编辑坡口条件"?model.get(currentRow).C7:"0",
-                                                                                                                                                                                                       "C8":title==="编辑坡口条件"?model.get(currentRow).C8:"0", })
-
+                                                        {"ID":getText(0),"C1":getText(1),"C2":getText(2),"C3":currentGroove===8?"0":getText(3),
+                                                                                                                                 "C4":getText(4),"C5":getText(5), "C6":title==="编辑坡口条件"?model.get(currentRow).C6:"0",
+                                                                                                                                                                                         "C7":title==="编辑坡口条件"?model.get(currentRow).C7:"0",
+                                                                                                                                                                                                                "C8":title==="编辑坡口条件"?model.get(currentRow).C8:"0", })
         }
         onOpened: {
             var i,res,obj;
+            grooveRules.setProperty(1,"name",currentGroove===8?"脚   长ι1(mm):":"板    厚δ(mm):")
+            grooveRules.setProperty(2,"name",currentGroove===8||currentGroove==0||currentGroove==3||currentGroove==5?"脚   长ι2(mm):":"板厚差e(mm):")
             if(title==="编辑坡口条件"){
                 if(currentRow>-1){
                     obj=model.get(currentRow);
                     updateText(0,obj.ID);
                     updateText(1,obj.C1);
                     updateText(2,obj.C2);
-                    if(currentGroove===8){
-                        updateText(3,obj.C4);
-                        updateText(4,obj.C5);
-                    }else{
-                        updateText(3,obj.C3);
-                        updateText(4,obj.C4);
-                        updateText(5,obj.C5);
-                    }
+                    updateText(3,obj.C3);
+                    updateText(4,obj.C4);
+                    updateText(5,obj.C5);
+                   // updateText(6,obj.C8);
                 }else{
                     message.open("请选择要编辑的行！")
                     positiveButtonEnabled=false;
@@ -632,9 +740,9 @@ OverlayLayer {
             var count=model.count;
             var str1=count===0?"陶瓷衬垫":count===1?"打底层":count===2?"第二层":count===3?"填充层":count===4?"盖面层":"立板余高层"
             updateModel("limitedModel",title==="编辑限制条件"?"Set":"Append",currentRow,{"ID":title==="编辑限制条件"?str:str1,"C1":getText(0)+"/"+getText(1)+"/"+getText(2),
-                                                                                                                "C2":getText(3)+"/"+getText(4), "C3":getText(5)+"/"+getText(6),"C4":getText(7)+"/"+getText(8),"C5":getText(9),
-                                                                                                                "C6":getText(10), "C7":getText(11),"C8":getText(12),"C9":getText(13)+"/"+getText(14),"C10":getText(15),
-                                                                                                                "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
+                                                                                                          "C2":getText(3)+"/"+getText(4), "C3":getText(5)+"/"+getText(6),"C4":getText(7)+"/"+getText(8),"C5":getText(9),
+                                                                                                          "C6":getText(10), "C7":getText(11),"C8":getText(12),"C9":getText(13)+"/"+getText(14),"C10":getText(15),
+                                                                                                          "C11":limitedString==="_实芯碳钢_脉冲无_CO2_12"?"4":limitedString==="_药芯碳钢_脉冲无_CO2_12"?"68":limitedString==="_实芯碳钢_脉冲无_MAG_12"?"260":"388"
                                                          }
                         )
         }
@@ -671,7 +779,7 @@ OverlayLayer {
                                                       {"ID":getText(0), "C1":getText(1)+"/"+getText(2),"C2":getText(3),"C3":getText(4),"C4":getText(5),"C5":getText(6),"C6":getText(7),
                                                           "C7":getText(8),"C8":getText(9),"C9":getText(10),"C10":getText(11),"C11":getText(12),
                                                           "C12":title==="编辑焊接规范"?model.get(currentRow).C12:"0","C13":title==="编辑焊接规范"?model.get(currentRow).C13:"0",
-                                                                                                                                                  "C14":getText(13),"C15":getText(14),"C16":getText(15),"C17":getText(16),"C18":getText(17),"C19":getText(18)})
+                                                                                                                                       "C14":getText(13),"C15":getText(14),"C16":getText(15),"C17":getText(16),"C18":getText(17),"C19":getText(18)})
         }
         onOpened: {
             var i,obj
@@ -689,22 +797,22 @@ OverlayLayer {
                         updateText(1,"0");
                         updateText(2,"0");
                     }
-                     updateText(3,obj.C2);
-                     updateText(4,obj.C3);
-                     updateText(5,obj.C4);
-                     updateText(6,obj.C5);
-                     updateText(7,obj.C6);
-                     updateText(8,obj.C7);
-                     updateText(9,obj.C8);
-                     updateText(10,obj.C9);
-                     updateText(11,obj.C10);
-                     updateText(12,obj.C11);
-                     updateText(13,obj.C14);
-                     updateText(14,obj.C15);
-                     updateText(15,obj.C16);
-                     updateText(16,obj.C17);
-                     updateText(17,obj.C18);
-                     updateText(18,obj.C19);
+                    updateText(3,obj.C2);
+                    updateText(4,obj.C3);
+                    updateText(5,obj.C4);
+                    updateText(6,obj.C5);
+                    updateText(7,obj.C6);
+                    updateText(8,obj.C7);
+                    updateText(9,obj.C8);
+                    updateText(10,obj.C9);
+                    updateText(11,obj.C10);
+                    updateText(12,obj.C11);
+                    updateText(13,obj.C14);
+                    updateText(14,obj.C15);
+                    updateText(15,obj.C16);
+                    updateText(16,obj.C17);
+                    updateText(17,obj.C18);
+                    updateText(18,obj.C19);
                 }else{
                     message.open("请选择要编辑的行！")
                 }

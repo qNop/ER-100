@@ -11,13 +11,13 @@
 
 
 //==============================================================================
-QObject* ERModbusEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
+/*QObject* ERModbusEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
     Q_UNUSED(scriptEngine)
     ERModbus *p=new ERModbus();
     return p;
-}
+}*/
 QObject* AppConfigEngineProvider(QQmlEngine *engine, QJSEngine *scriptEngine)
 {
     Q_UNUSED(engine)
@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
     qputenv("QT_IM_MODULE", QByteArray("qtvirtualkeyboard"));
     //配置文件存储目录
    if(qgetenv("QTDIR")=="/usr/local/Qt-5.5.0"){
-        qputenv("HOME",QByteArray("/mnt/hgfs/linuxwin7共享/ER-100/RootFs/Nop/Update"));
+        qputenv("HOME",QByteArray("/home/nop/ER-100/RootFs/Nop/Update"));
     }else
         qputenv("HOME",QByteArray("/usr/local/ER-100/Nop"));
     //qDebug()<<qgetenv("QT_IM_MODULE");
@@ -58,7 +58,6 @@ int main(int argc, char *argv[])
     // QLocale.setDefault();
     QApplication app(argc, argv);
     qmlRegisterSingletonType<AppConfig>("WeldSys.AppConfig",1,0,"AppConfig",AppConfigEngineProvider);
-    qmlRegisterSingletonType<ERModbus>("WeldSys.ERModbus",1,0,"ERModbus",ERModbusEngineProvider);
     qmlRegisterSingletonType<WeldMath>("WeldSys.WeldMath",1,0,"WeldMath",WeldMathEngineProvider);
     qmlRegisterSingletonType<MySQL>("WeldSys.MySQL",1,0,"MySQL",SQLEngineProvider);
     app.setOrganizationName("TangShanKaiYuanSpecialWeldingEquipmentCo.,Ltd");
